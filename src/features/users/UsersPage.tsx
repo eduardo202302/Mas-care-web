@@ -1,0 +1,498 @@
+import { useMemo, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { KeyRound, Plus, RefreshCw, Search, UserRound } from 'lucide-react'
+import { DataTable, RowActions } from '@/components/DataTable'
+import { Pagination } from '@/components/Pagination'
+import { Dialog } from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/Button'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { TableSkeleton } from '@/components/ui/TableSkeleton'
+import { api } from '@/lib/http'
+import { PAGE_ROWS } from '@/lib/paging'
+import { useCan } from '@/lib/permissions'
+import { roleLabel } from '@/lib/role-labels'
+import type { UserCreateValues } from '@/schemas/user'
+import { UserForm } from './UserForm'
+import type { components, paths } from '@/lib/api-types'
+
+type UserList =
+  paths['/api/v1/users']['get']['responses'][200]['content']['application/json']
+type UserQuery = NonNullable<
+  paths['/api/v1/users']['get']['parameters']['query']
+>
+type BranchList =
+  paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
+
+function queryString(query: UserQuery) {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== '') params.set(key, String(value))
+  }
+  return params.toString()
+}
+
+function UserDetail({
+  user,
+  canManage,
+  onRegeneratePin,
+  regenerating,
+}: {
+  user: components['schemas']['OrganizationUser']
+  canManage: boolean
+  onRegeneratePin: () => void
+  regenerating: boolean
+}) {
+  const branchLabel =
+    user.branches.length === 1 ? 'Sucursal asignada' : 'Sucursales asignadas'
+  return (
+    <div className="mt-5">\
+    <div className="mt-5">
+        <h3 className="text-ink text-sm font-semibold">{branchLabel}</h3>
+        {user.branches.length ? (
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {user.branches.map((branch) => (
+              <li
+                key={branch.id}
+                className="bg-tealmax/10 text-petroleo rounded-full px-3 py-1 text-xs font-medium"
+              >
+                {branch.name}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-muted mt-1 text-sm">Sin sucursales asignadas</p>
+        )}
+      </div>
+      <div className="bg-surface flex items-center gap-4 rounded-xl p-4">
+        <span className="bg-tealmax/10 text-petroleo grid size-14 shrink-0 place-items-center rounded-full text-lg font-bold">
+          {user.name.trim().slice(0, 1).toLocaleUpperCase('es')}
+        </span>
+        <div className="min-w-0">
+          <h3 className="text-petroleo truncate text-lg font-semibold">
+            {user.name}
+          </h3>
+          <p className="text-muted truncate text-sm">{user.email}</p>
+        </div>
+      </div>
+      <dl className="mt-5 grid gap-4 sm:grid-cols-2">
+        <div>
+          <dt className="text-muted text-xs">Rol en la organización</dt>
+          <dd className="text-ink mt-1 text-sm font-medium">
+            {user.roleName ?? roleLabel(user.role)}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted text-xs">Usuario</dt>
+          <dd className="text-ink mt-1 text-sm font-medium">
+            {user.username ?? '—'}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted text-xs">WhatsApp / Teléfono</dt>
+          <dd className="text-ink mt-1 text-sm font-medium">
+            {user.phone ?? '—'}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted text-xs">Miembro desde</dt>
+          <dd className="text-ink mt-1 text-sm">
+            {new Date(user.memberSince).toLocaleDateString('es')}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted text-xs">Cuenta creada</dt>
+          <dd className="text-ink mt-1 text-sm">
+            {new Date(user.createdAt).toLocaleDateString('es')}
+          </dd>
+        </div>
+      </dl>
+      {user.pin !== undefined && (
+        <div className="border-border mt-5 border-t pt-5">
+          <h3 className="text-ink flex items-center gap-2 text-sm font-semibold">
+            <KeyRound className="text-tealmax size-4" />
+            PIN de recuperación
+          </h3>
+          {user.pin ? (
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <span className="bg-surface text-petroleo rounded-lg px-3 py-2 font-mono text-lg font-semibold tracking-[0.35em]">
+                {user.pin}
+              </span>
+              <span className="text-muted text-xs">Se renueva al usarlo.</span>
+            </div>
+          ) : (
+            <p className="text-muted mt-1 text-sm">Sin PIN configurado.</p>
+          )}
+          {canManage && (
+            <Button
+              type="button"
+              variant="ghost"
+              className="mt-3 h-9 px-3"
+              disabled={regenerating}
+              onClick={onRegeneratePin}
+            >
+              <RefreshCw
+                className={`size-4 ${regenerating ? 'animate-spin' : ''}`}
+              />
+              {regenerating
+                ? 'Generando…'
+                : user.pin
+                  ? 'Regenerar PIN'
+                  : 'Generar PIN'}
+            </Button>
+          )}
+          <p className="text-muted mt-2 text-xs">
+            El usuario puede usar este PIN si olvida su contraseña. Después de
+            usarlo se genera uno nuevo.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function UserDetailSkeleton() {
+  return (
+    <div role="status" aria-busy="true" aria-label="Cargando…" className="mt-5">
+      <div className="bg-surface flex items-center gap-4 rounded-xl p-4">
+        <Skeleton className="size-14 shrink-0 rounded-full" />
+        <div className="grid gap-2">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-3.5 w-56" />
+        </div>
+      </div>
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="grid gap-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 grid gap-2">
+        <Skeleton className="h-4 w-32" />
+        <div className="flex gap-2">
+          <Skeleton className="h-6 w-24 rounded-full" />
+          <Skeleton className="h-6 w-20 rounded-full" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function UsersPage() {
+  const canManage = useCan('users:write')
+  const queryClient = useQueryClient()
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [selectedId, setSelectedId] = useState('')
+  const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState<
+    components['schemas']['OrganizationUser'] | null
+  >(null)
+
+  const filters = useMemo<UserQuery>(
+    () => ({ q: search.trim() || undefined, page, rows: PAGE_ROWS }),
+    [page, search],
+  )
+  const users = useQuery({
+    queryKey: ['users', filters],
+    queryFn: () => api<UserList>(`/api/v1/users?${queryString(filters)}`),
+  })
+  const selectedUser = useQuery({
+    queryKey: ['users', selectedId],
+    queryFn: () =>
+      api<components['schemas']['OrganizationUser']>(
+        `/api/v1/users/${encodeURIComponent(selectedId)}`,
+      ),
+    enabled: Boolean(selectedId),
+  })
+  const branches = useQuery({
+    queryKey: ['branches'],
+    queryFn: () => api<BranchList>('/api/v1/branches'),
+    enabled: formOpen,
+  })
+  const canReadRoles = useCan('roles:read')
+  const roles = useQuery({
+    queryKey: ['roles'],
+    queryFn: () =>
+      api<{ data: components['schemas']['Role'][] }>('/api/v1/roles'),
+    enabled: formOpen && canReadRoles,
+  })
+  const activeRoles = (roles.data?.data ?? []).filter(
+    (candidate) => candidate.isActive,
+  )
+  const createUser = useMutation({
+    mutationFn: (values: UserCreateValues) => {
+      const body: components['schemas']['UserCreate'] = values
+      return api<components['schemas']['OrganizationUser']>('/api/v1/users', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      })
+    },
+    onSuccess: async (user) => {
+      await queryClient.invalidateQueries({ queryKey: ['users'] })
+      setFormOpen(false)
+      updateSearch(user.name)
+    },
+  })
+  const updateUser = useMutation({
+    mutationFn: ({
+      id,
+      values,
+      keepRole,
+    }: {
+      id: string
+      values: UserCreateValues
+      keepRole: boolean
+    }) =>
+      api<components['schemas']['OrganizationUser']>(
+        `/api/v1/users/${encodeURIComponent(id)}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            name: values.name,
+            username: values.username,
+            email: values.email,
+            phone: values.phone || null,
+            ...(keepRole
+              ? {}
+              : { role: values.role, roleId: values.roleId ?? null }),
+            branchIds: values.branchIds,
+          }),
+        },
+      ),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['users'] })
+      closeForm()
+    },
+  })
+  const regeneratePin = useMutation({
+    mutationFn: () =>
+      api<components['schemas']['UserPin']>(
+        `/api/v1/users/${encodeURIComponent(selectedId)}/pin`,
+        { method: 'POST' },
+      ),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ['users', selectedId],
+      })
+    },
+  })
+
+  const rows = (users.data?.data ?? []).map((user) => [
+    <span key="id" className="text-ink">
+      {user.id ?? '—'}
+    </span>,
+    <span key="branches" className="text-muted">
+      {user.branches.length
+        ? user.branches.map((branch) => branch.name).join(', ')
+        : 'Sin asignación'}
+    </span>,
+    <span
+      key="role"
+      className="bg-surface text-petroleo inline-flex rounded-full px-2.5 py-1 text-xs font-semibold"
+    >
+      {user.roleName ?? roleLabel(user.role)}
+    </span>,
+    <span
+      key="name"
+      className="text-petroleo inline-flex items-center gap-2 font-semibold"
+    >
+      <span className="bg-tealmax/10 grid size-8 place-items-center rounded-full">
+        <UserRound className="size-4" />
+      </span>
+      {user.name}
+    </span>,
+    <span key="username" className="text-ink">
+      {user.username ?? '—'}
+    </span>,
+    <span key="phone" className="text-ink">
+      {user.phone ?? '—'}
+    </span>,
+    <span key="email" className="text-muted">
+      {user.email}
+    </span>,
+  ])
+  const rowActions = (users.data?.data ?? []).map((user) => (
+    <RowActions
+      key={user.id}
+      label={user.name}
+      onEdit={canManage ? () => openEdit(user) : undefined}
+    />
+  ))
+
+  function updateSearch(value: string) {
+    setSearch(value)
+    setPage(1)
+  }
+  function openForm() {
+    setEditing(null)
+    setFormOpen(true)
+  }
+  function openEdit(user: components['schemas']['OrganizationUser']) {
+    setEditing(user)
+    setFormOpen(true)
+  }
+  function closeForm() {
+    setFormOpen(false)
+    setEditing(null)
+  }
+
+  return (
+    <div className="animate-in">
+      <div className="mb-2 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-tealmax mb-1 text-sm font-medium">
+            Administración
+          </p>
+          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
+            Usuarios
+          </h1>
+          <p className="text-muted mt-2 text-sm">
+            Miembros con acceso a la organización y sus sucursales.
+          </p>
+        </div>
+        {canManage && (
+          <Button variant="primary" onClick={openForm}>
+            <Plus className="size-4" />
+            Nuevo usuario
+          </Button>
+        )}
+      </div>
+      <section className="border-border mb-4 rounded-xl border bg-white p-4">
+        <label className="relative block max-w-lg">
+          <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <input
+            aria-label="Buscar usuarios"
+            value={search}
+            onChange={(event) => updateSearch(event.target.value)}
+            placeholder="Buscar por nombre, usuario o correo"
+            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
+          />
+        </label>
+      </section>
+      {users.isError && (
+        <p
+          role="alert"
+          className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+        >
+          No pudimos cargar los usuarios. {users.error.message}
+        </p>
+      )}
+      {users.isFetching ? (
+        <TableSkeleton columns={5} avatar />
+      ) : (
+        <DataTable
+          columns={['ID', 'Sucursales', 'Rol', 'Nombre', 'Usuario', 'WhatsApp', 'Correo']}
+          rows={rows}
+          actions={rowActions}
+          onRowDoubleClick={(index) => {
+            const user = users.data?.data[index]
+            if (user) setSelectedId(user.id)
+          }}
+          emptyTitle="No hay usuarios para mostrar"
+          emptyDescription={
+            search.trim()
+              ? 'Prueba con otro nombre, usuario o correo.'
+              : 'Los miembros con acceso aparecerán aquí.'
+          }
+        />
+      )}
+      {!users.isFetching && (
+        <Pagination
+          page={page}
+          rows={PAGE_ROWS}
+          total={users.data?.total ?? 0}
+          onChange={setPage}
+        />
+      )}
+      {selectedId && (
+        <Dialog
+          title="Ficha de usuario"
+          description="Información de acceso y asignación en esta organización."
+          onClose={() => {
+            setSelectedId('')
+            regeneratePin.reset()
+          }}
+        >
+          {selectedUser.isLoading ? (
+            <UserDetailSkeleton />
+          ) : selectedUser.isError ? (
+            <p role="alert" className="mt-5 text-sm text-red-700">
+              No pudimos cargar este usuario. {selectedUser.error.message}
+            </p>
+          ) : selectedUser.data ? (
+            <>
+              <UserDetail
+                user={selectedUser.data}
+                canManage={canManage}
+                onRegeneratePin={() => regeneratePin.mutate()}
+                regenerating={regeneratePin.isPending}
+              />
+              {regeneratePin.isError && (
+                <p role="alert" className="mt-3 text-sm text-red-700">
+                  No pudimos generar el PIN. {regeneratePin.error.message}
+                </p>
+              )}
+            </>
+          ) : null}
+        </Dialog>
+      )}
+      {formOpen && (
+        <Dialog
+          title={editing ? 'Editar usuario' : 'Nuevo usuario'}
+          description={
+            editing
+              ? 'Actualiza los datos y el acceso de este usuario.'
+              : 'Crea una cuenta con acceso a esta organización.'
+          }
+          onClose={closeForm}
+        >
+          {branches.isError && (
+            <p
+              role="alert"
+              className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+            >
+              No pudimos cargar las sucursales. {branches.error.message}
+            </p>
+          )}
+          <UserForm
+            key={editing?.id ?? 'new'}
+            mode={editing ? 'edit' : 'create'}
+            initialValues={
+              editing
+                ? {
+                    name: editing.name,
+                    username: editing.username ?? '',
+                    email: editing.email,
+                    phone: editing.phone ?? '',
+                    role: editing.role as UserCreateValues['role'],
+                    ...(editing.roleId ? { roleId: editing.roleId } : {}),
+                    branchIds: editing.branches.map((branch) => branch.id),
+                  }
+                : undefined
+            }
+            roleLocked={editing?.role === 'owner'}
+            roles={activeRoles}
+            rolesLoading={roles.isLoading}
+            branches={branches.data?.data ?? []}
+            branchesLoading={branches.isLoading}
+            onSave={async (values) => {
+              if (editing) {
+                await updateUser.mutateAsync({
+                  id: editing.id,
+                  values,
+                  keepRole: editing.role === 'owner',
+                })
+              } else {
+                await createUser.mutateAsync(values)
+              }
+            }}
+            onCancel={closeForm}
+            submitting={createUser.isPending || updateUser.isPending}
+          />
+        </Dialog>
+      )}
+    </div>
+  )
+}

@@ -1,0 +1,19 @@
+{
+  "0": "treatments.ts",
+  "1": "http.ts",
+  "2": "operations.ts",
+  "3": "lucide-react",
+  "4": "RoleForm.tsx",
+  "5": "BoardPage.tsx",
+  "6": "api",
+  "13": "package.json",
+  "22": "Button",
+  "23": "cn",
+  "24": "IncidentsPage.tsx",
+  "25": "KanbanBoard.tsx",
+  "26": "StockPage.tsx",
+  "27": "KanbanBoard",
+  "28": "IncidentDialogs.tsx",
+  "29": "IncidentFormDialog.tsx",
+  "30": "@testing-library/jest-dom"
+}

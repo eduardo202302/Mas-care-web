@@ -1,0 +1,16 @@
+{
+  "7": "Runtime Dependencies",
+  "8": "TypeScript App Config",
+  "9": "CI/CD Pipeline",
+  "10": "Dev Dependencies",
+  "11": "Component Aliases Config",
+  "12": "TypeScript Node Config",
+  "14": "ESLint Configuration",
+  "15": "Entry Point & Docs",
+  "16": "Playwright E2E Tests",
+  "17": "Build & Dev Scripts",
+  "18": "Vite Build Config",
+  "19": "API Code Generation",
+  "20": "TypeScript Root Config",
+  "21": "Prettier Config"
+}
