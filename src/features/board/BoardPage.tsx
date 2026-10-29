@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ExportButton } from '@/components/ExportButton'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
@@ -9,6 +10,8 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/EmptyState'
+import { usePipeline } from '@/lib/pipeline'
+import { NewCycleDialog } from './NewCycleDialog'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useToast } from '@/components/ui/Toast'
 import { KanbanBoard, type KanbanMove } from '@/components/kanban/KanbanBoard'
@@ -49,6 +52,9 @@ export default function BoardPage() {
   const toast = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const { data: me } = useMe()
+  const { data: pipeline } = usePipeline()
+  const [newCycleFor, setNewCycleFor] = useState<BoardColumnKey | null>(null)
+  const canCreateCycle = useCan('treatments:write')
   const boardView = useUiStore((state) => state.boardView)
   const setBoardView = useUiStore((state) => state.setBoardView)
 
@@ -266,17 +272,40 @@ export default function BoardPage() {
 
   const columns = useMemo(() => {
     const data = board.data
-    return boardColumns.map((key) => {
+    const stages = pipeline?.stages ?? []
+    const stageOf = (key: string) => stages.find((s) => s.system_status === key)
+    const ordered = stages.length
+      ? [...boardColumns].sort(
+          (a, b) => (stageOf(a)?.position ?? 99) - (stageOf(b)?.position ?? 99),
+        )
+      : boardColumns
+    return ordered.map((key) => {
       const column = data?.columns[key]
       return {
         key,
-        title: boardColumnLabels[key],
+        title: stageOf(key)?.name ?? boardColumnLabels[key],
+        color: stageOf(key)?.color,
         count: column?.count ?? 0,
         dueLabel: column
-          ? `${column.due_today_count} ${column.due_today_count === 1 ? 'vence' : 'vencen'} hoy`
+          ? `${column.count} en total · ${column.overdue_count ?? 0} vencidas · ${column.due_soon_count ?? 0} vencen en 3 días`
           : undefined,
         cards: column?.cards ?? [],
         droppable: key !== 'closed',
+        note:
+          key === 'closed'
+            ? 'Los ciclos cerrados no se mueven: la entrega o el no retiro ya quedó registrado. Para continuar el tratamiento usa «Nuevo ciclo» en otra columna.'
+            : undefined,
+        action:
+          key !== 'closed' && canCreateCycle ? (
+            <button
+              type="button"
+              aria-label={`Nuevo ciclo en ${stageOf(key)?.name ?? boardColumnLabels[key]}`}
+              onClick={() => setNewCycleFor(key)}
+              className="text-tealmax text-xs font-semibold hover:underline"
+            >
+              + Nuevo ciclo
+            </button>
+          ) : undefined,
         emptyText:
           key === 'closed'
             ? 'Aún no hay entregas recientes.'
@@ -286,7 +315,7 @@ export default function BoardPage() {
         onLoadMore: () => void loadMore(key),
       }
     })
-  }, [board.data, loadingColumn])
+  }, [board.data, loadingColumn, pipeline, canCreateCycle])
 
   if (!me) {
     return (
@@ -348,6 +377,12 @@ export default function BoardPage() {
               Tabla
             </button>
           </div>
+          {view === 'table' && (
+            <ExportButton
+              entity="cycles"
+              filters={{ branchId: effectiveFilters.branch_id }}
+            />
+          )}
           <Button
             type="button"
             className="size-10 px-0"
@@ -387,6 +422,8 @@ export default function BoardPage() {
         <CycleTable
           filters={effectiveFilters}
           canMove={canMove}
+          canWrite={canWrite}
+          onBoardFiltersChange={updateFilters}
           onMove={(card, to) => moveFromMenu(card, to)}
           onOpenCard={(card) => navigate(`/pacientes/${card.patient.id}`)}
         />
@@ -519,6 +556,16 @@ export default function BoardPage() {
               confirm: true,
             })
           }}
+        />
+      )}
+      {newCycleFor && (
+        <NewCycleDialog
+          status={newCycleFor}
+          stageName={
+            pipeline?.stages.find((s) => s.system_status === newCycleFor)?.name ??
+            boardColumnLabels[newCycleFor]
+          }
+          onClose={() => setNewCycleFor(null)}
         />
       )}
     </div>

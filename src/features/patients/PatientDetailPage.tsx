@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   useInfiniteQuery,
   useMutation,
@@ -8,18 +8,26 @@ import {
 } from '@tanstack/react-query'
 import {
   ArrowLeft,
-  ArrowRightLeft,
   Check,
   ClipboardList,
   FileText,
+  Mail,
   MessageCircle,
   PackageCheck,
-  Pencil,
   Phone,
   Plus,
   TriangleAlert,
+  Users,
 } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
+import { CustomValuesView, customPropertyGroups } from '@/components/CustomFields'
+import { useCustomProperties } from '@/lib/custom-properties'
+import { PropertiesDialog, type PropertyGroup } from '@/components/PropertiesDialog'
+import { RecordActionsMenu, type RecordAction } from '@/components/RecordActionsMenu'
+import { EnrollAutomationButton } from '@/features/automation/AutomationRules'
+import { PatientTelegramPanel } from '@/features/telegram/PatientTelegramPanel'
+import { ConversationDialog } from '@/features/messaging/ConversationDialog'
+import { PatientAutomationPanel } from '@/features/messaging/PauseAutomation'
 import { EmptyState } from '@/components/EmptyState'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
@@ -82,6 +90,16 @@ type UserList =
 type PatientIncidentList =
   paths['/api/v1/patients/{id}/incidents']['get']['responses'][200]['content']['application/json']
 
+const authorName = (activity: object) =>
+  (activity as { author?: { name?: string } | null }).author?.name
+
+const activityDialogTitle = {
+  note: 'Añadir nota',
+  call: 'Registrar llamada',
+  email: 'Registrar correo',
+  meeting: 'Registrar reunión',
+} as const
+
 function Panel({
   title,
   children,
@@ -104,6 +122,7 @@ function Panel({
 
 export default function PatientDetailPage() {
   const { id = '' } = useParams()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const canUpdate = useCan('patients:write')
   const canArchive = useCan('patients:archive')
@@ -115,14 +134,23 @@ export default function PatientDetailPage() {
   const canWriteTasks = useCan('tasks:write')
   const canCreateIncident = useCan('incident:create')
   const canTransfer = useCan('patient:transfer')
+  const canViewMessages = useCan('outbox:view')
   const { data: me } = useMe()
   const [activeTab, setActiveTab] = useState<
     'history' | 'treatments' | 'transfers'
   >('history')
   const [transferOpen, setTransferOpen] = useState(false)
   const [editing, setEditing] = useState(false)
-  const [activityType, setActivityType] = useState<'note' | 'call' | null>(null)
+  const [activityType, setActivityType] = useState<
+    'note' | 'call' | 'email' | 'meeting' | null
+  >(null)
   const [activityBody, setActivityBody] = useState('')
+  const [activityDate, setActivityDate] = useState(() =>
+    new Date().toISOString().slice(0, 10),
+  )
+  const [propertiesOpen, setPropertiesOpen] = useState(false)
+  const [conversationOpen, setConversationOpen] = useState(false)
+  const patientDefs = useCustomProperties('patient').data?.data ?? []
   const [consentOpen, setConsentOpen] = useState(false)
   const [consentGranted, setConsentGranted] = useState(true)
   const [consentChannel, setConsentChannel] =
@@ -234,7 +262,12 @@ export default function PatientDetailPage() {
     },
   })
   const addActivity = useMutation({
-    mutationFn: (input: components['schemas']['ActivityInput']) =>
+    mutationFn: (
+      input: Omit<components['schemas']['ActivityInput'], 'type'> & {
+        type: 'note' | 'call' | 'email' | 'meeting'
+        occurredOn?: string
+      },
+    ) =>
       api<components['schemas']['Activity']>(
         `/api/v1/patients/${encodeURIComponent(id)}/activities`,
         { method: 'POST', body: JSON.stringify(input) },
@@ -270,6 +303,22 @@ export default function PatientDetailPage() {
       await queryClient.invalidateQueries({ queryKey: ['patients', id] })
     },
   })
+  const duplicate = useMutation({
+    mutationFn: () =>
+      api<components['schemas']['Patient']>(
+        `/api/v1/patients/${encodeURIComponent(id)}/duplicate`,
+        { method: 'POST' },
+      ),
+    onSuccess: async (copy) => {
+      await queryClient.invalidateQueries({ queryKey: ['patients'] })
+      navigate(`/pacientes/${encodeURIComponent(copy.id)}`)
+    },
+  })
+  async function viewFullHistory() {
+    setActiveTab('history')
+    let more = activities.hasNextPage
+    while (more) more = (await activities.fetchNextPage()).hasNextPage
+  }
   async function invalidateTreatments() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['treatments'] }),
@@ -300,7 +349,8 @@ export default function PatientDetailPage() {
           prescriber_name: values.prescriberName?.trim() || null,
           prescription_expires_on: values.prescriptionExpiresOn || null,
           notes: values.notes?.trim() || null,
-        }
+          custom_values: values.customValues,
+        } as components['schemas']['TreatmentPatch']
         return api<Treatment>(
           `/api/v1/treatments/${encodeURIComponent(treatment.id)}`,
           { method: 'PATCH', body: JSON.stringify(body) },
@@ -318,7 +368,8 @@ export default function PatientDetailPage() {
         prescriber_name: values.prescriberName?.trim() || null,
         prescription_expires_on: values.prescriptionExpiresOn || null,
         notes: values.notes?.trim() || null,
-      }
+        custom_values: values.customValues,
+      } as components['schemas']['TreatmentCreate']
       return api<Treatment>('/api/v1/treatments', {
         method: 'POST',
         body: JSON.stringify(body),
@@ -413,7 +464,7 @@ export default function PatientDetailPage() {
       : record.responsibleUserId
         ? 'Usuario asignado'
         : 'Sin responsable'
-  const channelLabels = { whatsapp: 'WhatsApp', call: 'Llamada', sms: 'SMS' }
+  const channelLabels: Record<string, string> = { whatsapp: 'WhatsApp', call: 'Llamada', sms: 'SMS', telegram: 'Telegram' }
   const treatmentRows = treatments.data?.data ?? []
   const medicationsById = new Map<string, Medication>(
     (medications.data?.data ?? []).map((medication) => [
@@ -446,6 +497,93 @@ export default function PatientDetailPage() {
   const taskActionError =
     completeTask.error?.message ?? prepareTask.error?.message
 
+  const recordActions: RecordAction[] = [
+    ...(canUpdate ? [{ label: 'Editar', onClick: () => setEditing(true) }] : []),
+    ...(canTransfer && !record.archivedAt
+      ? [{ label: 'Trasladar', onClick: () => setTransferOpen(true) }]
+      : []),
+    ...(canUpdate && !record.archivedAt
+      ? [
+          {
+            label: 'Duplicar (sin tratamientos)',
+            onClick: () => {
+              if (
+                window.confirm(
+                  'Se creará una copia del paciente SIN sus tratamientos, documento ni teléfono, para no duplicar ciclos de reposición. ¿Continuar?',
+                )
+              )
+                duplicate.mutate()
+            },
+          },
+        ]
+      : []),
+    ...(canArchive && !record.archivedAt
+      ? [{ label: 'Archivar', danger: true, onClick: () => archive.mutate() }]
+      : []),
+    ...(canViewMessages ? [{ label: 'Ver conversación', onClick: () => setConversationOpen(true) }] : []),
+    { label: 'Ver historial completo', onClick: () => void viewFullHistory() },
+    {
+      label: 'Ver todas las propiedades',
+      onClick: () => setPropertiesOpen(true),
+    },
+  ]
+  const patientValues = (record as { customValues?: Record<string, unknown> }).customValues ?? {}
+  const propertyGroups: PropertyGroup[] = [
+    {
+      name: 'Datos',
+      items: [
+        { label: 'Nombre completo', value: record.fullName },
+        { label: 'Documento', value: record.documentId },
+        { label: 'Fecha de nacimiento', value: record.birthDate?.slice(0, 10) },
+        { label: 'Notas de cuidado', value: record.careNotes },
+        { label: 'Estado', value: record.archivedAt ? 'Archivado' : 'Activo' },
+      ],
+    },
+    {
+      name: 'Contacto',
+      items: [
+        { label: 'Teléfono', value: record.phone },
+        { label: 'Tiene WhatsApp', value: record.phoneHasWhatsapp ? 'Sí' : 'No' },
+        { label: 'Correo', value: record.email },
+        { label: 'Dirección', value: record.address },
+        { label: 'Zona', value: record.zone },
+        { label: 'Canal preferido', value: channelLabels[record.preferredChannel] },
+        {
+          label: 'Consentimiento de recordatorios',
+          value: record.reminderConsent ? 'Otorgado' : 'Sin consentimiento vigente',
+        },
+      ],
+    },
+    {
+      name: 'Tratamiento',
+      items: treatmentRows.flatMap((treatment, index) => [
+        {
+          label: `Tratamiento ${index + 1}`,
+          value: `${medicationName(medicationsById.get(treatment.medicationId))} · ${treatment.status}`,
+        },
+        {
+          label: `Receta vence (${index + 1})`,
+          value: treatment.prescriptionExpiresOn?.slice(0, 10),
+        },
+      ]),
+    },
+    {
+      name: 'Cobertura',
+      items: treatmentRows.map((treatment, index) => ({
+        label: `Fin de cobertura (${index + 1})`,
+        value: treatment.coverageEndOn?.slice(0, 10),
+      })),
+    },
+    {
+      name: 'Asignación',
+      items: [
+        { label: 'Sucursal', value: branch?.name },
+        { label: 'Responsable', value: responsible },
+      ],
+    },
+    ...customPropertyGroups(patientDefs, patientValues),
+  ]
+
   return (
     <div className="animate-in">
       <Link
@@ -467,23 +605,8 @@ export default function PatientDetailPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {canUpdate && (
-            <Button onClick={() => setEditing(true)}>
-              <Pencil className="size-4" />
-              Editar
-            </Button>
-          )}
-          {canTransfer && !record.archivedAt && (
-            <Button onClick={() => setTransferOpen(true)}>
-              <ArrowRightLeft className="size-4" />
-              Trasladar
-            </Button>
-          )}
-          {canArchive && !record.archivedAt && (
-            <Button variant="danger" onClick={() => archive.mutate()}>
-              Archivar paciente
-            </Button>
-          )}
+          {!record.archivedAt && <EnrollAutomationButton patientId={record.id} />}
+          <RecordActionsMenu actions={recordActions} />
         </div>
       </header>
       {record.archivedAt && (
@@ -495,6 +618,10 @@ export default function PatientDetailPage() {
         <div className="grid gap-4">
           <Panel title="Datos del paciente">
             <dl className="grid gap-3 text-sm">
+              <div>
+                <dt className="text-muted">Responsable</dt>
+                <dd className="mt-0.5">{responsible}</dd>
+              </div>
               <div>
                 <dt className="text-muted">Correo</dt>
                 <dd className="mt-0.5">{record.email || 'Sin correo'}</dd>
@@ -524,6 +651,14 @@ export default function PatientDetailPage() {
               </div>
             </dl>
           </Panel>
+          <CustomValuesView entity="patient" values={patientValues} />
+          <PatientTelegramPanel patientId={record.id} canEdit={canUpdate} />
+          <PatientAutomationPanel
+            patientId={record.id}
+            paused={Boolean((record as { automationPaused?: boolean }).automationPaused)}
+            reason={(record as { automationPausedReason?: string | null }).automationPausedReason}
+            canEdit={canUpdate && !record.archivedAt}
+          />
           <Panel title="Canal preferido">
             <p className="text-ink text-sm">
               {channelLabels[record.preferredChannel]}
@@ -553,44 +688,6 @@ export default function PatientDetailPage() {
               <p className="text-muted mt-1 text-xs">
                 Registrado{' '}
                 {new Date(record.reminderConsentAt).toLocaleDateString('es')}
-              </p>
-            )}
-          </Panel>
-          <Panel title="Cuidadores">
-            {caregivers.isLoading ? (
-              <div
-                role="status"
-                aria-busy="true"
-                aria-label="Cargando cuidadores…"
-                className="grid gap-3"
-              >
-                {Array.from({ length: 2 }).map((_, index) => (
-                  <div key={index} className="grid gap-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-40" />
-                  </div>
-                ))}
-              </div>
-            ) : caregivers.data?.data.length ? (
-              <ul className="grid gap-3">
-                {caregivers.data.data.map((caregiver) => (
-                  <li
-                    key={caregiver.id}
-                    className="border-border border-b pb-3 last:border-0 last:pb-0"
-                  >
-                    <p className="text-sm font-semibold">
-                      {caregiver.fullName}
-                      {caregiver.isPrimary ? ' · Principal' : ''}
-                    </p>
-                    <p className="text-muted mt-0.5 text-xs">
-                      {caregiver.relationship} · {caregiver.phone}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted text-sm">
-                No hay cuidadores registrados.
               </p>
             )}
           </Panel>
@@ -629,6 +726,14 @@ export default function PatientDetailPage() {
                       <Button onClick={() => setActivityType('call')}>
                         <Phone className="size-4" />
                         Llamada
+                      </Button>
+                      <Button onClick={() => setActivityType('email')}>
+                        <Mail className="size-4" />
+                        Correo
+                      </Button>
+                      <Button onClick={() => setActivityType('meeting')}>
+                        <Users className="size-4" />
+                        Reunión
                       </Button>
                     </>
                   )}
@@ -707,6 +812,11 @@ export default function PatientDetailPage() {
                           {detail && (
                             <p className="text-ink mt-1 text-sm leading-6 whitespace-pre-wrap">
                               {detail}
+                            </p>
+                          )}
+                          {authorName(activity) && (
+                            <p className="text-muted mt-1 text-[11px]">
+                              Registrado por {authorName(activity)}
                             </p>
                           )}
                         </li>
@@ -797,7 +907,45 @@ export default function PatientDetailPage() {
           )}
         </section>
         <div className="grid gap-4">
-          <Panel title="Asignación">
+          <Panel title="Cuidadores">
+            {caregivers.isLoading ? (
+              <div
+                role="status"
+                aria-busy="true"
+                aria-label="Cargando cuidadores…"
+                className="grid gap-3"
+              >
+                {Array.from({ length: 2 }).map((_, index) => (
+                  <div key={index} className="grid gap-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-40" />
+                  </div>
+                ))}
+              </div>
+            ) : caregivers.data?.data.length ? (
+              <ul className="grid gap-3">
+                {caregivers.data.data.map((caregiver) => (
+                  <li
+                    key={caregiver.id}
+                    className="border-border border-b pb-3 last:border-0 last:pb-0"
+                  >
+                    <p className="text-sm font-semibold">
+                      {caregiver.fullName}
+                      {caregiver.isPrimary ? ' · Principal' : ''}
+                    </p>
+                    <p className="text-muted mt-0.5 text-xs">
+                      {caregiver.relationship} · {caregiver.phone}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted text-sm">
+                No hay cuidadores registrados.
+              </p>
+            )}
+          </Panel>
+          <Panel title="Sucursal">
             <div className="grid gap-3">
               <div>
                 <p className="text-muted mb-1 text-xs">Sucursal</p>
@@ -809,10 +957,6 @@ export default function PatientDetailPage() {
                 ) : (
                   <span className="text-sm">Sucursal</span>
                 )}
-              </div>
-              <div>
-                <p className="text-muted mb-1 text-xs">Responsable</p>
-                <p className="text-sm">{responsible}</p>
               </div>
             </div>
           </Panel>
@@ -964,6 +1108,14 @@ export default function PatientDetailPage() {
           </Panel>
         </div>
       </div>
+      {conversationOpen && <ConversationDialog patientId={record.id} onClose={() => setConversationOpen(false)} />}
+      {propertiesOpen && (
+        <PropertiesDialog
+          title="Todas las propiedades"
+          groups={propertyGroups}
+          onClose={() => setPropertiesOpen(false)}
+        />
+      )}
       {editing && (
         <Dialog
           title="Editar paciente"
@@ -984,7 +1136,7 @@ export default function PatientDetailPage() {
       )}
       {activityType && canAddActivity && (
         <Dialog
-          title={activityType === 'note' ? 'Añadir nota' : 'Registrar llamada'}
+          title={activityDialogTitle[activityType]}
           description="Este registro quedará en el historial del paciente."
           onClose={() => setActivityType(null)}
         >
@@ -996,6 +1148,9 @@ export default function PatientDetailPage() {
                 type: activityType,
                 body: activityBody.trim(),
                 metadata: {},
+                ...(activityType === 'email' || activityType === 'meeting'
+                  ? { occurredOn: activityDate }
+                  : {}),
               })
             }}
           >
@@ -1003,8 +1158,26 @@ export default function PatientDetailPage() {
               htmlFor="activity-body"
               className="text-ink text-sm font-medium"
             >
-              {activityType === 'note' ? 'Nota' : 'Resumen de la llamada'}
+              {activityType === 'note'
+                ? 'Nota'
+                : activityType === 'call'
+                  ? 'Resumen de la llamada'
+                  : activityType === 'email'
+                    ? 'Resumen del correo'
+                    : 'Resumen de la reunión'}
             </label>
+            {(activityType === 'email' || activityType === 'meeting') && (
+              <label className="text-ink grid gap-1 text-sm font-medium">
+                Fecha
+                <input
+                  type="date"
+                  required
+                  value={activityDate}
+                  onChange={(event) => setActivityDate(event.target.value)}
+                  className="border-border h-10 rounded-lg border px-3 text-sm"
+                />
+              </label>
+            )}
             <textarea
               id="activity-body"
               rows={5}
@@ -1031,7 +1204,11 @@ export default function PatientDetailPage() {
                   ? 'Guardando…'
                   : activityType === 'note'
                     ? 'Añadir nota'
-                    : 'Guardar llamada'}
+                    : activityType === 'call'
+                      ? 'Guardar llamada'
+                      : activityType === 'email'
+                        ? 'Guardar correo'
+                        : 'Guardar reunión'}
               </Button>
             </div>
           </form>

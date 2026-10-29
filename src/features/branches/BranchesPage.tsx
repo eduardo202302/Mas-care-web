@@ -143,6 +143,14 @@ export default function BranchesPage() {
           No pudimos cargar las sucursales. {branches.error.message}
         </p>
       )}
+      {remove.isError && (
+        <p
+          role="alert"
+          className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+        >
+          No pudimos eliminar la sucursal. {remove.error.message}
+        </p>
+      )}
       {branches.isFetching ? (
         <TableSkeleton columns={3} />
       ) : (

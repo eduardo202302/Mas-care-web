@@ -37,6 +37,12 @@ export type KanbanColumn<T> = {
   cards: T[]
   count?: number
   dueLabel?: string
+  /** Extra context shown under the column header (e.g. why a column is read-only). */
+  note?: string
+  /** Header action, e.g. a "Nuevo ciclo" button. */
+  action?: ReactNode
+  /** Accent colour from the pipeline stage. */
+  color?: string
   /** Closed columns stay visible but reject drops. Defaults to true. */
   droppable?: boolean
   emptyText?: string
@@ -255,9 +261,13 @@ function KanbanColumnView<T>({
         isOver && !droppable && 'border-red-200 bg-red-50/40',
       )}
     >
-      <header className="border-border border-b px-3 py-3">
+      <header
+        className="border-border border-b px-3 py-3"
+        style={column.color ? { borderTop: `3px solid ${column.color}` } : undefined}
+      >
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-petroleo text-sm font-bold">{column.title}</h2>
+          {column.action}
           <span className="border-border rounded-full border bg-white px-2 py-0.5 text-xs font-semibold text-slate-700">
             {column.count ?? column.cards.length}
           </span>
@@ -266,6 +276,9 @@ function KanbanColumnView<T>({
           <p className="text-muted mt-1 text-[11px] font-medium">
             {column.dueLabel}
           </p>
+        )}
+        {column.note && (
+          <p className="text-muted mt-1 text-[11px] leading-snug">{column.note}</p>
         )}
       </header>
       <div className="flex min-h-[160px] flex-1 flex-col gap-2 p-2.5">

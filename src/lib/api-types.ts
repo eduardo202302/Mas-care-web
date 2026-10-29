@@ -2805,7 +2805,7 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    channel?: "whatsapp" | "call";
+                    channel?: "whatsapp" | "call" | "telegram";
                 };
                 header?: never;
                 path: {
@@ -2824,7 +2824,7 @@ export interface paths {
                         "application/json": {
                             treatment_id: string;
                             /** @enum {string} */
-                            channel: "whatsapp" | "call";
+                            channel: "whatsapp" | "call" | "telegram";
                             template_id: string | null;
                             body: string;
                             phone: string | null;
@@ -3483,7 +3483,7 @@ export interface paths {
                 query?: {
                     page?: number;
                     rows?: number;
-                    channel?: "whatsapp" | "call";
+                    channel?: "whatsapp" | "call" | "telegram";
                     kind?: string;
                     branch_id?: string;
                     active?: "true" | "false";
@@ -6015,7 +6015,7 @@ export interface components {
             address: string | null;
             zone: string | null;
             /** @enum {string} */
-            preferredChannel: "whatsapp" | "call" | "sms";
+            preferredChannel: "whatsapp" | "call" | "sms" | "telegram";
             reminderConsent: boolean;
             reminderConsentAt: string | null;
             careNotes: string | null;
@@ -6037,7 +6037,7 @@ export interface components {
             address?: string | null;
             zone?: string | null;
             /** @enum {string} */
-            preferredChannel?: "whatsapp" | "call" | "sms";
+            preferredChannel?: "whatsapp" | "call" | "sms" | "telegram";
             careNotes?: string | null;
             responsibleUserId?: string | null;
         };
@@ -6061,7 +6061,7 @@ export interface components {
             address?: string | null;
             zone?: string | null;
             /** @enum {string} */
-            preferredChannel?: "whatsapp" | "call" | "sms";
+            preferredChannel?: "whatsapp" | "call" | "sms" | "telegram";
             careNotes?: string | null;
             responsibleUserId?: string | null;
         };
@@ -6110,7 +6110,7 @@ export interface components {
         ConsentInput: {
             granted: boolean;
             /** @enum {string} */
-            channel: "whatsapp" | "call" | "sms";
+            channel: "whatsapp" | "call" | "sms" | "telegram";
             evidence?: string | null;
         };
         PatientConsent: {
@@ -6119,7 +6119,7 @@ export interface components {
             patientId: string;
             granted: boolean;
             /** @enum {string} */
-            channel: "whatsapp" | "call" | "sms";
+            channel: "whatsapp" | "call" | "sms" | "telegram";
             evidence: string | null;
             recordedBy: string;
             recordedAt: string;
@@ -6498,7 +6498,7 @@ export interface components {
         };
         TemplateCreate: {
             /** @enum {string} */
-            channel: "whatsapp" | "call";
+            channel: "whatsapp" | "call" | "telegram";
             /** @default refill_notice */
             kind: string;
             name: string;
@@ -6508,7 +6508,7 @@ export interface components {
         };
         TemplatePatch: {
             /** @enum {string} */
-            channel?: "whatsapp" | "call";
+            channel?: "whatsapp" | "call" | "telegram";
             /** @default refill_notice */
             kind: string;
             name?: string;
@@ -6520,7 +6520,7 @@ export interface components {
             page?: number;
             rows?: number;
             /** @enum {string} */
-            channel?: "whatsapp" | "call";
+            channel?: "whatsapp" | "call" | "telegram";
             kind?: string;
             branch_id?: string;
             /** @enum {string} */

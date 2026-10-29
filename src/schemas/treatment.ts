@@ -17,6 +17,7 @@ export const treatmentSchema = z.object({
   branchId: z.string().min(1, 'Selecciona una sucursal.'),
   responsibleUserId: z.string().optional(),
   notes: z.string().max(5000).optional(),
+  customValues: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type TreatmentFormValues = z.infer<typeof treatmentSchema>

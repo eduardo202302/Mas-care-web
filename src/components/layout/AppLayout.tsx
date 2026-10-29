@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { ChevronDown, Menu, Settings2, LogOut, HeartPulse } from 'lucide-react'
+import { ChevronDown, Menu, Settings2, LogOut, HeartPulse, UserRound } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useUiStore } from '@/stores/ui-store'
@@ -135,24 +135,23 @@ export function AppLayout() {
           <SidebarNav />
         </div>
         <div className="mt-auto px-4 pb-5">
-          <NavLink
-            to="/dev/chips"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/55 hover:bg-white/8 hover:text-white"
-          >
-            <Settings2 className="size-[18px]" />
-            Componentes
-          </NavLink>
-          <div className="mt-3 grid gap-1 border-t border-white/10 pt-3">
-            <button
-              type="button"
-              className="flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm text-white/70 transition hover:bg-white/8 hover:text-white"
-              aria-label="Perfil"
+          {import.meta.env.DEV && (
+            <NavLink
+              to="/dev/chips"
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/55 hover:bg-white/8 hover:text-white"
             >
-              <span className="grid size-8 place-items-center rounded-full bg-white/10 text-xs font-bold text-white">
-                MC
-              </span>
-              <span>Mi perfil</span>
-            </button>
+              <Settings2 className="size-[18px]" />
+              Componentes
+            </NavLink>
+          )}
+          <div className="mt-3 grid gap-1 border-t border-white/10 pt-3">
+            <NavLink
+              to="/perfil"
+              className="flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm text-white/70 transition hover:bg-white/8 hover:text-white"
+            >
+              <UserRound className="size-[18px]" />
+              Mi perfil
+            </NavLink>
             <button
               type="button"
               className="flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm text-white/70 transition hover:bg-white/8 hover:text-white"

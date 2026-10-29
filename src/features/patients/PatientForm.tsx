@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
 import { AlertTriangle, ChevronDown } from 'lucide-react'
+import { CustomFields } from '@/components/CustomFields'
+import { useCustomProperties, validateCustomValues } from '@/lib/custom-properties'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { TextField } from '@/components/ui/TextField'
@@ -69,6 +71,12 @@ export function PatientForm({
         },
   })
 
+  const [customValues, setCustomValues] = useState<Record<string, unknown>>(
+    ((patient as { customValues?: Record<string, unknown> } | undefined)?.customValues) ?? {},
+  )
+  const [customErrors, setCustomErrors] = useState<Record<string, string>>({})
+  const customDefs = useCustomProperties('patient').data?.data ?? []
+
   const documentId = watch('documentId')
   const phone = watch('phone')
   const [debouncedDuplicateInput, setDebouncedDuplicateInput] = useState({
@@ -115,8 +123,14 @@ export function PatientForm({
   )
 
   async function submit(values: PatientFormValues) {
+    const check = validateCustomValues(customDefs, customValues)
+    if (!check.ok) {
+      setCustomErrors(check.errors)
+      return
+    }
+    setCustomErrors({})
     try {
-      await onSave(values)
+      await onSave({ ...values, customValues: check.values })
     } catch (error) {
       if (error instanceof ApiError && error.status === 400) {
         const fields = error.fields
@@ -127,6 +141,8 @@ export function PatientForm({
                 type: 'server',
                 message,
               })
+            else if (typeof message === 'string')
+              setCustomErrors((current) => ({ ...current, [key]: message }))
           }
         }
       } else {
@@ -312,6 +328,7 @@ export function PatientForm({
                 <option value="whatsapp">WhatsApp</option>
                 <option value="call">Llamada</option>
                 <option value="sms">SMS</option>
+                <option value="telegram">Telegram</option>
               </select>
               <ChevronDown
                 className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
@@ -350,6 +367,12 @@ export function PatientForm({
           {errors.root.server.message}
         </p>
       )}
+      <CustomFields
+        entity="patient"
+        values={customValues}
+        errors={customErrors}
+        onChange={setCustomValues}
+      />
       <FormActions>
         <Button type="button" className="w-full sm:w-auto" onClick={onCancel}>
           Cancelar

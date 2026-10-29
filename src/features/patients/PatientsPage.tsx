@@ -1,9 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
+import { ExportButton } from '@/components/ExportButton'
+import { ImportButton } from '@/components/ImportButton'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Archive, Plus, Search } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
 import { DataTable, RowActions } from '@/components/DataTable'
+import { CustomPropertyFilter } from '@/components/CustomFields'
+import { ColumnPicker, SortEditor } from '@/features/board/CycleTableControls'
+import { useColumnPrefs, type ColumnDef, type SortPart } from '@/lib/cycle-table'
 import { Pagination } from '@/components/Pagination'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
@@ -11,6 +16,7 @@ import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { TextField } from '@/components/ui/TextField'
 import { useActiveBranch } from '@/lib/active-branch'
 import { api } from '@/lib/http'
+import { formatCustomValue, useCustomProperties } from '@/lib/custom-properties'
 import { PAGE_ROWS } from '@/lib/paging'
 import { useCan, useMe } from '@/lib/permissions'
 import type { components, paths } from '@/lib/api-types'
@@ -27,7 +33,32 @@ type PatientCreateResult =
   paths['/api/v1/patients']['post']['responses'][201]['content']['application/json']
 type PatientQuery = NonNullable<
   paths['/api/v1/patients']['get']['parameters']['query']
->
+> &
+  Record<string, string | number | boolean | undefined>
+
+const patientColumns: ColumnDef[] = [
+  { key: 'name', label: 'Paciente' },
+  { key: 'contact', label: 'Contacto' },
+  { key: 'document', label: 'Documento' },
+  { key: 'branch', label: 'Sucursal' },
+  { key: 'responsible', label: 'Responsable' },
+  { key: 'status', label: 'Estado' },
+  { key: 'created', label: 'Creado' },
+]
+
+const patientSortFields = [
+  { value: 'full_name', label: 'Nombre' },
+  { value: 'created_at', label: 'Fecha de creación' },
+  { value: 'document_id', label: 'Documento' },
+  { value: 'birth_date', label: 'Fecha de nacimiento' },
+]
+
+const dateFilterLabels = [
+  ['created_from', 'created_to', 'Creación'],
+  ['activity_from', 'activity_to', 'Última actividad'],
+  ['expected_from', 'expected_to', 'Fecha prevista'],
+  ['coverage_from', 'coverage_to', 'Fin de cobertura'],
+] as const
 
 function queryString(query: PatientQuery) {
   const params = new URLSearchParams()
@@ -48,6 +79,7 @@ function stringFilter(
 export default function PatientsPage() {
   const canCreate = useCan('patients:write')
   const canUpdate = useCan('patients:write')
+  const canCreateTreatments = useCan('treatments:write')
   const { data: me } = useMe()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -62,6 +94,15 @@ export default function PatientsPage() {
   const [viewName, setViewName] = useState('')
   const [viewDialog, setViewDialog] = useState(false)
   const [selectedView, setSelectedView] = useState('')
+  const [dates, setDates] = useState<Record<string, string>>({})
+  const [sort, setSort] = useState<SortPart[]>([])
+  // Patient properties defined by the organization can be added as columns (key `custom:<key>`).
+  const properties = useCustomProperties('patient').data?.data ?? []
+  const allColumns = useMemo<ColumnDef[]>(
+    () => [...patientColumns, ...properties.map((property) => ({ key: `custom:${property.key}`, label: property.label }))],
+    [properties],
+  )
+  const columnPrefs = useColumnPrefs('patients', allColumns, patientColumns.map((column) => column.key))
 
   // Only the branch the user is working in is requested.
   const { branchId, ready: branchReady } = useActiveBranch()
@@ -82,8 +123,12 @@ export default function PatientsPage() {
       archived,
       page,
       rows: PAGE_ROWS,
+      ...dates,
+      ...(sort.length
+        ? { sort: sort.map((part) => `${part.field}:${part.dir}`).join(',') }
+        : {}),
     }),
-    [archived, branchId, page, responsibleUserId, search],
+    [archived, branchId, dates, page, responsibleUserId, search, sort],
   )
   const patients = useQuery({
     queryKey: ['patients', filters],
@@ -159,9 +204,9 @@ export default function PatientsPage() {
       const body: components['schemas']['SavedViewCreate'] = {
         entity: 'patients',
         name: viewName.trim(),
-        filters: { q: search.trim(), responsibleUserId, archived },
-        columns: [],
-        sort: {},
+        filters: { q: search.trim(), responsibleUserId, archived, dates },
+        columns: columnPrefs.keys,
+        sort: { parts: sort },
         isDefault: false,
       }
       return api<components['schemas']['SavedView']>('/api/v1/saved-views', {
@@ -214,6 +259,15 @@ export default function PatientsPage() {
     setArchived(
       stringFilter(nextFilters, 'archived') === 'true' ? 'true' : 'false',
     )
+    const savedDates = nextFilters.dates
+    setDates(
+      savedDates && typeof savedDates === 'object'
+        ? (savedDates as Record<string, string>)
+        : {},
+    )
+    const parts = (view.sort as { parts?: SortPart[] }).parts
+    setSort(Array.isArray(parts) ? parts : [])
+    if (view.columns.length) columnPrefs.save(view.columns)
     setPage(1)
   }
 
@@ -222,17 +276,17 @@ export default function PatientsPage() {
   )
   const rows = (patients.data?.data ?? []).map((patient) => {
     const branch = branchMap.get(patient.primaryBranchId)
-    return [
-      <span key="name" className="text-petroleo font-semibold">
+    const cells: Record<string, ReactNode> = {
+      name: <span key="name" className="text-petroleo font-semibold">
         {patient.fullName}
       </span>,
-      <span key="contact" className="text-muted">
+      contact: <span key="contact" className="text-muted">
         {patient.phone || patient.email || 'Sin contacto'}
       </span>,
-      <span key="document" className="text-muted">
+      document: <span key="document" className="text-muted">
         {patient.documentId || '—'}
       </span>,
-      branch ? (
+      branch: branch ? (
         <BranchTag
           key="branch"
           name={branch.name}
@@ -243,17 +297,23 @@ export default function PatientsPage() {
           Sucursal
         </span>
       ),
-      <span key="responsible" className="text-muted">
+      responsible: <span key="responsible" className="text-muted">
         {patient.responsibleUserId
           ? patient.responsibleUserId === me?.user.id
             ? 'Yo'
             : 'Asignado'
           : 'Sin responsable'}
       </span>,
-      <span key="archive" className="text-muted">
+      status: <span key="archive" className="text-muted">
         {patient.archivedAt ? 'Archivado' : 'Activo'}
       </span>,
-    ]
+      created: <span key="created" className="text-muted">{patient.createdAt.slice(0, 10)}</span>,
+    }
+    const custom = (patient as { customValues?: Record<string, unknown> }).customValues ?? {}
+    for (const property of properties) {
+      cells[`custom:${property.key}`] = <span key={property.key} className="text-muted">{formatCustomValue(property, custom[property.key])}</span>
+    }
+    return columnPrefs.keys.map((key) => cells[key])
   })
   const rowActions = (patients.data?.data ?? []).map((patient) => (
     <RowActions
@@ -285,6 +345,9 @@ export default function PatientsPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <ImportButton entity="patients" />
+          {canCreateTreatments && <ImportButton entity="treatments" label="Importar tratamientos" />}
+          <ExportButton entity="patients" filters={{ q: search.trim(), branchId }} />
           {canCreate && (
             <Button variant="primary" onClick={openCreate}>
               <Plus className="size-4" />
@@ -334,7 +397,54 @@ export default function PatientsPage() {
             <option value="true">Archivados</option>
           </select>
         </div>
+        <div className="border-border mt-3 grid gap-2 border-t pt-3 md:grid-cols-2 xl:grid-cols-4">
+          {dateFilterLabels.map(([from, to, label]) => (
+            <fieldset key={label} className="grid gap-1">
+              <legend className="text-muted text-xs font-semibold">{label}</legend>
+              <div className="flex gap-1">
+                {[from, to].map((key, index) => (
+                  <input
+                    key={key}
+                    type="date"
+                    aria-label={`${label} ${index === 0 ? 'desde' : 'hasta'}`}
+                    value={dates[key] ?? ''}
+                    onChange={(event) => {
+                      setDates({ ...dates, [key]: event.target.value })
+                      setPage(1)
+                    }}
+                    className="border-border h-9 rounded-lg border bg-white px-2 text-sm"
+                  />
+                ))}
+              </div>
+            </fieldset>
+          ))}
+          <CustomPropertyFilter
+            entity="patient"
+            propertyKey={dates.cp_key}
+            value={dates.cp_value}
+            onChange={(next) => {
+              const rest = Object.fromEntries(Object.entries(dates).filter(([key]) => key !== 'cp_key' && key !== 'cp_value'))
+              setDates({
+                ...rest,
+                ...(next.cp_key ? { cp_key: next.cp_key } : {}),
+                ...(next.cp_value ? { cp_value: next.cp_value } : {}),
+              })
+              setPage(1)
+            }}
+          />
+        </div>
+        <div className="border-border mt-3 border-t pt-3">
+          <SortEditor
+            sort={sort}
+            fields={patientSortFields}
+            onChange={(next) => {
+              setSort(next)
+              setPage(1)
+            }}
+          />
+        </div>
         <div className="border-border mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
+          <ColumnPicker keys={columnPrefs.keys} onChange={columnPrefs.save} saving={columnPrefs.saving} all={allColumns} />
           <label className="text-muted text-sm" htmlFor="saved-patient-view">
             Vistas
           </label>
@@ -376,17 +486,12 @@ export default function PatientsPage() {
         </p>
       )}
       {patients.isFetching || !branchReady ? (
-        <TableSkeleton columns={6} />
+        <TableSkeleton columns={columnPrefs.keys.length} />
       ) : (
         <DataTable
-          columns={[
-            'Paciente',
-            'Contacto',
-            'Documento',
-            'Sucursal',
-            'Responsable',
-            'Estado',
-          ]}
+          columns={columnPrefs.keys.map(
+            (key) => allColumns.find((column) => column.key === key)?.label ?? key,
+          )}
           rows={rows}
           actions={rowActions}
           onRowDoubleClick={(index) => {
