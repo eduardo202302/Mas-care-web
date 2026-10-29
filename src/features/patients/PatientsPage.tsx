@@ -423,7 +423,7 @@ export default function PatientsPage() {
             propertyKey={dates.cp_key}
             value={dates.cp_value}
             onChange={(next) => {
-              const { cp_key: _k, cp_value: _v, ...rest } = dates
+              const rest = Object.fromEntries(Object.entries(dates).filter(([key]) => key !== 'cp_key' && key !== 'cp_value'))
               setDates({
                 ...rest,
                 ...(next.cp_key ? { cp_key: next.cp_key } : {}),

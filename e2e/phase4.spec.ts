@@ -16,7 +16,6 @@ let branchA: { id: string; name: string }
 let branchB: { id: string; name: string }
 let medication: { id: string; genericName: string }
 let patient: { id: string; fullName: string }
-let treatment: { id: string }
 
 function localDate(offsetDays = 0) {
   const date = new Date()
@@ -172,7 +171,6 @@ test.describe.serial('Fase 4 · traspasos, panel consolidado e informes', () => 
       },
     })
     expect(treatmentRes.status()).toBe(201)
-    treatment = await json(treatmentRes)
   })
 
   test.afterAll(async () => {
