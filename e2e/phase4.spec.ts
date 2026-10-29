@@ -193,7 +193,8 @@ test.describe.serial('Fase 4 · traspasos, panel consolidado e informes', () => 
       page.getByText(medication.genericName, { exact: false }).first(),
     ).toBeVisible()
 
-    await page.getByRole('button', { name: 'Trasladar' }).click()
+    await page.getByRole('button', { name: 'Acciones' }).click()
+    await page.getByRole('menuitem', { name: 'Trasladar' }).click()
     const dialog = page.getByRole('dialog', { name: 'Trasladar paciente' })
     await expect(dialog).toBeVisible()
     await expect(dialog.getByRole('checkbox')).toBeChecked()
@@ -250,7 +251,8 @@ test.describe.serial('Fase 4 · traspasos, panel consolidado e informes', () => 
     // Patient is now at branchB after case 1; transfer it back to branchA to
     // exercise validation + double-click idempotency with a fresh key.
     await page.goto(`/pacientes/${patient.id}`)
-    await page.getByRole('button', { name: 'Trasladar' }).click()
+    await page.getByRole('button', { name: 'Acciones' }).click()
+    await page.getByRole('menuitem', { name: 'Trasladar' }).click()
     const dialog = page.getByRole('dialog', { name: 'Trasladar paciente' })
     await dialog.getByLabel('Sucursal destino').selectOption({ label: branchA.name })
 

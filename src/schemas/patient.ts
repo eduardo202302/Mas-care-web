@@ -13,9 +13,10 @@ export const patientSchema = z.object({
   ]),
   address: z.string().max(240).optional(),
   zone: z.string().max(120).optional(),
-  preferredChannel: z.enum(['whatsapp', 'call', 'sms']),
+  preferredChannel: z.enum(['whatsapp', 'call', 'sms', 'telegram']),
   careNotes: z.string().max(2000).optional(),
   responsibleUserId: z.string().optional(),
+  customValues: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type PatientFormValues = z.infer<typeof patientSchema>

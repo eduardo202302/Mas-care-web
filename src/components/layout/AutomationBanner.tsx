@@ -2,11 +2,15 @@ import { useQuery } from '@tanstack/react-query'
 import { TriangleAlert } from 'lucide-react'
 import { api } from '@/lib/http'
 import { useCan } from '@/lib/permissions'
+import { useAutomationRules } from '@/features/automation/AutomationRules'
 import type { components } from '@/lib/api-types'
 
 type AutomationSettings = components['schemas']['AutomationSettings']
 
-/** Permanent reminder while automation is off or still in test mode. */
+/**
+ * Permanent reminder unless the master switch is on AND at least one rule is
+ * active; in that case it lists which rules are running.
+ */
 export function AutomationBanner() {
   const canManage = useCan('automation:manage')
   const settings = useQuery({
@@ -14,27 +18,41 @@ export function AutomationBanner() {
     queryFn: () => api<AutomationSettings>('/api/v1/automation/settings'),
     enabled: canManage,
   })
-  if (!canManage || !settings.data) return null
+  const rules = useAutomationRules(canManage)
+  if (!canManage || !settings.data || !rules.data) return null
   const { automation_enabled, automation_dry_run } = settings.data
-  if (automation_enabled && !automation_dry_run) return null
+  const active = rules.data.data.filter((rule) => rule.enabled)
 
+  const base = 'mb-5 flex items-center gap-2.5 rounded-xl border px-4 py-3 text-sm'
+  if (automation_enabled && active.length > 0) {
+    return (
+      <div
+        role="status"
+        className={`${base} border-emerald-200 bg-emerald-50 text-emerald-950`}
+      >
+        <span>
+          Automatizaciones activas:{' '}
+          <strong>{active.map((rule) => rule.label).join(', ')}</strong>
+          {automation_dry_run &&
+            ' (modo prueba: se planifican pero no se ejecutan)'}
+          .
+        </span>
+      </div>
+    )
+  }
   return (
     <div
       role="status"
-      className="mb-5 flex items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+      className={`${base} border-amber-200 bg-amber-50 text-amber-950`}
     >
       <TriangleAlert className="size-4 shrink-0" />
-      {!automation_enabled ? (
-        <span>
-          Los avisos automáticos están <strong>apagados</strong>. Nada se
-          envía solo.
-        </span>
-      ) : (
-        <span>
-          Los avisos automáticos están en <strong>modo prueba</strong>: se
-          planifican pero no se envían.
-        </span>
-      )}
+      <span>
+        Los avisos automáticos están <strong>apagados</strong>.{' '}
+        {!automation_enabled
+          ? 'El interruptor general está apagado.'
+          : 'No hay ninguna automatización activa.'}{' '}
+        Nada se hace solo.
+      </span>
     </div>
   )
 }

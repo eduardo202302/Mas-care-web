@@ -53,7 +53,7 @@ export const dashboardCardMeta: Record<
 export type DashboardContact = {
   phone: string | null
   phone_has_whatsapp: boolean
-  preferred_channel: 'whatsapp' | 'call' | 'sms'
+  preferred_channel: 'whatsapp' | 'call' | 'sms' | 'telegram'
   reminder_consent: boolean
 }
 
@@ -204,7 +204,7 @@ export type RefillCycle = {
   updatedAt: string
 }
 
-export type MessageChannel = 'whatsapp' | 'call'
+export type MessageChannel = 'whatsapp' | 'call' | 'telegram'
 
 export type MessageTemplate = {
   id: string
@@ -233,7 +233,7 @@ export type NoticeTarget = {
   medicationName: string
   phone: string | null
   phoneHasWhatsapp: boolean
-  preferredChannel: 'whatsapp' | 'call' | 'sms'
+  preferredChannel: 'whatsapp' | 'call' | 'sms' | 'telegram'
   reminderConsent: boolean
 }
 
@@ -263,7 +263,7 @@ export type NoticePreview = {
   tel_url: string | null
   patient_consent?: {
     reminder_consent: boolean
-    preferred_channel: 'whatsapp' | 'call' | 'sms'
+    preferred_channel: 'whatsapp' | 'call' | 'sms' | 'telegram'
   }
   consent_warning: string | null
 }
@@ -426,7 +426,7 @@ export const pickupLabels: Record<
 }
 
 export function noticeChannelFor(
-  channel: 'whatsapp' | 'call' | 'sms',
+  channel: 'whatsapp' | 'call' | 'sms' | 'telegram',
 ): MessageChannel {
   return channel === 'whatsapp' ? 'whatsapp' : 'call'
 }
@@ -462,6 +462,9 @@ export function activityLabelFor(type: string): string {
     note: 'Nota',
     call: 'Llamada',
     patient_created: 'Paciente registrado',
+    email: 'Correo',
+    meeting: 'Reunión',
+    automation: 'Automatización',
     patient_updated: 'Datos del paciente actualizados',
     patient_archived: 'Paciente archivado',
     patient_restored: 'Paciente restaurado',

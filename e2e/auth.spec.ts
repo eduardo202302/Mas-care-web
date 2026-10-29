@@ -16,25 +16,6 @@ test('registro, pacientes, vistas guardadas y logout', async ({ page }) => {
     .getByRole('button', { name: 'Crear cuenta' })
     .click()
   await expect(page).toHaveURL(/\/inicio$/)
-  await page.goto('/dev/chips')
-  for (const status of [
-    'Al día',
-    'Próxima reposición',
-    'Vence pronto',
-    'Retiro pendiente',
-    'Vencido',
-    'Receta por renovar',
-  ]) {
-    await expect(page.getByText(status, { exact: true })).toBeVisible()
-  }
-  await expect(page.getByText('Centro', { exact: true })).toBeVisible()
-  await expect(page.getByText('Norte', { exact: true })).toBeVisible()
-  await expect(page.getByText('Sur', { exact: true })).toBeVisible()
-  await expect(page.getByText('Mercado', { exact: true })).toBeVisible()
-  await expect(page.getByText('Vencido', { exact: true })).toHaveCSS(
-    'background-color',
-    'rgb(253, 236, 234)',
-  )
   await page.goto('/ajustes/sucursales')
   const branchName = `Sucursal E2E ${suffix}`
   const updatedBranchName = `Sucursal E2E editada ${suffix}`

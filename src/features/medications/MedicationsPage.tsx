@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { ExportButton } from '@/components/ExportButton'
+import { ImportButton } from '@/components/ImportButton'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
@@ -168,12 +170,16 @@ export default function MedicationsPage() {
             Presentaciones y unidades registradas para la organización.
           </p>
         </div>
-        {canCreate && (
-          <Button variant="primary" onClick={openCreate}>
-            <Plus className="size-4" />
-            Nuevo medicamento
-          </Button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          <ImportButton entity="medications" />
+          <ExportButton entity="medications" filters={{ q: search.trim() }} />
+          {canCreate && (
+            <Button variant="primary" onClick={openCreate}>
+              <Plus className="size-4" />
+              Nuevo medicamento
+            </Button>
+          )}
+        </div>
       </div>
       <section className="border-border mb-4 flex flex-wrap items-center gap-3 rounded-xl border bg-white p-4">
         <label className="relative min-w-56 flex-1">

@@ -6,6 +6,7 @@ import {
   Pencil,
   Phone,
   Plus,
+  Send,
 } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
 import { EmptyState } from '@/components/EmptyState'
@@ -22,10 +23,15 @@ import type {
   MessageTemplate,
   TemplateList,
 } from '@/lib/operations'
+import { TemplateTestSendDialog } from './TemplateTestSendDialog'
 import { TemplateFormDialog } from './TemplateFormDialog'
 
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
+
+// Fields the API returns for WhatsApp templates; the generated type predates them.
+type WaInfo = { attemptNumber?: number; waStatus?: 'draft' | 'pending' | 'approved' | 'rejected'; waTemplateName?: string | null }
+const waStatusLabels = { draft: 'borrador', pending: 'pendiente', approved: 'aprobada', rejected: 'rechazada' } as const
 
 const channelMeta: Record<
   MessageChannel,
@@ -33,11 +39,14 @@ const channelMeta: Record<
 > = {
   whatsapp: { title: 'WhatsApp', icon: MessageCircle },
   call: { title: 'Llamadas', icon: Phone },
+  telegram: { title: 'Telegram', icon: Send },
 }
 
 export default function TemplatesPage() {
   const queryClient = useQueryClient()
   const canWrite = useCan('templates:write')
+  const canTest = useCan('automation:manage')
+  const [testing, setTesting] = useState<{ id: string; name: string } | null>(null)
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<MessageTemplate | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
@@ -163,7 +172,7 @@ export default function TemplatesPage() {
         />
       ) : (
         <div className="grid gap-5 lg:grid-cols-2">
-          {(['whatsapp', 'call'] as const).map((channel) => {
+          {(['whatsapp', 'telegram', 'call'] as const).map((channel) => {
             const meta = channelMeta[channel]
             const Icon = meta.icon
             const items = byChannel(channel)
@@ -222,6 +231,15 @@ export default function TemplatesPage() {
                               </span>
                             )}
                           </div>
+                          {template.channel !== 'call' && (
+                            <p className="text-muted mt-1 text-[11px]">
+                              {{ 1: 'Primer aviso', 2: 'Primer recordatorio', 3: 'Último recordatorio' }[(template as WaInfo).attemptNumber ?? 1] ?? 'Aviso'}
+                              {template.channel === 'whatsapp' && (
+                                <> · Meta: {waStatusLabels[(template as WaInfo).waStatus ?? 'draft']}
+                                  {(template as WaInfo).waTemplateName ? ` (${(template as WaInfo).waTemplateName})` : ''}</>
+                              )}
+                            </p>
+                          )}
                           <p className="text-muted mt-2 line-clamp-4 text-xs leading-5 whitespace-pre-wrap">
                             {template.body}
                           </p>
@@ -248,6 +266,15 @@ export default function TemplatesPage() {
                               >
                                 {template.isActive ? 'Desactivar' : 'Activar'}
                               </Button>
+                              {canTest && template.channel === 'whatsapp' && (template as WaInfo).waStatus === 'approved' && (
+                                <Button
+                                  variant="ghost"
+                                  className="h-8 px-3 text-xs"
+                                  onClick={() => setTesting({ id: template.id, name: template.name })}
+                                >
+                                  Enviar prueba
+                                </Button>
+                              )}
                             </div>
                           )}
                         </article>
@@ -276,6 +303,13 @@ export default function TemplatesPage() {
         disabled={templates.isFetching}
       />
 
+      {testing && (
+        <TemplateTestSendDialog
+          templateId={testing.id}
+          templateName={testing.name}
+          onClose={() => setTesting(null)}
+        />
+      )}
       {formOpen && (
         <TemplateFormDialog
           key={editing?.id ?? 'new'}

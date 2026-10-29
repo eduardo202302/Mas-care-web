@@ -8,6 +8,7 @@ import {
   ListTree,
   MessageSquareText,
   PackageSearch,
+  Send,
   Pill,
   Settings2,
   ShieldCheck,
@@ -38,6 +39,7 @@ export const menuIcons: Record<string, LucideIcon> = {
   'list-checks': ListChecks,
   'list-tree': ListTree,
   'message-square-text': MessageSquareText,
+  send: Send,
   pill: Pill,
   'settings-2': Settings2,
   'shield-check': ShieldCheck,
@@ -72,7 +74,8 @@ export function menuIcon(name: string): LucideIcon {
  */
 export const alwaysAllowedPaths = [
   '/inicio',
-  '/dev/chips',
+  ...(import.meta.env.DEV ? ['/dev/chips'] : []),
+  '/perfil',
   '/panel-global',
   '/traspasos',
   '/informes',

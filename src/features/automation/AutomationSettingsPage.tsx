@@ -8,6 +8,9 @@ import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { TextField } from '@/components/ui/TextField'
+import { TelegramBotCard } from '@/features/telegram/TelegramBotCard'
+import { WhatsAppAccountCard } from '@/features/whatsapp/WhatsAppAccountCard'
+import { AutomationRules } from './AutomationRules'
 import { api } from '@/lib/http'
 import { useCan, useMe } from '@/lib/permissions'
 import type { components } from '@/lib/api-types'
@@ -329,6 +332,9 @@ export default function AutomationSettingsPage() {
         </form>
       )}
 
+      <div className="mt-6"><AutomationRules /></div>
+      <WhatsAppAccountCard />
+      <TelegramBotCard />
       <section className="mt-8 border-t border-red-100 pt-6">
         <h2 className="text-ink flex items-center gap-2 text-sm font-semibold">
           <ShieldAlert className="size-4 text-red-700" />

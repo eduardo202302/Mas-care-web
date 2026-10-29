@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import {
   CalendarClock,
   CheckCircle2,
@@ -64,9 +65,12 @@ export function TreatmentList({
           >
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
-                <p className="text-petroleo text-sm font-semibold">
+                <Link
+                  to={`/pacientes/${treatment.patientId}/tratamientos/${treatment.id}`}
+                  className="text-petroleo hover:text-tealmax text-sm font-semibold hover:underline"
+                >
                   {medicationName(medication)}
-                </p>
+                </Link>
                 <p className="text-muted mt-0.5 text-xs">
                   {treatmentPauta(treatment, medication)}
                 </p>

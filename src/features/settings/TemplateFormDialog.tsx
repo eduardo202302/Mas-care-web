@@ -8,6 +8,15 @@ import { api } from '@/lib/http'
 import type { paths } from '@/lib/api-types'
 import type { MessageChannel, MessageTemplate } from '@/lib/operations'
 
+// Fields the API accepts for WhatsApp templates; the generated type predates them.
+type WaFields = {
+  waTemplateName?: string | null
+  waLanguage?: string
+  waStatus?: 'draft' | 'pending' | 'approved' | 'rejected'
+  waCategory?: 'utility' | 'marketing' | 'authentication' | null
+  attemptNumber?: number
+}
+
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
 
@@ -36,6 +45,13 @@ export function TemplateFormDialog({
   const [body, setBody] = useState(template?.body ?? '')
   const [branchId, setBranchId] = useState(template?.branchId ?? '')
   const [isActive, setIsActive] = useState(template?.isActive ?? true)
+  const wa = (template ?? {}) as WaFields
+  const [waName, setWaName] = useState(wa.waTemplateName ?? '')
+  const [waLanguage, setWaLanguage] = useState(wa.waLanguage ?? 'es')
+  const [waStatus, setWaStatus] = useState<NonNullable<WaFields['waStatus']>>(wa.waStatus ?? 'draft')
+  const [waCategory, setWaCategory] = useState<string>(wa.waCategory ?? '')
+  const [attemptNumber, setAttemptNumber] = useState(wa.attemptNumber ?? 1)
+  const waInvalid = channel === 'whatsapp' && waStatus === 'approved' && !waName.trim()
 
   const branches = useQuery({
     queryKey: ['branches'],
@@ -51,6 +67,16 @@ export function TemplateFormDialog({
         body: body.trim(),
         branch_id: branchId || null,
         is_active: isActive,
+        // The notice number applies to automatic messages on both channels; Meta data only to WhatsApp.
+        ...(channel !== 'call' ? { attempt_number: attemptNumber } : {}),
+        ...(channel === 'whatsapp'
+          ? {
+              wa_template_name: waName.trim() || null,
+              wa_language: waLanguage.trim() || 'es',
+              wa_status: waStatus,
+              wa_category: waCategory || null,
+            }
+          : {}),
       }
       return template
         ? api<MessageTemplate>(
@@ -86,8 +112,10 @@ export function TemplateFormDialog({
 
   const channelHint =
     channel === 'whatsapp'
-      ? 'Se usará como texto base y se abrirá en WhatsApp.'
-      : 'Se usará como guion para la llamada.'
+      ? 'Texto base para el aviso manual por WhatsApp. El aviso automático usa la plantilla aprobada por Meta que registres abajo.'
+      : channel === 'telegram'
+        ? 'Texto plano que recibe el paciente por Telegram, con los botones Confirmar y Necesito hablar. No necesita aprobación.'
+        : 'Se usará como guion para la llamada.'
 
   return (
     <Dialog
@@ -100,7 +128,7 @@ export function TemplateFormDialog({
         className="grid gap-4"
         onSubmit={(event) => {
           event.preventDefault()
-          if (!name.trim() || !body.trim() || save.isPending) return
+          if (!name.trim() || !body.trim() || waInvalid || save.isPending) return
           save.mutate()
         }}
       >
@@ -115,6 +143,7 @@ export function TemplateFormDialog({
               className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
             >
               <option value="whatsapp">WhatsApp</option>
+              <option value="telegram">Telegram</option>
               <option value="call">Llamada</option>
             </select>
           </label>
@@ -177,6 +206,80 @@ export function TemplateFormDialog({
             ))}
           </div>
         </div>
+
+        {channel !== 'call' && (
+          <label className="grid max-w-xs gap-1.5">
+            <span className="text-ink text-sm font-medium">Aviso automático al que corresponde</span>
+            <select
+              value={attemptNumber}
+              onChange={(event) => setAttemptNumber(Number(event.target.value))}
+              className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+            >
+              <option value={1}>Primer aviso</option>
+              <option value={2}>Primer recordatorio</option>
+              <option value={3}>Último recordatorio</option>
+            </select>
+          </label>
+        )}
+
+        {channel === 'whatsapp' && (
+          <fieldset className="border-border grid gap-3 rounded-xl border p-4">
+            <legend className="text-petroleo px-1 text-sm font-semibold">Plantilla de WhatsApp en Meta</legend>
+            <p className="text-muted text-xs">
+              Solo las plantillas <strong>aprobadas</strong> se envían de forma automática. Los valores viajan como {'{{1}}'} paciente
+              (solo el nombre de pila), {'{{2}}'} farmacia, {'{{3}}'} fecha; si la plantilla usa el medicamento será {'{{3}}'} y la fecha {'{{4}}'}.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="grid gap-1.5">
+                <span className="text-ink text-sm font-medium">Nombre registrado en Meta</span>
+                <input
+                  value={waName}
+                  onChange={(event) => setWaName(event.target.value)}
+                  maxLength={512}
+                  placeholder="aviso_reposicion"
+                  className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+                />
+              </label>
+              <label className="grid gap-1.5">
+                <span className="text-ink text-sm font-medium">Estado en Meta</span>
+                <select
+                  value={waStatus}
+                  onChange={(event) => setWaStatus(event.target.value as typeof waStatus)}
+                  className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+                >
+                  <option value="draft">Borrador</option>
+                  <option value="pending">Pendiente de aprobación</option>
+                  <option value="approved">Aprobada</option>
+                  <option value="rejected">Rechazada</option>
+                </select>
+              </label>
+              <label className="grid gap-1.5">
+                <span className="text-ink text-sm font-medium">Idioma</span>
+                <input
+                  value={waLanguage}
+                  onChange={(event) => setWaLanguage(event.target.value)}
+                  maxLength={5}
+                  placeholder="es"
+                  className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+                />
+              </label>
+              <label className="grid gap-1.5">
+                <span className="text-ink text-sm font-medium">Categoría</span>
+                <select
+                  value={waCategory}
+                  onChange={(event) => setWaCategory(event.target.value)}
+                  className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+                >
+                  <option value="">Sin indicar</option>
+                  <option value="utility">Utilidad</option>
+                  <option value="marketing">Marketing</option>
+                  <option value="authentication">Autenticación</option>
+                </select>
+              </label>
+            </div>
+            {waInvalid && <p role="alert" className="text-xs text-red-700">Una plantilla aprobada necesita el nombre registrado en Meta.</p>}
+          </fieldset>
+        )}
 
         <label className="flex items-center gap-2 text-sm">
           <input

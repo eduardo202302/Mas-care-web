@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
 import { CalendarDays, Search, X } from 'lucide-react'
+import { CustomFields } from '@/components/CustomFields'
+import { useCustomProperties, validateCustomValues } from '@/lib/custom-properties'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { TextField } from '@/components/ui/TextField'
@@ -144,9 +146,21 @@ export function TreatmentForm({
     searchRef.current?.focus()
   }
 
+  const [customValues, setCustomValues] = useState<Record<string, unknown>>(
+    ((treatment as { customValues?: Record<string, unknown> } | undefined)?.customValues) ?? {},
+  )
+  const [customErrors, setCustomErrors] = useState<Record<string, string>>({})
+  const customDefs = useCustomProperties('treatment').data?.data ?? []
+
   async function submit(values: TreatmentFormValues) {
+    const check = validateCustomValues(customDefs, customValues)
+    if (!check.ok) {
+      setCustomErrors(check.errors)
+      return
+    }
+    setCustomErrors({})
     try {
-      await onSave(values)
+      await onSave({ ...values, customValues: check.values })
     } catch (error) {
       if (
         error instanceof ApiError &&
@@ -437,6 +451,12 @@ export function TreatmentForm({
           {errors.root.server.message}
         </p>
       )}
+      <CustomFields
+        entity="treatment"
+        values={customValues}
+        errors={customErrors}
+        onChange={setCustomValues}
+      />
       <FormActions>
         <Button type="button" className="w-full sm:w-auto" onClick={onCancel}>
           Cancelar

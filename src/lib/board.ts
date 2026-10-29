@@ -19,6 +19,8 @@ export type BoardColumnKey =
 /** One board column plus client-side cursor state for "Cargar más". */
 export type BoardColumnData = components['schemas']['BoardColumn'] & {
   next_cursor?: string | null
+  overdue_count?: number
+  due_soon_count?: number
 }
 
 export type BoardData = Omit<BoardResponse, 'columns'> & {

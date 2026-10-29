@@ -25,6 +25,15 @@ import {
   type CycleStatus,
 } from '@/lib/board'
 import { cn } from '@/lib/cn'
+import { StagePicker } from './StagePicker'
+
+/** Next step for an open cycle: notify first, then hand it over. */
+function nextActionFor(status: CycleStatus) {
+  if (status === 'to_notify') return 'Avisar'
+  return openCycleStatuses.includes(status as (typeof openCycleStatuses)[number])
+    ? 'Marcar entregado'
+    : null
+}
 
 export function CycleCard({
   card,
@@ -142,6 +151,8 @@ export function CycleCard({
         </div>
       </dl>
 
+      <StagePicker card={card} canMove={canMove} />
+
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {card.status === 'delivered' || card.status === 'not_picked_up' ? (
           <span
@@ -159,6 +170,21 @@ export function CycleCard({
         ) : null}
         {card.prescription_flag && <StatusChip status="Receta por renovar" />}
       </div>
+
+      <dl className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+        <div>
+          <dt className="text-muted">Responsable</dt>
+          <dd className="text-ink mt-0.5 truncate font-semibold">
+            {card.responsible?.nombre ?? 'Sin asignar'}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted">Próxima acción</dt>
+          <dd className="text-ink mt-0.5 font-semibold">
+            {nextActionFor(card.status) ?? '—'}
+          </dd>
+        </div>
+      </dl>
 
       <div className="border-border mt-2 flex flex-wrap items-center justify-between gap-2 border-t pt-2">
         <BranchTag
