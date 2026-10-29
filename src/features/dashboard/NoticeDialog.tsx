@@ -243,7 +243,7 @@ export function NoticeDialog({
               </p>
             )}
             <p className="text-muted text-center text-xs">
-              Max Care no envía mensajes automáticamente. El envío se realiza
+              MAS CARE no envía mensajes automáticamente. El envío se realiza
               desde tu WhatsApp o teléfono.
             </p>
           </>

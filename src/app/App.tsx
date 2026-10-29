@@ -12,7 +12,7 @@ export function App() {
         <Suspense
         fallback={
           <div className="text-muted grid min-h-screen place-items-center text-sm">
-            Cargando Max Care…
+            Cargando MAS CARE…
           </div>
         }
       >

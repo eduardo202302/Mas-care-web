@@ -10,6 +10,7 @@ import { TextField } from '@/components/ui/TextField'
 import { api } from '@/lib/http'
 import { useCan, useMe } from '@/lib/permissions'
 import type { components } from '@/lib/api-types'
+import { NoticeTimingCard } from './NoticeTimingCard'
 import { thresholdsSchema, type ThresholdsFormValues } from '@/schemas/settings'
 
 type Settings = components['schemas']['Settings']
@@ -76,13 +77,13 @@ export default function ThresholdsPage() {
     return (
       <div className="animate-in">
         <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-          Umbrales
+          Parámetros de tiempo
         </h1>
         <p
           role="alert"
           className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
         >
-          No tienes permiso para ver la configuración de umbrales.
+          No tienes permiso para ver la configuración de parámetros de tiempo.
         </p>
       </div>
     )
@@ -92,7 +93,7 @@ export default function ThresholdsPage() {
       <div className="mb-7">
         <p className="text-tealmax mb-2 text-sm font-medium">Ajustes</p>
         <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-          Umbrales de cobertura
+          Parámetros de tiempo
         </h1>
         <p className="text-muted mt-2 max-w-2xl text-sm leading-6">
           Define con cuánta anticipación se muestran las alertas de reposición y
@@ -104,7 +105,7 @@ export default function ThresholdsPage() {
           <div
             role="status"
             aria-busy="true"
-            aria-label="Cargando umbrales…"
+            aria-label="Cargando parámetros…"
             className="grid gap-4 sm:grid-cols-3"
           >
             {Array.from({ length: 3 }).map((_, index) => (
@@ -120,7 +121,7 @@ export default function ThresholdsPage() {
             role="alert"
             className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
           >
-            No pudimos cargar los umbrales. {settings.error.message}
+            No pudimos cargar los parámetros. {settings.error.message}
           </p>
         ) : (
           <form
@@ -196,7 +197,7 @@ export default function ThresholdsPage() {
                 className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900"
               >
                 <CheckCircle2 className="size-4" />
-                Umbrales guardados.
+                Parámetros guardados.
               </p>
             )}
             {canWrite ? (
@@ -207,17 +208,18 @@ export default function ThresholdsPage() {
                   className="w-full sm:w-auto"
                   disabled={save.isPending}
                 >
-                  {save.isPending ? 'Guardando…' : 'Guardar umbrales'}
+                  {save.isPending ? 'Guardando…' : 'Guardar parámetros'}
                 </Button>
               </FormActions>
             ) : (
               <p className="text-muted text-sm">
-                Tu rol permite consultar los umbrales, pero no modificarlos.
+                Tu rol permite consultar los parámetros, pero no modificarlos.
               </p>
             )}
           </form>
         )}
       </section>
+      <NoticeTimingCard />
     </div>
   )
 }

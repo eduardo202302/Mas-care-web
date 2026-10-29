@@ -1,4 +1,4 @@
-# Max Care Web
+# MAS CARE Web
 
 SPA de gestión para farmacias que llevan tratamientos de uso continuo: React 19, Vite, TanStack Query, React Hook Form, Zod y Tailwind. Consume `max-care-api`.
 

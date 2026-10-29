@@ -150,9 +150,6 @@ export default function MenuPage() {
       <span key="key" className="text-muted font-mono text-xs">
         {item.key}
       </span>,
-      <span key="permission" className="text-muted text-xs">
-        {item.permission ?? '—'}
-      </span>,
       <span key="order" className="text-muted">
         {item.order}
       </span>,
@@ -272,14 +269,13 @@ export default function MenuPage() {
       )}
       {isOwner &&
         (menu.isPending ? (
-          <TableSkeleton columns={6} />
+          <TableSkeleton columns={5} />
         ) : (
           <DataTable
             columns={[
               'Pantalla',
               'Ruta',
               'Clave',
-              'Permiso',
               'Orden',
               'Estado',
             ]}
