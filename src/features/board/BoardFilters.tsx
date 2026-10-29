@@ -18,20 +18,32 @@ type MedicationList =
 const controlClass =
   'border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none'
 
+const filterChipLabel: Partial<Record<keyof Filters, string>> = {
+  branch_id: 'Sucursal',
+  responsible_user_id: 'Responsable',
+  medication_id: 'Medicamento',
+  derived_status: 'Estado',
+  expected_from: 'Desde',
+  expected_to: 'Hasta',
+}
+
 export function BoardFilters({
   filters,
   onChange,
   branchOptions,
   branchLocked,
   privileged,
+  meId,
 }: {
   filters: Filters
   onChange: (next: Filters) => void
   branchOptions: { id: string; name: string }[]
   branchLocked: boolean
   privileged: boolean
+  meId?: string
 }) {
   const [query, setQuery] = useState(filters.q ?? '')
+  const [panelOpen, setPanelOpen] = useState(false)
   const users = useQuery({
     queryKey: ['users', 'board-filter'],
     queryFn: () => api<UserList>('/api/v1/users?limit=100'),
@@ -59,31 +71,123 @@ export function BoardFilters({
     onChange({ ...filters, [key]: value || undefined })
   }
 
+  function removeFilter(key: keyof Filters) {
+    onChange({ ...filters, [key]: undefined })
+  }
+
+  const activeEntries = (Object.keys(filterChipLabel) as (keyof Filters)[]).filter(
+    (key) => Boolean(filters[key]),
+  )
   const hasFilters = Object.values(filters).some(Boolean)
+  const mine = Boolean(meId) && filters.responsible_user_id === meId
+
+  function userLabel(id: string) {
+    return users.data?.data.find((user) => user.id === id)?.name ?? id
+  }
+  function medicationLabel(id: string) {
+    const medication = medications.data?.data.find((item) => item.id === id)
+    return (
+      medication?.brandName ||
+      medication?.genericName ||
+      medication?.activeIngredient ||
+      id
+    )
+  }
+  function branchLabel(id: string) {
+    return branchOptions.find((branch) => branch.id === id)?.name ?? id
+  }
+  function derivedLabel(value: string) {
+    return derivedStatusOptions.find((option) => option.value === value)?.label ?? value
+  }
+  function chipValue(key: keyof Filters): string {
+    const value = filters[key]
+    if (!value) return ''
+    if (key === 'branch_id') return branchLabel(value)
+    if (key === 'responsible_user_id') return userLabel(value)
+    if (key === 'medication_id') return medicationLabel(value)
+    if (key === 'derived_status') return derivedLabel(value)
+    return value
+  }
 
   return (
     <section
       aria-label="Filtros del tablero"
       className="border-border shadow-card mb-5 rounded-xl border bg-white p-3"
     >
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-muted flex items-center gap-2 text-xs font-semibold tracking-wide uppercase">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="relative min-w-[220px] flex-1">
+          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
+          <input
+            aria-label="Buscar paciente"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar paciente…"
+            className={`${controlClass} pl-9`}
+          />
+        </span>
+        <Button
+          type="button"
+          variant={panelOpen || hasFilters ? 'primary' : 'secondary'}
+          className="h-10 gap-1.5"
+          onClick={() => setPanelOpen((open) => !open)}
+        >
           <SlidersHorizontal className="size-3.5" />
-          Filtros
-        </p>
+          Filtro{activeEntries.length > 0 ? ` (${activeEntries.length})` : ''}
+        </Button>
         {hasFilters && (
-          <Button
-            type="button"
-            variant="ghost"
-            className="h-7 px-2 text-xs"
-            onClick={() => onChange({})}
-          >
+          <Button type="button" variant="ghost" className="h-10 px-2 text-xs" onClick={() => onChange({})}>
             <X className="size-3.5" />
-            Limpiar
+            Borrar todo
           </Button>
         )}
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      {meId && (
+        <div role="tablist" aria-label="Alcance" className="mt-3 flex gap-1.5">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!mine}
+            onClick={() => removeFilter('responsible_user_id')}
+            className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
+              !mine
+                ? 'border-border bg-white text-petroleo shadow-sm'
+                : 'border-transparent bg-surface text-muted hover:text-ink'
+            }`}
+          >
+            Todos los ciclos
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mine}
+            onClick={() => set('responsible_user_id', meId)}
+            className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
+              mine
+                ? 'border-border bg-white text-petroleo shadow-sm'
+                : 'border-transparent bg-surface text-muted hover:text-ink'
+            }`}
+          >
+            Asignados a mí
+          </button>
+        </div>
+      )}
+      {activeEntries.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {activeEntries.map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => removeFilter(key)}
+              className="border-border text-ink hover:bg-surface flex items-center gap-1 rounded-full border bg-white px-2.5 py-1 text-xs font-medium"
+            >
+              {filterChipLabel[key]}: {chipValue(key)}
+              <X className="size-3" />
+            </button>
+          ))}
+        </div>
+      )}
+      {panelOpen && (
+      <div className="mt-3 grid gap-3 border-t border-border pt-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
         <label className="grid gap-1">
           <span className="text-muted text-[11px] font-medium">Sucursal</span>
           <select
@@ -164,19 +268,6 @@ export function BoardFilters({
           </select>
         </label>
         <label className="grid gap-1">
-          <span className="text-muted text-[11px] font-medium">Paciente</span>
-          <span className="relative">
-            <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-            <input
-              aria-label="Buscar paciente"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Nombre…"
-              className={`${controlClass} pl-9`}
-            />
-          </span>
-        </label>
-        <label className="grid gap-1">
           <span className="text-muted text-[11px] font-medium">Desde</span>
           <input
             aria-label="Fecha prevista desde"
@@ -197,6 +288,7 @@ export function BoardFilters({
           />
         </label>
       </div>
+      )}
     </section>
   )
 }

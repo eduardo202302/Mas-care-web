@@ -1,0 +1,682 @@
+
+> max-care-web@0.1.0 dev C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web
+> vite --host 0.0.0.0
+
+[2m8:44:21 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because vite config has changed
+
+  [32m[1mVITE[22m v7.3.7[39m  [2mready in [0m[1m586[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.100.5:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.30.240.1:[1m5173[22m/[39m
+[2m8:44:46 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/lib/query-client" from "src/app/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/App.tsx[39m:5:28
+[33m  4  |  import { QueryClientProvider } from "@tanstack/react-query";
+  5  |  import { router } from "./router";
+  6  |  import { queryClient } from "@/lib/query-client";
+     |                               ^
+  7  |  import { ToastProvider } from "@/components/ui/Toast";
+  8  |  export function App() {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29250:43)
+      at TransformPluginContext.error (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29247:14)
+      at normalizeUrl (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27370:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27428:32
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27396:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29048:14)
+      at async loadAndTransform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:22914:26)
+[2m8:44:46 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/query-client" from "src/app/App.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/App.tsx[39m:5:28
+[33m  4  |  import { QueryClientProvider } from "@tanstack/react-query";
+  5  |  import { router } from "./router";
+  6  |  import { queryClient } from "@/lib/query-client";
+     |                               ^
+  7  |  import { ToastProvider } from "@/components/ui/Toast";
+  8  |  export function App() {[39m
+[2m8:44:46 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppLayout" from "src/app/router.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/router.tsx[39m:3:26
+[33m  2  |  import { createBrowserRouter, Navigate } from "react-router-dom";
+  3  |  import { lazy } from "react";
+  4  |  import { AppLayout } from "@/components/layout/AppLayout";
+     |                             ^
+  5  |  import { RequireAuth } from "./RequireAuth";
+  6  |  import { NotFoundPage } from "./NotFoundPage";[39m
+[2m8:44:46 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Skeleton" from "src/app/RequireRoute.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireRoute.tsx[39m:2:25
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Outlet, useLocation } from "react-router-dom";
+  4  |  import { Skeleton } from "@/components/ui/Skeleton";
+     |                            ^
+  5  |  import { isPathAllowed } from "@/lib/menu";
+  6  |  import { useMe } from "@/lib/permissions";[39m
+[2m8:44:46 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:44:46 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppShellSkeleton" from "src/app/RequireAuth.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireAuth.tsx[39m:2:33
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Navigate, Outlet, useLocation } from "react-router-dom";
+  4  |  import { AppShellSkeleton } from "@/components/layout/AppShellSkeleton";
+     |                                    ^
+  5  |  import { authClient } from "@/lib/auth-client";
+  6  |  export function RequireAuth() {[39m
+[2m8:44:46 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:44:46 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Button" from "src/app/RouteError.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RouteError.tsx[39m:3:23
+[33m  3  |  import { isRouteErrorResponse, useRouteError } from "react-router-dom";
+  4  |  import { RefreshCw, TriangleAlert } from "lucide-react";
+  5  |  import { Button } from "@/components/ui/Button";
+     |                          ^
+  6  |  const chunkErrorHints = [
+  7  |    "Failed to fetch dynamically imported module",[39m
+[2m8:44:50 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/lib/query-client" from "src/app/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/App.tsx[39m:5:28
+[33m  4  |  import { QueryClientProvider } from "@tanstack/react-query";
+  5  |  import { router } from "./router";
+  6  |  import { queryClient } from "@/lib/query-client";
+     |                               ^
+  7  |  import { ToastProvider } from "@/components/ui/Toast";
+  8  |  export function App() {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29250:43)
+      at TransformPluginContext.error (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29247:14)
+      at normalizeUrl (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27370:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27428:32
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27396:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29048:14)
+      at async loadAndTransform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:22914:26)
+      at async viteTransformMiddleware (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:24790:20)
+[2m8:44:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppLayout" from "src/app/router.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/router.tsx[39m:3:26
+[33m  2  |  import { createBrowserRouter, Navigate } from "react-router-dom";
+  3  |  import { lazy } from "react";
+  4  |  import { AppLayout } from "@/components/layout/AppLayout";
+     |                             ^
+  5  |  import { RequireAuth } from "./RequireAuth";
+  6  |  import { NotFoundPage } from "./NotFoundPage";[39m
+[2m8:44:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:44:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppShellSkeleton" from "src/app/RequireAuth.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireAuth.tsx[39m:2:33
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Navigate, Outlet, useLocation } from "react-router-dom";
+  4  |  import { AppShellSkeleton } from "@/components/layout/AppShellSkeleton";
+     |                                    ^
+  5  |  import { authClient } from "@/lib/auth-client";
+  6  |  export function RequireAuth() {[39m
+[2m8:44:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Skeleton" from "src/app/RequireRoute.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireRoute.tsx[39m:2:25
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Outlet, useLocation } from "react-router-dom";
+  4  |  import { Skeleton } from "@/components/ui/Skeleton";
+     |                            ^
+  5  |  import { isPathAllowed } from "@/lib/menu";
+  6  |  import { useMe } from "@/lib/permissions";[39m
+[2m8:44:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Button" from "src/app/RouteError.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RouteError.tsx[39m:3:23
+[33m  3  |  import { isRouteErrorResponse, useRouteError } from "react-router-dom";
+  4  |  import { RefreshCw, TriangleAlert } from "lucide-react";
+  5  |  import { Button } from "@/components/ui/Button";
+     |                          ^
+  6  |  const chunkErrorHints = [
+  7  |    "Failed to fetch dynamically imported module",[39m
+[2m8:44:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:44:51 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/lib/query-client" from "src/app/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/App.tsx[39m:5:28
+[33m  4  |  import { QueryClientProvider } from "@tanstack/react-query";
+  5  |  import { router } from "./router";
+  6  |  import { queryClient } from "@/lib/query-client";
+     |                               ^
+  7  |  import { ToastProvider } from "@/components/ui/Toast";
+  8  |  export function App() {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29250:43)
+      at TransformPluginContext.error (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29247:14)
+      at normalizeUrl (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27370:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27428:32
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27396:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29048:14)
+      at async loadAndTransform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:22914:26)
+      at async viteTransformMiddleware (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:24790:20)
+[2m8:44:51 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppLayout" from "src/app/router.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/router.tsx[39m:3:26
+[33m  2  |  import { createBrowserRouter, Navigate } from "react-router-dom";
+  3  |  import { lazy } from "react";
+  4  |  import { AppLayout } from "@/components/layout/AppLayout";
+     |                             ^
+  5  |  import { RequireAuth } from "./RequireAuth";
+  6  |  import { NotFoundPage } from "./NotFoundPage";[39m
+[2m8:44:51 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Button" from "src/app/RouteError.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RouteError.tsx[39m:3:23
+[33m  3  |  import { isRouteErrorResponse, useRouteError } from "react-router-dom";
+  4  |  import { RefreshCw, TriangleAlert } from "lucide-react";
+  5  |  import { Button } from "@/components/ui/Button";
+     |                          ^
+  6  |  const chunkErrorHints = [
+  7  |    "Failed to fetch dynamically imported module",[39m
+[2m8:44:51 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:44:51 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppShellSkeleton" from "src/app/RequireAuth.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireAuth.tsx[39m:2:33
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Navigate, Outlet, useLocation } from "react-router-dom";
+  4  |  import { AppShellSkeleton } from "@/components/layout/AppShellSkeleton";
+     |                                    ^
+  5  |  import { authClient } from "@/lib/auth-client";
+  6  |  export function RequireAuth() {[39m
+[2m8:44:51 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Skeleton" from "src/app/RequireRoute.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireRoute.tsx[39m:2:25
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Outlet, useLocation } from "react-router-dom";
+  4  |  import { Skeleton } from "@/components/ui/Skeleton";
+     |                            ^
+  5  |  import { isPathAllowed } from "@/lib/menu";
+  6  |  import { useMe } from "@/lib/permissions";[39m
+[2m8:44:51 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:44:55 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/lib/query-client" from "src/app/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/App.tsx[39m:5:28
+[33m  4  |  import { QueryClientProvider } from "@tanstack/react-query";
+  5  |  import { router } from "./router";
+  6  |  import { queryClient } from "@/lib/query-client";
+     |                               ^
+  7  |  import { ToastProvider } from "@/components/ui/Toast";
+  8  |  export function App() {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29250:43)
+      at TransformPluginContext.error (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29247:14)
+      at normalizeUrl (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27370:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27428:32
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27396:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29048:14)
+      at async loadAndTransform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:22914:26)
+      at async viteTransformMiddleware (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:24790:20)
+[2m8:44:55 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppLayout" from "src/app/router.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/router.tsx[39m:3:26
+[33m  2  |  import { createBrowserRouter, Navigate } from "react-router-dom";
+  3  |  import { lazy } from "react";
+  4  |  import { AppLayout } from "@/components/layout/AppLayout";
+     |                             ^
+  5  |  import { RequireAuth } from "./RequireAuth";
+  6  |  import { NotFoundPage } from "./NotFoundPage";[39m
+[2m8:44:55 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Skeleton" from "src/app/RequireRoute.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireRoute.tsx[39m:2:25
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Outlet, useLocation } from "react-router-dom";
+  4  |  import { Skeleton } from "@/components/ui/Skeleton";
+     |                            ^
+  5  |  import { isPathAllowed } from "@/lib/menu";
+  6  |  import { useMe } from "@/lib/permissions";[39m
+[2m8:44:55 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:44:55 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppShellSkeleton" from "src/app/RequireAuth.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireAuth.tsx[39m:2:33
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Navigate, Outlet, useLocation } from "react-router-dom";
+  4  |  import { AppShellSkeleton } from "@/components/layout/AppShellSkeleton";
+     |                                    ^
+  5  |  import { authClient } from "@/lib/auth-client";
+  6  |  export function RequireAuth() {[39m
+[2m8:44:55 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:44:55 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Button" from "src/app/RouteError.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RouteError.tsx[39m:3:23
+[33m  3  |  import { isRouteErrorResponse, useRouteError } from "react-router-dom";
+  4  |  import { RefreshCw, TriangleAlert } from "lucide-react";
+  5  |  import { Button } from "@/components/ui/Button";
+     |                          ^
+  6  |  const chunkErrorHints = [
+  7  |    "Failed to fetch dynamically imported module",[39m
+[2m8:45:26 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/lib/query-client" from "src/app/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/App.tsx[39m:5:28
+[33m  4  |  import { QueryClientProvider } from "@tanstack/react-query";
+  5  |  import { router } from "./router";
+  6  |  import { queryClient } from "@/lib/query-client";
+     |                               ^
+  7  |  import { ToastProvider } from "@/components/ui/Toast";
+  8  |  export function App() {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29250:43)
+      at TransformPluginContext.error (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29247:14)
+      at normalizeUrl (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27370:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27428:32
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27396:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29048:14)
+      at async loadAndTransform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:22914:26)
+      at async viteTransformMiddleware (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:24790:20)
+[2m8:45:27 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppLayout" from "src/app/router.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/router.tsx[39m:3:26
+[33m  2  |  import { createBrowserRouter, Navigate } from "react-router-dom";
+  3  |  import { lazy } from "react";
+  4  |  import { AppLayout } from "@/components/layout/AppLayout";
+     |                             ^
+  5  |  import { RequireAuth } from "./RequireAuth";
+  6  |  import { NotFoundPage } from "./NotFoundPage";[39m
+[2m8:45:27 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:45:27 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Skeleton" from "src/app/RequireRoute.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireRoute.tsx[39m:2:25
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Outlet, useLocation } from "react-router-dom";
+  4  |  import { Skeleton } from "@/components/ui/Skeleton";
+     |                            ^
+  5  |  import { isPathAllowed } from "@/lib/menu";
+  6  |  import { useMe } from "@/lib/permissions";[39m
+[2m8:45:27 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppShellSkeleton" from "src/app/RequireAuth.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireAuth.tsx[39m:2:33
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Navigate, Outlet, useLocation } from "react-router-dom";
+  4  |  import { AppShellSkeleton } from "@/components/layout/AppShellSkeleton";
+     |                                    ^
+  5  |  import { authClient } from "@/lib/auth-client";
+  6  |  export function RequireAuth() {[39m
+[2m8:45:27 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Button" from "src/app/RouteError.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RouteError.tsx[39m:3:23
+[33m  3  |  import { isRouteErrorResponse, useRouteError } from "react-router-dom";
+  4  |  import { RefreshCw, TriangleAlert } from "lucide-react";
+  5  |  import { Button } from "@/components/ui/Button";
+     |                          ^
+  6  |  const chunkErrorHints = [
+  7  |    "Failed to fetch dynamically imported module",[39m
+[2m8:45:27 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:45:40 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/cache/hook_sessions/5d2fc5e2-f289-4d50-aef5-7432b1d4d877.nudges[22m
+[2m8:45:40 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m8:45:40 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m8:45:40 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/query-client" from "src/app/App.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/App.tsx[39m:5:28
+[33m  4  |  import { QueryClientProvider } from "@tanstack/react-query";
+  5  |  import { router } from "./router";
+  6  |  import { queryClient } from "@/lib/query-client";
+     |                               ^
+  7  |  import { ToastProvider } from "@/components/ui/Toast";
+  8  |  export function App() {[39m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppLayout" from "src/app/router.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/router.tsx[39m:3:26
+[33m  2  |  import { createBrowserRouter, Navigate } from "react-router-dom";
+  3  |  import { lazy } from "react";
+  4  |  import { AppLayout } from "@/components/layout/AppLayout";
+     |                             ^
+  5  |  import { RequireAuth } from "./RequireAuth";
+  6  |  import { NotFoundPage } from "./NotFoundPage";[39m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/lib/query-client" from "src/app/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/App.tsx[39m:5:28
+[33m  4  |  import { QueryClientProvider } from "@tanstack/react-query";
+  5  |  import { router } from "./router";
+  6  |  import { queryClient } from "@/lib/query-client";
+     |                               ^
+  7  |  import { ToastProvider } from "@/components/ui/Toast";
+  8  |  export function App() {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29250:43)
+      at TransformPluginContext.error (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29247:14)
+      at normalizeUrl (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27370:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27428:32
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:27396:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:29048:14)
+      at async loadAndTransform (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:22914:26)
+      at async viteTransformMiddleware (file:///C:/Users/eduar/OneDrive/Documentos/iKompras/mas%20care/max-care-web/node_modules/.pnpm/vite@7.3.7_@types+node@24.1_4970d467e35d34fdff5819e14e3a31fc/node_modules/vite/dist/node/chunks/config.js:24790:20)
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Skeleton" from "src/app/RequireRoute.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireRoute.tsx[39m:2:25
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Outlet, useLocation } from "react-router-dom";
+  4  |  import { Skeleton } from "@/components/ui/Skeleton";
+     |                            ^
+  5  |  import { isPathAllowed } from "@/lib/menu";
+  6  |  import { useMe } from "@/lib/permissions";[39m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppShellSkeleton" from "src/app/RequireAuth.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireAuth.tsx[39m:2:33
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Navigate, Outlet, useLocation } from "react-router-dom";
+  4  |  import { AppShellSkeleton } from "@/components/layout/AppShellSkeleton";
+     |                                    ^
+  5  |  import { authClient } from "@/lib/auth-client";
+  6  |  export function RequireAuth() {[39m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Button" from "src/app/RouteError.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RouteError.tsx[39m:3:23
+[33m  3  |  import { isRouteErrorResponse, useRouteError } from "react-router-dom";
+  4  |  import { RefreshCw, TriangleAlert } from "lucide-react";
+  5  |  import { Button } from "@/components/ui/Button";
+     |                          ^
+  6  |  const chunkErrorHints = [
+  7  |    "Failed to fetch dynamically imported module",[39m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppLayout" from "src/app/router.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/router.tsx[39m:3:26
+[33m  2  |  import { createBrowserRouter, Navigate } from "react-router-dom";
+  3  |  import { lazy } from "react";
+  4  |  import { AppLayout } from "@/components/layout/AppLayout";
+     |                             ^
+  5  |  import { RequireAuth } from "./RequireAuth";
+  6  |  import { NotFoundPage } from "./NotFoundPage";[39m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Button" from "src/app/RouteError.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RouteError.tsx[39m:3:23
+[33m  3  |  import { isRouteErrorResponse, useRouteError } from "react-router-dom";
+  4  |  import { RefreshCw, TriangleAlert } from "lucide-react";
+  5  |  import { Button } from "@/components/ui/Button";
+     |                          ^
+  6  |  const chunkErrorHints = [
+  7  |    "Failed to fetch dynamically imported module",[39m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/lib/cn" from "src/app/NotFoundPage.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/NotFoundPage.tsx[39m:2:19
+[33m  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { Link } from "react-router-dom";
+  3  |  import { cn } from "@/lib/cn";
+     |                      ^
+  4  |  export function NotFoundPage({ fullScreen = false }) {
+  5  |    return /* @__PURE__ */ jsxDEV([39m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/ui/Skeleton" from "src/app/RequireRoute.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireRoute.tsx[39m:2:25
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Outlet, useLocation } from "react-router-dom";
+  4  |  import { Skeleton } from "@/components/ui/Skeleton";
+     |                            ^
+  5  |  import { isPathAllowed } from "@/lib/menu";
+  6  |  import { useMe } from "@/lib/permissions";[39m
+[2m8:45:40 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/components/layout/AppShellSkeleton" from "src/app/RequireAuth.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/app/RequireAuth.tsx[39m:2:33
+[33m  2  |  var _s = $RefreshSig$();
+  3  |  import { Navigate, Outlet, useLocation } from "react-router-dom";
+  4  |  import { AppShellSkeleton } from "@/components/layout/AppShellSkeleton";
+     |                                    ^
+  5  |  import { authClient } from "@/lib/auth-client";
+  6  |  export function RequireAuth() {[39m
+[2m8:46:09 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mvite.config.ts.tmp.25044.1793277969657[22m
+[2m8:46:09 AM[22m [36m[1m[vite][22m[39m [32mvite.config.ts changed, restarting server...[39m
+[2m8:46:09 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because vite config has changed
+[2m8:46:09 AM[22m [36m[1m[vite][22m[39m server restarted.
+[2m9:47:04 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m9:49:28 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m9:49:36 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m9:52:51 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m9:53:03 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m10:02:05 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m10:02:24 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m10:02:45 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m10:03:04 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m10:03:40 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:03:40 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\board\BoardFilters.tsx: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>? (300:4)
+
+[0m [90m 298 |[31m         [33m<[31m[33m/[31m[33mlabel[31m[33m>[31m
+ [90m 299 |[31m       [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+[31m[1m>[22m[31m[90m 300 |[31m     [33m<[31m[33m/[31m[33msection[31m[33m>[31m
+ [90m     |[31m     [31m[1m^[22m[31m
+ [90m 301 |[31m   )
+ [90m 302 |[31m }
+ [90m 303 |[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/board/BoardFilters.tsx[39m:300:4
+[33m  298 |          </label>
+  299 |        </div>
+  300 |      </section>
+      |      ^
+  301 |    )
+  302 |  }[39m
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4760:18)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4767:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4777:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:39
+      at TypeScriptParserMixin.tryParse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6930:20)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12460:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12527:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11706:28)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11362:23)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4782:20)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOpBaseRightExpr (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11012:34)
+      at TypeScriptParserMixin.parseExprOpRightExpr (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11007:21)
+      at TypeScriptParserMixin.parseExprOp (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10973:27)
+      at TypeScriptParserMixin.parseExprOp (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9329:18)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10934:17)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9809:20)
+      at TypeScriptParserMixin.parseExpressionBase (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10810:23)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12460:12)
+      at TypeScriptParserMixin.parseExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4650:31)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4729:36)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4767:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4777:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+[2m10:03:53 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:03:53 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\board\BoardFilters.tsx: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>? (287:4)
+
+[0m [90m 285 |[31m         [33m<[31m[33m/[31m[33mlabel[31m[33m>[31m
+ [90m 286 |[31m       [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+[31m[1m>[22m[31m[90m 287 |[31m     [33m<[31m[33m/[31m[33msection[31m[33m>[31m
+ [90m     |[31m     [31m[1m^[22m[31m
+ [90m 288 |[31m   )
+ [90m 289 |[31m }
+ [90m 290 |[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/board/BoardFilters.tsx[39m:287:4
+[33m  285 |          </label>
+  286 |        </div>
+  287 |      </section>
+      |      ^
+  288 |    )
+  289 |  }[39m
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4760:18)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4767:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4777:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:39
+      at TypeScriptParserMixin.tryParse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6930:20)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12460:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12527:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11706:28)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11362:23)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4782:20)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOpBaseRightExpr (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11012:34)
+      at TypeScriptParserMixin.parseExprOpRightExpr (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11007:21)
+      at TypeScriptParserMixin.parseExprOp (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10973:27)
+      at TypeScriptParserMixin.parseExprOp (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9329:18)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10934:17)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9809:20)
+      at TypeScriptParserMixin.parseExpressionBase (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10810:23)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12460:12)
+      at TypeScriptParserMixin.parseExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4650:31)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4729:36)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4767:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4777:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+[2m10:04:08 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:04:26 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m10:14:11 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/layout/AppLayout.tsx[22m
+[2m10:14:15 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/layout/AppLayout.tsx[22m
+[2m10:17:28 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/layout/AutomationBanner.tsx[22m
+[2m10:18:02 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:26:09 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m10:26:09 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m10:26:09 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m

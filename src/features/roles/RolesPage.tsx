@@ -11,7 +11,6 @@ import { api } from '@/lib/http'
 import type { MenuItemDto } from '@/lib/menu'
 import { PAGE_ROWS, pageQuery } from '@/lib/paging'
 import { useCan } from '@/lib/permissions'
-import { roleLabel } from '@/lib/role-labels'
 import { RoleForm, type RoleSavePayload } from './RoleForm'
 
 type RoleDto = components['schemas']['Role']
@@ -99,9 +98,6 @@ export default function RolesPage() {
     <span key="description" className="text-muted">
       {role.description ?? '—'}
     </span>,
-    <span key="base" className="text-muted">
-      {roleLabel(role.baseRole)}
-    </span>,
     <span key="users" className="text-muted">
       {role.memberCount}
     </span>,
@@ -175,13 +171,12 @@ export default function RolesPage() {
         </p>
       )}
       {roles.isPending ? (
-        <TableSkeleton columns={6} />
+        <TableSkeleton columns={5} />
       ) : (
         <DataTable
           columns={[
             'Nombre',
             'Descripción',
-            'Rol base',
             'Usuarios',
             'Pantallas',
             'Estado',
