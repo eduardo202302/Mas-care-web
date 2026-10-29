@@ -124,7 +124,7 @@ export function AppLayout() {
           </span>
           <div>
             <div className="font-display text-lg font-bold tracking-tight">
-              max care
+              MAS CARE
             </div>
           </div>
         </div>

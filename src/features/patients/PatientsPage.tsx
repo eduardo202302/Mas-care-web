@@ -3,12 +3,16 @@ import { ExportButton } from '@/components/ExportButton'
 import { ImportButton } from '@/components/ImportButton'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Archive, Plus, Search } from 'lucide-react'
+import { Archive, Plus, Search, SlidersHorizontal } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { CustomPropertyFilter } from '@/components/CustomFields'
 import { ColumnPicker, SortEditor } from '@/features/board/CycleTableControls'
-import { useColumnPrefs, type ColumnDef, type SortPart } from '@/lib/cycle-table'
+import {
+  useColumnPrefs,
+  type ColumnDef,
+  type SortPart,
+} from '@/lib/cycle-table'
 import { Pagination } from '@/components/Pagination'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
@@ -76,6 +80,23 @@ function stringFilter(
   return typeof value === 'string' ? value : ''
 }
 
+function activeFilterCount(
+  responsibleUserId: string,
+  archived: string,
+  dates: Record<string, string>,
+  sort: SortPart[],
+) {
+  const dateCount = Object.entries(dates).filter(
+    ([key, value]) => value && key !== 'cp_value',
+  ).length
+  return (
+    (responsibleUserId ? 1 : 0) +
+    (archived === 'true' ? 1 : 0) +
+    dateCount +
+    (sort.length ? 1 : 0)
+  )
+}
+
 export default function PatientsPage() {
   const canCreate = useCan('patients:write')
   const canUpdate = useCan('patients:write')
@@ -96,13 +117,24 @@ export default function PatientsPage() {
   const [selectedView, setSelectedView] = useState('')
   const [dates, setDates] = useState<Record<string, string>>({})
   const [sort, setSort] = useState<SortPart[]>([])
+  const [advancedOpen, setAdvancedOpen] = useState(false)
   // Patient properties defined by the organization can be added as columns (key `custom:<key>`).
   const properties = useCustomProperties('patient').data?.data ?? []
   const allColumns = useMemo<ColumnDef[]>(
-    () => [...patientColumns, ...properties.map((property) => ({ key: `custom:${property.key}`, label: property.label }))],
+    () => [
+      ...patientColumns,
+      ...properties.map((property) => ({
+        key: `custom:${property.key}`,
+        label: property.label,
+      })),
+    ],
     [properties],
   )
-  const columnPrefs = useColumnPrefs('patients', allColumns, patientColumns.map((column) => column.key))
+  const columnPrefs = useColumnPrefs(
+    'patients',
+    allColumns,
+    patientColumns.map((column) => column.key),
+  )
 
   // Only the branch the user is working in is requested.
   const { branchId, ready: branchReady } = useActiveBranch()
@@ -277,15 +309,21 @@ export default function PatientsPage() {
   const rows = (patients.data?.data ?? []).map((patient) => {
     const branch = branchMap.get(patient.primaryBranchId)
     const cells: Record<string, ReactNode> = {
-      name: <span key="name" className="text-petroleo font-semibold">
-        {patient.fullName}
-      </span>,
-      contact: <span key="contact" className="text-muted">
-        {patient.phone || patient.email || 'Sin contacto'}
-      </span>,
-      document: <span key="document" className="text-muted">
-        {patient.documentId || '—'}
-      </span>,
+      name: (
+        <span key="name" className="text-petroleo font-semibold">
+          {patient.fullName}
+        </span>
+      ),
+      contact: (
+        <span key="contact" className="text-muted">
+          {patient.phone || patient.email || 'Sin contacto'}
+        </span>
+      ),
+      document: (
+        <span key="document" className="text-muted">
+          {patient.documentId || '—'}
+        </span>
+      ),
       branch: branch ? (
         <BranchTag
           key="branch"
@@ -297,21 +335,34 @@ export default function PatientsPage() {
           Sucursal
         </span>
       ),
-      responsible: <span key="responsible" className="text-muted">
-        {patient.responsibleUserId
-          ? patient.responsibleUserId === me?.user.id
-            ? 'Yo'
-            : 'Asignado'
-          : 'Sin responsable'}
-      </span>,
-      status: <span key="archive" className="text-muted">
-        {patient.archivedAt ? 'Archivado' : 'Activo'}
-      </span>,
-      created: <span key="created" className="text-muted">{patient.createdAt.slice(0, 10)}</span>,
+      responsible: (
+        <span key="responsible" className="text-muted">
+          {patient.responsibleUserId
+            ? patient.responsibleUserId === me?.user.id
+              ? 'Yo'
+              : 'Asignado'
+            : 'Sin responsable'}
+        </span>
+      ),
+      status: (
+        <span key="archive" className="text-muted">
+          {patient.archivedAt ? 'Archivado' : 'Activo'}
+        </span>
+      ),
+      created: (
+        <span key="created" className="text-muted">
+          {patient.createdAt.slice(0, 10)}
+        </span>
+      ),
     }
-    const custom = (patient as { customValues?: Record<string, unknown> }).customValues ?? {}
+    const custom =
+      (patient as { customValues?: Record<string, unknown> }).customValues ?? {}
     for (const property of properties) {
-      cells[`custom:${property.key}`] = <span key={property.key} className="text-muted">{formatCustomValue(property, custom[property.key])}</span>
+      cells[`custom:${property.key}`] = (
+        <span key={property.key} className="text-muted">
+          {formatCustomValue(property, custom[property.key])}
+        </span>
+      )
     }
     return columnPrefs.keys.map((key) => cells[key])
   })
@@ -332,6 +383,13 @@ export default function PatientsPage() {
     />
   ))
 
+  const filterCount = activeFilterCount(
+    responsibleUserId,
+    archived,
+    dates,
+    sort,
+  )
+
   return (
     <div className="animate-in">
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
@@ -346,8 +404,13 @@ export default function PatientsPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <ImportButton entity="patients" />
-          {canCreateTreatments && <ImportButton entity="treatments" label="Importar tratamientos" />}
-          <ExportButton entity="patients" filters={{ q: search.trim(), branchId }} />
+          {canCreateTreatments && (
+            <ImportButton entity="treatments" label="Importar tratamientos" />
+          )}
+          <ExportButton
+            entity="patients"
+            filters={{ q: search.trim(), branchId }}
+          />
           {canCreate && (
             <Button variant="primary" onClick={openCreate}>
               <Plus className="size-4" />
@@ -358,7 +421,7 @@ export default function PatientsPage() {
       </div>
       <section className="border-border mb-4 rounded-xl border bg-white p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <label className="relative min-w-56 flex-1">
+          <label className="relative w-64 max-w-full">
             <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
             <input
               aria-label="Buscar pacientes"
@@ -368,83 +431,115 @@ export default function PatientsPage() {
                 setPage(1)
               }}
               placeholder="Nombre, documento o teléfono"
-              className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
+              className="border-border focus:border-tealmax h-9 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
             />
           </label>
-
-          <select
-            aria-label="Filtrar por responsable"
-            value={responsibleUserId}
-            onChange={(event) => {
-              setResponsibleUserId(event.target.value)
-              setPage(1)
-            }}
-            className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
+          <Button
+            className="h-9"
+            aria-expanded={advancedOpen}
+            aria-controls="patients-advanced-filter"
+            onClick={() => setAdvancedOpen((open) => !open)}
           >
-            <option value="">Todos los responsables</option>
-            {me && <option value={me.user.id}>Asignados a mí</option>}
-          </select>
-          <select
-            aria-label="Filtrar archivados"
-            value={archived}
-            onChange={(event) => {
-              setArchived(event.target.value as 'true' | 'false')
-              setPage(1)
-            }}
-            className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
-          >
-            <option value="false">Activos</option>
-            <option value="true">Archivados</option>
-          </select>
+            <SlidersHorizontal className="size-4" />
+            Filtro avanzado
+            {filterCount > 0 && (
+              <span className="bg-tealmax rounded-full px-1.5 text-xs text-white">
+                {filterCount}
+              </span>
+            )}
+          </Button>
         </div>
-        <div className="border-border mt-3 grid gap-2 border-t pt-3 md:grid-cols-2 xl:grid-cols-4">
-          {dateFilterLabels.map(([from, to, label]) => (
-            <fieldset key={label} className="grid gap-1">
-              <legend className="text-muted text-xs font-semibold">{label}</legend>
-              <div className="flex gap-1">
-                {[from, to].map((key, index) => (
-                  <input
-                    key={key}
-                    type="date"
-                    aria-label={`${label} ${index === 0 ? 'desde' : 'hasta'}`}
-                    value={dates[key] ?? ''}
-                    onChange={(event) => {
-                      setDates({ ...dates, [key]: event.target.value })
-                      setPage(1)
-                    }}
-                    className="border-border h-9 rounded-lg border bg-white px-2 text-sm"
-                  />
-                ))}
-              </div>
-            </fieldset>
-          ))}
-          <CustomPropertyFilter
-            entity="patient"
-            propertyKey={dates.cp_key}
-            value={dates.cp_value}
-            onChange={(next) => {
-              const rest = Object.fromEntries(Object.entries(dates).filter(([key]) => key !== 'cp_key' && key !== 'cp_value'))
-              setDates({
-                ...rest,
-                ...(next.cp_key ? { cp_key: next.cp_key } : {}),
-                ...(next.cp_value ? { cp_value: next.cp_value } : {}),
-              })
-              setPage(1)
-            }}
-          />
-        </div>
-        <div className="border-border mt-3 border-t pt-3">
-          <SortEditor
-            sort={sort}
-            fields={patientSortFields}
-            onChange={(next) => {
-              setSort(next)
-              setPage(1)
-            }}
-          />
+        <div
+          id="patients-advanced-filter"
+          hidden={!advancedOpen}
+          className="border-border mt-3 grid gap-3 border-t pt-3"
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              aria-label="Filtrar por responsable"
+              value={responsibleUserId}
+              onChange={(event) => {
+                setResponsibleUserId(event.target.value)
+                setPage(1)
+              }}
+              className="border-border h-9 rounded-lg border bg-white px-3 text-sm"
+            >
+              <option value="">Todos los responsables</option>
+              {me && <option value={me.user.id}>Asignados a mí</option>}
+            </select>
+            <select
+              aria-label="Filtrar archivados"
+              value={archived}
+              onChange={(event) => {
+                setArchived(event.target.value as 'true' | 'false')
+                setPage(1)
+              }}
+              className="border-border h-9 rounded-lg border bg-white px-3 text-sm"
+            >
+              <option value="false">Activos</option>
+              <option value="true">Archivados</option>
+            </select>
+          </div>
+          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+            {dateFilterLabels.map(([from, to, label]) => (
+              <fieldset key={label} className="grid gap-1">
+                <legend className="text-muted text-xs font-semibold">
+                  {label}
+                </legend>
+                <div className="flex gap-1">
+                  {[from, to].map((key, index) => (
+                    <input
+                      key={key}
+                      type="date"
+                      aria-label={`${label} ${index === 0 ? 'desde' : 'hasta'}`}
+                      value={dates[key] ?? ''}
+                      onChange={(event) => {
+                        setDates({ ...dates, [key]: event.target.value })
+                        setPage(1)
+                      }}
+                      className="border-border h-9 rounded-lg border bg-white px-2 text-sm"
+                    />
+                  ))}
+                </div>
+              </fieldset>
+            ))}
+            <CustomPropertyFilter
+              entity="patient"
+              propertyKey={dates.cp_key}
+              value={dates.cp_value}
+              onChange={(next) => {
+                const rest = Object.fromEntries(
+                  Object.entries(dates).filter(
+                    ([key]) => key !== 'cp_key' && key !== 'cp_value',
+                  ),
+                )
+                setDates({
+                  ...rest,
+                  ...(next.cp_key ? { cp_key: next.cp_key } : {}),
+                  ...(next.cp_value ? { cp_value: next.cp_value } : {}),
+                })
+                setPage(1)
+              }}
+            />
+          </div>
+          <div>
+            <SortEditor
+              sort={sort}
+              fields={patientSortFields}
+              onChange={(next) => {
+                setSort(next)
+                setPage(1)
+              }}
+            />
+          </div>
         </div>
         <div className="border-border mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
-          <ColumnPicker keys={columnPrefs.keys} onChange={columnPrefs.save} saving={columnPrefs.saving} all={allColumns} />
+          <ColumnPicker
+            keys={columnPrefs.keys}
+            onChange={columnPrefs.save}
+            saving={columnPrefs.saving}
+            all={allColumns}
+          />
           <label className="text-muted text-sm" htmlFor="saved-patient-view">
             Vistas
           </label>
@@ -490,7 +585,8 @@ export default function PatientsPage() {
       ) : (
         <DataTable
           columns={columnPrefs.keys.map(
-            (key) => allColumns.find((column) => column.key === key)?.label ?? key,
+            (key) =>
+              allColumns.find((column) => column.key === key)?.label ?? key,
           )}
           rows={rows}
           actions={rowActions}
