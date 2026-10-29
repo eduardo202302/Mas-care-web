@@ -57,6 +57,7 @@ export default function BoardPage() {
   const canCreateCycle = useCan('treatments:write')
   const boardView = useUiStore((state) => state.boardView)
   const setBoardView = useUiStore((state) => state.setBoardView)
+  const [tableControlsSlot, setTableControlsSlot] = useState<HTMLDivElement | null>(null)
 
   const canMove = useCan('cycle:move')
   const canEditDate = useCan('cycle:edit-date')
@@ -328,80 +329,57 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="animate-in">
-      <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-tealmax mb-1 text-sm font-medium">
-            Operación diaria
-          </p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Tablero de reposiciones
-          </h1>
-          <p className="text-muted mt-1 max-w-2xl text-sm">
-            Mueve cada ciclo por avisar, avisado, confirmado y preparado. La
-            columna de entregados no admite arrastre.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div
-            role="tablist"
-            aria-label="Vista del tablero"
-            className="border-border flex rounded-lg border bg-white p-1"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={view === 'board'}
-              onClick={() => setView('board')}
-              className={`flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-semibold ${
-                view === 'board'
-                  ? 'text-petroleo bg-surface'
-                  : 'text-muted hover:text-ink'
-              }`}
-            >
-              <LayoutGrid className="size-3.5" />
-              Tablero
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={view === 'table'}
-              onClick={() => setView('table')}
-              className={`flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-semibold ${
-                view === 'table'
-                  ? 'text-petroleo bg-surface'
-                  : 'text-muted hover:text-ink'
-              }`}
-            >
-              <List className="size-3.5" />
-              Tabla
-            </button>
-          </div>
-          {view === 'table' && (
-            <ExportButton
-              entity="cycles"
-              filters={{ branchId: effectiveFilters.branch_id }}
-            />
-          )}
-          {canCreateCycle && (
-            <Button type="button" variant="primary" onClick={() => setNewCycleFor('top')}>
-              + Crear nuevo
-            </Button>
-          )}
-          <Button
+    <div className="animate-in flex h-full min-h-0 -mt-4 flex-col">
+      <div className="mb-3 shrink-0">
+        <p className="text-tealmax mb-1 text-sm font-medium">
+          Operación diaria
+        </p>
+        <h1 className="font-display text-petroleo text-2xl font-bold tracking-tight sm:text-3xl">
+          Tablero de Reposiciones
+        </h1>
+        <p className="text-muted mt-1 text-sm whitespace-nowrap">
+          Mueve cada ciclo por avisar, avisado, confirmado y preparado. La
+          columna de entregados no admite arrastre.
+        </p>
+      </div>
+
+      <nav
+        role="tablist"
+        aria-label="Vista del tablero"
+        className="border-border mb-3 flex shrink-0 items-center justify-between gap-2 border-b"
+      >
+        <div className="flex items-center gap-1">
+          <button
             type="button"
-            className="size-10 px-0"
-            aria-label="Actualizar tablero"
-            onClick={() => {
-              void board.refetch()
-              void queryClient.invalidateQueries({ queryKey: ['cycles'] })
-            }}
-            disabled={board.isFetching}
+            role="tab"
+            aria-selected={view === 'board'}
+            onClick={() => setView('board')}
+            className={`flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-semibold transition ${
+              view === 'board'
+                ? 'border-tealmax text-petroleo'
+                : 'border-transparent text-muted hover:text-ink'
+            }`}
           >
-            <RefreshCw className={`size-4 ${board.isFetching ? 'animate-spin' : ''}`} />
-          </Button>
+            <LayoutGrid className="size-3.5" />
+            Tablero
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === 'table'}
+            onClick={() => setView('table')}
+            className={`flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-semibold transition ${
+              view === 'table'
+                ? 'border-tealmax text-petroleo'
+                : 'border-transparent text-muted hover:text-ink'
+            }`}
+          >
+            <List className="size-3.5" />
+            Tabla
+          </button>
         </div>
-      </header>
+        <div ref={setTableControlsSlot} className="flex items-center gap-2 pb-2" />
+      </nav>
 
       <BoardFilterBar
         filters={filters}
@@ -410,6 +388,33 @@ export default function BoardPage() {
         branchLocked={Boolean(lockedBranch)}
         privileged={privileged}
         meId={me?.user.id}
+        rightActions={
+          <div className="flex items-center gap-2">
+            {view === 'table' && (
+              <ExportButton
+                entity="cycles"
+                filters={{ branchId: effectiveFilters.branch_id }}
+              />
+            )}
+            {canCreateCycle && (
+              <Button type="button" variant="primary" onClick={() => setNewCycleFor('top')}>
+                + Crear nuevo
+              </Button>
+            )}
+            <Button
+              type="button"
+              className="size-10 px-0"
+              aria-label="Actualizar tablero"
+              onClick={() => {
+                void board.refetch()
+                void queryClient.invalidateQueries({ queryKey: ['cycles'] })
+              }}
+              disabled={board.isFetching}
+            >
+              <RefreshCw className={`size-4 ${board.isFetching ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
+        }
       />
 
       {board.isError && (
@@ -424,6 +429,8 @@ export default function BoardPage() {
         </div>
       )}
 
+      {/* Only the table view is height-constrained so its body scrolls internally; the kanban view keeps growing with the page. */}
+      <div className={view === 'table' ? 'min-h-0 flex-1' : undefined}>
       {view === 'table' ? (
         <CycleTable
           filters={effectiveFilters}
@@ -432,6 +439,7 @@ export default function BoardPage() {
           onBoardFiltersChange={updateFilters}
           onMove={(card, to) => moveFromMenu(card, to)}
           onOpenCard={(card) => navigate(`/pacientes/${card.patient.id}`)}
+          controlsSlot={tableControlsSlot}
         />
       ) : board.isLoading || !branchReady ? (
         <div
@@ -468,7 +476,7 @@ export default function BoardPage() {
           }
           onMove={handleMove}
           testIdPrefix="board"
-          ariaLabel="Tablero de reposiciones"
+          ariaLabel="Tablero de Reposiciones"
           renderCard={(card, options) => (
             <CycleCard
               card={card}
@@ -489,6 +497,7 @@ export default function BoardPage() {
           )}
         />
       )}
+      </div>
 
       {!canMove && view === 'board' && board.data && (
         <p className="text-muted mt-2 flex items-center gap-2 text-xs">

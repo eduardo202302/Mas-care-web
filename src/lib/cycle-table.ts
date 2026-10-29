@@ -60,6 +60,7 @@ export function tableFiltersToSearch(filters: TableFilters, sort: SortPart[], pa
 export type ColumnDef = { key: string; label: string }
 
 export const cycleColumns: ColumnDef[] = [
+  { key: 'branch', label: 'Sucursal' },
   { key: 'patient', label: 'Paciente' },
   { key: 'medication', label: 'Medicamento' },
   { key: 'status', label: 'Estado del ciclo' },
@@ -67,7 +68,6 @@ export const cycleColumns: ColumnDef[] = [
   { key: 'expected_on', label: 'Fecha prevista' },
   { key: 'derived', label: 'Estado derivado' },
   { key: 'days', label: 'Días' },
-  { key: 'branch', label: 'Sucursal' },
   { key: 'responsible', label: 'Responsable' },
   { key: 'next_action', label: 'Próxima acción' },
   { key: 'stock', label: 'Existencias' },

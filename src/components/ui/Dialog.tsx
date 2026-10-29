@@ -6,12 +6,14 @@ import { Button } from './Button'
 export function Dialog({
   title,
   description,
+  icon,
   onClose,
   children,
   size = 'md',
 }: {
   title: string
   description?: string
+  icon?: ReactNode
   onClose: () => void
   children: ReactNode
   size?: 'md' | 'lg'
@@ -41,18 +43,25 @@ export function Dialog({
         className={`animate-in border-border flex max-h-[calc(100dvh-2rem)] w-full flex-col overflow-hidden rounded-2xl border bg-white shadow-2xl sm:max-h-[calc(100dvh-3rem)] ${size === 'lg' ? 'max-w-3xl' : 'max-w-xl'}`}
       >
         <header className="border-border flex shrink-0 items-start justify-between gap-4 border-b px-6 py-5">
-          <div>
-            <h2
-              id={titleId}
-              className="font-display text-petroleo text-xl font-bold"
-            >
-              {title}
-            </h2>
-            {description && (
-              <p id={descriptionId} className="text-muted mt-1 text-sm">
-                {description}
-              </p>
+          <div className="flex items-start gap-4">
+            {icon && (
+              <div className="bg-modulos text-cuidado flex size-14 shrink-0 items-center justify-center rounded-2xl">
+                {icon}
+              </div>
             )}
+            <div>
+              <h2
+                id={titleId}
+                className="font-display text-petroleo text-xl font-bold"
+              >
+                {title}
+              </h2>
+              {description && (
+                <p id={descriptionId} className="text-muted mt-1 text-sm">
+                  {description}
+                </p>
+              )}
+            </div>
           </div>
           <Button
             type="button"

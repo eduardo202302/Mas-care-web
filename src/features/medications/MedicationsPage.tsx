@@ -11,6 +11,7 @@ import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { useCan } from '@/lib/permissions'
+import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import type { components, paths } from '@/lib/api-types'
 import type { MedicationFormValues } from '@/schemas/medication'
 import { MedicationForm } from './MedicationForm'
@@ -36,6 +37,8 @@ export default function MedicationsPage() {
   const [search, setSearch] = useState('')
   const [archived, setArchived] = useState<'true' | 'false'>('false')
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
+  const [sort, toggleSort] = useColumnSort()
   const [editing, setEditing] = useState<
     components['schemas']['Medication'] | null
   >(null)
@@ -46,9 +49,9 @@ export default function MedicationsPage() {
       q: search.trim() || undefined,
       archived,
       page,
-      rows: PAGE_ROWS,
+      rows,
     }),
-    [archived, page, search],
+    [archived, page, rows, search],
   )
   const medications = useQuery({
     queryKey: ['medications', filters],
@@ -120,7 +123,20 @@ export default function MedicationsPage() {
     setFormOpen(true)
   }
 
-  const rows = (medications.data?.data ?? []).map((item) => [
+  const items = applyColumnSort(medications.data?.data ?? [], sort, (item, index) =>
+    index === 0
+      ? item.brandName || item.genericName || item.activeIngredient || 'Medicamento'
+      : index === 1
+        ? item.activeIngredient || item.genericName || ''
+        : index === 2
+          ? item.presentation
+          : index === 3
+            ? item.unitsPerPackage
+            : item.archivedAt
+              ? 1
+              : 0,
+  )
+  const tableRows = items.map((item) => [
     <span key="name" className="text-petroleo font-semibold">
       {item.brandName ||
         item.genericName ||
@@ -138,7 +154,7 @@ export default function MedicationsPage() {
       {item.archivedAt ? 'Archivado' : 'Activo'}
     </span>,
   ])
-  const rowActions = (medications.data?.data ?? []).map((item) => {
+  const rowActions = items.map((item) => {
     const label = item.brandName || item.genericName || item.presentation
     return (
       <RowActions
@@ -159,8 +175,8 @@ export default function MedicationsPage() {
   })
 
   return (
-    <div className="animate-in">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <div className="animate-in flex h-full min-h-0 flex-col">
+      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-tealmax mb-2 text-sm font-medium">Catálogo</p>
           <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
@@ -181,7 +197,7 @@ export default function MedicationsPage() {
           )}
         </div>
       </div>
-      <section className="border-border mb-4 flex flex-wrap items-center gap-3 rounded-xl border bg-white p-4">
+      <section className="border-border mb-4 flex shrink-0 flex-wrap items-center gap-3 rounded-xl border bg-white p-4">
         <label className="relative min-w-56 flex-1">
           <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <input
@@ -211,48 +227,57 @@ export default function MedicationsPage() {
       {medications.isError && (
         <p
           role="alert"
-          className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+          className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
         >
           No pudimos cargar el catálogo. {medications.error.message}
         </p>
       )}
-      {medications.isFetching ? (
-        <TableSkeleton columns={5} />
-      ) : (
-        <DataTable
-          columns={[
-            'Medicamento',
-            'Principio activo',
-            'Presentación',
-            'Contenido',
-            'Estado',
-          ]}
-          rows={rows}
-          actions={rowActions}
-          onRowDoubleClick={(index) => {
-            const item = medications.data?.data[index]
-            if (item && canUpdate) openEdit(item)
-          }}
-          emptyTitle={
-            archived === 'true'
-              ? 'No hay medicamentos archivados'
-              : 'Todavía no hay medicamentos'
-          }
-          emptyDescription={
-            canCreate
-              ? 'Agrega medicamentos para construir el catálogo de tu farmacia.'
-              : 'Cuando tu organización tenga medicamentos, aparecerán aquí.'
-          }
-        />
-      )}
-      {!medications.isFetching && (
-        <Pagination
-          page={page}
-          rows={PAGE_ROWS}
-          total={medications.data?.total ?? 0}
-          onChange={setPage}
-        />
-      )}
+      <div className="min-h-0 flex-1">
+        {medications.isFetching ? (
+          <TableSkeleton columns={5} />
+        ) : (
+          <DataTable
+            columns={[
+              'Medicamento',
+              'Principio activo',
+              'Presentación',
+              'Contenido',
+              'Estado',
+            ]}
+            rows={tableRows}
+            actions={rowActions}
+            sortableColumns={[0, 1, 2, 3, 4]}
+            sort={sort}
+            onSortChange={toggleSort}
+            onRowDoubleClick={(index) => {
+              const item = items[index]
+              if (item && canUpdate) openEdit(item)
+            }}
+            emptyTitle={
+              archived === 'true'
+                ? 'No hay medicamentos archivados'
+                : 'Todavía no hay medicamentos'
+            }
+            emptyDescription={
+              canCreate
+                ? 'Agrega medicamentos para construir el catálogo de tu farmacia.'
+                : 'Cuando tu organización tenga medicamentos, aparecerán aquí.'
+            }
+            footer={
+              <Pagination
+                page={page}
+                rows={rows}
+                total={medications.data?.total ?? 0}
+                onChange={setPage}
+                onRowsChange={(next) => {
+                  setRows(next)
+                  setPage(1)
+                }}
+              />
+            }
+          />
+        )}
+      </div>
       {formOpen && (
         <Dialog
           title={editing ? 'Editar medicamento' : 'Nuevo medicamento'}

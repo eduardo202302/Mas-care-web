@@ -14,8 +14,10 @@ export function ReportTable({
   columns,
   rows,
   page,
+  pageRows = PAGE_ROWS,
   total,
   onPageChange,
+  onRowsChange,
   loading,
   fetching = false,
   emptyTitle = 'No hay datos en este periodo',
@@ -24,8 +26,10 @@ export function ReportTable({
   columns: string[]
   rows: ReactNode[][]
   page: number
+  pageRows?: number
   total: number
   onPageChange: (page: number) => void
+  onRowsChange?: (rows: number) => void
   loading: boolean
   fetching?: boolean
   emptyTitle?: string
@@ -33,16 +37,23 @@ export function ReportTable({
 }) {
   if (loading) return <TableSkeleton columns={columns.length} />
   return (
-    <div>
-      <DataTable
-        columns={columns}
-        rows={rows}
-        emptyTitle={emptyTitle}
-        emptyDescription={emptyDescription}
-      />
-      {rows.length > 0 && (
-        <Pagination page={page} rows={PAGE_ROWS} total={total} onChange={onPageChange} disabled={fetching} />
-      )}
-    </div>
+    <DataTable
+      columns={columns}
+      rows={rows}
+      emptyTitle={emptyTitle}
+      emptyDescription={emptyDescription}
+      footer={
+        rows.length > 0 ? (
+          <Pagination
+            page={page}
+            rows={pageRows}
+            total={total}
+            onChange={onPageChange}
+            onRowsChange={onRowsChange}
+            disabled={fetching}
+          />
+        ) : undefined
+      }
+    />
   )
 }

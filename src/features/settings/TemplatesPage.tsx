@@ -51,18 +51,19 @@ export default function TemplatesPage() {
   const [editing, setEditing] = useState<MessageTemplate | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
   // Templates of the working branch plus the organization-wide ones.
   const { branchId, ready: branchReady } = useActiveBranch()
 
   const templates = useQuery({
-    queryKey: ['templates', 'all', branchId ?? 'all', page],
+    queryKey: ['templates', 'all', branchId ?? 'all', page, rows],
     queryFn: () =>
       api<TemplateList>(
         `/api/v1/message-templates?${pageQuery({
           kind: 'refill_notice',
           branch_id: branchId,
           page,
-          rows: PAGE_ROWS,
+          rows,
         })}`,
       ),
     enabled: branchReady,
@@ -297,9 +298,13 @@ export default function TemplatesPage() {
 
       <Pagination
         page={page}
-        rows={PAGE_ROWS}
+        rows={rows}
         total={templates.data?.total ?? 0}
         onChange={setPage}
+        onRowsChange={(next) => {
+          setRows(next)
+          setPage(1)
+        }}
         disabled={templates.isFetching}
       />
 

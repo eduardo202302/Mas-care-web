@@ -841,6 +841,17 @@ export interface paths {
                     archived?: "true" | "false";
                     limit?: number;
                     cursor?: string;
+                    sort?: string;
+                    cp_key?: string;
+                    cp_value?: string;
+                    created_from?: string;
+                    created_to?: string;
+                    activity_from?: string;
+                    activity_to?: string;
+                    expected_from?: string;
+                    expected_to?: string;
+                    coverage_from?: string;
+                    coverage_to?: string;
                     page?: number;
                     rows?: number;
                 };
@@ -1422,6 +1433,7 @@ export interface paths {
                 query?: {
                     limit?: number;
                     cursor?: string;
+                    treatment_id?: string;
                 };
                 header?: never;
                 path: {
@@ -2564,7 +2576,7 @@ export interface paths {
         get: {
             parameters: {
                 query: {
-                    entity: "patients";
+                    entity: "patients" | "cycles" | "patients_columns" | "cycles_columns";
                 };
                 header?: never;
                 path?: never;
@@ -2805,7 +2817,7 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    channel?: "whatsapp" | "call" | "telegram";
+                    channel?: "whatsapp" | "call";
                 };
                 header?: never;
                 path: {
@@ -2824,7 +2836,7 @@ export interface paths {
                         "application/json": {
                             treatment_id: string;
                             /** @enum {string} */
-                            channel: "whatsapp" | "call" | "telegram";
+                            channel: "whatsapp" | "call";
                             template_id: string | null;
                             body: string;
                             phone: string | null;
@@ -3795,6 +3807,233 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/imports/medications/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview a medication CSV; with column_mapping, validates every row without writing */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "multipart/form-data": {
+                        /** Format: binary */
+                        file: string;
+                        column_mapping?: components["schemas"]["ColumnMapping"];
+                    };
+                };
+            };
+            responses: {
+                /** @description CSV columns, sample rows and (with mapping) valid/error row counts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Owner or admin required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/medications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import valid medication rows from a CSV (duplicates by name + presentation are skipped) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "multipart/form-data": {
+                        /** Format: binary */
+                        file: string;
+                        column_mapping: components["schemas"]["ColumnMapping"];
+                    };
+                };
+            };
+            responses: {
+                /** @description Import summary and row errors */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid CSV or mapping */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Owner or admin required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exports/{entity}/columns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List exportable columns for patients, medications or cycles */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    entity: "patients" | "medications" | "cycles";
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Column keys and headers */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description export:csv required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exports/{entity}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Export patients, medications or cycles as CSV or XLSX (audited) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    entity: "patients" | "medications" | "cycles";
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        format: "csv" | "xlsx";
+                        columns: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description File download */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unknown column */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description export:csv required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many rows */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/menu": {
         parameters: {
             query?: never;
@@ -4509,9 +4748,25 @@ export interface paths {
                     q?: string;
                     expected_from?: string;
                     expected_to?: string;
+                    created_from?: string;
+                    created_to?: string;
+                    activity_from?: string;
+                    activity_to?: string;
+                    coverage_from?: string;
+                    coverage_to?: string;
+                    patient_ids?: string;
+                    medication_ids?: string;
+                    branch_ids?: string;
+                    responsible_ids?: string;
+                    treatment_ids?: string;
+                    match?: "and" | "or";
+                    stage_id?: string;
+                    cp_key?: string;
+                    cp_value?: string;
+                    sort?: string;
                     status?: "to_notify" | "notified" | "confirmed" | "prepared" | "delivered" | "not_picked_up" | "cancelled";
-                    cursor?: string;
-                    limit?: number;
+                    page?: number;
+                    rows?: number;
                 };
                 header?: never;
                 path?: never;
@@ -4519,7 +4774,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Cycle rows */
+                /** @description Cycle rows, page-paginated and branch-first ordered */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -4528,7 +4783,9 @@ export interface paths {
                         "application/json": {
                             status: string | null;
                             data: components["schemas"]["BoardCard"][];
-                            next_cursor: string | null;
+                            total: number;
+                            page: number;
+                            rows: number;
                         };
                     };
                 };
@@ -5861,6 +6118,1088 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/outbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Queue of automatic messages (pending, dry_run, sent, failed, cancelled), newest first. Requires outbox:view. */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "pending" | "sending" | "sent" | "failed" | "cancelled" | "dry_run";
+                    branch_id?: string;
+                    cursor?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Messages without their text, plus next_cursor */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description outbox:view required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/outbox/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a pending message. Requires outbox:retry. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Cancelled message */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description outbox:retry required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Only pending messages can be cancelled */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/outbox/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue a failed or cancelled message again; the worker re-checks everything before sending. Requires outbox:retry. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Message back to pending */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description outbox:retry required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Not failed or cancelled, or the cycle already has a queued message */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inbound/unassigned": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Replies that could not be matched to exactly one patient. Requires inbound:assign. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Unassigned replies */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description inbound:assign required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inbound/{id}/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign an unmatched reply to a patient and process it with the usual rules. Requires inbound:assign. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        patient_id: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Assigned and processed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description inbound:assign required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Reply or patient not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Already assigned */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Conversation with a patient: automatic notices and replies. Requires outbox:view; every read is audited. */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    before?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Items newest first, plus next_before */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description outbox:view required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Patient not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{id}/automation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Pause or resume automatic notices for a patient; pausing cancels pending messages. */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        paused: boolean;
+                        reason?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description New state and how many messages were cancelled */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description patients:write required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Patient not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/treatments/{id}/automation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Pause or resume automatic notices for a treatment; pausing cancels pending messages. */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        paused: boolean;
+                        reason?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description New state and how many messages were cancelled */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description treatments:write required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Treatment not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/message-templates/{id}/test-send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send an approved template to one number to test it. Requires automation:manage (owner/admin). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        phone: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Sent */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid phone */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description automation:manage required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Template is not approved */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The provider rejected the send */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/automation/whatsapp-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether the organization has its own WhatsApp number connected. The token is never returned. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description connected and phone_number_id */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description automation:manage required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        /** Connect the organization's WhatsApp number (token stored encrypted). */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        phone_number_id: string;
+                        access_token: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Connected */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description automation:manage required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Number already used by another organization */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Disconnect the organization's WhatsApp number. */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Disconnected */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description automation:manage required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/whatsapp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Meta's webhook URL check: echoes hub.challenge when hub.verify_token matches WA_VERIFY_TOKEN. */
+        get: {
+            parameters: {
+                query: {
+                    "hub.mode": string;
+                    "hub.verify_token": string;
+                    "hub.challenge": string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The challenge */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Wrong token */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Receives WhatsApp events from Meta. The X-Hub-Signature-256 header (HMAC-SHA256 of the raw body with WA_APP_SECRET) is mandatory; replies are stored and processed by the worker. */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    "x-hub-signature-256": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accepted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unreadable body */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Invalid or missing signature */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Webhook not configured (WA_APP_SECRET) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/automation/telegram-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether the organization has its own Telegram bot connected. The token is never returned. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description connected and bot_username */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description automation:manage required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        /** Connect the organization bot (token from @BotFather). Checks the token with Telegram and registers the webhook; token and secret are stored encrypted. */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        bot_token: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Connected */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Telegram did not accept the token */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description automation:manage required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Bot already connected to another organization */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Disconnect the bot and unlink every patient. */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Disconnected */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description automation:manage required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{id}/telegram-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a single-use link (7 days) the patient opens in Telegram to link their chat. Shown once. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description url and expires_at */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description patients:write required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Patient not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The organization has no Telegram bot */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{id}/telegram": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether the bot is connected and the patient linked a chat. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description bot_connected, linked, linked_at */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Patient not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Unlink the patient chat and cancel pending Telegram messages. */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Unlinked */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description patients:write required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Patient not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/telegram/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Receives Telegram updates. The path key identifies the organization bot and the X-Telegram-Bot-Api-Secret-Token header must match its secret. */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    "x-telegram-bot-api-secret-token": string;
+                };
+                path: {
+                    key: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accepted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unreadable body */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Missing or wrong secret */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Unknown key */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -6004,6 +7343,7 @@ export interface components {
         };
         Patient: {
             id: string;
+            numericId: string;
             organizationId: string;
             primaryBranchId: string;
             fullName: string;
@@ -6015,7 +7355,7 @@ export interface components {
             address: string | null;
             zone: string | null;
             /** @enum {string} */
-            preferredChannel: "whatsapp" | "call" | "sms" | "telegram";
+            preferredChannel: "whatsapp" | "call" | "sms";
             reminderConsent: boolean;
             reminderConsentAt: string | null;
             careNotes: string | null;
@@ -6040,6 +7380,9 @@ export interface components {
             preferredChannel?: "whatsapp" | "call" | "sms" | "telegram";
             careNotes?: string | null;
             responsibleUserId?: string | null;
+            customValues?: {
+                [key: string]: unknown;
+            };
         };
         PatientDuplicate: {
             id: string;
@@ -6064,6 +7407,9 @@ export interface components {
             preferredChannel?: "whatsapp" | "call" | "sms" | "telegram";
             careNotes?: string | null;
             responsibleUserId?: string | null;
+            customValues?: {
+                [key: string]: unknown;
+            };
         };
         PatientListQuery: {
             q?: string;
@@ -6076,6 +7422,25 @@ export interface components {
             archived: "true" | "false";
             limit?: number;
             cursor?: string;
+            sort?: string;
+            cp_key?: string;
+            cp_value?: string;
+            /** Format: date */
+            created_from?: string;
+            /** Format: date */
+            created_to?: string;
+            /** Format: date */
+            activity_from?: string;
+            /** Format: date */
+            activity_to?: string;
+            /** Format: date */
+            expected_from?: string;
+            /** Format: date */
+            expected_to?: string;
+            /** Format: date */
+            coverage_from?: string;
+            /** Format: date */
+            coverage_to?: string;
             /** @default 1 */
             page: number;
             rows?: number;
@@ -6119,7 +7484,7 @@ export interface components {
             patientId: string;
             granted: boolean;
             /** @enum {string} */
-            channel: "whatsapp" | "call" | "sms" | "telegram";
+            channel: "whatsapp" | "call" | "sms";
             evidence: string | null;
             recordedBy: string;
             recordedAt: string;
@@ -6140,8 +7505,11 @@ export interface components {
         };
         ActivityInput: {
             /** @enum {string} */
-            type: "note" | "call";
+            type: "note" | "call" | "email" | "meeting";
             body: string;
+            /** Format: date */
+            occurredOn?: string;
+            treatmentId?: string;
             /** @default {} */
             metadata: {
                 [key: string]: unknown;
@@ -6151,6 +7519,7 @@ export interface components {
             /** @default 25 */
             limit: number;
             cursor?: string;
+            treatment_id?: string;
         };
         Medication: {
             id: string;
@@ -6211,7 +7580,7 @@ export interface components {
         };
         SavedViewCreate: {
             /** @enum {string} */
-            entity: "patients";
+            entity: "patients" | "cycles" | "patients_columns" | "cycles_columns";
             name: string;
             /** @default {} */
             filters: {
@@ -6243,7 +7612,7 @@ export interface components {
         };
         SavedViewQuery: {
             /** @enum {string} */
-            entity: "patients";
+            entity: "patients" | "cycles" | "patients_columns" | "cycles_columns";
         };
         UserListQuery: {
             q?: string;
@@ -6304,10 +7673,12 @@ export interface components {
         };
         Treatment: {
             id: string;
+            numericId: string;
             organizationId: string;
             patientId: string;
             medicationId: string;
             branchId: string;
+            name: string | null;
             responsibleUserId: string | null;
             dosePerIntake: string | number;
             intakesPerDay: string | number;
@@ -6336,6 +7707,7 @@ export interface components {
             patient_id: string;
             medication_id: string;
             branch_id: string;
+            name?: string | null;
             responsible_user_id?: string | null;
             dose_per_intake: number;
             intakes_per_day: number;
@@ -6348,11 +7720,15 @@ export interface components {
             /** Format: date */
             prescription_expires_on?: string | null;
             notes?: string | null;
+            custom_values?: {
+                [key: string]: unknown;
+            };
         };
         TreatmentPatch: {
             patient_id?: string;
             medication_id?: string;
             branch_id?: string;
+            name?: string | null;
             responsible_user_id?: string | null;
             dose_per_intake?: number;
             intakes_per_day?: number;
@@ -6365,6 +7741,9 @@ export interface components {
             /** Format: date */
             prescription_expires_on?: string | null;
             notes?: string | null;
+            custom_values?: {
+                [key: string]: unknown;
+            };
         };
         TreatmentListQuery: {
             patient_id?: string;
@@ -6505,6 +7884,13 @@ export interface components {
             body: string;
             branch_id?: string | null;
             is_active?: boolean;
+            wa_template_name?: string | null;
+            wa_language?: string;
+            /** @enum {string} */
+            wa_status?: "draft" | "pending" | "approved" | "rejected";
+            /** @enum {string|null} */
+            wa_category?: "utility" | "marketing" | "authentication" | null;
+            attempt_number?: number;
         };
         TemplatePatch: {
             /** @enum {string} */
@@ -6515,6 +7901,13 @@ export interface components {
             body?: string;
             branch_id?: string | null;
             is_active?: boolean;
+            wa_template_name?: string | null;
+            wa_language?: string;
+            /** @enum {string} */
+            wa_status?: "draft" | "pending" | "approved" | "rejected";
+            /** @enum {string|null} */
+            wa_category?: "utility" | "marketing" | "authentication" | null;
+            attempt_number?: number;
         };
         TemplateListQuery: {
             page?: number;
@@ -6646,6 +8039,10 @@ export interface components {
             version: number;
             /** @enum {string} */
             status: "to_notify" | "notified" | "confirmed" | "prepared" | "delivered" | "not_picked_up" | "cancelled";
+            /** @enum {string|null} */
+            priority: "low" | "medium" | "high" | "urgent" | null;
+            /** @enum {string|null} */
+            type: "regular" | "urgent" | "special" | null;
             patient: {
                 id: string;
                 nombre: string;
@@ -6850,6 +8247,32 @@ export interface components {
             expected_from?: string;
             /** Format: date */
             expected_to?: string;
+            /** Format: date */
+            created_from?: string;
+            /** Format: date */
+            created_to?: string;
+            /** Format: date */
+            activity_from?: string;
+            /** Format: date */
+            activity_to?: string;
+            /** Format: date */
+            coverage_from?: string;
+            /** Format: date */
+            coverage_to?: string;
+            patient_ids?: string;
+            medication_ids?: string;
+            branch_ids?: string;
+            responsible_ids?: string;
+            treatment_ids?: string;
+            /**
+             * @default and
+             * @enum {string}
+             */
+            match: "and" | "or";
+            stage_id?: string;
+            cp_key?: string;
+            cp_value?: string;
+            sort?: string;
             /** @enum {string} */
             status?: "to_notify" | "notified" | "confirmed" | "prepared" | "delivered" | "not_picked_up" | "cancelled";
             cursor?: string;

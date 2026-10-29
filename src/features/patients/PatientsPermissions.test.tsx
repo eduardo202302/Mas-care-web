@@ -40,6 +40,7 @@ function mockReadOnlyApi() {
   } satisfies components['schemas']['Branch']
   const patient = {
     id: 'patient-1',
+    numericId: '1',
     organizationId: 'org-1',
     primaryBranchId: branch.id,
     fullName: 'Paciente de lectura',

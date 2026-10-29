@@ -18,11 +18,12 @@ import { Skeleton } from '@/components/ui/Skeleton'
  */
 export function NoResponseReport({ filters }: { filters: ReportFilters }) {
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
   const query = useQuery({
-    queryKey: ['reports', 'no-response', filters, page],
+    queryKey: ['reports', 'no-response', filters, page, rows],
     queryFn: () =>
       api<ReportResponse['no-response']>(
-        `/api/v1/reports/no-response?${reportQueryString(filters, { page, rows: PAGE_ROWS })}`,
+        `/api/v1/reports/no-response?${reportQueryString(filters, { page, rows })}`,
       ),
   })
 
@@ -62,8 +63,13 @@ export function NoResponseReport({ filters }: { filters: ReportFilters }) {
           </span>,
         ])}
         page={page}
+        pageRows={rows}
         total={data.total}
         onPageChange={setPage}
+        onRowsChange={(next) => {
+          setRows(next)
+          setPage(1)
+        }}
         loading={false}
         fetching={query.isFetching}
         emptyTitle="Sin pacientes pendientes de respuesta"

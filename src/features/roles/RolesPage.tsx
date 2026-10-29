@@ -11,6 +11,7 @@ import { api } from '@/lib/http'
 import type { MenuItemDto } from '@/lib/menu'
 import { PAGE_ROWS, pageQuery } from '@/lib/paging'
 import { useCan } from '@/lib/permissions'
+import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import { RoleForm, type RoleSavePayload } from './RoleForm'
 
 type RoleDto = components['schemas']['Role']
@@ -22,13 +23,15 @@ export default function RolesPage() {
   const [editing, setEditing] = useState<RoleDto | null>(null)
   const [deleting, setDeleting] = useState<RoleDto | null>(null)
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
+  const [sort, toggleSort] = useColumnSort()
 
   // Distinct key from the full list ['roles'] used by the user form.
   const roles = useQuery({
-    queryKey: ['roles', 'table', page],
+    queryKey: ['roles', 'table', page, rows],
     queryFn: () =>
       api<{ data: RoleDto[]; total: number }>(
-        `/api/v1/roles?${pageQuery({ page, rows: PAGE_ROWS })}`,
+        `/api/v1/roles?${pageQuery({ page, rows })}`,
       ),
   })
   const catalog = useQuery({
@@ -85,8 +88,20 @@ export default function RolesPage() {
     setFormOpen(true)
   }
 
-  const list = roles.data?.data ?? []
-  const rows = list.map((role) => [
+  const list = applyColumnSort(roles.data?.data ?? [], sort, (role, index) =>
+    index === 0
+      ? role.name
+      : index === 1
+        ? role.description ?? ''
+        : index === 2
+          ? role.memberCount
+          : index === 3
+            ? role.items.filter((item) => item.canView).length
+            : role.isActive
+              ? 1
+              : 0,
+  )
+  const tableRows = list.map((role) => [
     <span key="name" className="inline-flex items-center gap-2 font-semibold">
       {role.name}
       {role.isSystem && (
@@ -134,8 +149,8 @@ export default function RolesPage() {
   )
 
   return (
-    <div className="animate-in">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <div className="animate-in flex h-full min-h-0 flex-col">
+      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-tealmax mb-2 text-sm font-medium">
             Administración
@@ -165,41 +180,50 @@ export default function RolesPage() {
       {roles.isError && (
         <p
           role="alert"
-          className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+          className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
         >
           No pudimos cargar los roles. {roles.error.message}
         </p>
       )}
-      {roles.isPending ? (
-        <TableSkeleton columns={5} />
-      ) : (
-        <DataTable
-          columns={[
-            'Nombre',
-            'Descripción',
-            'Usuarios',
-            'Pantallas',
-            'Estado',
-          ]}
-          rows={rows}
-          actions={canManage ? actions : undefined}
-          onRowDoubleClick={
-            canManage
-              ? (index) => list[index] && openEdit(list[index])
-              : undefined
-          }
-          emptyTitle="Aún no hay roles"
-          emptyDescription="Crea un rol para controlar qué pantallas ve cada usuario."
-        />
-      )}
-      {!roles.isPending && (
-        <Pagination
-          page={page}
-          rows={PAGE_ROWS}
-          total={roles.data?.total ?? 0}
-          onChange={setPage}
-        />
-      )}
+      <div className="min-h-0 flex-1">
+        {roles.isPending ? (
+          <TableSkeleton columns={5} />
+        ) : (
+          <DataTable
+            columns={[
+              'Nombre',
+              'Descripción',
+              'Usuarios',
+              'Pantallas',
+              'Estado',
+            ]}
+            rows={tableRows}
+            actions={canManage ? actions : undefined}
+            sortableColumns={[0, 1, 2, 3, 4]}
+            sort={sort}
+            onSortChange={toggleSort}
+            onRowDoubleClick={
+              canManage
+                ? (index) => list[index] && openEdit(list[index])
+                : undefined
+            }
+            emptyTitle="Aún no hay roles"
+            emptyDescription="Crea un rol para controlar qué pantallas ve cada usuario."
+            footer={
+              <Pagination
+                page={page}
+                rows={rows}
+                total={roles.data?.total ?? 0}
+                onChange={setPage}
+                onRowsChange={(next) => {
+                  setRows(next)
+                  setPage(1)
+                }}
+              />
+            }
+          />
+        )}
+      </div>
       {formOpen && (
         <Dialog
           size="lg"

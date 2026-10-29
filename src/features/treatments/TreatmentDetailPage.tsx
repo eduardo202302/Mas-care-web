@@ -276,7 +276,12 @@ export default function TreatmentDetailPage() {
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-tealmax mb-1 text-sm">Ficha del tratamiento</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">{medicationName(medication)}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">{medicationName(medication)}</h1>
+            <span className="text-muted border-border rounded-full border bg-white px-2 py-0.5 font-mono text-xs font-medium">
+              #{record.numericId}
+            </span>
+          </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {derived ? <StatusChip status={derived} /> : <span className="text-muted text-sm">{treatmentStatusLabel(record.status)}</span>}
             {record.prescription_flag && <StatusChip status="Receta por renovar" />}
