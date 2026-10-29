@@ -16,6 +16,7 @@ import { CompanyBadge } from './CompanyBadge'
 export default function AccessPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -30,7 +31,11 @@ export default function AccessPage() {
     setError('')
     setLoading(true)
     try {
-      const result = await authClient.signIn.email({ email, password })
+      const result = await authClient.signIn.email({
+        email,
+        password,
+        rememberMe,
+      })
       if (result.error)
         setError(
           result.error.message ??
@@ -82,6 +87,15 @@ export default function AccessPage() {
           onChange={(event) => setPassword(event.target.value)}
           placeholder="Tu contraseña"
         />
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(event) => setRememberMe(event.target.checked)}
+            className="accent-tealmax size-4 cursor-pointer"
+          />
+          <span className="text-ink">Recordar mis credenciales</span>
+        </label>
         {successMessage && (
           <p
             role="status"

@@ -53,7 +53,7 @@ export default function BoardPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { data: me } = useMe()
   const { data: pipeline } = usePipeline()
-  const [newCycleFor, setNewCycleFor] = useState<BoardColumnKey | null>(null)
+  const [newCycleFor, setNewCycleFor] = useState<BoardColumnKey | 'top' | null>(null)
   const canCreateCycle = useCan('treatments:write')
   const boardView = useUiStore((state) => state.boardView)
   const setBoardView = useUiStore((state) => state.setBoardView)
@@ -383,6 +383,11 @@ export default function BoardPage() {
               filters={{ branchId: effectiveFilters.branch_id }}
             />
           )}
+          {canCreateCycle && (
+            <Button type="button" variant="primary" onClick={() => setNewCycleFor('top')}>
+              + Crear nuevo
+            </Button>
+          )}
           <Button
             type="button"
             className="size-10 px-0"
@@ -404,6 +409,7 @@ export default function BoardPage() {
         branchOptions={branches}
         branchLocked={Boolean(lockedBranch)}
         privileged={privileged}
+        meId={me?.user.id}
       />
 
       {board.isError && (
@@ -560,11 +566,7 @@ export default function BoardPage() {
       )}
       {newCycleFor && (
         <NewCycleDialog
-          status={newCycleFor}
-          stageName={
-            pipeline?.stages.find((s) => s.system_status === newCycleFor)?.name ??
-            boardColumnLabels[newCycleFor]
-          }
+          initialStatus={newCycleFor === 'top' ? undefined : newCycleFor}
           onClose={() => setNewCycleFor(null)}
         />
       )}
