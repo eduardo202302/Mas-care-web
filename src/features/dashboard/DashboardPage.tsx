@@ -50,6 +50,7 @@ export default function DashboardPage() {
     useState<DashboardCardKey>('today_refills')
   const [listOpen, setListOpen] = useState(false)
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
   const [noticeRow, setNoticeRow] = useState<DashboardRow | null>(null)
   const [deliveryRow, setDeliveryRow] = useState<DashboardRow | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
@@ -70,12 +71,13 @@ export default function DashboardPage() {
       selectedCard,
       activeBranchId ?? 'all',
       page,
+      rows,
     ],
     queryFn: () => {
       const params = new URLSearchParams({
         card: selectedCard,
         page: String(page),
-        rows: String(PAGE_ROWS),
+        rows: String(rows),
       })
       if (activeBranchId) params.set('branch_id', activeBranchId)
       return api<DashboardListResponse>(
@@ -95,7 +97,7 @@ export default function DashboardPage() {
     return () => window.clearTimeout(timer)
   }, [feedback])
 
-  const rows = list.data?.data ?? []
+  const items = list.data?.data ?? []
   const counts = dashboard.data?.counts
 
   const today = new Intl.DateTimeFormat('es-BO', {
@@ -261,7 +263,7 @@ export default function DashboardPage() {
             <p role="alert" className="py-6 text-sm text-red-700">
               No pudimos cargar la lista. {list.error.message}
             </p>
-          ) : rows.length === 0 ? (
+          ) : items.length === 0 ? (
             <div className="py-5">
               <EmptyState
                 title="Nada pendiente aquí"
@@ -269,7 +271,7 @@ export default function DashboardPage() {
               />
             </div>
           ) : (
-            rows.map((row) => (
+            items.map((row) => (
               <DashboardTreatmentRow
                 key={row.treatment_id}
                 row={row}
@@ -283,9 +285,13 @@ export default function DashboardPage() {
         <div className="px-5 pb-4">
           <Pagination
             page={page}
-            rows={PAGE_ROWS}
+            rows={rows}
             total={list.data?.total ?? 0}
             onChange={setPage}
+            onRowsChange={(next) => {
+              setRows(next)
+              setPage(1)
+            }}
             disabled={list.isFetching}
           />
         </div>
@@ -328,16 +334,16 @@ export default function DashboardPage() {
           onClose={() => setListOpen(false)}
           size="lg"
         >
-          {list.isFetching && rows.length === 0 ? (
+          {list.isFetching && items.length === 0 ? (
             <p className="text-muted text-sm">Cargando pacientes…</p>
-          ) : rows.length === 0 ? (
+          ) : items.length === 0 ? (
             <EmptyState
               title="Sin pacientes en esta categoría"
               description="No hay registros para la sucursal seleccionada."
             />
           ) : (
             <div className="divide-border divide-y">
-              {rows.map((row) => (
+              {items.map((row) => (
                 <DashboardTreatmentRow
                   key={row.treatment_id}
                   row={row}

@@ -1,12 +1,14 @@
-import { useMemo, useState, type ReactNode } from 'react'
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { ChevronDown, Filter, Loader2 } from 'lucide-react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+import { useQuery } from '@tanstack/react-query'
+import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
 import { StatusChip } from '@/components/StatusChip'
-import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/EmptyState'
+import { Pagination } from '@/components/Pagination'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { api } from '@/lib/http'
+import { PAGE_ROWS } from '@/lib/paging'
 import { formatCustomValue, useCustomProperties } from '@/lib/custom-properties'
 import { effectiveStage, usePipeline } from '@/lib/pipeline'
 import {
@@ -32,13 +34,17 @@ import {
 } from '@/lib/cycle-table'
 import { derivedStatusLabel, formatDate } from '@/lib/treatments'
 import { cn } from '@/lib/cn'
-import {
-  BatchBar,
-  ColumnPicker,
-  SavedViewsBar,
-  SortEditor,
-  TableFilterPanel,
-} from './CycleTableControls'
+import { compareValues } from '@/lib/table-sort'
+import { BatchBar, ColumnPicker, SavedViewsBar } from './CycleTableControls'
+
+/** Column keys that map to a backend-sortable field; columns without an entry sort client-side (current page only). */
+const columnSortField: Record<string, string> = {
+  patient: 'patient',
+  medication: 'medication',
+  status: 'status',
+  expected_on: 'expected_on',
+  derived: 'derived_status',
+}
 
 export function CycleTable({
   filters,
@@ -47,6 +53,7 @@ export function CycleTable({
   onMove,
   onOpenCard,
   onBoardFiltersChange,
+  controlsSlot,
 }: {
   filters: BoardFilters
   canMove: boolean
@@ -55,11 +62,15 @@ export function CycleTable({
   onMove: (card: BoardCard, to: CycleStatus) => void
   onOpenCard?: (card: BoardCard) => void
   onBoardFiltersChange?: (next: BoardFilters) => void
+  /** Renders the saved-views and column pickers into this node instead of the table's own header, e.g. the board tabs row. */
+  controlsSlot?: HTMLElement | null
 }) {
   const [tableFilters, setTableFilters] = useState<TableFilters>(emptyTableFilters)
   const [sort, setSort] = useState<SortPart[]>([])
+  const [clientSort, setClientSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null)
   const [selected, setSelected] = useState<string[]>([])
-  const [showFilters, setShowFilters] = useState(false)
+  const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
   // Treatment properties defined by the organization can be added as columns (key `custom:<key>`).
   const properties = useCustomProperties('treatment').data?.data ?? []
   const { data: pipeline } = usePipeline()
@@ -72,22 +83,75 @@ export function CycleTable({
   const params = () => {
     const search = boardFiltersToSearch(filters)
     tableFiltersToSearch(tableFilters, sort, search)
+    search.set('page', String(page))
+    search.set('rows', String(rows))
     return search
   }
-  const table = useInfiniteQuery({
+  const table = useQuery({
     queryKey: ['cycles', params().toString()],
-    queryFn: ({ pageParam }) => {
-      const search = params()
-      search.set('limit', '30')
-      if (pageParam) search.set('cursor', pageParam)
-      return api<CycleTableResponse>(`/api/v1/cycles?${search.toString()}`)
-    },
-    initialPageParam: '',
-    getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
+    queryFn: () => api<CycleTableResponse>(`/api/v1/cycles?${params().toString()}`),
   })
 
-  const rows = table.data?.pages.flatMap((page) => page.data) ?? []
-  const selectable = rows.filter(isOpenCycle).map((card) => card.cycle_id)
+  const setFiltersAndResetPage = (next: TableFilters) => {
+    setTableFilters(next)
+    setPage(1)
+  }
+  const sortedField = sort.length === 1 ? sort[0] : null
+  const activeSortKey = sortedField
+    ? Object.entries(columnSortField).find(([, field]) => field === sortedField.field)?.[0]
+    : clientSort?.key
+  const activeSortDir = sortedField ? sortedField.dir : clientSort?.dir ?? null
+  const toggleColumnSort = (key: string) => {
+    const dir = activeSortKey === key && activeSortDir === 'asc' ? 'desc' : 'asc'
+    const field = columnSortField[key]
+    if (field) {
+      setSort([{ field, dir }])
+      setClientSort(null)
+    } else {
+      setSort([])
+      setClientSort({ key, dir })
+    }
+    setPage(1)
+  }
+  /** Sortable value for columns without a backend field; mirrors `cell()` but returns a comparable primitive. */
+  const sortValue = (key: string, card: BoardCard): unknown => {
+    switch (key) {
+      case 'branch':
+        return card.branch.nombre
+      case 'stage': {
+        const stage = pipeline ? effectiveStage(pipeline, card.status, (card as { stage_id?: string | null }).stage_id) : undefined
+        return stage?.name ?? ''
+      }
+      case 'days':
+        return card.days_remaining
+      case 'responsible':
+        return card.responsible?.name ?? ''
+      case 'next_action':
+        return card.status === 'to_notify' ? 'Avisar' : isOpenCycle(card) ? 'Marcar entregado' : ''
+      case 'stock':
+        return card.stock_level ? stockLevelLabels[card.stock_level] : ''
+      default: {
+        const property = properties.find((item) => `custom:${item.key}` === key)
+        if (!property) return ''
+        const values = (card as { treatment_custom_values?: Record<string, unknown> }).treatment_custom_values ?? {}
+        return formatCustomValue(property, values[property.key]) || ''
+      }
+    }
+  }
+  // The board filters (branch, search, etc.) are controlled by the parent; any change invalidates the current page.
+  const boardFiltersKey = boardFiltersToSearch(filters).toString()
+  useEffect(() => setPage(1), [boardFiltersKey])
+
+  const cards = table.data?.data ?? []
+  const displayCards = clientSort
+    ? [...cards].sort(
+        (a, b) =>
+          (clientSort.dir === 'asc' ? 1 : -1) *
+          compareValues(sortValue(clientSort.key, a), sortValue(clientSort.key, b)),
+      )
+    : cards
+  const total = table.data?.total ?? 0
+  const selectable = cards.filter(isOpenCycle).map((card) => card.cycle_id)
   const allSelected = selectable.length > 0 && selectable.every((id) => selected.includes(id))
   const canBatch = canMove && canWrite
 
@@ -97,22 +161,9 @@ export function CycleTable({
     switch (key) {
       case 'patient':
         return (
-          <span className="flex items-center gap-1">
-            <button type="button" className="text-petroleo text-left font-semibold hover:underline" onClick={() => onOpenCard?.(card)}>
-              {card.patient.nombre}
-            </button>
-            <button
-              type="button"
-              aria-label={`Filtrar por el tratamiento de ${card.patient.nombre}`}
-              title="Ver solo este tratamiento"
-              className="text-muted hover:text-petroleo"
-              onClick={() =>
-                setTableFilters({ ...tableFilters, treatment_ids: [...new Set([...(tableFilters.treatment_ids ?? []), card.treatment_id])] })
-              }
-            >
-              <Filter className="size-3" />
-            </button>
-          </span>
+          <button type="button" className="text-petroleo text-left font-semibold hover:underline" onClick={() => onOpenCard?.(card)}>
+            {card.patient.nombre}
+          </button>
         )
       case 'medication':
         return (
@@ -187,45 +238,36 @@ export function CycleTable({
     }
   }
 
-  return (
-    <div>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <SavedViewsBar
-          current={() => ({
-            filters: { board: filters, table: tableFilters },
-            columns: columns.keys,
-            sort: { parts: sort },
-          })}
-          onApply={(view) => {
-            onBoardFiltersChange?.(view.filters.board ?? {})
-            setTableFilters(view.filters.table ?? emptyTableFilters)
-            setSort(view.sort.parts ?? [])
-            if (view.columns.length) columns.save(view.columns)
-            setSelected([])
-          }}
-        />
-        <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" className="h-9" aria-expanded={showFilters} onClick={() => setShowFilters((value) => !value)}>
-            <Filter className="size-4" />
-            Filtros avanzados
-          </Button>
-          <ColumnPicker keys={columns.keys} onChange={columns.save} saving={columns.saving} all={allColumns} />
-        </div>
-      </div>
-      {showFilters && (
-        <TableFilterPanel
-          board={filters}
-          table={tableFilters}
-          onBoard={(next) => onBoardFiltersChange?.(next)}
-          onTable={setTableFilters}
-        />
-      )}
-      <div className="mb-3">
-        <SortEditor sort={sort} onChange={setSort} />
-      </div>
-      {canBatch && <BatchBar ids={selected} onDone={() => setSelected([])} />}
+  const controls = (
+    <>
+      <SavedViewsBar
+        current={() => ({
+          filters: { board: filters, table: tableFilters },
+          columns: columns.keys,
+          sort: { parts: sort },
+        })}
+        onApply={(view) => {
+          onBoardFiltersChange?.(view.filters.board ?? {})
+          setFiltersAndResetPage(view.filters.table ?? emptyTableFilters)
+          setSort(view.sort.parts ?? [])
+          if (view.columns.length) columns.save(view.columns)
+          setSelected([])
+        }}
+      />
+      <ColumnPicker keys={columns.keys} onChange={columns.save} saving={columns.saving} all={allColumns} />
+    </>
+  )
 
-      <section aria-label="Vista tabla de ciclos" className="border-border overflow-hidden rounded-xl border bg-white">
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      {controlsSlot ? (
+        createPortal(<div className="flex flex-wrap items-center gap-2">{controls}</div>, controlsSlot)
+      ) : (
+        <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-2">{controls}</div>
+      )}
+      {canBatch && <div className="shrink-0"><BatchBar ids={selected} onDone={() => setSelected([])} /></div>}
+
+      <section aria-label="Vista tabla de ciclos" className="border-border flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border bg-white">
         {table.isLoading ? (
           <div className="grid gap-3 p-5" aria-busy="true">
             {Array.from({ length: 6 }).map((_, index) => (
@@ -234,17 +276,17 @@ export function CycleTable({
           </div>
         ) : table.isError ? (
           <p role="alert" className="p-5 text-sm text-red-700">No pudimos cargar la tabla. {table.error.message}</p>
-        ) : rows.length === 0 ? (
+        ) : cards.length === 0 ? (
           <div className="p-5">
             <EmptyState title="Sin ciclos para estos filtros" description="Prueba con otra sucursal, fecha o estado." />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="min-h-0 flex-1 overflow-auto">
             <table className="w-full min-w-[980px] border-collapse text-left text-sm">
-              <thead className="bg-surface text-muted text-[11px] tracking-wide uppercase">
+              <thead className="bg-surface text-muted sticky top-0 z-10 text-[11px] tracking-wide uppercase">
                 <tr>
                   {canBatch && (
-                    <th className="w-10 px-4 py-3">
+                    <th className="bg-surface w-10 px-4 py-3">
                       <input
                         type="checkbox"
                         aria-label="Seleccionar todos los ciclos abiertos"
@@ -253,15 +295,31 @@ export function CycleTable({
                       />
                     </th>
                   )}
-                  {columns.keys.map((key) => (
-                    <th key={key} className="px-4 py-3 font-semibold">
-                      {allColumns.find((column) => column.key === key)?.label}
-                    </th>
-                  ))}
+                  {columns.keys.map((key) => {
+                    const active = activeSortKey === key ? activeSortDir : null
+                    return (
+                      <th key={key} className="bg-surface px-4 py-3 font-semibold">
+                        <button
+                          type="button"
+                          onClick={() => toggleColumnSort(key)}
+                          className="hover:text-petroleo inline-flex items-center gap-1"
+                        >
+                          {allColumns.find((column) => column.key === key)?.label}
+                          {active === 'asc' ? (
+                            <ChevronUp className="size-3.5" />
+                          ) : active === 'desc' ? (
+                            <ChevronDown className="size-3.5" />
+                          ) : (
+                            <ChevronsUpDown className="size-3.5" />
+                          )}
+                        </button>
+                      </th>
+                    )
+                  })}
                 </tr>
               </thead>
               <tbody className="divide-border divide-y">
-                {rows.map((card, index) => (
+                {displayCards.map((card, index) => (
                   <tr
                     key={card.cycle_id}
                     data-testid={`table-row-${card.cycle_id}`}
@@ -289,17 +347,18 @@ export function CycleTable({
             </table>
           </div>
         )}
-        <div className="border-border flex items-center justify-between gap-3 border-t px-4 py-3">
-          <p className="text-muted text-xs">
-            {rows.length} ciclos cargados
-            {table.hasNextPage ? ' · hay más páginas' : ''}
-          </p>
-          {table.hasNextPage && (
-            <Button type="button" className="h-8" onClick={() => table.fetchNextPage()} disabled={table.isFetchingNextPage}>
-              {table.isFetchingNextPage ? <Loader2 className="size-4 animate-spin" /> : null}
-              {table.isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
-            </Button>
-          )}
+        <div className="shrink-0">
+          <Pagination
+            page={page}
+            rows={rows}
+            total={total}
+            onChange={setPage}
+            onRowsChange={(next) => {
+              setRows(next)
+              setPage(1)
+            }}
+            disabled={table.isFetching}
+          />
         </div>
       </section>
     </div>

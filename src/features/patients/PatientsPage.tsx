@@ -14,6 +14,7 @@ import {
   type SortPart,
 } from '@/lib/cycle-table'
 import { Pagination } from '@/components/Pagination'
+import { formatPhone } from '@/lib/phone'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
@@ -23,6 +24,7 @@ import { api } from '@/lib/http'
 import { formatCustomValue, useCustomProperties } from '@/lib/custom-properties'
 import { PAGE_ROWS } from '@/lib/paging'
 import { useCan, useMe } from '@/lib/permissions'
+import { compareValues } from '@/lib/table-sort'
 import type { components, paths } from '@/lib/api-types'
 import type { PatientFormValues } from '@/schemas/patient'
 import { PatientForm } from './PatientForm'
@@ -41,10 +43,10 @@ type PatientQuery = NonNullable<
   Record<string, string | number | boolean | undefined>
 
 const patientColumns: ColumnDef[] = [
-  { key: 'name', label: 'Paciente' },
-  { key: 'contact', label: 'Contacto' },
-  { key: 'document', label: 'Documento' },
   { key: 'branch', label: 'Sucursal' },
+  { key: 'name', label: 'Paciente' },
+  { key: 'contact', label: 'WhatsApp' },
+  { key: 'document', label: 'ID' },
   { key: 'responsible', label: 'Responsable' },
   { key: 'status', label: 'Estado' },
   { key: 'created', label: 'Creado' },
@@ -56,6 +58,13 @@ const patientSortFields = [
   { value: 'document_id', label: 'Documento' },
   { value: 'birth_date', label: 'Fecha de nacimiento' },
 ]
+
+/** Column keys that map to a backend-sortable field; columns without an entry sort client-side (current page only). */
+const columnSortField: Record<string, string> = {
+  name: 'full_name',
+  document: 'document_id',
+  created: 'created_at',
+}
 
 const dateFilterLabels = [
   ['created_from', 'created_to', 'Creación'],
@@ -108,6 +117,7 @@ export default function PatientsPage() {
   const [responsibleUserId, setResponsibleUserId] = useState('')
   const [archived, setArchived] = useState<'true' | 'false'>('false')
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<
     components['schemas']['Patient'] | null
@@ -117,6 +127,24 @@ export default function PatientsPage() {
   const [selectedView, setSelectedView] = useState('')
   const [dates, setDates] = useState<Record<string, string>>({})
   const [sort, setSort] = useState<SortPart[]>([])
+  const [clientSort, setClientSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null)
+  const sortedField = sort.length === 1 ? sort[0] : null
+  const activeSortKey = sortedField
+    ? Object.entries(columnSortField).find(([, field]) => field === sortedField.field)?.[0]
+    : clientSort?.key
+  const activeSortDir = sortedField ? sortedField.dir : clientSort?.dir ?? null
+  const toggleColumnSort = (key: string) => {
+    const dir = activeSortKey === key && activeSortDir === 'asc' ? 'desc' : 'asc'
+    const field = columnSortField[key]
+    if (field) {
+      setSort([{ field, dir }])
+      setClientSort(null)
+    } else {
+      setSort([])
+      setClientSort({ key, dir })
+    }
+    setPage(1)
+  }
   const [advancedOpen, setAdvancedOpen] = useState(false)
   // Patient properties defined by the organization can be added as columns (key `custom:<key>`).
   const properties = useCustomProperties('patient').data?.data ?? []
@@ -154,13 +182,13 @@ export default function PatientsPage() {
       responsibleUserId: responsibleUserId || undefined,
       archived,
       page,
-      rows: PAGE_ROWS,
+      rows,
       ...dates,
       ...(sort.length
         ? { sort: sort.map((part) => `${part.field}:${part.dir}`).join(',') }
         : {}),
     }),
-    [archived, branchId, dates, page, responsibleUserId, search, sort],
+    [archived, branchId, dates, page, responsibleUserId, rows, search, sort],
   )
   const patients = useQuery({
     queryKey: ['patients', filters],
@@ -299,6 +327,7 @@ export default function PatientsPage() {
     )
     const parts = (view.sort as { parts?: SortPart[] }).parts
     setSort(Array.isArray(parts) ? parts : [])
+    setClientSort(null)
     if (view.columns.length) columnPrefs.save(view.columns)
     setPage(1)
   }
@@ -306,7 +335,39 @@ export default function PatientsPage() {
   const branchMap = new Map(
     (branchesQuery.data?.data ?? []).map((branch) => [branch.id, branch]),
   )
-  const rows = (patients.data?.data ?? []).map((patient) => {
+  /** Sortable value for columns without a backend field; mirrors the row cells but returns a comparable primitive. */
+  const sortValue = (key: string, patient: components['schemas']['Patient']): unknown => {
+    switch (key) {
+      case 'branch':
+        return branchMap.get(patient.primaryBranchId)?.name ?? ''
+      case 'contact':
+        return patient.phone ?? ''
+      case 'responsible':
+        return patient.responsibleUserId
+          ? patient.responsibleUserId === me?.user.id
+            ? 'Yo'
+            : 'Asignado'
+          : ''
+      case 'status':
+        return patient.archivedAt ? 1 : 0
+      default: {
+        const property = properties.find((item) => `custom:${item.key}` === key)
+        if (!property) return ''
+        const custom =
+          (patient as { customValues?: Record<string, unknown> }).customValues ?? {}
+        return formatCustomValue(property, custom[property.key]) || ''
+      }
+    }
+  }
+  const rawPatients = patients.data?.data ?? []
+  const displayPatients = clientSort
+    ? [...rawPatients].sort(
+        (a, b) =>
+          (clientSort.dir === 'asc' ? 1 : -1) *
+          compareValues(sortValue(clientSort.key, a), sortValue(clientSort.key, b)),
+      )
+    : rawPatients
+  const tableRows = displayPatients.map((patient) => {
     const branch = branchMap.get(patient.primaryBranchId)
     const cells: Record<string, ReactNode> = {
       name: (
@@ -316,12 +377,12 @@ export default function PatientsPage() {
       ),
       contact: (
         <span key="contact" className="text-muted">
-          {patient.phone || patient.email || 'Sin contacto'}
+          {patient.phone ? formatPhone(patient.phone) : 'Sin WhatsApp'}
         </span>
       ),
       document: (
-        <span key="document" className="text-muted">
-          {patient.documentId || '—'}
+        <span key="document" className="text-muted font-mono text-xs">
+          #{patient.numericId}
         </span>
       ),
       branch: branch ? (
@@ -366,7 +427,7 @@ export default function PatientsPage() {
     }
     return columnPrefs.keys.map((key) => cells[key])
   })
-  const rowActions = (patients.data?.data ?? []).map((patient) => (
+  const rowActions = displayPatients.map((patient) => (
     <RowActions
       key={patient.id}
       label={patient.fullName}
@@ -391,8 +452,8 @@ export default function PatientsPage() {
   )
 
   return (
-    <div className="animate-in">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <div className="animate-in flex h-full min-h-0 flex-col">
+      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-tealmax mb-2 text-sm font-medium">Atención</p>
           <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
@@ -419,7 +480,7 @@ export default function PatientsPage() {
           )}
         </div>
       </div>
-      <section className="border-border mb-4 rounded-xl border bg-white p-4">
+      <section className="border-border mb-4 shrink-0 rounded-xl border bg-white p-4">
         <div className="flex flex-wrap items-center gap-2">
           <label className="relative w-64 max-w-full">
             <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
@@ -528,6 +589,7 @@ export default function PatientsPage() {
               fields={patientSortFields}
               onChange={(next) => {
                 setSort(next)
+                setClientSort(null)
                 setPage(1)
               }}
             />
@@ -575,11 +637,12 @@ export default function PatientsPage() {
       {patients.isError && (
         <p
           role="alert"
-          className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+          className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
         >
           No pudimos cargar los pacientes. {patients.error.message}
         </p>
       )}
+      <div className="min-h-0 flex-1">
       {patients.isFetching || !branchReady ? (
         <TableSkeleton columns={columnPrefs.keys.length} />
       ) : (
@@ -588,10 +651,20 @@ export default function PatientsPage() {
             (key) =>
               allColumns.find((column) => column.key === key)?.label ?? key,
           )}
-          rows={rows}
+          rows={tableRows}
           actions={rowActions}
+          sortableColumns={columnPrefs.keys.map((_, index) => index)}
+          sort={
+            activeSortKey
+              ? {
+                  index: columnPrefs.keys.findIndex((key) => key === activeSortKey),
+                  dir: activeSortDir ?? 'asc',
+                }
+              : null
+          }
+          onSortChange={(index) => toggleColumnSort(columnPrefs.keys[index])}
           onRowDoubleClick={(index) => {
-            const patient = patients.data?.data[index]
+            const patient = displayPatients[index]
             if (patient)
               navigate(`/pacientes/${encodeURIComponent(patient.id)}`)
           }}
@@ -605,16 +678,21 @@ export default function PatientsPage() {
               ? 'Crea una ficha para comenzar el seguimiento de tus pacientes.'
               : 'Cuando haya pacientes en tu organización, aparecerán aquí.'
           }
+          footer={
+            <Pagination
+              page={page}
+              rows={rows}
+              total={patients.data?.total ?? 0}
+              onChange={setPage}
+              onRowsChange={(next) => {
+                setRows(next)
+                setPage(1)
+              }}
+            />
+          }
         />
       )}
-      {!patients.isFetching && (
-        <Pagination
-          page={page}
-          rows={PAGE_ROWS}
-          total={patients.data?.total ?? 0}
-          onChange={setPage}
-        />
-      )}
+      </div>
       {formOpen && (editing ? canUpdate : canCreate) && (
         <Dialog
           title={editing ? 'Editar paciente' : 'Nuevo paciente'}

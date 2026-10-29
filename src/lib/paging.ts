@@ -1,6 +1,9 @@
 /** Rows requested per page by every table; the first request is page 1. */
 export const PAGE_ROWS = 15
 
+/** Rows-per-page choices offered by every table's footer selector. */
+export const PAGE_ROWS_OPTIONS = [15, 25, 30, 50] as const
+
 /** Builds a query string, skipping empty values. */
 export function pageQuery(
   params: Record<string, string | number | undefined | null>,

@@ -13,11 +13,12 @@ import { Skeleton } from '@/components/ui/Skeleton'
 /** Overdue report: indicators, by_branch breakdown, avg delay, paginated detail list (delivered-late vs still-pending). */
 export function OverdueReport({ filters }: { filters: ReportFilters }) {
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
   const query = useQuery({
-    queryKey: ['reports', 'overdue', filters, page],
+    queryKey: ['reports', 'overdue', filters, page, rows],
     queryFn: () =>
       api<ReportResponse['overdue']>(
-        `/api/v1/reports/overdue?${reportQueryString(filters, { page, rows: PAGE_ROWS })}`,
+        `/api/v1/reports/overdue?${reportQueryString(filters, { page, rows })}`,
       ),
   })
 
@@ -97,8 +98,13 @@ export function OverdueReport({ filters }: { filters: ReportFilters }) {
             </span>,
           ])}
           page={page}
+          pageRows={rows}
           total={data.total}
           onPageChange={setPage}
+          onRowsChange={(next) => {
+            setRows(next)
+            setPage(1)
+          }}
           loading={false}
           fetching={query.isFetching}
         />

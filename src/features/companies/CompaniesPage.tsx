@@ -9,6 +9,7 @@ import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { useCan } from '@/lib/permissions'
+import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import type { CompanyFormValues } from '@/schemas/company'
 import type { components, paths } from '@/lib/api-types'
 import { CompanyForm } from './CompanyForm'
@@ -128,13 +129,15 @@ export default function CompaniesPage() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
   const [selected, setSelected] = useState<Company | null>(null)
   const [editing, setEditing] = useState<Company | null>(null)
   const [formOpen, setFormOpen] = useState(false)
+  const [sort, toggleSort] = useColumnSort()
 
   const filters = useMemo<CompanyQuery>(
-    () => ({ q: search.trim() || undefined, page, rows: PAGE_ROWS }),
-    [page, search],
+    () => ({ q: search.trim() || undefined, page, rows }),
+    [page, rows, search],
   )
 
   const companies = useQuery({
@@ -210,7 +213,18 @@ export default function CompaniesPage() {
     }
   }
 
-  const rows = (companies.data?.data ?? []).map((company) => [
+  const sortedCompanies = applyColumnSort(companies.data?.data ?? [], sort, (company, index) =>
+    index === 0
+      ? company.name
+      : index === 1
+        ? company.status
+        : index === 2
+          ? company.pin
+          : index === 3
+            ? company.domain
+            : company.registrationLink,
+  )
+  const tableRows = sortedCompanies.map((company) => [
     <span
       key="company"
       className="text-petroleo inline-flex items-center gap-2 text-left font-semibold"
@@ -251,7 +265,7 @@ export default function CompaniesPage() {
       <CopyLinkButton value={company.loginLink} label="Login" />
     </div>,
   ])
-  const rowActions = (companies.data?.data ?? []).map((company) => (
+  const rowActions = sortedCompanies.map((company) => (
     <RowActions
       key={company.id}
       label={company.name}
@@ -260,8 +274,8 @@ export default function CompaniesPage() {
   ))
 
   return (
-    <div className="animate-in">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <div className="animate-in flex h-full min-h-0 flex-col">
+      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-tealmax mb-2 text-sm font-medium">Plataforma</p>
           <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
@@ -279,7 +293,7 @@ export default function CompaniesPage() {
         )}
       </div>
 
-      <section className="border-border mb-4 rounded-xl border bg-white p-4">
+      <section className="border-border mb-4 shrink-0 rounded-xl border bg-white p-4">
         <label className="relative block max-w-lg">
           <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <input
@@ -298,21 +312,25 @@ export default function CompaniesPage() {
       {companies.isError && (
         <p
           role="alert"
-          className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+          className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
         >
           No pudimos cargar las compañías. {companies.error.message}
         </p>
       )}
 
+      <div className="min-h-0 flex-1">
       {companies.isFetching ? (
         <TableSkeleton columns={5} avatar />
       ) : (
         <DataTable
           columns={['Compañía', 'Estado', 'PIN', 'Dominio', 'Links']}
-          rows={rows}
+          rows={tableRows}
           actions={rowActions}
+          sortableColumns={[0, 1, 2, 3]}
+          sort={sort}
+          onSortChange={toggleSort}
           onRowDoubleClick={(index) => {
-            const company = companies.data?.data[index]
+            const company = sortedCompanies[index]
             if (company) setSelected(company)
           }}
           emptyTitle="Todavía no hay compañías"
@@ -321,16 +339,21 @@ export default function CompaniesPage() {
               ? 'Prueba con otro nombre, correo, dominio o PIN.'
               : 'Crea la primera compañía para generar sus enlaces.'
           }
+          footer={
+            <Pagination
+              page={page}
+              rows={rows}
+              total={companies.data?.total ?? 0}
+              onChange={setPage}
+              onRowsChange={(next) => {
+                setRows(next)
+                setPage(1)
+              }}
+            />
+          }
         />
       )}
-      {!companies.isFetching && (
-        <Pagination
-          page={page}
-          rows={PAGE_ROWS}
-          total={companies.data?.total ?? 0}
-          onChange={setPage}
-        />
-      )}
+      </div>
 
       {selected && (
         <Dialog

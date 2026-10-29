@@ -11,6 +11,7 @@ import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { useCan } from '@/lib/permissions'
 import { roleLabel } from '@/lib/role-labels'
+import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import type { UserCreateValues } from '@/schemas/user'
 import { UserForm } from './UserForm'
 import type { components, paths } from '@/lib/api-types'
@@ -184,15 +185,17 @@ export default function UsersPage() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
   const [selectedId, setSelectedId] = useState('')
   const [formOpen, setFormOpen] = useState(false)
+  const [sort, toggleSort] = useColumnSort()
   const [editing, setEditing] = useState<
     components['schemas']['OrganizationUser'] | null
   >(null)
 
   const filters = useMemo<UserQuery>(
-    () => ({ q: search.trim() || undefined, page, rows: PAGE_ROWS }),
-    [page, search],
+    () => ({ q: search.trim() || undefined, page, rows }),
+    [page, rows, search],
   )
   const users = useQuery({
     queryKey: ['users', filters],
@@ -279,7 +282,10 @@ export default function UsersPage() {
     },
   })
 
-  const rows = (users.data?.data ?? []).map((user) => [
+  const sortedUsers = applyColumnSort(users.data?.data ?? [], sort, (user, index) =>
+    index === 0 ? user.id : index === 3 ? user.name : index === 4 ? user.username ?? '' : index === 5 ? user.phone ?? '' : user.email,
+  )
+  const tableRows = sortedUsers.map((user) => [
     <span key="id" className="text-ink">
       {user.id ?? '—'}
     </span>,
@@ -313,7 +319,7 @@ export default function UsersPage() {
       {user.email}
     </span>,
   ])
-  const rowActions = (users.data?.data ?? []).map((user) => (
+  const rowActions = sortedUsers.map((user) => (
     <RowActions
       key={user.id}
       label={user.name}
@@ -339,8 +345,8 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="animate-in">
-      <div className="mb-2 flex flex-wrap items-end justify-between gap-4">
+    <div className="animate-in flex h-full min-h-0 flex-col">
+      <div className="mb-2 flex shrink-0 flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-tealmax mb-1 text-sm font-medium">
             Administración
@@ -359,7 +365,7 @@ export default function UsersPage() {
           </Button>
         )}
       </div>
-      <section className="border-border mb-4 rounded-xl border bg-white p-4">
+      <section className="border-border mb-4 shrink-0 rounded-xl border bg-white p-4">
         <label className="relative block max-w-lg">
           <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <input
@@ -374,20 +380,24 @@ export default function UsersPage() {
       {users.isError && (
         <p
           role="alert"
-          className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+          className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
         >
           No pudimos cargar los usuarios. {users.error.message}
         </p>
       )}
+      <div className="min-h-0 flex-1">
       {users.isFetching ? (
         <TableSkeleton columns={5} avatar />
       ) : (
         <DataTable
           columns={['ID', 'Sucursales', 'Rol', 'Nombre', 'Usuario', 'WhatsApp', 'Correo']}
-          rows={rows}
+          rows={tableRows}
           actions={rowActions}
+          sortableColumns={[0, 3, 4, 5, 6]}
+          sort={sort}
+          onSortChange={toggleSort}
           onRowDoubleClick={(index) => {
-            const user = users.data?.data[index]
+            const user = sortedUsers[index]
             if (user) setSelectedId(user.id)
           }}
           emptyTitle="No hay usuarios para mostrar"
@@ -396,16 +406,21 @@ export default function UsersPage() {
               ? 'Prueba con otro nombre, usuario o correo.'
               : 'Los miembros con acceso aparecerán aquí.'
           }
+          footer={
+            <Pagination
+              page={page}
+              rows={rows}
+              total={users.data?.total ?? 0}
+              onChange={setPage}
+              onRowsChange={(next) => {
+                setRows(next)
+                setPage(1)
+              }}
+            />
+          }
         />
       )}
-      {!users.isFetching && (
-        <Pagination
-          page={page}
-          rows={PAGE_ROWS}
-          total={users.data?.total ?? 0}
-          onChange={setPage}
-        />
-      )}
+      </div>
       {selectedId && (
         <Dialog
           title="Ficha de usuario"

@@ -34,6 +34,7 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { TextField } from '@/components/ui/TextField'
 import { api } from '@/lib/http'
+import { formatPhone } from '@/lib/phone'
 import { useCan, useMe } from '@/lib/permissions'
 import type { components, paths } from '@/lib/api-types'
 import {
@@ -542,7 +543,7 @@ export default function PatientDetailPage() {
     {
       name: 'Contacto',
       items: [
-        { label: 'Teléfono', value: record.phone },
+        { label: 'Teléfono', value: record.phone ? formatPhone(record.phone) : undefined },
         { label: 'Tiene WhatsApp', value: record.phoneHasWhatsapp ? 'Sí' : 'No' },
         { label: 'Correo', value: record.email },
         { label: 'Dirección', value: record.address },
@@ -588,20 +589,20 @@ export default function PatientDetailPage() {
     <div className="animate-in">
       <Link
         to="/pacientes"
-        className="text-muted hover:text-petroleo mb-5 inline-flex items-center gap-2 text-sm"
+        className="text-muted hover:text-petroleo mb-2 inline-flex items-center gap-2 text-sm"
       >
         <ArrowLeft className="size-4" />
         Pacientes
       </Link>
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+      <header className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-tealmax mb-1 text-sm">Ficha del paciente</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
+          <p className="text-tealmax text-sm">Ficha del paciente</p>
+          <h1 className="font-display text-petroleo text-2xl font-bold tracking-tight">
             {record.fullName}
+            {record.documentId ? ` - ${record.documentId}` : ''}
           </h1>
-          <p className="text-muted mt-2 text-sm">
-            {record.documentId || 'Sin documento'}
-            {record.phone ? ` · ${record.phone}` : ''}
+          <p className="text-muted mt-1 text-sm">
+            {record.phone ? formatPhone(record.phone) : 'Sin teléfono'}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -621,6 +622,12 @@ export default function PatientDetailPage() {
               <div>
                 <dt className="text-muted">Responsable</dt>
                 <dd className="mt-0.5">{responsible}</dd>
+              </div>
+              <div>
+                <dt className="text-muted">WhatsApp</dt>
+                <dd className="mt-0.5">
+                  {record.phone ? formatPhone(record.phone) : 'Sin WhatsApp'}
+                </dd>
               </div>
               <div>
                 <dt className="text-muted">Correo</dt>
@@ -662,7 +669,7 @@ export default function PatientDetailPage() {
           <Panel title="Canal preferido">
             <p className="text-ink text-sm">
               {channelLabels[record.preferredChannel]}
-              {record.phoneHasWhatsapp ? ' · WhatsApp disponible' : ''}
+              {record.phone ? ' · WhatsApp disponible' : ''}
             </p>
           </Panel>
           <Panel

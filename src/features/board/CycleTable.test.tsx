@@ -63,7 +63,7 @@ function setup(permissions: string[], batch = true) {
       else if (path === '/api/v1/cycles/batch') payload = { action: body.action, requested: body.ids.length, applied: body.ids.length, skipped: [], blocked_out_of_stock: [] }
       else if (path === '/api/v1/pipelines/refill-cycles') payload = pipeline
       else if (path === '/api/v1/custom-properties') payload = { data: [{ id: 'cp1', entity: 'treatment', key: 'dosis', label: 'Dosis especial', type: 'short_text', required: false, options: [], groupName: 'General', position: 0, archivedAt: null }] }
-      else if (path === '/api/v1/cycles') payload = { status: null, data: [{ ...card('a', 'to_notify'), stage_id: 's2' }, card('b', 'notified'), card('c', 'delivered', '2026-10-30T00:00:00Z')], next_cursor: null }
+      else if (path === '/api/v1/cycles') payload = { status: null, data: [{ ...card('a', 'to_notify'), stage_id: 's2' }, card('b', 'notified'), card('c', 'delivered', '2026-10-30T00:00:00Z')], total: 3, page: 1, rows: 15 }
       else if (path === '/api/v1/saved-views' && method === 'POST') payload = { id: 'v1', name: body.name, entity: body.entity, filters: {}, columns: body.columns ?? [], sort: {}, isDefault: false }
       else if (path === '/api/v1/saved-views') payload = { data: [] }
       else if (path === '/api/v1/users') payload = { data: [{ id: 'u1', name: 'Dueña' }] }
@@ -82,17 +82,14 @@ function setup(permissions: string[], batch = true) {
 }
 
 describe('CycleTable', () => {
-  it('shows the stage of each cycle (default when none) and the treatment properties, and filters by stage', async () => {
-    const calls = setup(['treatments:read'], false)
+  it('shows the stage of each cycle (default when none) and the treatment properties', async () => {
+    setup(['treatments:read'], false)
     await screen.findByText('Paciente a')
     expect(screen.getByText('Esperando receta')).toBeInTheDocument()
     expect(screen.getAllByText('Avisado').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByRole('columnheader', { name: 'Etapa' })).toBeInTheDocument()
     // Custom property columns are offered but not shown until chosen.
     expect(screen.queryByRole('columnheader', { name: 'Dosis especial' })).not.toBeInTheDocument()
-    await userEvent.setup().click(screen.getByRole('button', { name: /Filtros/ }))
-    await userEvent.setup().selectOptions(await screen.findByLabelText('Filtrar por etapa'), 's2')
-    await waitFor(() => expect(calls.some((call) => call.url.includes('stage_id=s2'))).toBe(true))
   })
 
   it('lets only open cycles be selected and applies a batch only after confirmation', async () => {
@@ -137,18 +134,7 @@ describe('CycleTable', () => {
     await waitFor(() => {
       const saved = calls.find((call) => call.method === 'POST' && call.url.includes('/saved-views'))
       expect(saved?.body).toMatchObject({ entity: 'cycles_columns', name: 'default' })
-      expect((saved?.body as { columns: string[] }).columns).not.toContain('patient')
+      expect((saved?.body as { columns: string[] }).columns).not.toContain('branch')
     })
-  })
-
-  it('sends the sort and date filters to the API', async () => {
-    const calls = setup(['treatments:read'])
-    const user = userEvent.setup()
-    await screen.findByText('Paciente a')
-    await user.click(screen.getByRole('button', { name: '+ Nivel de orden' }))
-    await waitFor(() => expect(calls.some((call) => call.url.includes('sort=derived_status%3Aasc'))).toBe(true))
-    await user.click(screen.getByRole('button', { name: 'Filtros avanzados' }))
-    await user.type(screen.getByLabelText('Creación desde'), '2026-01-01')
-    await waitFor(() => expect(calls.some((call) => call.url.includes('created_from=2026-01-01'))).toBe(true))
   })
 })

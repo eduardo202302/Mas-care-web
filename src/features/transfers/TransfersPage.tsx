@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import { ArrowRightLeft } from 'lucide-react'
 import { NotFoundPage } from '@/app/NotFoundPage'
-import { EmptyState } from '@/components/EmptyState'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { DataTable } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
@@ -12,6 +11,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { api } from '@/lib/http'
 import { PAGE_ROWS, pageQuery } from '@/lib/paging'
 import { useMe } from '@/lib/permissions'
+import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import type { paths } from '@/lib/api-types'
 import {
   transferFiltersFromSearch,
@@ -29,6 +29,8 @@ export default function TransfersPage() {
   const { data: me, isPending: mePending } = useMe()
   const [searchParams, setSearchParams] = useSearchParams()
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
+  const [sort, toggleSort] = useColumnSort()
   const filters = useMemo(
     () => transferFiltersFromSearch(searchParams),
     [searchParams],
@@ -42,7 +44,7 @@ export default function TransfersPage() {
   })
 
   const transfers = useQuery({
-    queryKey: ['transfers', filters, page],
+    queryKey: ['transfers', filters, page, rows],
     queryFn: () =>
       api<GlobalTransferList>(
         `/api/v1/transfers?${pageQuery({
@@ -50,7 +52,7 @@ export default function TransfersPage() {
           from: filters.from,
           to: filters.to,
           page,
-          rows: PAGE_ROWS,
+          rows,
         })}`,
       ),
     enabled: privileged,
@@ -61,7 +63,19 @@ export default function TransfersPage() {
     setSearchParams(transferFiltersToSearch(next))
   }
 
-  const rows = transfers.data?.data ?? []
+  const items = applyColumnSort(transfers.data?.data ?? [], sort, (row, index) =>
+    index === 0
+      ? row.occurred_at
+      : index === 1
+        ? row.patient.full_name
+        : index === 2
+          ? row.from_branch.name
+          : index === 3
+            ? row.to_branch.name
+            : index === 4
+              ? row.reason
+              : row.created_by.name,
+  )
 
   if (mePending) {
     return (
@@ -77,8 +91,8 @@ export default function TransfersPage() {
   if (!privileged) return <NotFoundPage />
 
   return (
-    <div className="animate-in">
-      <div className="mb-7">
+    <div className="animate-in flex h-full min-h-0 flex-col">
+      <div className="mb-7 shrink-0">
         <p className="text-tealmax mb-2 text-sm font-medium">Operación</p>
         <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
           Traspasos
@@ -90,7 +104,7 @@ export default function TransfersPage() {
 
       <section
         aria-label="Filtros de traspasos"
-        className="border-border shadow-card mb-5 grid gap-3 rounded-xl border bg-white p-3 sm:grid-cols-3"
+        className="border-border shadow-card mb-5 grid shrink-0 gap-3 rounded-xl border bg-white p-3 sm:grid-cols-3"
       >
         <label className="grid gap-1.5">
           <span className="text-muted text-xs font-semibold tracking-wide uppercase">
@@ -153,7 +167,7 @@ export default function TransfersPage() {
       {transfers.isError && (
         <div
           role="alert"
-          className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+          className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
         >
           <span>No pudimos cargar los traspasos. {transfers.error.message}</span>
           <Button type="button" className="h-8" onClick={() => transfers.refetch()}>
@@ -162,44 +176,48 @@ export default function TransfersPage() {
         </div>
       )}
 
-      {transfers.isLoading ? (
-        <TableSkeleton columns={6} />
-      ) : rows.length === 0 ? (
-        <EmptyState
-          title="Sin traspasos"
-          description="Cuando se traslade un paciente entre sucursales, aparecerá aquí."
-        />
-      ) : (
-        <DataTable
-          columns={['Fecha', 'Paciente', 'De', 'A', 'Motivo', 'Registrado por']}
-          rows={rows.map((row) => [
-            <span key="date">
-              {new Date(row.occurred_at).toLocaleString('es')}
-            </span>,
-            <span key="patient">{row.patient.full_name}</span>,
-            <span key="from">{row.from_branch.name}</span>,
-            <span key="to" className="inline-flex items-center gap-1.5">
-              <ArrowRightLeft className="text-tealmax size-3.5" />
-              {row.to_branch.name}
-            </span>,
-            <span key="reason" className="text-muted line-clamp-2">
-              {row.reason}
-            </span>,
-            <span key="by">{row.created_by.name}</span>,
-          ])}
-          emptyTitle="Sin traspasos"
-          emptyDescription="Cuando se traslade un paciente entre sucursales, aparecerá aquí."
-        />
-      )}
-      {!transfers.isLoading && (
-        <Pagination
-          page={page}
-          rows={PAGE_ROWS}
-          total={transfers.data?.total ?? 0}
-          onChange={setPage}
-          disabled={transfers.isFetching}
-        />
-      )}
+      <div className="min-h-0 flex-1">
+        {transfers.isLoading ? (
+          <TableSkeleton columns={6} />
+        ) : (
+          <DataTable
+            columns={['Fecha', 'Paciente', 'De', 'A', 'Motivo', 'Registrado por']}
+            rows={items.map((row) => [
+              <span key="date">
+                {new Date(row.occurred_at).toLocaleString('es')}
+              </span>,
+              <span key="patient">{row.patient.full_name}</span>,
+              <span key="from">{row.from_branch.name}</span>,
+              <span key="to" className="inline-flex items-center gap-1.5">
+                <ArrowRightLeft className="text-tealmax size-3.5" />
+                {row.to_branch.name}
+              </span>,
+              <span key="reason" className="text-muted line-clamp-2">
+                {row.reason}
+              </span>,
+              <span key="by">{row.created_by.name}</span>,
+            ])}
+            sortableColumns={[0, 1, 2, 3, 4, 5]}
+            sort={sort}
+            onSortChange={toggleSort}
+            emptyTitle="Sin traspasos"
+            emptyDescription="Cuando se traslade un paciente entre sucursales, aparecerá aquí."
+            footer={
+              <Pagination
+                page={page}
+                rows={rows}
+                total={transfers.data?.total ?? 0}
+                onChange={setPage}
+                onRowsChange={(next) => {
+                  setRows(next)
+                  setPage(1)
+                }}
+                disabled={transfers.isFetching}
+              />
+            }
+          />
+        )}
+      </div>
     </div>
   )
 }
