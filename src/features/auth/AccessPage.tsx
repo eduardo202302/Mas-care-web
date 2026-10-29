@@ -150,7 +150,7 @@ export function AuthFrame({
           <span className="grid size-10 place-items-center rounded-xl bg-white/10">
             <HeartPulse className="text-cuidado size-5" />
           </span>
-          <span className="font-display text-xl font-bold">max care</span>
+          <span className="font-display text-xl font-bold">MAS CARE</span>
         </Link>
         <div className="relative max-w-lg pb-8">
           <span className="mb-6 inline-block rounded-full border border-white/20 px-3 py-1 text-xs font-semibold tracking-wide text-white/70">
@@ -165,7 +165,7 @@ export function AuthFrame({
           </p>
         </div>
         <p className="relative text-xs text-white/40">
-          Max Care · Gestión de farmacias
+          MAS CARE · Gestión de farmacias
         </p>
       </section>
       <section className="flex items-center justify-center px-6 py-8">
@@ -176,7 +176,7 @@ export function AuthFrame({
               className="font-display text-petroleo flex items-center gap-2 text-xl font-bold"
             >
               <HeartPulse className="text-tealmax size-6" />
-              max care
+              MAS CARE
             </Link>
           </div>
           {badge}

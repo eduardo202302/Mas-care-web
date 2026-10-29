@@ -293,7 +293,7 @@ export default function DashboardPage() {
 
       <p className="text-muted mt-4 text-xs">
         Los avisos por WhatsApp o llamada se registran en el historial del
-        paciente. Max Care no envía mensajes automáticamente.
+        paciente. MAS CARE no envía mensajes automáticamente.
       </p>
 
       {noticeRow && (
