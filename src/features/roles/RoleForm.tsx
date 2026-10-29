@@ -2,15 +2,12 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
-import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
 import type { MenuItemDto } from '@/lib/menu'
-import { roleLabel } from '@/lib/role-labels'
 import type { components } from '@/lib/api-types'
-import { assignableRoles } from '@/schemas/user'
 import {
   roleFormSchema,
   type RoleFormValues,
@@ -33,9 +30,6 @@ type Props = {
   onCancel: () => void
   submitting?: boolean
 }
-
-const fieldClass =
-  'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full appearance-none rounded-lg border bg-white px-3 pr-9 text-sm transition outline-none focus:ring-2'
 
 export function RoleForm({
   role,
@@ -106,7 +100,7 @@ export function RoleForm({
       {system ? (
         <p className="bg-surface text-muted rounded-lg px-3 py-2 text-sm">
           <strong className="text-ink">{role?.name}</strong> es un rol del
-          sistema: su nombre, rol base y estado no se pueden cambiar.
+          sistema: su nombre y estado no se pueden cambiar.
           {owner && ' El Propietario siempre accede a todo el menú.'}
         </p>
       ) : (
@@ -137,35 +131,6 @@ export function RoleForm({
       </div>
       {!system && (
         <>
-          <div className="grid gap-1.5">
-            <label htmlFor="role-base" className="text-ink text-sm font-medium">
-              Rol base
-            </label>
-            <div className="relative">
-              <select
-                id="role-base"
-                {...register('baseRole')}
-                className={fieldClass}
-              >
-                {assignableRoles.map((value) => (
-                  <option key={value} value={value}>
-                    {roleLabel(value)}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
-                aria-hidden="true"
-              />
-            </div>
-            <p className="text-muted text-xs">
-              Define qué puede hacer el usuario con los datos. Las pantallas
-              marcadas abajo solo controlan qué ve en el menú.
-            </p>
-            {errors.baseRole?.message && (
-              <p className="text-xs text-red-700">{errors.baseRole.message}</p>
-            )}
-          </div>
           <label className="border-border flex cursor-pointer items-center gap-3 rounded-lg border p-3">
             <input
               type="checkbox"

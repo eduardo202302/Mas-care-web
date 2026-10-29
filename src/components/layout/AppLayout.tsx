@@ -10,7 +10,6 @@ import { queryClient } from '@/lib/query-client'
 import { buildMenuTree, menuIcon, type MeMenuItem } from '@/lib/menu'
 import { useMe } from '@/lib/permissions'
 import { WorkspaceSelector } from './WorkspaceSelector'
-import { AutomationBanner } from './AutomationBanner'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   cn(
@@ -176,7 +175,6 @@ export function AppLayout() {
           </Button>
         </header>
         <main className="mx-auto w-full max-w-[1440px] px-5 py-8 md:px-8 lg:px-10">
-          <AutomationBanner />
           <Outlet />
         </main>
       </div>
