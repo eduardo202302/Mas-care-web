@@ -2,15 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PackageSearch, TriangleAlert } from 'lucide-react'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { useToast } from '@/components/ui/Toast'
 import { api } from '@/lib/http'
 import { useCan, useMe } from '@/lib/permissions'
 import type { paths } from '@/lib/api-types'
 import { formatDateTime } from '@/lib/operations'
-import {
-  stockLevelLabels,
-  type StockLevel,
-} from '@/lib/board'
+import { stockLevelLabels, type StockLevel } from '@/lib/board'
 import { setStockMark } from '@/features/board/board-api'
 import { cn } from '@/lib/cn'
 
@@ -71,7 +69,10 @@ export default function StockPage() {
   })
 
   const markByMedication = useMemo(
-    () => new Map((marks.data?.data ?? []).map((mark) => [mark.medication_id, mark])),
+    () =>
+      new Map(
+        (marks.data?.data ?? []).map((mark) => [mark.medication_id, mark]),
+      ),
     [marks.data],
   )
   const branch = branches.find((item) => item.id === branchId)
@@ -87,34 +88,28 @@ export default function StockPage() {
 
   return (
     <div className="animate-in">
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-tealmax mb-1 text-sm font-medium">Ajustes</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Existencias
-          </h1>
-          <p className="text-muted mt-1 max-w-2xl text-sm">
-            Marca manualmente qué medicamentos hay, quedan pocos o no hay en cada
-            sucursal. Las marcas con más de 7 días se resaltan en ámbar.
-          </p>
-        </div>
-        <label className="grid gap-1">
-          <span className="text-muted text-[11px] font-medium">Sucursal</span>
-          <select
-            aria-label="Sucursal de existencias"
-            value={branchId}
-            disabled={!privileged && branches.length === 1}
-            onChange={(event) => setBranchId(event.target.value)}
-            className="border-border focus:border-tealmax h-10 min-w-52 rounded-lg border bg-white px-3 text-sm outline-none"
-          >
-            {branches.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </header>
+      <PageHeader
+        title="Existencias"
+        subtitle="Marca manualmente qué medicamentos hay, quedan pocos o no hay en cada sucursal. Las marcas con más de 7 días se resaltan en ámbar."
+        actions={
+          <label className="grid gap-1">
+            <span className="text-muted text-[11px] font-medium">Sucursal</span>
+            <select
+              aria-label="Sucursal de existencias"
+              value={branchId}
+              disabled={!privileged && branches.length === 1}
+              onChange={(event) => setBranchId(event.target.value)}
+              className="border-border focus:border-tealmax h-10 min-w-52 rounded-lg border bg-white px-3 text-sm outline-none"
+            >
+              {branches.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        }
+      />
 
       {branches.length === 0 && (
         <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
@@ -130,7 +125,8 @@ export default function StockPage() {
                 {branch.name}
               </h2>
               <p className="text-muted mt-0.5 text-xs">
-                {marks.data?.data.length ?? 0} medicamentos con marca registrada.
+                {marks.data?.data.length ?? 0} medicamentos con marca
+                registrada.
               </p>
             </div>
             {!canMark && (
@@ -198,7 +194,9 @@ export default function StockPage() {
                         <td className="px-5 py-3">
                           <label className="inline-flex items-center gap-2">
                             <span className="sr-only">
-                              Existencias de {medication.genericName ?? medication.presentation}
+                              Existencias de{' '}
+                              {medication.genericName ??
+                                medication.presentation}
                             </span>
                             <select
                               value={mark?.level ?? ''}
@@ -206,21 +204,26 @@ export default function StockPage() {
                               onChange={(event) => {
                                 const level = event.target.value as StockLevel
                                 if (!level) return
-                                update.mutate({ medicationId: medication.id, level })
+                                update.mutate({
+                                  medicationId: medication.id,
+                                  level,
+                                })
                               }}
                               className="border-border focus:border-tealmax h-8 rounded-lg border bg-white px-2 text-xs outline-none disabled:opacity-60"
                             >
                               <option value="">Sin marca</option>
-                              {(Object.keys(stockLevelLabels) as StockLevel[]).map(
-                                (level) => (
-                                  <option key={level} value={level}>
-                                    {stockLevelLabels[level]}
-                                  </option>
-                                ),
-                              )}
+                              {(
+                                Object.keys(stockLevelLabels) as StockLevel[]
+                              ).map((level) => (
+                                <option key={level} value={level}>
+                                  {stockLevelLabels[level]}
+                                </option>
+                              ))}
                             </select>
                             {savingId === medication.id && (
-                              <span className="text-muted text-xs">Guardando…</span>
+                              <span className="text-muted text-xs">
+                                Guardando…
+                              </span>
                             )}
                           </label>
                         </td>

@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, HeartPulse, Plus, X } from 'lucide-react'
+import { CalendarDays, HeartPulse, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { ApiError, api } from '@/lib/http'
 import { useCan } from '@/lib/permissions'
 import type { components, paths } from '@/lib/api-types'
@@ -23,10 +24,18 @@ export const conditionStatusLabels: Record<ConditionStatus, string> = {
   resolved: 'Resuelta',
 }
 
-export function PatientConditionsPanel({ patientId }: { patientId: string }) {
+export function PatientConditionsPanel({
+  patientId,
+  addOpen,
+  onCloseAdd,
+}: {
+  patientId: string
+  /** El botón `+` del encabezado de la card controla este estado. */
+  addOpen: boolean
+  onCloseAdd: () => void
+}) {
   const canWrite = useCan('patients:write')
   const queryClient = useQueryClient()
-  const [addOpen, setAddOpen] = useState(false)
   const [healthConditionId, setHealthConditionId] = useState('')
   const [status, setStatus] = useState<ConditionStatus>('active')
   const [diagnosedOn, setDiagnosedOn] = useState('')
@@ -44,7 +53,7 @@ export function PatientConditionsPanel({ patientId }: { patientId: string }) {
     queryKey: ['health-conditions', 'picker'],
     queryFn: () =>
       api<HealthConditionList>(
-        '/api/v1/health-conditions?isActive=true&rows=200',
+        '/api/v1/health-conditions?isActive=true&rows=100',
       ),
     enabled: addOpen,
   })
@@ -97,11 +106,11 @@ export function PatientConditionsPanel({ patientId }: { patientId: string }) {
   })
 
   function closeAdd() {
-    setAddOpen(false)
     setHealthConditionId('')
     setStatus('active')
     setDiagnosedOn('')
     setNotes('')
+    onCloseAdd()
   }
 
   const items = links.data?.data ?? []
@@ -114,19 +123,13 @@ export function PatientConditionsPanel({ patientId }: { patientId: string }) {
 
   return (
     <>
-      <div className="mb-3 flex items-center justify-between gap-2">
-        {canWrite && (
-          <Button
-            className="h-8 px-2 text-xs"
-            onClick={() => setAddOpen(true)}
-          >
-            <Plus className="size-3.5" />
-            Agregar condición
-          </Button>
-        )}
-      </div>
       {links.isLoading ? (
         <p className="text-muted text-sm">Cargando condiciones…</p>
+      ) : links.isError ? (
+        <p role="alert" className="text-sm text-red-700">
+          No pudimos cargar las condiciones del paciente.{' '}
+          {links.error instanceof Error ? links.error.message : ''}
+        </p>
       ) : items.length ? (
         <ul className="grid gap-3">
           {items.map((link) => (
@@ -151,11 +154,13 @@ export function PatientConditionsPanel({ patientId }: { patientId: string }) {
                       }
                       className="border-border h-7 rounded-md border bg-white px-1.5 text-xs"
                     >
-                      {Object.entries(conditionStatusLabels).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
+                      {Object.entries(conditionStatusLabels).map(
+                        ([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ),
+                      )}
                     </select>
                   ) : (
                     <span className="text-muted text-xs">
@@ -179,7 +184,7 @@ export function PatientConditionsPanel({ patientId }: { patientId: string }) {
                   type="button"
                   title="Quitar"
                   onClick={() => remove.mutate(link.healthConditionId)}
-                  className="text-muted hover:text-red-600 shrink-0"
+                  className="text-muted shrink-0 hover:text-red-600"
                 >
                   <X className="size-4" />
                 </button>
@@ -192,20 +197,30 @@ export function PatientConditionsPanel({ patientId }: { patientId: string }) {
       )}
       {addOpen && (
         <Dialog
-          title="Agregar condición de salud"
+          title="Agregar Condición de Salud"
           description="Registra una condición de salud para este paciente."
+          icon={<HeartPulse className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={closeAdd}
         >
           <form
-            className="mt-5 grid gap-5"
+            className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
               add.mutate()
             }}
           >
-            <ModalSection icon={<HeartPulse className="size-4" />} title="Condición de salud" tone="mint">
+            <ModalSection
+              icon={<HeartPulse className="size-4" />}
+              title="Condición de Salud"
+              tone="mint"
+            >
               <div className="grid gap-1.5">
-                <label htmlFor="condition-picker" className="text-ink text-sm font-medium">
+                <label
+                  htmlFor="condition-picker"
+                  className="text-ink text-sm font-medium"
+                >
                   Condición
                 </label>
                 <select
@@ -213,18 +228,47 @@ export function PatientConditionsPanel({ patientId }: { patientId: string }) {
                   required
                   value={healthConditionId}
                   onChange={(event) => setHealthConditionId(event.target.value)}
-                  className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
+                  disabled={conditionOptions.isPending}
+                  className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
                 >
-                  <option value="">Selecciona una condición</option>
+                  <option value="">
+                    {conditionOptions.isPending
+                      ? 'Cargando condiciones…'
+                      : conditionOptions.isError
+                        ? 'No se pudieron cargar las condiciones'
+                        : availableConditions.length
+                          ? 'Selecciona una condición'
+                          : 'No hay condiciones disponibles'}
+                  </option>
                   {availableConditions.map((condition) => (
                     <option key={condition.id} value={condition.id}>
                       {condition.name}
                     </option>
                   ))}
                 </select>
+                {conditionOptions.isError && (
+                  <p role="alert" className="text-xs text-red-700">
+                    No pudimos cargar la lista de condiciones.{' '}
+                    {conditionOptions.error instanceof Error
+                      ? conditionOptions.error.message
+                      : ''}
+                  </p>
+                )}
+                {!conditionOptions.isPending &&
+                  !conditionOptions.isError &&
+                  !availableConditions.length && (
+                    <p className="text-muted text-xs">
+                      {items.length
+                        ? 'Todas las condiciones activas ya están asociadas a este paciente.'
+                        : 'Todavía no hay condiciones activas. Créalas en Condiciones de salud.'}
+                    </p>
+                  )}
               </div>
               <div className="grid gap-1.5">
-                <label htmlFor="condition-status" className="text-ink text-sm font-medium">
+                <label
+                  htmlFor="condition-status"
+                  className="text-ink text-sm font-medium"
+                >
                   Estado
                 </label>
                 <select
@@ -233,39 +277,50 @@ export function PatientConditionsPanel({ patientId }: { patientId: string }) {
                   onChange={(event) =>
                     setStatus(event.target.value as ConditionStatus)
                   }
-                  className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
+                  className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2"
                 >
-                  {Object.entries(conditionStatusLabels).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
+                  {Object.entries(conditionStatusLabels).map(
+                    ([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ),
+                  )}
                 </select>
               </div>
             </ModalSection>
-            <ModalSection icon={<CalendarDays className="size-4" />} title="Detalles" tone="sky">
+            <ModalSection
+              icon={<CalendarDays className="size-4" />}
+              title="Detalles"
+              tone="sky"
+            >
               <div className="grid gap-1.5">
-                <label htmlFor="condition-diagnosed" className="text-ink text-sm font-medium">
-                  Fecha de diagnóstico (opcional)
+                <label
+                  htmlFor="condition-diagnosed"
+                  className="text-ink text-sm font-medium"
+                >
+                  Fecha de Diagnóstico (Opcional)
                 </label>
                 <input
                   id="condition-diagnosed"
                   type="date"
                   value={diagnosedOn}
                   onChange={(event) => setDiagnosedOn(event.target.value)}
-                  className="border-border h-10 rounded-lg border px-3 text-sm"
+                  className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2"
                 />
               </div>
               <div className="grid gap-1.5">
-                <label htmlFor="condition-notes" className="text-ink text-sm font-medium">
-                  Notas (opcional)
+                <label
+                  htmlFor="condition-notes"
+                  className="text-ink text-sm font-medium"
+                >
+                  Notas (Opcional)
                 </label>
-                <textarea
+                <TextAreaField
                   id="condition-notes"
-                  rows={3}
+                  className="min-h-8 py-1.5 text-xs"
                   value={notes}
                   onChange={(event) => setNotes(event.target.value)}
-                  className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 rounded-lg border bg-white px-3 py-2 text-sm transition outline-none focus:ring-2"
                 />
               </div>
             </ModalSection>
@@ -285,7 +340,7 @@ export function PatientConditionsPanel({ patientId }: { patientId: string }) {
                 variant="primary"
                 disabled={add.isPending || !healthConditionId}
               >
-                {add.isPending ? 'Guardando…' : 'Agregar condición'}
+                {add.isPending ? 'Guardando…' : 'Agregar Condición'}
               </Button>
             </FormActions>
           </form>

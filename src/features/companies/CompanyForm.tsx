@@ -491,7 +491,11 @@ export function CompanyForm({
         </div>
       </ModalSection>
 
-      <ModalSection icon={<LinkIcon className="size-4" />} title="Links" tone="mint">
+      <ModalSection
+        icon={<LinkIcon className="size-4" />}
+        title="Links"
+        tone="mint"
+      >
         <div className="grid gap-1.5">
           <TextField
             label="Dominio"

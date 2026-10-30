@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { TextField } from '@/components/ui/TextField'
 import { api } from '@/lib/http'
@@ -76,9 +77,7 @@ export default function ThresholdsPage() {
   if (!canRead)
     return (
       <div className="animate-in">
-        <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-          Parámetros de tiempo
-        </h1>
+        <PageHeader title="Parámetros de tiempo" />
         <p
           role="alert"
           className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
@@ -90,16 +89,10 @@ export default function ThresholdsPage() {
 
   return (
     <div className="animate-in">
-      <div className="mb-7">
-        <p className="text-tealmax mb-2 text-sm font-medium">Ajustes</p>
-        <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-          Parámetros de tiempo
-        </h1>
-        <p className="text-muted mt-2 max-w-2xl text-sm leading-6">
-          Define con cuánta anticipación se muestran las alertas de reposición y
-          de receta. Los estados se calculan en la API con estos valores.
-        </p>
-      </div>
+      <PageHeader
+        title="Parámetros de tiempo"
+        subtitle="Define con cuánta anticipación se muestran las alertas de reposición y de receta. Los estados se calculan en la API con estos valores."
+      />
       <section className="border-border rounded-xl border bg-white p-5 md:p-6">
         {settings.isLoading ? (
           <div

@@ -9,8 +9,10 @@ import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { ApiError, api } from '@/lib/http'
+import { maskPhoneInput } from '@/lib/phone'
 import type { components, paths } from '@/lib/api-types'
 import {
   doctorSchema,
@@ -48,28 +50,37 @@ function PickerSelect({
   placeholder,
   options,
   onPick,
+  disabled = false,
+  assignedSuffix = 'ya asignada',
 }: {
   label: string
   placeholder: string
-  options: { id: string; name: string }[]
+  options: { id: string; name: string; assigned?: boolean }[]
   onPick: (id: string) => void
+  disabled?: boolean
+  assignedSuffix?: string
 }) {
   return (
-    <select
-      aria-label={label}
-      value=""
-      onChange={(event) => {
-        if (event.target.value) onPick(event.target.value)
-      }}
-      className="border-border text-ink focus:border-tealmax h-10 min-w-0 flex-1 rounded-lg border bg-white px-3 text-sm outline-none"
-    >
-      <option value="">{placeholder}</option>
-      {options.map((option) => (
-        <option key={option.id} value={option.id}>
-          {option.name}
-        </option>
-      ))}
-    </select>
+    <div className="min-w-0 flex-1">
+      <select
+        aria-label={label}
+        value=""
+        disabled={disabled}
+        onChange={(event) => {
+          if (event.target.value) onPick(event.target.value)
+        }}
+        className="border-border text-ink focus:border-tealmax h-10 w-full min-w-0 rounded-lg border bg-white px-3 text-sm outline-none disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option.id} value={option.id} disabled={option.assigned}>
+            {option.assigned
+              ? `${option.name} — ${assignedSuffix}`
+              : option.name}
+          </option>
+        ))}
+      </select>
+    </div>
   )
 }
 
@@ -121,6 +132,7 @@ export function DoctorForm({
     register,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors },
   } = useForm<DoctorBaseFormValues>({
     resolver: zodResolver(doctorSchema),
@@ -151,20 +163,22 @@ export function DoctorForm({
       .map((link) => link.medicalCenterId) ?? [],
   )
   const specialtyOptions = useQuery({
-    queryKey: ['medical-specialties', 'picker'],
+    queryKey: ['medical-specialties', { isActive: 'true', rows: 100 }],
     queryFn: () =>
-      api<SpecialtyList>('/api/v1/medical-specialties?isActive=true&rows=200'),
+      api<SpecialtyList>('/api/v1/medical-specialties?isActive=true&rows=100'),
   })
   const centerOptions = useQuery({
-    queryKey: ['medical-centers', 'picker'],
+    queryKey: ['medical-centers', { isActive: 'true', rows: 100 }],
     queryFn: () =>
-      api<MedicalCenterList>('/api/v1/medical-centers?isActive=true&rows=200'),
+      api<MedicalCenterList>('/api/v1/medical-centers?isActive=true&rows=100'),
   })
   const queryClient = useQueryClient()
   const canWriteSpecialties = useCan('specialties:write')
   const canWriteCenters = useCan('medical-centers:write')
   const [specialtyFormOpen, setSpecialtyFormOpen] = useState(false)
   const [centerFormOpen, setCenterFormOpen] = useState(false)
+  const [specialtyPickerOpen, setSpecialtyPickerOpen] = useState(false)
+  const [centerPickerOpen, setCenterPickerOpen] = useState(false)
   const [createdSpecialties, setCreatedSpecialties] = useState<
     { id: string; name: string }[]
   >([])
@@ -230,6 +244,7 @@ export function DoctorForm({
     setSpecialtyIds((current) =>
       current.includes(id) ? current : [...current, id],
     )
+    setSpecialtyPickerOpen(false)
   }
   function removeSpecialty(id: string) {
     setSpecialtyIds((current) => current.filter((value) => value !== id))
@@ -238,6 +253,7 @@ export function DoctorForm({
     setMedicalCenterIds((current) =>
       current.includes(id) ? current : [...current, id],
     )
+    setCenterPickerOpen(false)
   }
   function removeMedicalCenter(id: string) {
     setMedicalCenterIds((current) => current.filter((value) => value !== id))
@@ -292,20 +308,26 @@ export function DoctorForm({
       map.set(item.id, item.name)
     return map
   }, [centerOptions.data, createdCenters, doctor])
-  const availableSpecialties = useMemo(
+  const specialtyPickerOptions = useMemo(
     () =>
-      (specialtyOptions.data?.data ?? []).filter(
-        (item) => !specialtyIds.includes(item.id),
-      ),
+      (specialtyOptions.data?.data ?? []).map((item) => ({
+        id: item.id,
+        name: item.name,
+        assigned: specialtyIds.includes(item.id),
+      })),
     [specialtyIds, specialtyOptions.data],
   )
-  const availableCenters = useMemo(
+  const centerPickerOptions = useMemo(
     () =>
-      (centerOptions.data?.data ?? []).filter(
-        (item) => !medicalCenterIds.includes(item.id),
-      ),
+      (centerOptions.data?.data ?? []).map((item) => ({
+        id: item.id,
+        name: item.name,
+        assigned: medicalCenterIds.includes(item.id),
+      })),
     [centerOptions.data, medicalCenterIds],
   )
+  const hasFreeSpecialties = specialtyPickerOptions.some((o) => !o.assigned)
+  const hasFreeCenters = centerPickerOptions.some((o) => !o.assigned)
   const selectedSpecialties = useMemo(
     () =>
       specialtyIds.map((id) => ({
@@ -322,6 +344,17 @@ export function DoctorForm({
       })),
     [centerNameById, medicalCenterIds],
   )
+
+  const specialtyPlaceholder = !specialtyPickerOptions.length
+    ? 'Sin especialidades registradas'
+    : !hasFreeSpecialties
+      ? 'Todas ya están asignadas'
+      : 'Selecciona una especialidad…'
+  const centerPlaceholder = !centerPickerOptions.length
+    ? 'Sin centros médicos registrados'
+    : !hasFreeCenters
+      ? 'Todos ya están asignados'
+      : 'Selecciona un centro médico…'
 
   return (
     <>
@@ -352,7 +385,14 @@ export function DoctorForm({
             <TextField
               label="Teléfono"
               type="tel"
+              inputMode="tel"
+              placeholder="(809) 555-1234"
               {...register('phone')}
+              onChange={(event) =>
+                setValue('phone', maskPhoneInput(event.target.value), {
+                  shouldDirty: true,
+                })
+              }
               error={errors.phone?.message}
             />
             <div className="sm:col-span-2">
@@ -364,7 +404,7 @@ export function DoctorForm({
               />
             </div>
             <div className="sm:col-span-2">
-              <TextField
+              <TextAreaField
                 label="Notas"
                 {...register('notes')}
                 error={errors.notes?.message}
@@ -376,18 +416,39 @@ export function DoctorForm({
           icon={<Stethoscope className="size-4" />}
           title="Especialidades"
           tone="sky"
+          action={
+            <Button
+              type="button"
+              variant="ghost"
+              className="size-6 px-0"
+              aria-expanded={specialtyPickerOpen}
+              aria-label={
+                specialtyPickerOpen
+                  ? 'Ocultar selector de especialidad'
+                  : 'Mostrar selector de especialidad'
+              }
+              onClick={() => setSpecialtyPickerOpen((open) => !open)}
+            >
+              {specialtyPickerOpen ? (
+                <X className="size-4" />
+              ) : (
+                <Plus className="size-4" />
+              )}
+            </Button>
+          }
         >
           {specialtyOptions.isLoading ? (
             <Skeleton className="h-9 w-full" />
           ) : (
             <>
-              {specialtyOptions.data?.data.length ? (
-                <div className="flex flex-wrap items-center gap-2">
+              {specialtyPickerOpen && (
+                <div className="flex flex-wrap items-end gap-2">
                   <PickerSelect
-                    label="Agregar especialidad"
-                    placeholder="Selecciona una especialidad…"
-                    options={availableSpecialties}
+                    label="Especialidad"
+                    placeholder={specialtyPlaceholder}
+                    options={specialtyPickerOptions}
                     onPick={addSpecialty}
+                    disabled={!hasFreeSpecialties}
                   />
                   {canWriteSpecialties && (
                     <AddButton
@@ -396,18 +457,14 @@ export function DoctorForm({
                     />
                   )}
                 </div>
-              ) : (
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-muted text-sm">
-                    No hay especialidades activas.
-                  </p>
-                  {canWriteSpecialties && (
-                    <AddButton
-                      label="Nueva Especialidad"
-                      onClick={() => setSpecialtyFormOpen(true)}
-                    />
-                  )}
-                </div>
+              )}
+              {specialtyOptions.isError && (
+                <p role="alert" className="text-sm text-red-700">
+                  No pudimos cargar las especialidades.{' '}
+                  {specialtyOptions.error instanceof Error
+                    ? specialtyOptions.error.message
+                    : ''}
+                </p>
               )}
               <SelectedList
                 items={selectedSpecialties}
@@ -420,18 +477,40 @@ export function DoctorForm({
           icon={<Building2 className="size-4" />}
           title="Centros Médicos"
           tone="amber"
+          action={
+            <Button
+              type="button"
+              variant="ghost"
+              className="size-6 px-0"
+              aria-expanded={centerPickerOpen}
+              aria-label={
+                centerPickerOpen
+                  ? 'Ocultar selector de centro médico'
+                  : 'Mostrar selector de centro médico'
+              }
+              onClick={() => setCenterPickerOpen((open) => !open)}
+            >
+              {centerPickerOpen ? (
+                <X className="size-4" />
+              ) : (
+                <Plus className="size-4" />
+              )}
+            </Button>
+          }
         >
           {centerOptions.isLoading ? (
             <Skeleton className="h-9 w-full" />
           ) : (
             <>
-              {centerOptions.data?.data.length ? (
-                <div className="flex flex-wrap items-center gap-2">
+              {centerPickerOpen && (
+                <div className="flex flex-wrap items-end gap-2">
                   <PickerSelect
-                    label="Agregar centro médico"
-                    placeholder="Selecciona un centro médico…"
-                    options={availableCenters}
+                    label="Centro médico"
+                    placeholder={centerPlaceholder}
+                    options={centerPickerOptions}
                     onPick={addMedicalCenter}
+                    disabled={!hasFreeCenters}
+                    assignedSuffix="ya asignado"
                   />
                   {canWriteCenters && (
                     <AddButton
@@ -440,18 +519,14 @@ export function DoctorForm({
                     />
                   )}
                 </div>
-              ) : (
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-muted text-sm">
-                    No hay centros médicos activos.
-                  </p>
-                  {canWriteCenters && (
-                    <AddButton
-                      label="Nuevo Centro Médico"
-                      onClick={() => setCenterFormOpen(true)}
-                    />
-                  )}
-                </div>
+              )}
+              {centerOptions.isError && (
+                <p role="alert" className="text-sm text-red-700">
+                  No pudimos cargar los centros médicos.{' '}
+                  {centerOptions.error instanceof Error
+                    ? centerOptions.error.message
+                    : ''}
+                </p>
               )}
               <SelectedList
                 items={selectedCenters}

@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Star, Stethoscope, X } from 'lucide-react'
+import { Star, Stethoscope, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { ApiError, api } from '@/lib/http'
 import { formatPhone } from '@/lib/phone'
 import { useCan } from '@/lib/permissions'
@@ -24,11 +25,19 @@ type DoctorLinkList = { data: DoctorLink[] }
 type DoctorList =
   paths['/api/v1/doctors']['get']['responses'][200]['content']['application/json']
 
-export function PatientDoctorsPanel({ patientId }: { patientId: string }) {
+export function PatientDoctorsPanel({
+  patientId,
+  addOpen,
+  onCloseAdd,
+}: {
+  patientId: string
+  /** El botón `+` del encabezado de la card controla este estado. */
+  addOpen: boolean
+  onCloseAdd: () => void
+}) {
   const canWrite = useCan('patients:write')
   const canReadDoctors = useCan('doctors:read')
   const queryClient = useQueryClient()
-  const [addOpen, setAddOpen] = useState(false)
   const [doctorId, setDoctorId] = useState('')
   const [isPrimary, setIsPrimary] = useState(false)
   const [notes, setNotes] = useState('')
@@ -43,7 +52,9 @@ export function PatientDoctorsPanel({ patientId }: { patientId: string }) {
   })
   const doctorOptions = useQuery({
     queryKey: ['doctors', 'picker'],
-    queryFn: () => api<DoctorList>('/api/v1/doctors?isActive=true&rows=200'),
+    // La API rechaza rows > 100 (pagingFields: max(100)) → el picker quedaba
+    // vacío mostrando un 400 silencioso.
+    queryFn: () => api<DoctorList>('/api/v1/doctors?isActive=true&rows=100'),
     enabled: addOpen,
   })
 
@@ -60,7 +71,7 @@ export function PatientDoctorsPanel({ patientId }: { patientId: string }) {
           method: 'POST',
           body: JSON.stringify({
             doctorId,
-            isPrimary,
+            isPrimary: hasPrimary ? false : isPrimary,
             notes: notes.trim() || null,
           }),
         },
@@ -88,10 +99,10 @@ export function PatientDoctorsPanel({ patientId }: { patientId: string }) {
   })
 
   function closeAdd() {
-    setAddOpen(false)
     setDoctorId('')
     setIsPrimary(false)
     setNotes('')
+    onCloseAdd()
   }
 
   const items = links.data?.data ?? []
@@ -99,22 +110,18 @@ export function PatientDoctorsPanel({ patientId }: { patientId: string }) {
   const availableDoctors = (doctorOptions.data?.data ?? []).filter(
     (doctor) => !linkedDoctorIds.has(doctor.id),
   )
+  const primaryLink = items.find((link) => link.isPrimary)
+  const hasPrimary = Boolean(primaryLink)
 
   return (
     <>
-      <div className="mb-3 flex items-center justify-between gap-2">
-        {canWrite && (
-          <Button
-            className="h-8 px-2 text-xs"
-            onClick={() => setAddOpen(true)}
-          >
-            <Plus className="size-3.5" />
-            Agregar médico
-          </Button>
-        )}
-      </div>
       {links.isLoading ? (
         <p className="text-muted text-sm">Cargando médicos…</p>
+      ) : links.isError ? (
+        <p role="alert" className="text-sm text-red-700">
+          No pudimos cargar los médicos del paciente.{' '}
+          {links.error instanceof Error ? links.error.message : ''}
+        </p>
       ) : items.length ? (
         <ul className="grid gap-3">
           {items.map((link) => (
@@ -129,10 +136,10 @@ export function PatientDoctorsPanel({ patientId }: { patientId: string }) {
                       to={`/medicos/${encodeURIComponent(link.doctorId)}`}
                       className="hover:text-tealmax hover:underline"
                     >
-                      {link.doctor.lastName}, {link.doctor.firstName}
+                      {link.doctor.firstName} {link.doctor.lastName}
                     </Link>
                   ) : (
-                    `${link.doctor.lastName}, ${link.doctor.firstName}`
+                    `${link.doctor.firstName} ${link.doctor.lastName}`
                   )}
                   {link.isPrimary && (
                     <span className="bg-tealmax/10 text-tealmax ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold">
@@ -142,7 +149,9 @@ export function PatientDoctorsPanel({ patientId }: { patientId: string }) {
                 </p>
                 <p className="text-muted mt-0.5 text-xs">
                   {link.doctor.licenseNumber || 'Sin colegiatura'} ·{' '}
-                  {link.doctor.phone ? formatPhone(link.doctor.phone) : 'Sin teléfono'}
+                  {link.doctor.phone
+                    ? formatPhone(link.doctor.phone)
+                    : 'Sin teléfono'}
                 </p>
                 {link.notes && (
                   <p className="text-muted mt-1 text-xs whitespace-pre-wrap">
@@ -180,22 +189,30 @@ export function PatientDoctorsPanel({ patientId }: { patientId: string }) {
       )}
       {addOpen && (
         <Dialog
-          title="Agregar médico"
+          title="Agregar Médico"
           description="Asocia un médico prescriptor a este paciente."
           icon={<Stethoscope className="size-5" />}
-          dense
+          compactHeader
+          bodyClassName="pt-3"
           onClose={closeAdd}
         >
           <form
-            className="mt-0 grid gap-4"
+            className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
               add.mutate()
             }}
           >
-            <ModalSection icon={<Stethoscope className="size-4" />} title="Médico asociado" tone="mint">
+            <ModalSection
+              icon={<Stethoscope className="size-4" />}
+              title="Médico Asociado"
+              tone="mint"
+            >
               <div className="grid gap-1.5">
-                <label htmlFor="doctor-picker" className="text-ink text-sm font-medium">
+                <label
+                  htmlFor="doctor-picker"
+                  className="text-ink text-sm font-medium"
+                >
                   Médico
                 </label>
                 <select
@@ -203,34 +220,82 @@ export function PatientDoctorsPanel({ patientId }: { patientId: string }) {
                   required
                   value={doctorId}
                   onChange={(event) => setDoctorId(event.target.value)}
-                  className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
+                  disabled={doctorOptions.isPending}
+                  className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
                 >
-                  <option value="">Selecciona un médico</option>
+                  <option value="">
+                    {doctorOptions.isPending
+                      ? 'Cargando médicos…'
+                      : doctorOptions.isError
+                        ? 'No se pudieron cargar los médicos'
+                        : availableDoctors.length
+                          ? 'Selecciona un médico'
+                          : 'No hay médicos disponibles'}
+                  </option>
                   {availableDoctors.map((doctor) => (
                     <option key={doctor.id} value={doctor.id}>
-                      {doctor.lastName}, {doctor.firstName}
+                      {doctor.firstName} {doctor.lastName}
                     </option>
                   ))}
                 </select>
+                {doctorOptions.isError && (
+                  <p role="alert" className="text-xs text-red-700">
+                    No pudimos cargar la lista de médicos.{' '}
+                    {doctorOptions.error instanceof Error
+                      ? doctorOptions.error.message
+                      : ''}
+                  </p>
+                )}
+                {!doctorOptions.isPending &&
+                  !doctorOptions.isError &&
+                  !availableDoctors.length && (
+                    <p className="text-muted text-xs">
+                      {items.length
+                        ? 'Todos los médicos activos ya están asociados a este paciente.'
+                        : 'Todavía no hay médicos activos. Créalos en Médicos.'}
+                    </p>
+                  )}
               </div>
-              <label className="text-ink flex items-center gap-2 text-sm">
+            </ModalSection>
+            <ModalSection
+              icon={<Star className="size-4" />}
+              title="Detalles"
+              tone="sky"
+            >
+              <label
+                className={
+                  hasPrimary
+                    ? 'text-muted flex items-center gap-2 text-sm'
+                    : 'text-ink flex items-center gap-2 text-sm'
+                }
+              >
                 <input
                   type="checkbox"
-                  checked={isPrimary}
+                  checked={hasPrimary ? false : isPrimary}
+                  disabled={hasPrimary}
                   onChange={(event) => setIsPrimary(event.target.checked)}
                 />
-                Médico principal
+                Médico Principal
               </label>
+              {hasPrimary && (
+                <p className="text-muted text-xs">
+                  {primaryLink?.doctor.firstName} {primaryLink?.doctor.lastName}{' '}
+                  ya es el médico principal. Desmárcalo desde la lista antes de
+                  asignar otro.
+                </p>
+              )}
               <div className="grid gap-1.5">
-                <label htmlFor="doctor-link-notes" className="text-ink text-sm font-medium">
-                  Notas (opcional)
+                <label
+                  htmlFor="doctor-link-notes"
+                  className="text-ink text-sm font-medium"
+                >
+                  Notas (Opcional)
                 </label>
-                <textarea
+                <TextAreaField
                   id="doctor-link-notes"
-                  rows={3}
+                  className="min-h-8 py-1.5 text-xs"
                   value={notes}
                   onChange={(event) => setNotes(event.target.value)}
-                  className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 rounded-lg border bg-white px-3 py-2 text-sm transition outline-none focus:ring-2"
                 />
               </div>
             </ModalSection>
@@ -250,7 +315,7 @@ export function PatientDoctorsPanel({ patientId }: { patientId: string }) {
                 variant="primary"
                 disabled={add.isPending || !doctorId}
               >
-                {add.isPending ? 'Guardando…' : 'Agregar médico'}
+                {add.isPending ? 'Guardando…' : 'Agregar Médico'}
               </Button>
             </FormActions>
           </form>

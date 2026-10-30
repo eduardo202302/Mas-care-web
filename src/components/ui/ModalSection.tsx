@@ -29,21 +29,31 @@ export function ModalSection({
   icon,
   title,
   tone = 'mint',
+  action,
   children,
   className,
 }: {
   icon: ReactNode
   title: string
   tone?: ModalSectionTone
+  action?: ReactNode
   children: ReactNode
   className?: string
 }) {
   const t = tones[tone]
   return (
-    <div className={cn('border-border overflow-hidden rounded-xl border', className)}>
+    <div
+      className={cn(
+        'border-border overflow-hidden rounded-xl border',
+        className,
+      )}
+    >
       <div className={cn('flex items-center gap-2 px-4 py-2.5', t.header)}>
         <span className={t.icon}>{icon}</span>
         <h3 className={cn('text-sm font-semibold', t.title)}>{title}</h3>
+        {action && (
+          <div className="-ml-1 flex shrink-0 items-center gap-1">{action}</div>
+        )}
       </div>
       <div className="bg-surface grid gap-3 p-4">{children}</div>
     </div>

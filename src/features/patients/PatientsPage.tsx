@@ -3,7 +3,7 @@ import { ExportButton } from '@/components/ExportButton'
 import { ImportButton } from '@/components/ImportButton'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Archive, Plus, Search, SlidersHorizontal } from 'lucide-react'
+import { Archive, CalendarDays, Plus, Search, UserRound } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { CustomPropertyFilter } from '@/components/CustomFields'
@@ -16,6 +16,16 @@ import {
 import { Pagination } from '@/components/Pagination'
 import { formatPhone } from '@/lib/phone'
 import { Dialog } from '@/components/ui/Dialog'
+import {
+  ActiveFilterChips,
+  AdvancedFilterButton,
+  AdvancedFilterDialog,
+  FilterBarRow,
+  FilterField,
+  filterControlClass,
+  type ActiveFilterChip,
+} from '@/components/ui/AdvancedFilter'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { TextField } from '@/components/ui/TextField'
@@ -47,7 +57,6 @@ const patientColumns: ColumnDef[] = [
   { key: 'name', label: 'Paciente' },
   { key: 'contact', label: 'WhatsApp' },
   { key: 'document', label: 'ID' },
-  { key: 'responsible', label: 'Responsable' },
   { key: 'status', label: 'Estado' },
   { key: 'created', label: 'Creado' },
 ]
@@ -127,14 +136,22 @@ export default function PatientsPage() {
   const [selectedView, setSelectedView] = useState('')
   const [dates, setDates] = useState<Record<string, string>>({})
   const [sort, setSort] = useState<SortPart[]>([])
-  const [clientSort, setClientSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null)
+  const [clientSort, setClientSort] = useState<{
+    key: string
+    dir: 'asc' | 'desc'
+  } | null>(null)
   const sortedField = sort.length === 1 ? sort[0] : null
   const activeSortKey = sortedField
-    ? Object.entries(columnSortField).find(([, field]) => field === sortedField.field)?.[0]
+    ? Object.entries(columnSortField).find(
+        ([, field]) => field === sortedField.field,
+      )?.[0]
     : clientSort?.key
-  const activeSortDir = sortedField ? sortedField.dir : clientSort?.dir ?? null
+  const activeSortDir = sortedField
+    ? sortedField.dir
+    : (clientSort?.dir ?? null)
   const toggleColumnSort = (key: string) => {
-    const dir = activeSortKey === key && activeSortDir === 'asc' ? 'desc' : 'asc'
+    const dir =
+      activeSortKey === key && activeSortDir === 'asc' ? 'desc' : 'asc'
     const field = columnSortField[key]
     if (field) {
       setSort([{ field, dir }])
@@ -145,7 +162,12 @@ export default function PatientsPage() {
     }
     setPage(1)
   }
-  const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [filterDraft, setFilterDraft] = useState<{
+    responsibleUserId: string
+    archived: 'true' | 'false'
+    dates: Record<string, string>
+    sort: SortPart[]
+  } | null>(null)
   // Patient properties defined by the organization can be added as columns (key `custom:<key>`).
   const properties = useCustomProperties('patient').data?.data ?? []
   const allColumns = useMemo<ColumnDef[]>(
@@ -336,7 +358,10 @@ export default function PatientsPage() {
     (branchesQuery.data?.data ?? []).map((branch) => [branch.id, branch]),
   )
   /** Sortable value for columns without a backend field; mirrors the row cells but returns a comparable primitive. */
-  const sortValue = (key: string, patient: components['schemas']['Patient']): unknown => {
+  const sortValue = (
+    key: string,
+    patient: components['schemas']['Patient'],
+  ): unknown => {
     switch (key) {
       case 'branch':
         return branchMap.get(patient.primaryBranchId)?.name ?? ''
@@ -354,7 +379,8 @@ export default function PatientsPage() {
         const property = properties.find((item) => `custom:${item.key}` === key)
         if (!property) return ''
         const custom =
-          (patient as { customValues?: Record<string, unknown> }).customValues ?? {}
+          (patient as { customValues?: Record<string, unknown> })
+            .customValues ?? {}
         return formatCustomValue(property, custom[property.key]) || ''
       }
     }
@@ -364,7 +390,10 @@ export default function PatientsPage() {
     ? [...rawPatients].sort(
         (a, b) =>
           (clientSort.dir === 'asc' ? 1 : -1) *
-          compareValues(sortValue(clientSort.key, a), sortValue(clientSort.key, b)),
+          compareValues(
+            sortValue(clientSort.key, a),
+            sortValue(clientSort.key, b),
+          ),
       )
     : rawPatients
   const tableRows = displayPatients.map((patient) => {
@@ -394,15 +423,6 @@ export default function PatientsPage() {
       ) : (
         <span key="branch" className="text-muted">
           Sucursal
-        </span>
-      ),
-      responsible: (
-        <span key="responsible" className="text-muted">
-          {patient.responsibleUserId
-            ? patient.responsibleUserId === me?.user.id
-              ? 'Yo'
-              : 'Asignado'
-            : 'Sin responsable'}
         </span>
       ),
       status: (
@@ -450,152 +470,112 @@ export default function PatientsPage() {
     dates,
     sort,
   )
+  const draftFilterCount = filterDraft
+    ? activeFilterCount(
+        filterDraft.responsibleUserId,
+        filterDraft.archived,
+        filterDraft.dates,
+        filterDraft.sort,
+      )
+    : 0
+  const activeFilterChips = useMemo<ActiveFilterChip[]>(() => {
+    const chips: ActiveFilterChip[] = []
+    if (responsibleUserId)
+      chips.push({
+        key: 'responsible',
+        label: 'Responsable',
+        value: responsibleUserId,
+      })
+    if (archived === 'true')
+      chips.push({ key: 'archived', label: 'Estado', value: 'Archivados' })
+    for (const [from, to, label] of dateFilterLabels) {
+      if (dates[from])
+        chips.push({ key: from, label: `${label} desde`, value: dates[from] })
+      if (dates[to])
+        chips.push({ key: to, label: `${label} hasta`, value: dates[to] })
+    }
+    if (dates.cp_key)
+      chips.push({
+        key: 'cp',
+        label: 'Propiedad',
+        value: dates.cp_value || dates.cp_key,
+      })
+    if (sort.length)
+      chips.push({
+        key: 'sort',
+        label: 'Orden',
+        value: sort.map((part) => `${part.field} ${part.dir}`).join(', '),
+      })
+    return chips
+  }, [archived, dates, responsibleUserId, sort])
+
+  function removeFilterChip(key: string) {
+    if (key === 'responsible') setResponsibleUserId('')
+    else if (key === 'archived') setArchived('false')
+    else if (key === 'sort') setSort([])
+    else if (key === 'cp')
+      setDates(
+        Object.fromEntries(
+          Object.entries(dates).filter(
+            ([name]) => name !== 'cp_key' && name !== 'cp_value',
+          ),
+        ),
+      )
+    else setDates({ ...dates, [key]: '' })
+    setPage(1)
+  }
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
-      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">Atención</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Pacientes
-          </h1>
-          <p className="text-muted mt-2 text-sm">
-            Consulta y organiza a las personas que acompañas.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <ImportButton entity="patients" />
-          {canCreateTreatments && (
-            <ImportButton entity="treatments" label="Importar tratamientos" />
-          )}
-          <ExportButton
-            entity="patients"
-            filters={{ q: search.trim(), branchId }}
+      <PageHeader
+        title="Pacientes"
+        subtitle="Consulta y organiza a las personas que acompañas."
+        actions={
+          <>
+            <div className="flex flex-wrap gap-2">
+              <ImportButton entity="patients" />
+              {canCreateTreatments && (
+                <ImportButton
+                  entity="treatments"
+                  label="Importar tratamientos"
+                />
+              )}
+              <ExportButton
+                entity="patients"
+                filters={{ q: search.trim(), branchId }}
+              />
+              {canCreate && (
+                <Button variant="primary" onClick={openCreate}>
+                  <Plus className="size-4" />
+                  Nuevo paciente
+                </Button>
+              )}
+            </div>
+          </>
+        }
+      />
+      <FilterBarRow aria-label="Filtros de pacientes">
+        <label className="relative min-w-[220px] flex-1">
+          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
+          <input
+            aria-label="Buscar pacientes"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value)
+              setPage(1)
+            }}
+            placeholder="Nombre, documento o teléfono"
+            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
           />
-          {canCreate && (
-            <Button variant="primary" onClick={openCreate}>
-              <Plus className="size-4" />
-              Nuevo paciente
-            </Button>
-          )}
-        </div>
-      </div>
-      <section className="border-border mb-4 shrink-0 rounded-xl border bg-white p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="relative w-64 max-w-full">
-            <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <input
-              aria-label="Buscar pacientes"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value)
-                setPage(1)
-              }}
-              placeholder="Nombre, documento o teléfono"
-              className="border-border focus:border-tealmax h-9 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
-            />
-          </label>
-          <Button
-            className="h-9"
-            aria-expanded={advancedOpen}
-            aria-controls="patients-advanced-filter"
-            onClick={() => setAdvancedOpen((open) => !open)}
-          >
-            <SlidersHorizontal className="size-4" />
-            Filtro avanzado
-            {filterCount > 0 && (
-              <span className="bg-tealmax rounded-full px-1.5 text-xs text-white">
-                {filterCount}
-              </span>
-            )}
-          </Button>
-        </div>
-        <div
-          id="patients-advanced-filter"
-          hidden={!advancedOpen}
-          className="border-border mt-3 grid gap-3 border-t pt-3"
-        >
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              aria-label="Filtrar por responsable"
-              value={responsibleUserId}
-              onChange={(event) => {
-                setResponsibleUserId(event.target.value)
-                setPage(1)
-              }}
-              className="border-border h-9 rounded-lg border bg-white px-3 text-sm"
-            >
-              <option value="">Todos los responsables</option>
-              {me && <option value={me.user.id}>Asignados a mí</option>}
-            </select>
-            <select
-              aria-label="Filtrar archivados"
-              value={archived}
-              onChange={(event) => {
-                setArchived(event.target.value as 'true' | 'false')
-                setPage(1)
-              }}
-              className="border-border h-9 rounded-lg border bg-white px-3 text-sm"
-            >
-              <option value="false">Activos</option>
-              <option value="true">Archivados</option>
-            </select>
-          </div>
-          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-            {dateFilterLabels.map(([from, to, label]) => (
-              <fieldset key={label} className="grid gap-1">
-                <legend className="text-muted text-xs font-semibold">
-                  {label}
-                </legend>
-                <div className="flex gap-1">
-                  {[from, to].map((key, index) => (
-                    <input
-                      key={key}
-                      type="date"
-                      aria-label={`${label} ${index === 0 ? 'desde' : 'hasta'}`}
-                      value={dates[key] ?? ''}
-                      onChange={(event) => {
-                        setDates({ ...dates, [key]: event.target.value })
-                        setPage(1)
-                      }}
-                      className="border-border h-9 rounded-lg border bg-white px-2 text-sm"
-                    />
-                  ))}
-                </div>
-              </fieldset>
-            ))}
-            <CustomPropertyFilter
-              entity="patient"
-              propertyKey={dates.cp_key}
-              value={dates.cp_value}
-              onChange={(next) => {
-                const rest = Object.fromEntries(
-                  Object.entries(dates).filter(
-                    ([key]) => key !== 'cp_key' && key !== 'cp_value',
-                  ),
-                )
-                setDates({
-                  ...rest,
-                  ...(next.cp_key ? { cp_key: next.cp_key } : {}),
-                  ...(next.cp_value ? { cp_value: next.cp_value } : {}),
-                })
-                setPage(1)
-              }}
-            />
-          </div>
-          <div>
-            <SortEditor
-              sort={sort}
-              fields={patientSortFields}
-              onChange={(next) => {
-                setSort(next)
-                setClientSort(null)
-                setPage(1)
-              }}
-            />
-          </div>
-        </div>
-        <div className="border-border mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
+        </label>
+        <AdvancedFilterButton
+          open={filterDraft !== null}
+          count={filterCount}
+          onClick={() =>
+            setFilterDraft({ responsibleUserId, archived, dates, sort })
+          }
+        />
+        <div className="ml-auto flex flex-wrap items-center gap-2">
           <ColumnPicker
             keys={columnPrefs.keys}
             onChange={columnPrefs.save}
@@ -609,7 +589,7 @@ export default function PatientsPage() {
             id="saved-patient-view"
             value={selectedView}
             onChange={(event) => applyView(event.target.value)}
-            className="border-border h-9 min-w-48 rounded-lg border bg-white px-3 text-sm"
+            className="border-border h-10 w-52 rounded-lg border bg-white px-3 text-sm"
           >
             <option value="">Mis pacientes · vista actual</option>
             {(savedViews.data?.data ?? []).map((view) => (
@@ -622,18 +602,145 @@ export default function PatientsPage() {
             <Button
               aria-label="Borrar vista seleccionada"
               variant="ghost"
-              className="h-9 px-2 text-red-700"
+              className="h-10 px-2 text-red-700"
               onClick={() => deleteView.mutate(selectedView)}
             >
               <Archive className="size-4" />
               Borrar vista
             </Button>
           )}
-          <Button className="h-9" onClick={() => setViewDialog(true)}>
+          <Button className="h-10" onClick={() => setViewDialog(true)}>
             Guardar vista actual
           </Button>
         </div>
-      </section>
+      </FilterBarRow>
+      <ActiveFilterChips
+        chips={activeFilterChips}
+        onRemove={(key) => removeFilterChip(key)}
+      />
+      {filterDraft && (
+        <AdvancedFilterDialog
+          open
+          description="Combina estos criterios para acotar la lista de pacientes."
+          onClose={() => setFilterDraft(null)}
+          onClear={() => {
+            setFilterDraft({
+              responsibleUserId: '',
+              archived: 'false',
+              dates: {},
+              sort: [],
+            })
+            setResponsibleUserId('')
+            setArchived('false')
+            setDates({})
+            setSort([])
+            setClientSort(null)
+            setPage(1)
+          }}
+          clearDisabled={!filterCount && !draftFilterCount}
+          onApply={() => {
+            setResponsibleUserId(filterDraft.responsibleUserId)
+            setArchived(filterDraft.archived)
+            setDates(filterDraft.dates)
+            setSort(filterDraft.sort)
+            setClientSort(null)
+            setPage(1)
+            setFilterDraft(null)
+          }}
+        >
+          <FilterField label="Estado" icon={<Archive className="size-4" />}>
+            <select
+              aria-label="Estado de la ficha"
+              value={filterDraft.archived}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  archived: event.target.value as 'true' | 'false',
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="false">Activos</option>
+              <option value="true">Archivados</option>
+            </select>
+          </FilterField>
+          {dateFilterLabels.map(([from, to, label]) => (
+            <div
+              key={label}
+              className="grid gap-3 sm:col-span-2 sm:grid-cols-2"
+            >
+              <FilterField
+                label={`${label} desde`}
+                icon={<CalendarDays className="size-4" />}
+              >
+                <input
+                  type="date"
+                  aria-label={`${label} desde`}
+                  value={filterDraft.dates[from] ?? ''}
+                  onChange={(event) =>
+                    setFilterDraft({
+                      ...filterDraft,
+                      dates: {
+                        ...filterDraft.dates,
+                        [from]: event.target.value,
+                      },
+                    })
+                  }
+                  className={`${filterControlClass} pl-11`}
+                />
+              </FilterField>
+              <FilterField
+                label={`${label} hasta`}
+                icon={<CalendarDays className="size-4" />}
+              >
+                <input
+                  type="date"
+                  aria-label={`${label} hasta`}
+                  value={filterDraft.dates[to] ?? ''}
+                  onChange={(event) =>
+                    setFilterDraft({
+                      ...filterDraft,
+                      dates: { ...filterDraft.dates, [to]: event.target.value },
+                    })
+                  }
+                  className={`${filterControlClass} pl-11`}
+                />
+              </FilterField>
+            </div>
+          ))}
+          <div className="sm:col-span-2">
+            <CustomPropertyFilter
+              entity="patient"
+              propertyKey={filterDraft.dates.cp_key}
+              value={filterDraft.dates.cp_value}
+              onChange={(next) => {
+                const rest = Object.fromEntries(
+                  Object.entries(filterDraft.dates).filter(
+                    ([key]) => key !== 'cp_key' && key !== 'cp_value',
+                  ),
+                )
+                setFilterDraft({
+                  ...filterDraft,
+                  dates: {
+                    ...rest,
+                    ...(next.cp_key ? { cp_key: next.cp_key } : {}),
+                    ...(next.cp_value ? { cp_value: next.cp_value } : {}),
+                  },
+                })
+              }}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <SortEditor
+              sort={filterDraft.sort}
+              fields={patientSortFields}
+              onChange={(next) =>
+                setFilterDraft({ ...filterDraft, sort: next })
+              }
+            />
+          </div>
+        </AdvancedFilterDialog>
+      )}
       {patients.isError && (
         <p
           role="alert"
@@ -643,67 +750,72 @@ export default function PatientsPage() {
         </p>
       )}
       <div className="min-h-0 flex-1">
-      {patients.isFetching || !branchReady ? (
-        <TableSkeleton columns={columnPrefs.keys.length} />
-      ) : (
-        <DataTable
-          columns={columnPrefs.keys.map(
-            (key) =>
-              allColumns.find((column) => column.key === key)?.label ?? key,
-          )}
-          rows={tableRows}
-          actions={rowActions}
-          sortableColumns={columnPrefs.keys.map((_, index) => index)}
-          sort={
-            activeSortKey
-              ? {
-                  index: columnPrefs.keys.findIndex((key) => key === activeSortKey),
-                  dir: activeSortDir ?? 'asc',
-                }
-              : null
-          }
-          onSortChange={(index) => {
-            const key = columnPrefs.keys[index]
-            if (key) toggleColumnSort(key)
-          }}
-          onRowDoubleClick={(index) => {
-            const patient = displayPatients[index]
-            if (patient)
-              navigate(`/pacientes/${encodeURIComponent(patient.id)}`)
-          }}
-          emptyTitle={
-            archived === 'true'
-              ? 'No hay pacientes archivados'
-              : 'Todavía no hay pacientes'
-          }
-          emptyDescription={
-            canCreate
-              ? 'Crea una ficha para comenzar el seguimiento de tus pacientes.'
-              : 'Cuando haya pacientes en tu organización, aparecerán aquí.'
-          }
-          footer={
-            <Pagination
-              page={page}
-              rows={rows}
-              total={patients.data?.total ?? 0}
-              onChange={setPage}
-              onRowsChange={(next) => {
-                setRows(next)
-                setPage(1)
-              }}
-            />
-          }
-        />
-      )}
+        {patients.isFetching || !branchReady ? (
+          <TableSkeleton columns={columnPrefs.keys.length} />
+        ) : (
+          <DataTable
+            columns={columnPrefs.keys.map(
+              (key) =>
+                allColumns.find((column) => column.key === key)?.label ?? key,
+            )}
+            rows={tableRows}
+            actions={rowActions}
+            sortableColumns={columnPrefs.keys.map((_, index) => index)}
+            sort={
+              activeSortKey
+                ? {
+                    index: columnPrefs.keys.findIndex(
+                      (key) => key === activeSortKey,
+                    ),
+                    dir: activeSortDir ?? 'asc',
+                  }
+                : null
+            }
+            onSortChange={(index) => {
+              const key = columnPrefs.keys[index]
+              if (key) toggleColumnSort(key)
+            }}
+            onRowDoubleClick={(index) => {
+              const patient = displayPatients[index]
+              if (patient)
+                navigate(`/pacientes/${encodeURIComponent(patient.id)}`)
+            }}
+            emptyTitle={
+              archived === 'true'
+                ? 'No hay pacientes archivados'
+                : 'Todavía no hay pacientes'
+            }
+            emptyDescription={
+              canCreate
+                ? 'Crea una ficha para comenzar el seguimiento de tus pacientes.'
+                : 'Cuando haya pacientes en tu organización, aparecerán aquí.'
+            }
+            footer={
+              <Pagination
+                page={page}
+                rows={rows}
+                total={patients.data?.total ?? 0}
+                onChange={setPage}
+                onRowsChange={(next) => {
+                  setRows(next)
+                  setPage(1)
+                }}
+              />
+            }
+          />
+        )}
       </div>
       {formOpen && (editing ? canUpdate : canCreate) && (
         <Dialog
-          title={editing ? 'Editar paciente' : 'Nuevo paciente'}
+          title={editing ? 'Editar Paciente' : 'Nuevo Paciente'}
           description={
             editing
               ? 'Actualiza los datos de la ficha.'
               : 'Registra sus datos de contacto y atención.'
           }
+          icon={<UserRound className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={closeForm}
           size="lg"
         >

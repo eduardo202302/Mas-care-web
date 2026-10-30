@@ -13,6 +13,7 @@ import { BranchFilter } from '@/components/BranchFilter'
 import { EmptyState } from '@/components/EmptyState'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useActiveBranch } from '@/lib/active-branch'
 import { api } from '@/lib/http'
@@ -132,26 +133,23 @@ export default function TasksPage() {
 
   return (
     <div className="animate-in">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">Seguimiento</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Tareas
-          </h1>
-          <p className="text-muted mt-2 text-sm">
-            Llamadas, recetas y entregas que el equipo debe atender.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <BranchFilter />
-          {canWrite && (
-            <Button variant="primary" onClick={() => setFormOpen(true)}>
-              <Plus className="size-4" />
-              Nueva tarea
-            </Button>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title="Tareas"
+        subtitle="Llamadas, recetas y entregas que el equipo debe atender."
+        actions={
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <BranchFilter />
+              {canWrite && (
+                <Button variant="primary" onClick={() => setFormOpen(true)}>
+                  <Plus className="size-4" />
+                  Nueva tarea
+                </Button>
+              )}
+            </div>
+          </>
+        }
+      />
 
       {feedback && (
         <p className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">

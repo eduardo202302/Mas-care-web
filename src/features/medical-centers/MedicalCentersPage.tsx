@@ -4,6 +4,8 @@ import { Building2, Plus, Search } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Dialog } from '@/components/ui/Dialog'
+import { FilterBarRow, FilterSegmented } from '@/components/ui/AdvancedFilter'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { api } from '@/lib/http'
@@ -40,6 +42,7 @@ export default function MedicalCentersPage() {
     components['schemas']['MedicalCenter'] | null
   >(null)
   const [formOpen, setFormOpen] = useState(false)
+  const [viewOnly, setViewOnly] = useState(false)
 
   const filters = useMemo<MedicalCenterQuery>(
     () => ({ q: search.trim() || undefined, isActive, page, rows }),
@@ -92,6 +95,7 @@ export default function MedicalCentersPage() {
   function closeForm() {
     setFormOpen(false)
     setEditing(null)
+    setViewOnly(false)
   }
   function openCreate() {
     setEditing(null)
@@ -99,19 +103,29 @@ export default function MedicalCentersPage() {
   }
   function openEdit(item: components['schemas']['MedicalCenter']) {
     setEditing(item)
+    setViewOnly(false)
+    setFormOpen(true)
+  }
+  /** Doble clic en la fila: mismo formulario, pero bloqueado. */
+  function openView(item: components['schemas']['MedicalCenter']) {
+    setEditing(item)
+    setViewOnly(true)
     setFormOpen(true)
   }
 
-  const items = applyColumnSort(centers.data?.data ?? [], sort, (item, index) =>
-    index === 0
-      ? item.name
-      : index === 1
-        ? medicalCenterTypeLabels[item.centerType]
-        : index === 2
-          ? [item.province, item.municipality].filter(Boolean).join(', ')
-          : item.isActive
-            ? 1
-            : 0,
+  const items = applyColumnSort(
+    centers.data?.data ?? [],
+    sort,
+    (item, index) =>
+      index === 0
+        ? item.name
+        : index === 1
+          ? medicalCenterTypeLabels[item.centerType]
+          : index === 2
+            ? [item.province, item.municipality].filter(Boolean).join(', ')
+            : item.isActive
+              ? 1
+              : 0,
   )
   const tableRows = items.map((item) => [
     <span key="name" className="text-petroleo font-semibold">
@@ -143,25 +157,22 @@ export default function MedicalCentersPage() {
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
-      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">Catálogo</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Centros médicos
-          </h1>
-          <p className="text-muted mt-2 text-sm">
-            Clínicas, hospitales y consultorios donde atienden los médicos.
-          </p>
-        </div>
-        {canWrite && (
-          <Button variant="primary" onClick={openCreate}>
-            <Plus className="size-4" />
-            Nuevo centro médico
-          </Button>
-        )}
-      </div>
-      <section className="border-border mb-4 flex shrink-0 flex-wrap items-center gap-3 rounded-xl border bg-white p-4">
-        <label className="relative min-w-56 flex-1">
+      <PageHeader
+        title="Centros médicos"
+        subtitle="Clínicas, hospitales y consultorios donde atienden los médicos."
+        actions={
+          <>
+            {canWrite && (
+              <Button variant="primary" onClick={openCreate}>
+                <Plus className="size-4" />
+                Nuevo centro médico
+              </Button>
+            )}
+          </>
+        }
+      />
+      <FilterBarRow aria-label="Filtros">
+        <label className="relative min-w-[220px] flex-1">
           <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <input
             aria-label="Buscar centros médicos"
@@ -174,21 +185,24 @@ export default function MedicalCentersPage() {
             className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
           />
         </label>
-        <select
-          aria-label="Filtrar centros médicos"
+        <FilterSegmented<'true' | 'false'>
+          label="Filtrar centros médicos"
           value={isActive}
-          onChange={(event) => {
-            setIsActive(event.target.value as 'true' | 'false')
+          options={[
+            { value: 'true', label: 'Activos' },
+            { value: 'false', label: 'Inactivos' },
+          ]}
+          onChange={(value) => {
+            setIsActive(value)
             setPage(1)
           }}
-          className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
-        >
-          <option value="true">Activos</option>
-          <option value="false">Inactivos</option>
-        </select>
-      </section>
+        />
+      </FilterBarRow>
       {centers.isError && (
-        <p role="alert" className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <p
+          role="alert"
+          className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+        >
           No pudimos cargar el catálogo. {centers.error.message}
         </p>
       )}
@@ -205,7 +219,7 @@ export default function MedicalCentersPage() {
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {
               const item = items[index]
-              if (item && canWrite) openEdit(item)
+              if (item) openView(item)
             }}
             emptyTitle={
               isActive === 'false'
@@ -234,7 +248,13 @@ export default function MedicalCentersPage() {
       </div>
       {formOpen && (
         <Dialog
-          title={editing ? 'Editar Centro Médico' : 'Nuevo Centro Médico'}
+          title={
+            viewOnly
+              ? 'Ver Centro Médico'
+              : editing
+                ? 'Editar Centro Médico'
+                : 'Nuevo Centro Médico'
+          }
           icon={<Building2 className="size-5" />}
           compactHeader
           description="Datos del centro donde atienden los médicos."
@@ -247,6 +267,8 @@ export default function MedicalCentersPage() {
             onSave={(values) => save.mutateAsync(values).then(() => undefined)}
             onCancel={closeForm}
             submitting={save.isPending}
+            readOnly={viewOnly}
+            onEdit={() => setViewOnly(false)}
           />
         </Dialog>
       )}

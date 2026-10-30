@@ -1,10 +1,21 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, ExternalLink, Pencil, Plus, Search } from 'lucide-react'
+import {
+  Building2,
+  ExternalLink,
+  KeyRound,
+  Link2,
+  Pencil,
+  Plus,
+  Search,
+} from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/Button'
+import { FilterBarRow } from '@/components/ui/AdvancedFilter'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
+import { ModalSection } from '@/components/ui/ModalSection'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
@@ -50,7 +61,7 @@ function CompanyDetail({
   onEdit: () => void
 }) {
   return (
-    <div className="mt-1">
+    <div className="grid gap-4">
       <div className="bg-surface flex items-center gap-4 rounded-xl p-4">
         <span className="bg-tealmax/10 text-petroleo grid size-14 shrink-0 place-items-center overflow-hidden rounded-full">
           {company.logo ? (
@@ -70,54 +81,71 @@ function CompanyDetail({
         </div>
       </div>
 
-      <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-        <div>
-          <dt className="text-muted text-xs">PIN</dt>
-          <dd className="text-petroleo mt-1 font-mono text-lg font-semibold tracking-[0.3em]">
-            {company.pin}
-          </dd>
+      <ModalSection
+        icon={<KeyRound className="size-4" />}
+        title="Datos de la Compañía"
+        tone="mint"
+      >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid gap-0.5">
+            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+              PIN
+            </dt>
+            <dd className="text-petroleo font-mono text-lg font-semibold tracking-[0.3em]">
+              {company.pin}
+            </dd>
+          </div>
+          <div className="grid gap-0.5">
+            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+              Dominio
+            </dt>
+            <dd className="truncate text-sm">
+              <a
+                href={company.domain}
+                target="_blank"
+                rel="noreferrer"
+                className="text-petroleo inline-flex items-center gap-1 hover:underline"
+              >
+                {company.domain}
+                <ExternalLink className="size-3.5" />
+              </a>
+            </dd>
+          </div>
+          <div className="grid gap-0.5">
+            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+              Creada
+            </dt>
+            <dd className="text-ink text-sm">
+              {new Date(company.createdAt).toLocaleDateString('es')}
+            </dd>
+          </div>
+          <div className="grid gap-0.5">
+            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+              Actualizada
+            </dt>
+            <dd className="text-ink text-sm">
+              {new Date(company.updatedAt).toLocaleDateString('es')}
+            </dd>
+          </div>
         </div>
-        <div>
-          <dt className="text-muted text-xs">Dominio</dt>
-          <dd className="mt-1 truncate text-sm">
-            <a
-              href={company.domain}
-              target="_blank"
-              rel="noreferrer"
-              className="text-petroleo inline-flex items-center gap-1 hover:underline"
-            >
-              {company.domain}
-              <ExternalLink className="size-3.5" />
-            </a>
-          </dd>
-        </div>
-        <div>
-          <dt className="text-muted text-xs">Creada</dt>
-          <dd className="text-ink mt-1 text-sm">
-            {new Date(company.createdAt).toLocaleDateString('es')}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-muted text-xs">Actualizada</dt>
-          <dd className="text-ink mt-1 text-sm">
-            {new Date(company.updatedAt).toLocaleDateString('es')}
-          </dd>
-        </div>
-      </dl>
+      </ModalSection>
 
-      <div className="border-border mt-5 grid gap-4 border-t pt-5">
-        <h3 className="text-ink text-sm font-semibold">Links de acceso</h3>
+      <ModalSection
+        icon={<Link2 className="size-4" />}
+        title="Links de Acceso"
+        tone="sky"
+      >
         <LinkField
           label="Link para registrarse"
           value={company.registrationLink}
         />
         <LinkField label="Link para iniciar sesión" value={company.loginLink} />
-      </div>
+      </ModalSection>
 
-      <div className="mt-5 flex justify-end">
+      <div className="flex justify-end">
         <Button type="button" onClick={onEdit}>
           <Pencil className="size-4" />
-          Editar compañía
+          Editar Compañía
         </Button>
       </div>
     </div>
@@ -213,18 +241,21 @@ export default function CompaniesPage() {
     }
   }
 
-  const sortedCompanies = applyColumnSort(companies.data?.data ?? [], sort, (company, index) =>
-    index === 0
-      ? company.name
-      : index === 1
-        ? company.status
-        : index === 2
-          ? company.pin
-          : index === 3
-            ? (company.phone ?? '')
-            : index === 4
-              ? company.domain
-              : company.registrationLink,
+  const sortedCompanies = applyColumnSort(
+    companies.data?.data ?? [],
+    sort,
+    (company, index) =>
+      index === 0
+        ? company.name
+        : index === 1
+          ? company.status
+          : index === 2
+            ? company.pin
+            : index === 3
+              ? (company.phone ?? '')
+              : index === 4
+                ? company.domain
+                : company.registrationLink,
   )
   const tableRows = sortedCompanies.map((company) => [
     <span
@@ -280,27 +311,24 @@ export default function CompaniesPage() {
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
-      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">Plataforma</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Compañías
-          </h1>
-          <p className="text-muted mt-2 text-sm">
-            Empresas registradas y sus enlaces de registro y acceso.
-          </p>
-        </div>
-        {canManage && (
-          <Button variant="primary" onClick={openCreate}>
-            <Plus className="size-4" />
-            Nueva compañía
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Compañías"
+        subtitle="Empresas registradas y sus enlaces de registro y acceso."
+        actions={
+          <>
+            {canManage && (
+              <Button variant="primary" onClick={openCreate}>
+                <Plus className="size-4" />
+                Nueva compañía
+              </Button>
+            )}
+          </>
+        }
+      />
 
-      <section className="border-border mb-4 shrink-0 rounded-xl border bg-white p-4">
-        <label className="relative block max-w-lg">
-          <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+      <FilterBarRow aria-label="Filtros">
+        <label className="relative min-w-[220px] flex-1">
+          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
           <input
             aria-label="Buscar compañías"
             value={search}
@@ -312,7 +340,7 @@ export default function CompaniesPage() {
             className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
           />
         </label>
-      </section>
+      </FilterBarRow>
 
       {companies.isError && (
         <p
@@ -324,46 +352,56 @@ export default function CompaniesPage() {
       )}
 
       <div className="min-h-0 flex-1">
-      {companies.isFetching ? (
-        <TableSkeleton columns={6} avatar />
-      ) : (
-        <DataTable
-          columns={['Compañía', 'Estado', 'PIN', 'Teléfono', 'Dominio', 'Links']}
-          rows={tableRows}
-          actions={rowActions}
-          sortableColumns={[0, 1, 2, 3, 4]}
-          sort={sort}
-          onSortChange={toggleSort}
-          onRowDoubleClick={(index) => {
-            const company = sortedCompanies[index]
-            if (company) setSelected(company)
-          }}
-          emptyTitle="Todavía no hay compañías"
-          emptyDescription={
-            search.trim()
-              ? 'Prueba con otro nombre, correo, dominio o PIN.'
-              : 'Crea la primera compañía para generar sus enlaces.'
-          }
-          footer={
-            <Pagination
-              page={page}
-              rows={rows}
-              total={companies.data?.total ?? 0}
-              onChange={setPage}
-              onRowsChange={(next) => {
-                setRows(next)
-                setPage(1)
-              }}
-            />
-          }
-        />
-      )}
+        {companies.isFetching ? (
+          <TableSkeleton columns={6} avatar />
+        ) : (
+          <DataTable
+            columns={[
+              'Compañía',
+              'Estado',
+              'PIN',
+              'Teléfono',
+              'Dominio',
+              'Links',
+            ]}
+            rows={tableRows}
+            actions={rowActions}
+            sortableColumns={[0, 1, 2, 3, 4]}
+            sort={sort}
+            onSortChange={toggleSort}
+            onRowDoubleClick={(index) => {
+              const company = sortedCompanies[index]
+              if (company) setSelected(company)
+            }}
+            emptyTitle="Todavía no hay compañías"
+            emptyDescription={
+              search.trim()
+                ? 'Prueba con otro nombre, correo, dominio o PIN.'
+                : 'Crea la primera compañía para generar sus enlaces.'
+            }
+            footer={
+              <Pagination
+                page={page}
+                rows={rows}
+                total={companies.data?.total ?? 0}
+                onChange={setPage}
+                onRowsChange={(next) => {
+                  setRows(next)
+                  setPage(1)
+                }}
+              />
+            }
+          />
+        )}
       </div>
 
       {selected && (
         <Dialog
-          title="Ficha de compañía"
+          title="Ficha de Compañía"
           description="Información, PIN y enlaces de acceso."
+          icon={<Building2 className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           size="lg"
           onClose={() => setSelected(null)}
         >

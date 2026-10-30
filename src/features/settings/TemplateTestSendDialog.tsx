@@ -5,14 +5,25 @@ import { Dialog } from '@/components/ui/Dialog'
 import { api } from '@/lib/http'
 
 /** Sends one approved WhatsApp template to a number you type (for example your own phone) to check it. */
-export function TemplateTestSendDialog({ templateId, templateName, onClose }: { templateId: string; templateName: string; onClose: () => void }) {
+export function TemplateTestSendDialog({
+  templateId,
+  templateName,
+  onClose,
+}: {
+  templateId: string
+  templateName: string
+  onClose: () => void
+}) {
   const [phone, setPhone] = useState('')
   const send = useMutation({
     mutationFn: () =>
-      api<{ sent: boolean }>(`/api/v1/message-templates/${encodeURIComponent(templateId)}/test-send`, {
-        method: 'POST',
-        body: JSON.stringify({ phone: phone.trim() }),
-      }),
+      api<{ sent: boolean }>(
+        `/api/v1/message-templates/${encodeURIComponent(templateId)}/test-send`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ phone: phone.trim() }),
+        },
+      ),
   })
   return (
     <Dialog
@@ -34,15 +45,32 @@ export function TemplateTestSendDialog({ templateId, templateName, onClose }: { 
             inputMode="tel"
             placeholder="809 555 0123"
             value={phone}
-            onChange={(event) => { setPhone(event.target.value); send.reset() }}
+            onChange={(event) => {
+              setPhone(event.target.value)
+              send.reset()
+            }}
             className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
           />
         </label>
-        {send.isSuccess && <p role="status" className="text-sm text-emerald-800">Enviado. Revisa ese teléfono.</p>}
-        {send.isError && <p role="alert" className="text-sm text-red-700">{send.error.message}</p>}
+        {send.isSuccess && (
+          <p role="status" className="text-sm text-emerald-800">
+            Enviado. Revisa ese teléfono.
+          </p>
+        )}
+        {send.isError && (
+          <p role="alert" className="text-sm text-red-700">
+            {send.error.message}
+          </p>
+        )}
         <div className="flex justify-end gap-2">
-          <Button type="button" onClick={onClose}>Cerrar</Button>
-          <Button type="submit" variant="primary" disabled={phone.trim().length < 7 || send.isPending}>
+          <Button type="button" onClick={onClose}>
+            Cerrar
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={phone.trim().length < 7 || send.isPending}
+          >
             {send.isPending ? 'Enviando…' : 'Enviar prueba'}
           </Button>
         </div>

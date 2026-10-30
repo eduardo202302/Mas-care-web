@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowDown, ArrowUp, Plus } from 'lucide-react'
+import { ArrowDown, ArrowUp, ListTree, Plus } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { api } from '@/lib/http'
@@ -216,32 +217,26 @@ export default function MenuPage() {
 
   return (
     <div className="animate-in">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">
-            Administración
-          </p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Menú
-          </h1>
-          <p className="text-muted mt-2 max-w-2xl text-sm">
-            Catálogo único de pantallas del sistema. Los roles deciden cuáles ve
-            cada usuario y el menú lateral se construye desde aquí.
-          </p>
-        </div>
-        {isOwner && (
-          <Button
-            variant="primary"
-            onClick={() => {
-              setEditing(null)
-              setFormOpen(true)
-            }}
-          >
-            <Plus className="size-4" />
-            Nuevo ítem
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Menú"
+        subtitle="Catálogo único de pantallas del sistema. Los roles deciden cuáles ve cada usuario y el menú lateral se construye desde aquí."
+        actions={
+          <>
+            {isOwner && (
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setEditing(null)
+                  setFormOpen(true)
+                }}
+              >
+                <Plus className="size-4" />
+                Nuevo ítem
+              </Button>
+            )}
+          </>
+        }
+      />
       {!meLoading && !isOwner && (
         <p
           role="alert"
@@ -272,13 +267,7 @@ export default function MenuPage() {
           <TableSkeleton columns={5} />
         ) : (
           <DataTable
-            columns={[
-              'Pantalla',
-              'Ruta',
-              'Clave',
-              'Orden',
-              'Estado',
-            ]}
+            columns={['Pantalla', 'Ruta', 'Clave', 'Orden', 'Estado']}
             rows={rows}
             actions={actions}
             emptyTitle="El menú está vacío"
@@ -287,8 +276,10 @@ export default function MenuPage() {
         ))}
       {formOpen && (
         <Dialog
-          title={editing ? 'Editar ítem de menú' : 'Nuevo ítem de menú'}
-          description="Los cambios se reflejan en el menú lateral de todos los usuarios con acceso."
+          title={editing ? 'Editar Ítem de Menú' : 'Nuevo Ítem de Menú'}
+          icon={<ListTree className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={closeForm}
         >
           <MenuItemForm

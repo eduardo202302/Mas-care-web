@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 import { ArrowRightLeft } from 'lucide-react'
 import { NotFoundPage } from '@/app/NotFoundPage'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { DataTable } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/Button'
@@ -63,18 +64,21 @@ export default function TransfersPage() {
     setSearchParams(transferFiltersToSearch(next))
   }
 
-  const items = applyColumnSort(transfers.data?.data ?? [], sort, (row, index) =>
-    index === 0
-      ? row.occurred_at
-      : index === 1
-        ? row.patient.full_name
-        : index === 2
-          ? row.from_branch.name
-          : index === 3
-            ? row.to_branch.name
-            : index === 4
-              ? row.reason
-              : row.created_by.name,
+  const items = applyColumnSort(
+    transfers.data?.data ?? [],
+    sort,
+    (row, index) =>
+      index === 0
+        ? row.occurred_at
+        : index === 1
+          ? row.patient.full_name
+          : index === 2
+            ? row.from_branch.name
+            : index === 3
+              ? row.to_branch.name
+              : index === 4
+                ? row.reason
+                : row.created_by.name,
   )
 
   if (mePending) {
@@ -92,15 +96,10 @@ export default function TransfersPage() {
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
-      <div className="mb-7 shrink-0">
-        <p className="text-tealmax mb-2 text-sm font-medium">Operación</p>
-        <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-          Traspasos
-        </h1>
-        <p className="text-muted mt-2 max-w-2xl text-sm">
-          Historial de traslados de pacientes entre sucursales.
-        </p>
-      </div>
+      <PageHeader
+        title="Traspasos"
+        subtitle="Historial de traslados de pacientes entre sucursales."
+      />
 
       <section
         aria-label="Filtros de traspasos"
@@ -113,7 +112,10 @@ export default function TransfersPage() {
           <select
             value={filters.branch_id ?? ''}
             onChange={(event) =>
-              updateFilters({ ...filters, branch_id: event.target.value || undefined })
+              updateFilters({
+                ...filters,
+                branch_id: event.target.value || undefined,
+              })
             }
             className={controlClass}
           >
@@ -133,7 +135,10 @@ export default function TransfersPage() {
             type="date"
             value={filters.from ?? ''}
             onChange={(event) =>
-              updateFilters({ ...filters, from: event.target.value || undefined })
+              updateFilters({
+                ...filters,
+                from: event.target.value || undefined,
+              })
             }
             className={controlClass}
           />
@@ -169,8 +174,14 @@ export default function TransfersPage() {
           role="alert"
           className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
         >
-          <span>No pudimos cargar los traspasos. {transfers.error.message}</span>
-          <Button type="button" className="h-8" onClick={() => transfers.refetch()}>
+          <span>
+            No pudimos cargar los traspasos. {transfers.error.message}
+          </span>
+          <Button
+            type="button"
+            className="h-8"
+            onClick={() => transfers.refetch()}
+          >
             Reintentar
           </Button>
         </div>
@@ -181,7 +192,14 @@ export default function TransfersPage() {
           <TableSkeleton columns={6} />
         ) : (
           <DataTable
-            columns={['Fecha', 'Paciente', 'De', 'A', 'Motivo', 'Registrado por']}
+            columns={[
+              'Fecha',
+              'Paciente',
+              'De',
+              'A',
+              'Motivo',
+              'Registrado por',
+            ]}
             rows={items.map((row) => [
               <span key="date">
                 {new Date(row.occurred_at).toLocaleString('es')}

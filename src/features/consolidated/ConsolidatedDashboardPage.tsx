@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { Building2, RefreshCw } from 'lucide-react'
 import { EmptyState } from '@/components/EmptyState'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { api } from '@/lib/http'
 import { useMe } from '@/lib/permissions'
@@ -11,7 +12,8 @@ import { cn } from '@/lib/cn'
 import { useUiStore } from '@/stores/ui-store'
 import type { components } from '@/lib/api-types'
 
-type ConsolidatedResponse = components['schemas']['DashboardConsolidatedResponse']
+type ConsolidatedResponse =
+  components['schemas']['DashboardConsolidatedResponse']
 type BranchRow = components['schemas']['DashboardConsolidatedBranchRow']
 
 const counterKeys = [
@@ -77,7 +79,11 @@ function CounterCell({
   if (counterKey === 'open_incidents') {
     return (
       <Link
-        to={branchId ? `/incidencias?branch_id=${encodeURIComponent(branchId)}` : '/incidencias'}
+        to={
+          branchId
+            ? `/incidencias?branch_id=${encodeURIComponent(branchId)}`
+            : '/incidencias'
+        }
         className={cn(className, 'hover:underline')}
       >
         {value}
@@ -125,7 +131,11 @@ function BranchRowCells({
   row,
   isTotal,
 }: {
-  row: BranchRow | (components['schemas']['DashboardConsolidatedTotal'] & { stock_check_age_days?: null })
+  row:
+    | BranchRow
+    | (components['schemas']['DashboardConsolidatedTotal'] & {
+        stock_check_age_days?: null
+      })
   isTotal: boolean
 }) {
   const branchId = isTotal ? null : (row as BranchRow).branch_id
@@ -170,40 +180,39 @@ export default function ConsolidatedDashboardPage() {
 
   return (
     <div className="animate-in">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">Operación</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Panel global
-          </h1>
-          <p className="text-muted mt-2 max-w-2xl text-sm">
-            Vista consolidada de todas las sucursales para el día
-            seleccionado.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="grid gap-1">
-            <span className="sr-only">Fecha</span>
-            <input
-              type="date"
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-              className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
-            />
-          </label>
-          <Button
-            type="button"
-            aria-label="Actualizar panel global"
-            className="size-10 px-0"
-            onClick={() => consolidated.refetch()}
-            disabled={consolidated.isFetching}
-          >
-            <RefreshCw
-              className={cn('size-4', consolidated.isFetching && 'animate-spin')}
-            />
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Panel global"
+        subtitle="Vista consolidada de todas las sucursales para el día seleccionado."
+        actions={
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="grid gap-1">
+                <span className="sr-only">Fecha</span>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(event) => setDate(event.target.value)}
+                  className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+                />
+              </label>
+              <Button
+                type="button"
+                aria-label="Actualizar panel global"
+                className="size-10 px-0"
+                onClick={() => consolidated.refetch()}
+                disabled={consolidated.isFetching}
+              >
+                <RefreshCw
+                  className={cn(
+                    'size-4',
+                    consolidated.isFetching && 'animate-spin',
+                  )}
+                />
+              </Button>
+            </div>
+          </>
+        }
+      />
 
       {!privileged && (
         <p className="text-muted mb-4 flex items-center gap-2 text-xs">
@@ -245,7 +254,10 @@ export default function ConsolidatedDashboardPage() {
                 <tr>
                   <th className="px-4 py-3.5 font-semibold">Sucursal</th>
                   {counterKeys.map((key) => (
-                    <th key={key} className="px-4 py-3.5 text-right font-semibold whitespace-nowrap">
+                    <th
+                      key={key}
+                      className="px-4 py-3.5 text-right font-semibold whitespace-nowrap"
+                    >
                       {counterLabels[key]}
                     </th>
                   ))}
@@ -274,7 +286,10 @@ export default function ConsolidatedDashboardPage() {
                   <tr className="bg-surface font-semibold">
                     <td className="px-4 py-3">TOTAL</td>
                     <BranchRowCells
-                      row={{ ...consolidated.data.total, stock_check_age_days: null }}
+                      row={{
+                        ...consolidated.data.total,
+                        stock_check_age_days: null,
+                      }}
                       isTotal
                     />
                   </tr>

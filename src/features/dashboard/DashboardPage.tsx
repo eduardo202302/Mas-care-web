@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/ui/PageHeader'
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -110,36 +111,32 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-in">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium capitalize">
-            {today}
-          </p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Panel del día
-          </h1>
-          <p className="text-muted mt-2 text-sm">
-            Prioriza los avisos, entregas y recetas que necesitan atención hoy.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <BranchFilter />
-          <Button
-            type="button"
-            aria-label="Actualizar panel"
-            className="size-10 px-0"
-            onClick={() => {
-              void dashboard.refetch()
-              void list.refetch()
-            }}
-            disabled={dashboard.isFetching}
-          >
-            <RefreshCw
-              className={`size-4 ${dashboard.isFetching ? 'animate-spin' : ''}`}
-            />
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Panel del día"
+        subtitle="Prioriza los avisos, entregas y recetas que necesitan atención hoy."
+        meta={today}
+        actions={
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <BranchFilter />
+              <Button
+                type="button"
+                aria-label="Actualizar panel"
+                className="size-10 px-0"
+                onClick={() => {
+                  void dashboard.refetch()
+                  void list.refetch()
+                }}
+                disabled={dashboard.isFetching}
+              >
+                <RefreshCw
+                  className={`size-4 ${dashboard.isFetching ? 'animate-spin' : ''}`}
+                />
+              </Button>
+            </div>
+          </>
+        }
+      />
 
       {feedback && (
         <p className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">

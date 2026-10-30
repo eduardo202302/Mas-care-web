@@ -1,9 +1,19 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { KeyRound, Plus, RefreshCw, Search, UserRound } from 'lucide-react'
+import {
+  Building2,
+  KeyRound,
+  Plus,
+  RefreshCw,
+  Search,
+  UserRound,
+} from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Dialog } from '@/components/ui/Dialog'
+import { ModalSection } from '@/components/ui/ModalSection'
+import { FilterBarRow } from '@/components/ui/AdvancedFilter'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
@@ -44,26 +54,9 @@ function UserDetail({
   regenerating: boolean
 }) {
   const branchLabel =
-    user.branches.length === 1 ? 'Sucursal asignada' : 'Sucursales asignadas'
+    user.branches.length === 1 ? 'Sucursal Asignada' : 'Sucursales Asignadas'
   return (
-    <div className="mt-5">\
-    <div className="mt-5">
-        <h3 className="text-ink text-sm font-semibold">{branchLabel}</h3>
-        {user.branches.length ? (
-          <ul className="mt-2 flex flex-wrap gap-2">
-            {user.branches.map((branch) => (
-              <li
-                key={branch.id}
-                className="bg-tealmax/10 text-petroleo rounded-full px-3 py-1 text-xs font-medium"
-              >
-                {branch.name}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-muted mt-1 text-sm">Sin sucursales asignadas</p>
-        )}
-      </div>
+    <div className="grid gap-4">
       <div className="bg-surface flex items-center gap-4 rounded-xl p-4">
         <span className="bg-tealmax/10 text-petroleo grid size-14 shrink-0 place-items-center rounded-full text-lg font-bold">
           {user.name.trim().slice(0, 1).toLocaleUpperCase('es')}
@@ -75,77 +68,125 @@ function UserDetail({
           <p className="text-muted truncate text-sm">{user.email}</p>
         </div>
       </div>
-      <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-        <div>
-          <dt className="text-muted text-xs">Rol en la organización</dt>
-          <dd className="text-ink mt-1 text-sm font-medium">
-            {user.roleName ?? roleLabel(user.role)}
-          </dd>
+
+      <ModalSection
+        icon={<UserRound className="size-4" />}
+        title="Acceso y Rol"
+        tone="mint"
+      >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid gap-0.5">
+            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+              Rol en la Organización
+            </dt>
+            <dd className="text-ink text-sm font-medium">
+              {user.roleName ?? roleLabel(user.role)}
+            </dd>
+          </div>
+          <div className="grid gap-0.5">
+            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+              Usuario
+            </dt>
+            <dd className="text-ink text-sm font-medium">
+              {user.username ?? '—'}
+            </dd>
+          </div>
+          <div className="grid gap-0.5">
+            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+              WhatsApp / Teléfono
+            </dt>
+            <dd className="text-ink text-sm font-medium">
+              {user.phone ?? '—'}
+            </dd>
+          </div>
+          <div className="grid gap-0.5">
+            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+              Miembro Desde
+            </dt>
+            <dd className="text-ink text-sm">
+              {new Date(user.memberSince).toLocaleDateString('es')}
+            </dd>
+          </div>
+          <div className="grid gap-0.5">
+            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+              Cuenta Creada
+            </dt>
+            <dd className="text-ink text-sm">
+              {new Date(user.createdAt).toLocaleDateString('es')}
+            </dd>
+          </div>
         </div>
-        <div>
-          <dt className="text-muted text-xs">Usuario</dt>
-          <dd className="text-ink mt-1 text-sm font-medium">
-            {user.username ?? '—'}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-muted text-xs">WhatsApp / Teléfono</dt>
-          <dd className="text-ink mt-1 text-sm font-medium">
-            {user.phone ?? '—'}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-muted text-xs">Miembro desde</dt>
-          <dd className="text-ink mt-1 text-sm">
-            {new Date(user.memberSince).toLocaleDateString('es')}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-muted text-xs">Cuenta creada</dt>
-          <dd className="text-ink mt-1 text-sm">
-            {new Date(user.createdAt).toLocaleDateString('es')}
-          </dd>
-        </div>
-      </dl>
+      </ModalSection>
+
+      <ModalSection
+        icon={<Building2 className="size-4" />}
+        title={branchLabel}
+        tone="sky"
+        action={
+          user.branches.length ? (
+            <span className="bg-surface text-muted rounded-full px-2 py-0.5 text-xs font-semibold">
+              {user.branches.length}
+            </span>
+          ) : undefined
+        }
+      >
+        {user.branches.length ? (
+          <ul className="flex flex-wrap gap-2">
+            {user.branches.map((branch) => (
+              <li
+                key={branch.id}
+                className="border-border text-ink rounded-full border bg-white px-3 py-1 text-xs font-medium"
+              >
+                {branch.name}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-muted text-sm">Sin sucursales asignadas.</p>
+        )}
+      </ModalSection>
+
       {user.pin !== undefined && (
-        <div className="border-border mt-5 border-t pt-5">
-          <h3 className="text-ink flex items-center gap-2 text-sm font-semibold">
-            <KeyRound className="text-tealmax size-4" />
-            PIN de recuperación
-          </h3>
+        <ModalSection
+          icon={<KeyRound className="size-4" />}
+          title="PIN de Recuperación"
+          tone="amber"
+          action={
+            canManage ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-8 px-2.5 text-xs"
+                disabled={regenerating}
+                onClick={onRegeneratePin}
+              >
+                <RefreshCw
+                  className={`size-3.5 ${regenerating ? 'animate-spin' : ''}`}
+                />
+                {regenerating
+                  ? 'Generando…'
+                  : user.pin
+                    ? 'Regenerar'
+                    : 'Generar'}
+              </Button>
+            ) : undefined
+          }
+        >
           {user.pin ? (
-            <div className="mt-2 flex flex-wrap items-center gap-3">
-              <span className="bg-surface text-petroleo rounded-lg px-3 py-2 font-mono text-lg font-semibold tracking-[0.35em]">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="border-border text-petroleo rounded-lg border bg-white px-3 py-2 font-mono text-lg font-semibold tracking-[0.35em]">
                 {user.pin}
               </span>
               <span className="text-muted text-xs">Se renueva al usarlo.</span>
             </div>
           ) : (
-            <p className="text-muted mt-1 text-sm">Sin PIN configurado.</p>
+            <p className="text-muted text-sm">Sin PIN configurado.</p>
           )}
-          {canManage && (
-            <Button
-              type="button"
-              variant="ghost"
-              className="mt-3 h-9 px-3"
-              disabled={regenerating}
-              onClick={onRegeneratePin}
-            >
-              <RefreshCw
-                className={`size-4 ${regenerating ? 'animate-spin' : ''}`}
-              />
-              {regenerating
-                ? 'Generando…'
-                : user.pin
-                  ? 'Regenerar PIN'
-                  : 'Generar PIN'}
-            </Button>
-          )}
-          <p className="text-muted mt-2 text-xs">
+          <p className="text-muted text-xs">
             El usuario puede usar este PIN si olvida su contraseña. Después de
             usarlo se genera uno nuevo.
           </p>
-        </div>
+        </ModalSection>
       )}
     </div>
   )
@@ -282,8 +323,19 @@ export default function UsersPage() {
     },
   })
 
-  const sortedUsers = applyColumnSort(users.data?.data ?? [], sort, (user, index) =>
-    index === 0 ? user.id : index === 3 ? user.name : index === 4 ? user.username ?? '' : index === 5 ? user.phone ?? '' : user.email,
+  const sortedUsers = applyColumnSort(
+    users.data?.data ?? [],
+    sort,
+    (user, index) =>
+      index === 0
+        ? user.id
+        : index === 3
+          ? user.name
+          : index === 4
+            ? (user.username ?? '')
+            : index === 5
+              ? (user.phone ?? '')
+              : user.email,
   )
   const tableRows = sortedUsers.map((user) => [
     <span key="id" className="text-ink">
@@ -346,28 +398,23 @@ export default function UsersPage() {
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
-      <div className="mb-2 flex shrink-0 flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-1 text-sm font-medium">
-            Administración
-          </p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Usuarios
-          </h1>
-          <p className="text-muted mt-2 text-sm">
-            Miembros con acceso a la organización y sus sucursales.
-          </p>
-        </div>
-        {canManage && (
-          <Button variant="primary" onClick={openForm}>
-            <Plus className="size-4" />
-            Nuevo usuario
-          </Button>
-        )}
-      </div>
-      <section className="border-border mb-4 shrink-0 rounded-xl border bg-white p-4">
-        <label className="relative block max-w-lg">
-          <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+      <PageHeader
+        title="Usuarios"
+        subtitle="Miembros con acceso a la organización y sus sucursales."
+        actions={
+          <>
+            {canManage && (
+              <Button variant="primary" onClick={openForm}>
+                <Plus className="size-4" />
+                Nuevo usuario
+              </Button>
+            )}
+          </>
+        }
+      />
+      <FilterBarRow aria-label="Filtros">
+        <label className="relative min-w-[220px] flex-1">
+          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
           <input
             aria-label="Buscar usuarios"
             value={search}
@@ -376,7 +423,7 @@ export default function UsersPage() {
             className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
           />
         </label>
-      </section>
+      </FilterBarRow>
       {users.isError && (
         <p
           role="alert"
@@ -386,45 +433,57 @@ export default function UsersPage() {
         </p>
       )}
       <div className="min-h-0 flex-1">
-      {users.isFetching ? (
-        <TableSkeleton columns={5} avatar />
-      ) : (
-        <DataTable
-          columns={['ID', 'Sucursales', 'Rol', 'Nombre', 'Usuario', 'WhatsApp', 'Correo']}
-          rows={tableRows}
-          actions={rowActions}
-          sortableColumns={[0, 3, 4, 5, 6]}
-          sort={sort}
-          onSortChange={toggleSort}
-          onRowDoubleClick={(index) => {
-            const user = sortedUsers[index]
-            if (user) setSelectedId(user.id)
-          }}
-          emptyTitle="No hay usuarios para mostrar"
-          emptyDescription={
-            search.trim()
-              ? 'Prueba con otro nombre, usuario o correo.'
-              : 'Los miembros con acceso aparecerán aquí.'
-          }
-          footer={
-            <Pagination
-              page={page}
-              rows={rows}
-              total={users.data?.total ?? 0}
-              onChange={setPage}
-              onRowsChange={(next) => {
-                setRows(next)
-                setPage(1)
-              }}
-            />
-          }
-        />
-      )}
+        {users.isFetching ? (
+          <TableSkeleton columns={5} avatar />
+        ) : (
+          <DataTable
+            columns={[
+              'ID',
+              'Sucursales',
+              'Rol',
+              'Nombre',
+              'Usuario',
+              'WhatsApp',
+              'Correo',
+            ]}
+            rows={tableRows}
+            actions={rowActions}
+            sortableColumns={[0, 3, 4, 5, 6]}
+            sort={sort}
+            onSortChange={toggleSort}
+            onRowDoubleClick={(index) => {
+              const user = sortedUsers[index]
+              if (user) setSelectedId(user.id)
+            }}
+            emptyTitle="No hay usuarios para mostrar"
+            emptyDescription={
+              search.trim()
+                ? 'Prueba con otro nombre, usuario o correo.'
+                : 'Los miembros con acceso aparecerán aquí.'
+            }
+            footer={
+              <Pagination
+                page={page}
+                rows={rows}
+                total={users.data?.total ?? 0}
+                onChange={setPage}
+                onRowsChange={(next) => {
+                  setRows(next)
+                  setPage(1)
+                }}
+              />
+            }
+          />
+        )}
       </div>
       {selectedId && (
         <Dialog
-          title="Ficha de usuario"
+          title="Ficha de Usuario"
           description="Información de acceso y asignación en esta organización."
+          icon={<UserRound className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
+          size="lg"
           onClose={() => {
             setSelectedId('')
             regeneratePin.reset()
@@ -455,12 +514,15 @@ export default function UsersPage() {
       )}
       {formOpen && (
         <Dialog
-          title={editing ? 'Editar usuario' : 'Nuevo usuario'}
+          title={editing ? 'Editar Usuario' : 'Nuevo Usuario'}
           description={
             editing
               ? 'Actualiza los datos y el acceso de este usuario.'
               : 'Crea una cuenta con acceso a esta organización.'
           }
+          icon={<UserRound className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={closeForm}
         >
           {branches.isError && (

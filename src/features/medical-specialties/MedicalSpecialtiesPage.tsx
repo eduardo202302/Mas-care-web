@@ -4,6 +4,8 @@ import { Plus, Search, Stethoscope } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Dialog } from '@/components/ui/Dialog'
+import { FilterBarRow, FilterSegmented } from '@/components/ui/AdvancedFilter'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { api } from '@/lib/http'
@@ -39,6 +41,7 @@ export default function MedicalSpecialtiesPage() {
     components['schemas']['MedicalSpecialty'] | null
   >(null)
   const [formOpen, setFormOpen] = useState(false)
+  const [viewOnly, setViewOnly] = useState(false)
 
   const filters = useMemo<SpecialtyQuery>(
     () => ({ q: search.trim() || undefined, isActive, page, rows }),
@@ -84,6 +87,7 @@ export default function MedicalSpecialtiesPage() {
   function closeForm() {
     setFormOpen(false)
     setEditing(null)
+    setViewOnly(false)
   }
   function openCreate() {
     setEditing(null)
@@ -91,6 +95,13 @@ export default function MedicalSpecialtiesPage() {
   }
   function openEdit(item: components['schemas']['MedicalSpecialty']) {
     setEditing(item)
+    setViewOnly(false)
+    setFormOpen(true)
+  }
+  /** Doble clic en la fila: mismo formulario, pero bloqueado. */
+  function openView(item: components['schemas']['MedicalSpecialty']) {
+    setEditing(item)
+    setViewOnly(true)
     setFormOpen(true)
   }
 
@@ -133,25 +144,22 @@ export default function MedicalSpecialtiesPage() {
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
-      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">Catálogo</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Especialidades médicas
-          </h1>
-          <p className="text-muted mt-2 text-sm">
-            Especialidades disponibles para asignar a los médicos.
-          </p>
-        </div>
-        {canWrite && (
-          <Button variant="primary" onClick={openCreate}>
-            <Plus className="size-4" />
-            Nueva especialidad
-          </Button>
-        )}
-      </div>
-      <section className="border-border mb-4 flex shrink-0 flex-wrap items-center gap-3 rounded-xl border bg-white p-4">
-        <label className="relative min-w-56 flex-1">
+      <PageHeader
+        title="Especialidades médicas"
+        subtitle="Especialidades disponibles para asignar a los médicos."
+        actions={
+          <>
+            {canWrite && (
+              <Button variant="primary" onClick={openCreate}>
+                <Plus className="size-4" />
+                Nueva especialidad
+              </Button>
+            )}
+          </>
+        }
+      />
+      <FilterBarRow aria-label="Filtros">
+        <label className="relative min-w-[220px] flex-1">
           <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <input
             aria-label="Buscar especialidades"
@@ -164,19 +172,19 @@ export default function MedicalSpecialtiesPage() {
             className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
           />
         </label>
-        <select
-          aria-label="Filtrar especialidades"
+        <FilterSegmented<'true' | 'false'>
+          label="Filtrar especialidades"
           value={isActive}
-          onChange={(event) => {
-            setIsActive(event.target.value as 'true' | 'false')
+          options={[
+            { value: 'true', label: 'Activas' },
+            { value: 'false', label: 'Inactivas' },
+          ]}
+          onChange={(value) => {
+            setIsActive(value)
             setPage(1)
           }}
-          className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
-        >
-          <option value="true">Activas</option>
-          <option value="false">Inactivas</option>
-        </select>
-      </section>
+        />
+      </FilterBarRow>
       {specialties.isError && (
         <p
           role="alert"
@@ -198,7 +206,7 @@ export default function MedicalSpecialtiesPage() {
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {
               const item = items[index]
-              if (item && canWrite) openEdit(item)
+              if (item) openView(item)
             }}
             emptyTitle={
               isActive === 'false'
@@ -227,7 +235,13 @@ export default function MedicalSpecialtiesPage() {
       </div>
       {formOpen && (
         <Dialog
-          title={editing ? 'Editar Especialidad' : 'Nueva Especialidad'}
+          title={
+            viewOnly
+              ? 'Ver Especialidad'
+              : editing
+                ? 'Editar Especialidad'
+                : 'Nueva Especialidad'
+          }
           icon={<Stethoscope className="size-5" />}
           compactHeader
           bodyClassName="pt-3"
@@ -239,6 +253,8 @@ export default function MedicalSpecialtiesPage() {
             onSave={(values) => save.mutateAsync(values).then(() => undefined)}
             onCancel={closeForm}
             submitting={save.isPending}
+            readOnly={viewOnly}
+            onEdit={() => setViewOnly(false)}
           />
         </Dialog>
       )}

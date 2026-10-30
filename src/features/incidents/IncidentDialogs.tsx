@@ -32,10 +32,13 @@ export function ResolveIncidentDialog({
 
   const resolve = useMutation({
     mutationFn: () =>
-      api<Incident>(`/api/v1/incidents/${encodeURIComponent(incident.id)}/resolve`, {
-        method: 'POST',
-        body: JSON.stringify({ resolution: resolution.trim() }),
-      }),
+      api<Incident>(
+        `/api/v1/incidents/${encodeURIComponent(incident.id)}/resolve`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ resolution: resolution.trim() }),
+        },
+      ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['incidents'] })
       toast.push('Incidencia resuelta.', 'success')

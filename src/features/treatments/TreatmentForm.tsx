@@ -4,7 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
 import { CalendarDays, Search, X } from 'lucide-react'
 import { CustomFields } from '@/components/CustomFields'
-import { useCustomProperties, validateCustomValues } from '@/lib/custom-properties'
+import {
+  useCustomProperties,
+  validateCustomValues,
+} from '@/lib/custom-properties'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { TextField } from '@/components/ui/TextField'
@@ -147,7 +150,8 @@ export function TreatmentForm({
   }
 
   const [customValues, setCustomValues] = useState<Record<string, unknown>>(
-    ((treatment as { customValues?: Record<string, unknown> } | undefined)?.customValues) ?? {},
+    (treatment as { customValues?: Record<string, unknown> } | undefined)
+      ?.customValues ?? {},
   )
   const [customErrors, setCustomErrors] = useState<Record<string, string>>({})
   const customDefs = useCustomProperties('treatment').data?.data ?? []

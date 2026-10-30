@@ -5,11 +5,14 @@ import { Plus, Search, Stethoscope } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Dialog } from '@/components/ui/Dialog'
+import { FilterBarRow, FilterSegmented } from '@/components/ui/AdvancedFilter'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { useCan } from '@/lib/permissions'
+import { formatPhone } from '@/lib/phone'
 import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import type { components, paths } from '@/lib/api-types'
 import type { DoctorFormValues } from '@/schemas/doctor'
@@ -121,24 +124,24 @@ export default function DoctorsPage() {
     sort,
     (item, index) =>
       index === 0
-        ? `${item.lastName} ${item.firstName}`
+        ? `${item.firstName} ${item.lastName}`
         : index === 1
-          ? item.licenseNumber ?? ''
+          ? (item.licenseNumber ?? '')
           : index === 2
-            ? item.phone ?? ''
+            ? (item.phone ?? '')
             : item.isActive
               ? 1
               : 0,
   )
   const tableRows = items.map((item) => [
     <span key="name" className="text-petroleo font-semibold">
-      {item.lastName}, {item.firstName}
+      {item.firstName} {item.lastName}
     </span>,
     <span key="license" className="text-muted">
       {item.licenseNumber || '—'}
     </span>,
     <span key="phone" className="text-muted">
-      {item.phone || '—'}
+      {item.phone ? formatPhone(item.phone) : '—'}
     </span>,
     <div key="specialties" className="flex flex-wrap gap-1">
       {item.specialties?.length ? (
@@ -174,28 +177,25 @@ export default function DoctorsPage() {
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
-      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">Catálogo</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Médicos
-          </h1>
-          <p className="text-muted mt-2 text-sm">
-            Médicos prescriptores y sus especialidades y centros médicos.
-          </p>
-        </div>
-        {canWrite && (
-          <Button variant="primary" onClick={openCreate}>
-            <Plus className="size-4" />
-            Nuevo médico
-          </Button>
-        )}
-      </div>
-      <section className="border-border mb-4 flex shrink-0 flex-wrap items-center gap-3 rounded-xl border bg-white p-4">
-        <label className="relative min-w-56 flex-1">
+      <PageHeader
+        title="Médicos"
+        subtitle="Médicos prescriptores y sus especialidades y centros médicos."
+        actions={
+          <>
+            {canWrite && (
+              <Button variant="primary" onClick={openCreate}>
+                <Plus className="size-4" />
+                Nuevo Médico
+              </Button>
+            )}
+          </>
+        }
+      />
+      <FilterBarRow aria-label="Filtros">
+        <label className="relative min-w-[220px] flex-1">
           <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <input
-            aria-label="Buscar médicos"
+            aria-label="Buscar Médicos"
             value={search}
             onChange={(event) => {
               setSearch(event.target.value)
@@ -205,21 +205,24 @@ export default function DoctorsPage() {
             className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
           />
         </label>
-        <select
-          aria-label="Filtrar médicos"
+        <FilterSegmented<'true' | 'false'>
+          label="Filtrar Médicos"
           value={isActive}
-          onChange={(event) => {
-            setIsActive(event.target.value as 'true' | 'false')
+          options={[
+            { value: 'true', label: 'Activos' },
+            { value: 'false', label: 'Inactivos' },
+          ]}
+          onChange={(value) => {
+            setIsActive(value)
             setPage(1)
           }}
-          className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
-        >
-          <option value="true">Activos</option>
-          <option value="false">Inactivos</option>
-        </select>
-      </section>
+        />
+      </FilterBarRow>
       {doctors.isError && (
-        <p role="alert" className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <p
+          role="alert"
+          className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+        >
           No pudimos cargar el catálogo. {doctors.error.message}
         </p>
       )}
@@ -228,7 +231,13 @@ export default function DoctorsPage() {
           <TableSkeleton columns={5} />
         ) : (
           <DataTable
-            columns={['Médico', 'Colegiatura', 'Teléfono', 'Especialidades', 'Estado']}
+            columns={[
+              'Médico',
+              'Colegiatura',
+              'Teléfono',
+              'Especialidades',
+              'Estado',
+            ]}
             rows={tableRows}
             actions={rowActions}
             sortableColumns={[0, 1, 2, 4]}
@@ -268,7 +277,7 @@ export default function DoctorsPage() {
           title={editing ? 'Editar Médico' : 'Nuevo Médico'}
           icon={<Stethoscope className="size-5" />}
           compactHeader
-          description="Datos de contacto y colegiatura del médico."
+          description="Datos de contacto y colegiatura del Médico."
           bodyClassName="pt-2"
           onClose={closeForm}
           size="lg"

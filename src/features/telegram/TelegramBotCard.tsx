@@ -31,7 +31,8 @@ export function TelegramBotCard() {
     },
   })
   const disconnect = useMutation({
-    mutationFn: () => api('/api/v1/automation/telegram-account', { method: 'DELETE' }),
+    mutationFn: () =>
+      api('/api/v1/automation/telegram-account', { method: 'DELETE' }),
     onSuccess: refresh,
   })
 
@@ -42,9 +43,10 @@ export function TelegramBotCard() {
         Bot de Telegram
       </h2>
       <p className="text-muted text-xs">
-        Los pacientes que prefieran Telegram reciben los avisos por tu propio bot. Créalo con
-        @BotFather, pega aquí su token y luego genera, en la ficha de cada paciente, el enlace que
-        el paciente abre para vincular su chat. Cambiar de bot desvincula a todos los pacientes.
+        Los pacientes que prefieran Telegram reciben los avisos por tu propio
+        bot. Créalo con @BotFather, pega aquí su token y luego genera, en la
+        ficha de cada paciente, el enlace que el paciente abre para vincular su
+        chat. Cambiar de bot desvincula a todos los pacientes.
       </p>
       {account.data?.connected ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -55,7 +57,11 @@ export function TelegramBotCard() {
             variant="danger"
             disabled={disconnect.isPending}
             onClick={() => {
-              if (window.confirm('¿Desconectar el bot? Todos los pacientes tendrán que volver a vincular su Telegram.'))
+              if (
+                window.confirm(
+                  '¿Desconectar el bot? Todos los pacientes tendrán que volver a vincular su Telegram.',
+                )
+              )
                 disconnect.mutate()
             }}
           >
@@ -81,7 +87,11 @@ export function TelegramBotCard() {
             className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
           />
         </label>
-        <Button type="submit" variant="primary" disabled={!token.trim() || connect.isPending}>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={!token.trim() || connect.isPending}
+        >
           {account.data?.connected ? 'Reemplazar' : 'Conectar bot'}
         </Button>
       </form>

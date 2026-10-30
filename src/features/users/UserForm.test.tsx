@@ -26,24 +26,24 @@ function renderForm(onSave: (values: UserCreateValues) => Promise<void>) {
 }
 
 async function fillIdentity(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText('Nombre completo'), 'Ana Operadora')
+  await user.type(screen.getByLabelText('Nombre Completo'), 'Ana Operadora')
   await user.type(screen.getByLabelText('Usuario'), 'ana.op')
   await user.type(
-    screen.getByLabelText('Correo electrónico'),
+    screen.getByLabelText('Correo Electrónico'),
     'Ana@Example.com',
   )
   await user.type(
-    screen.getByLabelText('Contraseña temporal'),
+    screen.getByLabelText('Contraseña Temporal'),
     'Password-2026!',
   )
 }
 
 describe('UserForm', () => {
-  it('genera un PIN de recuperación automáticamente', () => {
+  it('genera un PIN de Recuperación automáticamente', () => {
     renderForm(vi.fn(async () => undefined))
 
     expect(
-      screen.getByLabelText<HTMLInputElement>('PIN de recuperación').value,
+      screen.getByLabelText<HTMLInputElement>('PIN de Recuperación').value,
     ).toMatch(/^\d{6}$/)
   })
 
@@ -67,7 +67,7 @@ describe('UserForm', () => {
     await fillIdentity(user)
     await user.selectOptions(screen.getByLabelText('Rol'), 'role-cashier')
     await user.click(screen.getByLabelText('Centro'))
-    await user.click(screen.getByRole('button', { name: 'Crear usuario' }))
+    await user.click(screen.getByRole('button', { name: 'Crear Usuario' }))
 
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith({
@@ -76,7 +76,7 @@ describe('UserForm', () => {
         email: 'ana@example.com',
         password: 'Password-2026!',
         phone: '',
-        pin: screen.getByLabelText<HTMLInputElement>('PIN de recuperación')
+        pin: screen.getByLabelText<HTMLInputElement>('PIN de Recuperación')
           .value,
         role: 'operator',
         roleId: 'role-cashier',
@@ -93,7 +93,7 @@ describe('UserForm', () => {
     const user = userEvent.setup()
 
     await fillIdentity(user)
-    await user.click(screen.getByRole('button', { name: 'Crear usuario' }))
+    await user.click(screen.getByRole('button', { name: 'Crear Usuario' }))
 
     expect(await screen.findByText('Selecciona un rol.')).toBeInTheDocument()
     expect(onSave).not.toHaveBeenCalled()
@@ -106,18 +106,18 @@ describe('UserForm', () => {
     renderForm(onSave)
     const user = userEvent.setup()
 
-    await user.type(screen.getByLabelText('Nombre completo'), 'Ana Operadora')
+    await user.type(screen.getByLabelText('Nombre Completo'), 'Ana Operadora')
     await user.type(screen.getByLabelText('Usuario'), 'a b')
     await user.type(
-      screen.getByLabelText('Correo electrónico'),
+      screen.getByLabelText('Correo Electrónico'),
       'ana@example.com',
     )
     await user.type(
-      screen.getByLabelText('Contraseña temporal'),
+      screen.getByLabelText('Contraseña Temporal'),
       'Password-2026!',
     )
     await user.selectOptions(screen.getByLabelText('Rol'), 'role-master')
-    await user.click(screen.getByRole('button', { name: 'Crear usuario' }))
+    await user.click(screen.getByRole('button', { name: 'Crear Usuario' }))
 
     expect(
       await screen.findByText(/Usa letras, números, punto, guion/),
@@ -134,7 +134,7 @@ describe('UserForm', () => {
 
     await fillIdentity(user)
     await user.selectOptions(screen.getByLabelText('Rol'), 'role-cashier')
-    await user.click(screen.getByRole('button', { name: 'Crear usuario' }))
+    await user.click(screen.getByRole('button', { name: 'Crear Usuario' }))
 
     expect(
       await screen.findByText('Asigna al menos una sucursal.'),
@@ -151,7 +151,7 @@ describe('UserForm', () => {
 
     await fillIdentity(user)
     await user.selectOptions(screen.getByLabelText('Rol'), 'role-master')
-    await user.click(screen.getByRole('button', { name: 'Crear usuario' }))
+    await user.click(screen.getByRole('button', { name: 'Crear Usuario' }))
 
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith(

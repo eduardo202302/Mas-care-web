@@ -1,9 +1,12 @@
 import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { BadgeCheck, MessageSquareText, Send } from 'lucide-react'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/TextField'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { FormActions } from '@/components/ui/FormActions'
+import { ModalSection } from '@/components/ui/ModalSection'
 import { api } from '@/lib/http'
 import type { paths } from '@/lib/api-types'
 import type { MessageChannel, MessageTemplate } from '@/lib/operations'
@@ -27,6 +30,10 @@ const variables = [
   { token: '{{farmacia}}', hint: 'Sucursal' },
 ]
 
+/** Mismo control que el resto de la app: ancho completo y anillo de foco. */
+const control =
+  'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2'
+
 export function TemplateFormDialog({
   template,
   onClose,
@@ -48,10 +55,13 @@ export function TemplateFormDialog({
   const wa = (template ?? {}) as WaFields
   const [waName, setWaName] = useState(wa.waTemplateName ?? '')
   const [waLanguage, setWaLanguage] = useState(wa.waLanguage ?? 'es')
-  const [waStatus, setWaStatus] = useState<NonNullable<WaFields['waStatus']>>(wa.waStatus ?? 'draft')
+  const [waStatus, setWaStatus] = useState<NonNullable<WaFields['waStatus']>>(
+    wa.waStatus ?? 'draft',
+  )
   const [waCategory, setWaCategory] = useState<string>(wa.waCategory ?? '')
   const [attemptNumber, setAttemptNumber] = useState(wa.attemptNumber ?? 1)
-  const waInvalid = channel === 'whatsapp' && waStatus === 'approved' && !waName.trim()
+  const waInvalid =
+    channel === 'whatsapp' && waStatus === 'approved' && !waName.trim()
 
   const branches = useQuery({
     queryKey: ['branches'],
@@ -119,136 +129,181 @@ export function TemplateFormDialog({
 
   return (
     <Dialog
-      title={template ? 'Editar plantilla' : 'Nueva plantilla'}
-      description="Personaliza los mensajes de reposición de tu organización."
+      title={template ? 'Editar Plantilla' : 'Nueva Plantilla'}
+      icon={<MessageSquareText className="size-5" />}
+      compactHeader
+      bodyClassName="pt-3"
       onClose={onClose}
       size="lg"
     >
       <form
-        className="grid gap-4"
+        className="grid gap-5"
         onSubmit={(event) => {
           event.preventDefault()
-          if (!name.trim() || !body.trim() || waInvalid || save.isPending) return
+          if (!name.trim() || !body.trim() || waInvalid || save.isPending)
+            return
           save.mutate()
         }}
       >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="grid gap-1.5">
-            <span className="text-ink text-sm font-medium">Canal</span>
-            <select
-              value={channel}
-              onChange={(event) =>
-                setChannel(event.target.value as MessageChannel)
-              }
-              className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
-            >
-              <option value="whatsapp">WhatsApp</option>
-              <option value="telegram">Telegram</option>
-              <option value="call">Llamada</option>
-            </select>
-          </label>
-          <label className="grid gap-1.5">
-            <span className="text-ink text-sm font-medium">Sucursal</span>
-            <select
-              value={branchId}
-              onChange={(event) => setBranchId(event.target.value)}
-              className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
-            >
-              <option value="">Toda la organización</option>
-              {(branches.data?.data ?? []).map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <TextField
-          label="Nombre de la plantilla"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          maxLength={120}
-          required
-          placeholder="Recordatorio de reposición"
-        />
-
-        <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium">Mensaje</span>
-          <textarea
-            ref={bodyRef}
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            maxLength={5000}
-            rows={6}
-            required
-            placeholder="Hola {{paciente}}, tu medicamento {{medicamento}} está listo…"
-            className="border-border focus:border-tealmax rounded-lg border bg-white px-3 py-2 text-sm leading-6 outline-none"
-          />
-          <span className="text-muted text-xs">{channelHint}</span>
-        </label>
-
-        <div>
-          <p className="text-muted mb-2 text-xs font-semibold tracking-wide uppercase">
-            Variables disponibles
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {variables.map((variable) => (
-              <button
-                key={variable.token}
-                type="button"
-                onClick={() => insertVariable(variable.token)}
-                title={variable.hint}
-                className="border-border text-ink hover:border-tealmax hover:text-tealmax rounded-full border bg-white px-3 py-1 font-mono text-xs transition"
+        <ModalSection
+          icon={<MessageSquareText className="size-4" />}
+          title="Mensaje"
+          tone="mint"
+        >
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">Canal</span>
+              <select
+                value={channel}
+                onChange={(event) =>
+                  setChannel(event.target.value as MessageChannel)
+                }
+                className={control}
               >
-                {variable.token}
-              </button>
-            ))}
+                <option value="whatsapp">WhatsApp</option>
+                <option value="telegram">Telegram</option>
+                <option value="call">Llamada</option>
+              </select>
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">Sucursal</span>
+              <select
+                value={branchId}
+                onChange={(event) => setBranchId(event.target.value)}
+                className={control}
+              >
+                <option value="">Toda la Organización</option>
+                {(branches.data?.data ?? []).map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
-        </div>
 
-        {channel !== 'call' && (
-          <label className="grid max-w-xs gap-1.5">
-            <span className="text-ink text-sm font-medium">Aviso automático al que corresponde</span>
-            <select
-              value={attemptNumber}
-              onChange={(event) => setAttemptNumber(Number(event.target.value))}
-              className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+          <TextField
+            label="Nombre de la Plantilla"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            maxLength={120}
+            required
+            placeholder="Recordatorio de reposición"
+          />
+
+          <div className="grid gap-1.5">
+            <label
+              htmlFor="template-body"
+              className="text-ink text-sm font-medium"
             >
-              <option value={1}>Primer aviso</option>
-              <option value={2}>Primer recordatorio</option>
-              <option value={3}>Último recordatorio</option>
-            </select>
+              Mensaje
+            </label>
+            <TextAreaField
+              id="template-body"
+              ref={bodyRef}
+              className="min-h-8 py-1.5 text-xs"
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              maxLength={5000}
+              required
+              placeholder="Hola {{paciente}}, tu medicamento {{medicamento}} está listo…"
+            />
+            <span className="text-muted text-xs">{channelHint}</span>
+          </div>
+
+          <div>
+            <p className="text-muted mb-2 text-xs font-semibold tracking-wide uppercase">
+              Variables Disponibles
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {variables.map((variable) => (
+                <button
+                  key={variable.token}
+                  type="button"
+                  onClick={() => insertVariable(variable.token)}
+                  title={variable.hint}
+                  className="border-border text-ink hover:border-tealmax hover:text-tealmax rounded-full border bg-white px-3 py-1 font-mono text-xs transition"
+                >
+                  {variable.token}
+                </button>
+              ))}
+            </div>
+          </div>
+        </ModalSection>
+
+        <ModalSection
+          icon={<Send className="size-4" />}
+          title="Envío Automático"
+          tone="sky"
+        >
+          {channel !== 'call' && (
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">
+                Aviso Automático al que Corresponde
+              </span>
+              <select
+                value={attemptNumber}
+                onChange={(event) =>
+                  setAttemptNumber(Number(event.target.value))
+                }
+                className={control}
+              >
+                <option value={1}>Primer Aviso</option>
+                <option value={2}>Primer Recordatorio</option>
+                <option value={3}>Último Recordatorio</option>
+              </select>
+            </label>
+          )}
+
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={isActive}
+              onChange={(event) => setIsActive(event.target.checked)}
+              className="border-border text-tealmax size-4 rounded"
+            />
+            <span className="text-ink">Plantilla Activa</span>
           </label>
-        )}
+        </ModalSection>
 
         {channel === 'whatsapp' && (
-          <fieldset className="border-border grid gap-3 rounded-xl border p-4">
-            <legend className="text-petroleo px-1 text-sm font-semibold">Plantilla de WhatsApp en Meta</legend>
+          <ModalSection
+            icon={<BadgeCheck className="size-4" />}
+            title="Plantilla de WhatsApp en Meta"
+            tone="amber"
+          >
             <p className="text-muted text-xs">
-              Solo las plantillas <strong>aprobadas</strong> se envían de forma automática. Los valores viajan como {'{{1}}'} paciente
-              (solo el nombre de pila), {'{{2}}'} farmacia, {'{{3}}'} fecha; si la plantilla usa el medicamento será {'{{3}}'} y la fecha {'{{4}}'}.
+              Solo las plantillas <strong>aprobadas</strong> se envían de forma
+              automática. Los valores viajan como {'{{1}}'} paciente (solo el
+              nombre de pila), {'{{2}}'} farmacia, {'{{3}}'} fecha; si la
+              plantilla usa el medicamento será {'{{3}}'} y la fecha {'{{4}}'}.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="grid gap-1.5">
-                <span className="text-ink text-sm font-medium">Nombre registrado en Meta</span>
+                <span className="text-ink text-sm font-medium">
+                  Nombre Registrado en Meta
+                </span>
                 <input
                   value={waName}
                   onChange={(event) => setWaName(event.target.value)}
                   maxLength={512}
                   placeholder="aviso_reposicion"
-                  className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+                  className={control}
                 />
               </label>
               <label className="grid gap-1.5">
-                <span className="text-ink text-sm font-medium">Estado en Meta</span>
+                <span className="text-ink text-sm font-medium">
+                  Estado en Meta
+                </span>
                 <select
                   value={waStatus}
-                  onChange={(event) => setWaStatus(event.target.value as typeof waStatus)}
-                  className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+                  onChange={(event) =>
+                    setWaStatus(event.target.value as typeof waStatus)
+                  }
+                  className={control}
                 >
                   <option value="draft">Borrador</option>
-                  <option value="pending">Pendiente de aprobación</option>
+                  <option value="pending">Pendiente de Aprobación</option>
                   <option value="approved">Aprobada</option>
                   <option value="rejected">Rechazada</option>
                 </select>
@@ -260,7 +315,7 @@ export function TemplateFormDialog({
                   onChange={(event) => setWaLanguage(event.target.value)}
                   maxLength={5}
                   placeholder="es"
-                  className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+                  className={control}
                 />
               </label>
               <label className="grid gap-1.5">
@@ -268,28 +323,22 @@ export function TemplateFormDialog({
                 <select
                   value={waCategory}
                   onChange={(event) => setWaCategory(event.target.value)}
-                  className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+                  className={control}
                 >
-                  <option value="">Sin indicar</option>
+                  <option value="">Sin Indicar</option>
                   <option value="utility">Utilidad</option>
                   <option value="marketing">Marketing</option>
                   <option value="authentication">Autenticación</option>
                 </select>
               </label>
             </div>
-            {waInvalid && <p role="alert" className="text-xs text-red-700">Una plantilla aprobada necesita el nombre registrado en Meta.</p>}
-          </fieldset>
+            {waInvalid && (
+              <p role="alert" className="text-xs text-red-700">
+                Una plantilla aprobada necesita el nombre registrado en Meta.
+              </p>
+            )}
+          </ModalSection>
         )}
-
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={isActive}
-            onChange={(event) => setIsActive(event.target.checked)}
-            className="border-border text-tealmax size-4 rounded"
-          />
-          <span className="text-ink">Plantilla activa</span>
-        </label>
 
         {save.isError && (
           <p role="alert" className="text-sm text-red-700">
@@ -306,7 +355,7 @@ export function TemplateFormDialog({
             variant="primary"
             disabled={!name.trim() || !body.trim() || save.isPending}
           >
-            {save.isPending ? 'Guardando…' : 'Guardar plantilla'}
+            {save.isPending ? 'Guardando…' : 'Guardar Plantilla'}
           </Button>
         </FormActions>
       </form>

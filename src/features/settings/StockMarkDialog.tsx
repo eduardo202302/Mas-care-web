@@ -33,9 +33,7 @@ export function StockMarkDialog({
 }) {
   const queryClient = useQueryClient()
   const toast = useToast()
-  const [level, setLevel] = useState<StockLevel>(
-    initialLevel ?? 'in_stock',
-  )
+  const [level, setLevel] = useState<StockLevel>(initialLevel ?? 'in_stock')
 
   const save = useMutation({
     mutationFn: () => setStockMark(branchId, medicationId, level),
@@ -76,7 +74,7 @@ export function StockMarkDialog({
               className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
                 level === option.value
                   ? 'border-tealmax bg-teal-50/60'
-                  : 'border-border bg-white hover:border-tealmax/40'
+                  : 'border-border hover:border-tealmax/40 bg-white'
               }`}
             >
               <input

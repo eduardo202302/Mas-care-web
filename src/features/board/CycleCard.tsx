@@ -13,7 +13,10 @@ import {
 } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
 import { StatusChip } from '@/components/StatusChip'
-import { DragHandle, type DragHandleProps } from '@/components/kanban/KanbanBoard'
+import {
+  DragHandle,
+  type DragHandleProps,
+} from '@/components/kanban/KanbanBoard'
 import { derivedStatusLabel, formatDate } from '@/lib/treatments'
 import {
   cycleStatusLabels,
@@ -30,7 +33,9 @@ import { StagePicker } from './StagePicker'
 /** Next step for an open cycle: notify first, then hand it over. */
 function nextActionFor(status: CycleStatus) {
   if (status === 'to_notify') return 'Avisar'
-  return openCycleStatuses.includes(status as (typeof openCycleStatuses)[number])
+  return openCycleStatuses.includes(
+    status as (typeof openCycleStatuses)[number],
+  )
     ? 'Marcar entregado'
     : null
 }

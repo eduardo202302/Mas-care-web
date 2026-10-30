@@ -2,8 +2,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
 import { HeartPulse } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { FormActions } from '@/components/ui/FormActions'
+import { FormFields, FormFooter } from '@/components/ui/FormMode'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
@@ -14,6 +14,8 @@ import {
 } from '@/schemas/healthCondition'
 
 export function HealthConditionForm({
+  readOnly = false,
+  onEdit,
   condition,
   onSave,
   onCancel,
@@ -23,6 +25,10 @@ export function HealthConditionForm({
   onSave: (values: HealthConditionFormValues) => Promise<void>
   onCancel: () => void
   submitting?: boolean
+  /** Muestra el formulario bloqueado, como visor de la ficha. */
+  readOnly?: boolean
+  /** Desbloquea los campos desde el botón Editar del modo ver. */
+  onEdit?: () => void
 }) {
   const {
     register,
@@ -69,51 +75,55 @@ export function HealthConditionForm({
 
   return (
     <form onSubmit={handleSubmit(submit)} className="grid gap-5">
-      <ModalSection icon={<HeartPulse className="size-4" />} title="Datos de la condición" tone="mint">
-        <TextField
-          label="Nombre"
-          required
-          placeholder="Hipertensión"
-          {...register('name')}
-          error={errors.name?.message}
-        />
-        <div className="grid gap-1.5">
-          <label htmlFor="condition-description" className="text-ink text-sm font-medium">
-            Descripción
-          </label>
-          <textarea
-            id="condition-description"
-            rows={3}
-            {...register('description')}
-            className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 rounded-lg border bg-white px-3 py-2 text-sm transition outline-none focus:ring-2"
-          />
-          {errors.description?.message && (
-            <p className="text-xs text-red-700">{errors.description.message}</p>
-          )}
-        </div>
-      </ModalSection>
-      {errors.root?.server?.message && (
-        <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">
-          {errors.root.server.message}
-        </p>
-      )}
-      <FormActions>
-        <Button type="button" className="w-full sm:w-auto" onClick={onCancel}>
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          variant="primary"
-          className="w-full sm:w-auto"
-          disabled={submitting}
+      <FormFields readOnly={readOnly}>
+        <ModalSection
+          icon={<HeartPulse className="size-4" />}
+          title="Datos de la Condición"
+          tone="mint"
         >
-          {submitting
-            ? 'Guardando…'
-            : condition
-              ? 'Guardar cambios'
-              : 'Crear condición'}
-        </Button>
-      </FormActions>
+          <TextField
+            label="Nombre"
+            required
+            placeholder="Hipertensión"
+            {...register('name')}
+            error={errors.name?.message}
+          />
+          <div className="grid gap-1.5">
+            <label
+              htmlFor="condition-description"
+              className="text-ink text-sm font-medium"
+            >
+              Descripción{' '}
+              <span className="text-muted font-normal">(Opcional)</span>
+            </label>
+            <TextAreaField
+              id="condition-description"
+              className="min-h-8 py-1.5 text-xs"
+              {...register('description')}
+            />
+            {errors.description?.message && (
+              <p className="text-xs text-red-700">
+                {errors.description.message}
+              </p>
+            )}
+          </div>
+        </ModalSection>
+        {errors.root?.server?.message && (
+          <p
+            role="alert"
+            className="rounded-lg bg-red-50 p-3 text-sm text-red-800"
+          >
+            {errors.root.server.message}
+          </p>
+        )}
+      </FormFields>
+      <FormFooter
+        readOnly={readOnly}
+        onEdit={onEdit}
+        onClose={onCancel}
+        submitting={submitting}
+        submitLabel={condition ? 'Guardar Cambios' : 'Crear Condición'}
+      />
     </form>
   )
 }

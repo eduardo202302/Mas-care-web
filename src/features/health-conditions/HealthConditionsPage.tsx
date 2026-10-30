@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search } from 'lucide-react'
+import { HeartPulse, Plus, Search } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Dialog } from '@/components/ui/Dialog'
+import { FilterBarRow, FilterSegmented } from '@/components/ui/AdvancedFilter'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { api } from '@/lib/http'
@@ -39,6 +41,7 @@ export default function HealthConditionsPage() {
     components['schemas']['HealthCondition'] | null
   >(null)
   const [formOpen, setFormOpen] = useState(false)
+  const [viewOnly, setViewOnly] = useState(false)
 
   const filters = useMemo<ConditionQuery>(
     () => ({ q: search.trim() || undefined, isActive, page, rows }),
@@ -84,6 +87,7 @@ export default function HealthConditionsPage() {
   function closeForm() {
     setFormOpen(false)
     setEditing(null)
+    setViewOnly(false)
   }
   function openCreate() {
     setEditing(null)
@@ -91,11 +95,27 @@ export default function HealthConditionsPage() {
   }
   function openEdit(item: components['schemas']['HealthCondition']) {
     setEditing(item)
+    setViewOnly(false)
+    setFormOpen(true)
+  }
+  /** Doble clic en la fila: mismo formulario, pero bloqueado. */
+  function openView(item: components['schemas']['HealthCondition']) {
+    setEditing(item)
+    setViewOnly(true)
     setFormOpen(true)
   }
 
-  const items = applyColumnSort(conditions.data?.data ?? [], sort, (item, index) =>
-    index === 0 ? item.name : index === 1 ? item.description ?? '' : item.isActive ? 1 : 0,
+  const items = applyColumnSort(
+    conditions.data?.data ?? [],
+    sort,
+    (item, index) =>
+      index === 0
+        ? item.name
+        : index === 1
+          ? (item.description ?? '')
+          : item.isActive
+            ? 1
+            : 0,
   )
   const tableRows = items.map((item) => [
     <span key="name" className="text-petroleo font-semibold">
@@ -124,25 +144,22 @@ export default function HealthConditionsPage() {
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
-      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">Catálogo</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Condiciones de salud
-          </h1>
-          <p className="text-muted mt-2 text-sm">
-            Condiciones disponibles para registrar en la ficha de los pacientes.
-          </p>
-        </div>
-        {canWrite && (
-          <Button variant="primary" onClick={openCreate}>
-            <Plus className="size-4" />
-            Nueva condición
-          </Button>
-        )}
-      </div>
-      <section className="border-border mb-4 flex shrink-0 flex-wrap items-center gap-3 rounded-xl border bg-white p-4">
-        <label className="relative min-w-56 flex-1">
+      <PageHeader
+        title="Condiciones de salud"
+        subtitle="Condiciones disponibles para registrar en la ficha de los pacientes."
+        actions={
+          <>
+            {canWrite && (
+              <Button variant="primary" onClick={openCreate}>
+                <Plus className="size-4" />
+                Nueva condición
+              </Button>
+            )}
+          </>
+        }
+      />
+      <FilterBarRow aria-label="Filtros">
+        <label className="relative min-w-[220px] flex-1">
           <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <input
             aria-label="Buscar condiciones de salud"
@@ -155,21 +172,24 @@ export default function HealthConditionsPage() {
             className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
           />
         </label>
-        <select
-          aria-label="Filtrar condiciones de salud"
+        <FilterSegmented<'true' | 'false'>
+          label="Filtrar condiciones de salud"
           value={isActive}
-          onChange={(event) => {
-            setIsActive(event.target.value as 'true' | 'false')
+          options={[
+            { value: 'true', label: 'Activas' },
+            { value: 'false', label: 'Inactivas' },
+          ]}
+          onChange={(value) => {
+            setIsActive(value)
             setPage(1)
           }}
-          className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
-        >
-          <option value="true">Activas</option>
-          <option value="false">Inactivas</option>
-        </select>
-      </section>
+        />
+      </FilterBarRow>
       {conditions.isError && (
-        <p role="alert" className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <p
+          role="alert"
+          className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+        >
           No pudimos cargar el catálogo. {conditions.error.message}
         </p>
       )}
@@ -186,7 +206,7 @@ export default function HealthConditionsPage() {
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {
               const item = items[index]
-              if (item && canWrite) openEdit(item)
+              if (item) openView(item)
             }}
             emptyTitle={
               isActive === 'false'
@@ -215,8 +235,17 @@ export default function HealthConditionsPage() {
       </div>
       {formOpen && (
         <Dialog
-          title={editing ? 'Editar condición' : 'Nueva condición'}
+          title={
+            viewOnly
+              ? 'Ver Condición'
+              : editing
+                ? 'Editar Condición'
+                : 'Nueva Condición'
+          }
           description="Condiciones de salud disponibles para la organización."
+          icon={<HeartPulse className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={closeForm}
         >
           <HealthConditionForm
@@ -225,6 +254,8 @@ export default function HealthConditionsPage() {
             onSave={(values) => save.mutateAsync(values).then(() => undefined)}
             onCancel={closeForm}
             submitting={save.isPending}
+            readOnly={viewOnly}
+            onEdit={() => setViewOnly(false)}
           />
         </Dialog>
       )}

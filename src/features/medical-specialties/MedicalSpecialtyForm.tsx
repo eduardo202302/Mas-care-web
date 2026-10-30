@@ -2,8 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
 import { Stethoscope } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { FormActions } from '@/components/ui/FormActions'
+import { FormFields, FormFooter } from '@/components/ui/FormMode'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
@@ -14,6 +13,8 @@ import {
 } from '@/schemas/medicalSpecialty'
 
 export function MedicalSpecialtyForm({
+  readOnly = false,
+  onEdit,
   specialty,
   onSave,
   onCancel,
@@ -23,6 +24,10 @@ export function MedicalSpecialtyForm({
   onSave: (values: MedicalSpecialtyFormValues) => Promise<void>
   onCancel: () => void
   submitting?: boolean
+  /** Muestra el formulario bloqueado, como visor de la ficha. */
+  readOnly?: boolean
+  /** Desbloquea los campos desde el botón Editar del modo ver. */
+  onEdit?: () => void
 }) {
   const {
     register,
@@ -72,65 +77,56 @@ export function MedicalSpecialtyForm({
 
   return (
     <form onSubmit={handleSubmit(submit)} className="grid gap-5">
-      <ModalSection
-        icon={<Stethoscope className="size-4" />}
-        title="Datos de la Especialidad"
-        tone="mint"
-      >
-        <TextField
-          label="Nombre"
-          required
-          placeholder="Cardiología"
-          {...register('name')}
-          error={errors.name?.message}
-        />
-        <div className="grid gap-1.5">
-          <label
-            htmlFor="specialty-description"
-            className="text-ink text-sm font-medium"
-          >
-            Descripción
-          </label>
-          <textarea
-            id="specialty-description"
-            rows={1}
-            {...register('description')}
-            className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 resize-none rounded-lg border bg-white px-3 py-2 text-sm transition outline-none focus:ring-2"
+      <FormFields readOnly={readOnly}>
+        <ModalSection
+          icon={<Stethoscope className="size-4" />}
+          title="Datos de la Especialidad"
+          tone="mint"
+        >
+          <TextField
+            label="Nombre"
+            required
+            placeholder="Cardiología"
+            {...register('name')}
+            error={errors.name?.message}
           />
-          {errors.description?.message && (
-            <p className="text-xs text-red-700">{errors.description.message}</p>
-          )}
-        </div>
-      </ModalSection>
-      {errors.root?.server?.message && (
-        <p
-          role="alert"
-          className="rounded-lg bg-red-50 p-3 text-sm text-red-800"
-        >
-          {errors.root.server.message}
-        </p>
-      )}
-      <FormActions className="py-2.5">
-        <Button
-          type="button"
-          className="h-9 w-full sm:w-auto"
-          onClick={onCancel}
-        >
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          variant="primary"
-          className="h-9 w-full sm:w-auto"
-          disabled={submitting}
-        >
-          {submitting
-            ? 'Guardando…'
-            : specialty
-              ? 'Guardar cambios'
-              : 'Crear especialidad'}
-        </Button>
-      </FormActions>
+          <div className="grid gap-1.5">
+            <label
+              htmlFor="specialty-description"
+              className="text-ink text-sm font-medium"
+            >
+              Descripción
+            </label>
+            <textarea
+              id="specialty-description"
+              rows={1}
+              {...register('description')}
+              className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 resize-none rounded-lg border bg-white px-3 py-2 text-sm transition outline-none focus:ring-2"
+            />
+            {errors.description?.message && (
+              <p className="text-xs text-red-700">
+                {errors.description.message}
+              </p>
+            )}
+          </div>
+        </ModalSection>
+        {errors.root?.server?.message && (
+          <p
+            role="alert"
+            className="rounded-lg bg-red-50 p-3 text-sm text-red-800"
+          >
+            {errors.root.server.message}
+          </p>
+        )}
+      </FormFields>
+      <FormFooter
+        readOnly={readOnly}
+        onEdit={onEdit}
+        onClose={onCancel}
+        submitting={submitting}
+        submitLabel={specialty ? 'Guardar cambios' : 'Crear especialidad'}
+        compact
+      />
     </form>
   )
 }

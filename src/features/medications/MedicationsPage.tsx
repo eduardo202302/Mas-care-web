@@ -2,10 +2,12 @@ import { useMemo, useState } from 'react'
 import { ExportButton } from '@/components/ExportButton'
 import { ImportButton } from '@/components/ImportButton'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search } from 'lucide-react'
+import { Pill, Plus, Search } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Dialog } from '@/components/ui/Dialog'
+import { FilterBarRow, FilterSegmented } from '@/components/ui/AdvancedFilter'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { api } from '@/lib/http'
@@ -43,6 +45,7 @@ export default function MedicationsPage() {
     components['schemas']['Medication'] | null
   >(null)
   const [formOpen, setFormOpen] = useState(false)
+  const [viewOnly, setViewOnly] = useState(false)
 
   const filters = useMemo<MedicationQuery>(
     () => ({
@@ -113,6 +116,7 @@ export default function MedicationsPage() {
   function closeForm() {
     setFormOpen(false)
     setEditing(null)
+    setViewOnly(false)
   }
   function openCreate() {
     setEditing(null)
@@ -120,21 +124,34 @@ export default function MedicationsPage() {
   }
   function openEdit(item: components['schemas']['Medication']) {
     setEditing(item)
+    setViewOnly(false)
+    setFormOpen(true)
+  }
+  /** Doble clic en la fila: mismo formulario, pero bloqueado. */
+  function openView(item: components['schemas']['Medication']) {
+    setEditing(item)
+    setViewOnly(true)
     setFormOpen(true)
   }
 
-  const items = applyColumnSort(medications.data?.data ?? [], sort, (item, index) =>
-    index === 0
-      ? item.brandName || item.genericName || item.activeIngredient || 'Medicamento'
-      : index === 1
-        ? item.activeIngredient || item.genericName || ''
-        : index === 2
-          ? item.presentation
-          : index === 3
-            ? item.unitsPerPackage
-            : item.archivedAt
-              ? 1
-              : 0,
+  const items = applyColumnSort(
+    medications.data?.data ?? [],
+    sort,
+    (item, index) =>
+      index === 0
+        ? item.brandName ||
+          item.genericName ||
+          item.activeIngredient ||
+          'Medicamento'
+        : index === 1
+          ? item.activeIngredient || item.genericName || ''
+          : index === 2
+            ? item.presentation
+            : index === 3
+              ? item.unitsPerPackage
+              : item.archivedAt
+                ? 1
+                : 0,
   )
   const tableRows = items.map((item) => [
     <span key="name" className="text-petroleo font-semibold">
@@ -176,29 +193,29 @@ export default function MedicationsPage() {
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
-      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">Catálogo</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Medicamentos
-          </h1>
-          <p className="text-muted mt-2 text-sm">
-            Presentaciones y unidades registradas para la organización.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <ImportButton entity="medications" />
-          <ExportButton entity="medications" filters={{ q: search.trim() }} />
-          {canCreate && (
-            <Button variant="primary" onClick={openCreate}>
-              <Plus className="size-4" />
-              Nuevo medicamento
-            </Button>
-          )}
-        </div>
-      </div>
-      <section className="border-border mb-4 flex shrink-0 flex-wrap items-center gap-3 rounded-xl border bg-white p-4">
-        <label className="relative min-w-56 flex-1">
+      <PageHeader
+        title="Medicamentos"
+        subtitle="Presentaciones y unidades registradas para la organización."
+        actions={
+          <>
+            <div className="flex flex-wrap gap-2">
+              <ImportButton entity="medications" />
+              <ExportButton
+                entity="medications"
+                filters={{ q: search.trim() }}
+              />
+              {canCreate && (
+                <Button variant="primary" onClick={openCreate}>
+                  <Plus className="size-4" />
+                  Nuevo medicamento
+                </Button>
+              )}
+            </div>
+          </>
+        }
+      />
+      <FilterBarRow aria-label="Filtros">
+        <label className="relative min-w-[220px] flex-1">
           <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <input
             aria-label="Buscar medicamentos"
@@ -211,19 +228,19 @@ export default function MedicationsPage() {
             className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
           />
         </label>
-        <select
-          aria-label="Filtrar medicamentos archivados"
+        <FilterSegmented<'true' | 'false'>
+          label="Filtrar medicamentos archivados"
           value={archived}
-          onChange={(event) => {
-            setArchived(event.target.value as 'true' | 'false')
+          options={[
+            { value: 'true', label: 'Activos' },
+            { value: 'false', label: 'Archivados' },
+          ]}
+          onChange={(value) => {
+            setArchived(value)
             setPage(1)
           }}
-          className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
-        >
-          <option value="false">Activos</option>
-          <option value="true">Archivados</option>
-        </select>
-      </section>
+        />
+      </FilterBarRow>
       {medications.isError && (
         <p
           role="alert"
@@ -251,7 +268,7 @@ export default function MedicationsPage() {
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {
               const item = items[index]
-              if (item && canUpdate) openEdit(item)
+              if (item) openView(item)
             }}
             emptyTitle={
               archived === 'true'
@@ -280,8 +297,17 @@ export default function MedicationsPage() {
       </div>
       {formOpen && (
         <Dialog
-          title={editing ? 'Editar medicamento' : 'Nuevo medicamento'}
+          title={
+            viewOnly
+              ? 'Ver Medicamento'
+              : editing
+                ? 'Editar Medicamento'
+                : 'Nuevo Medicamento'
+          }
           description="Registra los datos de presentación del producto."
+          icon={<Pill className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={closeForm}
         >
           <MedicationForm
@@ -290,6 +316,8 @@ export default function MedicationsPage() {
             onSave={(values) => save.mutateAsync(values).then(() => undefined)}
             onCancel={closeForm}
             submitting={save.isPending}
+            readOnly={viewOnly}
+            onEdit={() => setViewOnly(false)}
           />
         </Dialog>
       )}

@@ -1,15 +1,27 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Building2, Plus, Stethoscope, X } from 'lucide-react'
+import {
+  ArrowLeft,
+  Building2,
+  FileText,
+  Plus,
+  Stethoscope,
+  UserRound,
+  Users,
+  X,
+} from 'lucide-react'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { TextField } from '@/components/ui/TextField'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { InfoCard, InfoFact } from '@/components/ui/InfoCard'
 import { api, ApiError } from '@/lib/http'
 import { useCan } from '@/lib/permissions'
+import { formatPhone } from '@/lib/phone'
 import type { components, paths } from '@/lib/api-types'
 import type { DoctorFormValues } from '@/schemas/doctor'
 import { DoctorForm } from './DoctorForm'
@@ -32,26 +44,6 @@ type DoctorPatientLink = components['schemas']['PatientDoctorLink'] & {
   patient: { id: string; fullName: string; phone: string | null }
 }
 type DoctorPatientList = { data: DoctorPatientLink[] }
-
-function Panel({
-  title,
-  action,
-  children,
-}: {
-  title: string
-  action?: React.ReactNode
-  children: React.ReactNode
-}) {
-  return (
-    <section className="border-border rounded-xl border bg-white p-5">
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <h2 className="text-petroleo font-semibold">{title}</h2>
-        {action}
-      </div>
-      {children}
-    </section>
-  )
-}
 
 export default function DoctorDetailPage() {
   const { id = '' } = useParams()
@@ -150,7 +142,8 @@ export default function DoctorDetailPage() {
         `/api/v1/doctors/${encodeURIComponent(id)}/specialties/${encodeURIComponent(specialtyId)}`,
         { method: 'DELETE' },
       ),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['doctors', id] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['doctors', id] }),
   })
   const addCenter = useMutation({
     mutationFn: () =>
@@ -182,7 +175,8 @@ export default function DoctorDetailPage() {
         `/api/v1/doctors/${encodeURIComponent(id)}/medical-centers/${encodeURIComponent(medicalCenterId)}`,
         { method: 'PATCH', body: JSON.stringify({ isActive: false }) },
       ),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['doctors', id] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['doctors', id] }),
   })
 
   function closeCenterDialog() {
@@ -214,19 +208,26 @@ export default function DoctorDetailPage() {
           <ArrowLeft className="size-4" />
           Volver a médicos
         </Link>
-        <p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">
+        <p
+          role="alert"
+          className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800"
+        >
           No pudimos cargar este médico. {doctor.error?.message}
         </p>
       </div>
     )
 
   const record = doctor.data
-  const linkedSpecialtyIds = new Set(record.specialties.map((link) => link.specialty.id))
+  const linkedSpecialtyIds = new Set(
+    record.specialties.map((link) => link.specialty.id),
+  )
   const availableSpecialties = (specialties.data?.data ?? []).filter(
     (specialty) => !linkedSpecialtyIds.has(specialty.id),
   )
   const activeCenters = record.medicalCenters.filter((link) => link.isActive)
-  const linkedCenterIds = new Set(activeCenters.map((link) => link.medicalCenterId))
+  const linkedCenterIds = new Set(
+    activeCenters.map((link) => link.medicalCenterId),
+  )
   const availableCenters = (centers.data?.data ?? []).filter(
     (center) => !linkedCenterIds.has(center.id),
   )
@@ -241,168 +242,228 @@ export default function DoctorDetailPage() {
         <ArrowLeft className="size-4" />
         Médicos
       </Link>
-      <header className="mb-4 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-tealmax text-sm">Ficha del médico</p>
-          <h1 className="font-display text-petroleo text-2xl font-bold tracking-tight">
-            {record.lastName}, {record.firstName}
-          </h1>
-          <p className="text-muted mt-1 text-sm">
-            {record.licenseNumber ? `Colegiatura ${record.licenseNumber}` : 'Sin colegiatura'}
-          </p>
-        </div>
-        {canWrite && (
-          <Button variant="primary" onClick={() => setEditing(true)}>
-            Editar
-          </Button>
-        )}
-      </header>
+      <PageHeader
+        title={`${record.firstName} ${record.lastName}`}
+        subtitle={
+          record.licenseNumber
+            ? `Colegiatura ${record.licenseNumber}`
+            : 'Sin colegiatura'
+        }
+        actions={
+          canWrite ? (
+            <Button variant="primary" onClick={() => setEditing(true)}>
+              Editar
+            </Button>
+          ) : undefined
+        }
+      />
       {!record.isActive && (
         <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
           Este médico está inactivo.
         </p>
       )}
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(260px,0.9fr)_minmax(320px,1.3fr)]">
-        <div className="grid gap-4">
-          <Panel title="Datos de contacto">
-            <dl className="grid gap-3 text-sm">
-              <div>
-                <dt className="text-muted">Teléfono</dt>
-                <dd className="mt-0.5">{record.phone || 'Sin teléfono'}</dd>
-              </div>
-              <div>
-                <dt className="text-muted">Correo</dt>
-                <dd className="mt-0.5">{record.email || 'Sin correo'}</dd>
-              </div>
-              <div>
-                <dt className="text-muted">Notas</dt>
-                <dd className="mt-0.5 whitespace-pre-wrap">{record.notes || 'Sin notas'}</dd>
-              </div>
-            </dl>
-          </Panel>
-          <Panel title="Pacientes asociados">
-            {patients.isLoading ? (
-              <Skeleton className="h-10 w-full" />
-            ) : patientLinks.length ? (
-              <ul className="grid gap-3">
-                {patientLinks.map((link) => (
-                  <li
-                    key={link.id}
-                    className="border-border border-b pb-3 last:border-0 last:pb-0"
-                  >
-                    <Link
-                      to={`/pacientes/${encodeURIComponent(link.patient.id)}`}
-                      className="text-petroleo hover:text-tealmax text-sm font-semibold hover:underline"
+      <div className="grid gap-4 lg:grid-cols-2">
+        <InfoCard
+          icon={<UserRound className="size-4" />}
+          title="Datos de Contacto"
+          badge={record.isActive ? 'Activo' : 'Inactivo'}
+          className="lg:col-span-2"
+        >
+          <div className="flex items-center gap-4">
+            <span className="bg-tealmax/10 text-petroleo grid size-14 shrink-0 place-items-center rounded-full text-lg font-bold">
+              {record.firstName.slice(0, 1).toLocaleUpperCase('es')}
+              {record.lastName.slice(0, 1).toLocaleUpperCase('es')}
+            </span>
+            <div className="min-w-0">
+              <p className="text-petroleo truncate text-lg font-semibold">
+                {record.firstName} {record.lastName}
+              </p>
+              <p className="text-muted truncate text-sm">
+                {record.licenseNumber
+                  ? `Colegiatura ${record.licenseNumber}`
+                  : 'Sin colegiatura'}
+              </p>
+            </div>
+          </div>
+          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <InfoFact
+              label="Teléfono"
+              value={record.phone ? formatPhone(record.phone) : 'Sin teléfono'}
+            />
+            <InfoFact label="Correo" value={record.email || 'Sin correo'} />
+          </dl>
+        </InfoCard>
+
+        <InfoCard
+          icon={<Stethoscope className="size-4" />}
+          title="Especialidades"
+          badge={
+            record.specialties.length
+              ? String(record.specialties.length)
+              : undefined
+          }
+          action={
+            canWrite ? (
+              <Button
+                className="h-8 px-2.5 text-xs"
+                onClick={() => setSpecialtyDialogOpen(true)}
+              >
+                <Plus className="size-3.5" />
+                Agregar
+              </Button>
+            ) : undefined
+          }
+        >
+          {record.specialties.length ? (
+            <ul className="flex flex-wrap gap-2">
+              {record.specialties.map((link) => (
+                <li
+                  key={link.specialty.id}
+                  className="border-border text-ink flex items-center gap-1.5 rounded-full border bg-white px-3 py-1 text-sm"
+                >
+                  {link.specialty.name}
+                  {canWrite && (
+                    <button
+                      type="button"
+                      aria-label={`Quitar ${link.specialty.name}`}
+                      onClick={() => removeSpecialty.mutate(link.specialty.id)}
+                      className="text-muted hover:text-red-600"
                     >
-                      {link.patient.fullName}
-                      {link.isPrimary ? ' · Principal' : ''}
-                    </Link>
-                    <p className="text-muted mt-0.5 text-xs">
-                      {link.patient.phone || 'Sin teléfono'}
+                      <X className="size-3.5" />
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted text-sm">Sin especialidades asignadas.</p>
+          )}
+        </InfoCard>
+
+        <InfoCard
+          icon={<Building2 className="size-4" />}
+          title="Centros Médicos"
+          badge={
+            activeCenters.length ? String(activeCenters.length) : undefined
+          }
+          action={
+            canWrite ? (
+              <Button
+                className="h-8 px-2.5 text-xs"
+                onClick={() => setCenterDialogOpen(true)}
+              >
+                <Plus className="size-3.5" />
+                Agregar
+              </Button>
+            ) : undefined
+          }
+        >
+          {activeCenters.length ? (
+            <ul className="grid gap-2">
+              {activeCenters.map((link) => (
+                <li
+                  key={link.id}
+                  className="border-border flex items-start justify-between gap-2 rounded-lg border bg-white px-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <p className="text-ink text-sm font-semibold">
+                      {link.medicalCenter.name}
                     </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted text-sm">Sin pacientes asociados.</p>
-            )}
-          </Panel>
-        </div>
-        <div className="grid gap-4">
-          <Panel
-            title="Especialidades"
-            action={
-              canWrite && (
-                <Button
-                  className="h-8 px-2 text-xs"
-                  onClick={() => setSpecialtyDialogOpen(true)}
+                    <p className="text-muted mt-0.5 text-xs">
+                      {[
+                        link.position,
+                        link.officeNumber ? `Cons. ${link.officeNumber}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ') || 'Sin detalles adicionales'}
+                    </p>
+                  </div>
+                  {canWrite && (
+                    <button
+                      type="button"
+                      aria-label={`Quitar ${link.medicalCenter.name}`}
+                      onClick={() => removeCenter.mutate(link.medicalCenterId)}
+                      className="text-muted hover:text-red-600"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted text-sm">Sin centros médicos asignados.</p>
+          )}
+        </InfoCard>
+
+        <InfoCard
+          icon={<Users className="size-4" />}
+          title="Pacientes Asociados"
+          badge={patientLinks.length ? String(patientLinks.length) : undefined}
+          className="lg:col-span-2"
+        >
+          {patients.isLoading ? (
+            <Skeleton className="h-10 w-full" />
+          ) : patientLinks.length ? (
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {patientLinks.map((link) => (
+                <li
+                  key={link.id}
+                  className="border-border flex items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2"
                 >
-                  <Plus className="size-3.5" />
-                  Agregar
-                </Button>
-              )
-            }
-          >
-            {record.specialties.length ? (
-              <ul className="flex flex-wrap gap-2">
-                {record.specialties.map((link) => (
-                  <li
-                    key={link.specialty.id}
-                    className="bg-surface text-ink flex items-center gap-1.5 rounded-full px-3 py-1 text-sm"
+                  <Link
+                    to={`/pacientes/${encodeURIComponent(link.patient.id)}`}
+                    className="text-petroleo hover:text-tealmax min-w-0 truncate text-sm font-semibold hover:underline"
                   >
-                    {link.specialty.name}
-                    {canWrite && (
-                      <button
-                        type="button"
-                        aria-label={`Quitar ${link.specialty.name}`}
-                        onClick={() => removeSpecialty.mutate(link.specialty.id)}
-                        className="text-muted hover:text-red-600"
-                      >
-                        <X className="size-3.5" />
-                      </button>
+                    {link.patient.fullName}
+                  </Link>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {link.isPrimary && (
+                      <span className="rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-700">
+                        Principal
+                      </span>
                     )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted text-sm">Sin especialidades asignadas.</p>
-            )}
-          </Panel>
-          <Panel
-            title="Centros médicos"
-            action={
-              canWrite && (
-                <Button
-                  className="h-8 px-2 text-xs"
-                  onClick={() => setCenterDialogOpen(true)}
-                >
-                  <Plus className="size-3.5" />
-                  Agregar
-                </Button>
-              )
-            }
+                    <span className="text-muted text-xs">
+                      {link.patient.phone
+                        ? formatPhone(link.patient.phone)
+                        : 'Sin teléfono'}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted text-sm">Sin pacientes asociados.</p>
+          )}
+        </InfoCard>
+
+        {record.notes && (
+          <InfoCard
+            icon={<FileText className="size-4" />}
+            title="Notas"
+            className="lg:col-span-2"
           >
-            {activeCenters.length ? (
-              <ul className="grid gap-3">
-                {activeCenters.map((link) => (
-                  <li
-                    key={link.id}
-                    className="border-border flex items-start justify-between gap-2 border-b pb-3 last:border-0 last:pb-0"
-                  >
-                    <div>
-                      <p className="text-ink text-sm font-semibold">
-                        {link.medicalCenter.name}
-                      </p>
-                      <p className="text-muted mt-0.5 text-xs">
-                        {[link.position, link.officeNumber ? `Cons. ${link.officeNumber}` : null]
-                          .filter(Boolean)
-                          .join(' · ') || 'Sin detalles adicionales'}
-                      </p>
-                    </div>
-                    {canWrite && (
-                      <button
-                        type="button"
-                        aria-label={`Quitar ${link.medicalCenter.name}`}
-                        onClick={() => removeCenter.mutate(link.medicalCenterId)}
-                        className="text-muted hover:text-red-600"
-                      >
-                        <X className="size-4" />
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted text-sm">Sin centros médicos asignados.</p>
-            )}
-          </Panel>
-        </div>
+            <p className="text-ink text-sm whitespace-pre-wrap">
+              {record.notes}
+            </p>
+          </InfoCard>
+        )}
       </div>
       {editing && (
-        <Dialog title="Editar médico" description="Actualiza los datos del médico." onClose={() => setEditing(false)} size="lg">
+        <Dialog
+          title="Editar Médico"
+          description="Actualiza los datos del médico."
+          icon={<UserRound className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
+          onClose={() => setEditing(false)}
+          size="lg"
+        >
           <DoctorForm
             doctor={record}
-            onSave={(values) => update.mutateAsync(values).then(() => undefined)}
+            onSave={(values) =>
+              update.mutateAsync(values).then(() => undefined)
+            }
             onCancel={() => setEditing(false)}
             submitting={update.isPending}
           />
@@ -410,8 +471,11 @@ export default function DoctorDetailPage() {
       )}
       {specialtyDialogOpen && (
         <Dialog
-          title="Agregar especialidad"
+          title="Agregar Especialidad"
           description="Selecciona una especialidad para asignarla a este médico."
+          icon={<Stethoscope className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={() => setSpecialtyDialogOpen(false)}
         >
           <form
@@ -421,16 +485,25 @@ export default function DoctorDetailPage() {
               if (selectedSpecialtyId) addSpecialty.mutate(selectedSpecialtyId)
             }}
           >
-            <ModalSection icon={<Stethoscope className="size-4" />} title="Especialidad" tone="mint">
+            <ModalSection
+              icon={<Stethoscope className="size-4" />}
+              title="Especialidad"
+              tone="mint"
+            >
               <div className="grid gap-1.5">
-                <label htmlFor="specialty-select" className="text-ink text-sm font-medium">
+                <label
+                  htmlFor="specialty-select"
+                  className="text-ink text-sm font-medium"
+                >
                   Especialidad
                 </label>
                 <select
                   id="specialty-select"
                   required
                   value={selectedSpecialtyId}
-                  onChange={(event) => setSelectedSpecialtyId(event.target.value)}
+                  onChange={(event) =>
+                    setSelectedSpecialtyId(event.target.value)
+                  }
                   className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
                 >
                   <option value="">Selecciona una especialidad…</option>
@@ -450,7 +523,11 @@ export default function DoctorDetailPage() {
               </p>
             )}
             <FormActions>
-              <Button type="button" className="w-full sm:w-auto" onClick={() => setSpecialtyDialogOpen(false)}>
+              <Button
+                type="button"
+                className="w-full sm:w-auto"
+                onClick={() => setSpecialtyDialogOpen(false)}
+              >
                 Cancelar
               </Button>
               <Button
@@ -467,8 +544,11 @@ export default function DoctorDetailPage() {
       )}
       {centerDialogOpen && (
         <Dialog
-          title="Agregar centro médico"
+          title="Agregar Centro Médico"
           description="Asocia este médico a un centro médico activo."
+          icon={<Building2 className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={closeCenterDialog}
         >
           <form
@@ -479,9 +559,16 @@ export default function DoctorDetailPage() {
               addCenter.mutate()
             }}
           >
-            <ModalSection icon={<Building2 className="size-4" />} title="Centro médico" tone="mint">
+            <ModalSection
+              icon={<Building2 className="size-4" />}
+              title="Centro médico"
+              tone="mint"
+            >
               <div className="grid gap-1.5">
-                <label htmlFor="center-select" className="text-ink text-sm font-medium">
+                <label
+                  htmlFor="center-select"
+                  className="text-ink text-sm font-medium"
+                >
                   Centro médico
                 </label>
                 <select
@@ -489,7 +576,10 @@ export default function DoctorDetailPage() {
                   required
                   value={centerForm.medicalCenterId}
                   onChange={(event) =>
-                    setCenterForm((current) => ({ ...current, medicalCenterId: event.target.value }))
+                    setCenterForm((current) => ({
+                      ...current,
+                      medicalCenterId: event.target.value,
+                    }))
                   }
                   className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
                 >
@@ -506,28 +596,40 @@ export default function DoctorDetailPage() {
                   label="Posición"
                   value={centerForm.position}
                   onChange={(event) =>
-                    setCenterForm((current) => ({ ...current, position: event.target.value }))
+                    setCenterForm((current) => ({
+                      ...current,
+                      position: event.target.value,
+                    }))
                   }
                 />
                 <TextField
                   label="Consultorio"
                   value={centerForm.officeNumber}
                   onChange={(event) =>
-                    setCenterForm((current) => ({ ...current, officeNumber: event.target.value }))
+                    setCenterForm((current) => ({
+                      ...current,
+                      officeNumber: event.target.value,
+                    }))
                   }
                 />
                 <TextField
                   label="Extensión telefónica"
                   value={centerForm.phoneExtension}
                   onChange={(event) =>
-                    setCenterForm((current) => ({ ...current, phoneExtension: event.target.value }))
+                    setCenterForm((current) => ({
+                      ...current,
+                      phoneExtension: event.target.value,
+                    }))
                   }
                 />
                 <TextField
                   label="Notas de horario"
                   value={centerForm.scheduleNotes}
                   onChange={(event) =>
-                    setCenterForm((current) => ({ ...current, scheduleNotes: event.target.value }))
+                    setCenterForm((current) => ({
+                      ...current,
+                      scheduleNotes: event.target.value,
+                    }))
                   }
                 />
               </div>
@@ -538,7 +640,11 @@ export default function DoctorDetailPage() {
               </p>
             )}
             <FormActions>
-              <Button type="button" className="w-full sm:w-auto" onClick={closeCenterDialog}>
+              <Button
+                type="button"
+                className="w-full sm:w-auto"
+                onClick={closeCenterDialog}
+              >
                 Cancelar
               </Button>
               <Button

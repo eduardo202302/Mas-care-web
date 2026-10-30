@@ -175,7 +175,7 @@ export function DeliveryDialog({
         )}
         <label className="grid gap-1.5">
           <span className="text-ink text-sm font-medium">
-            Notas <span className="text-muted font-normal">(opcional)</span>
+            Notas <span className="text-muted font-normal">(Opcional)</span>
           </span>
           <textarea
             value={notes}

@@ -143,13 +143,13 @@ test('panel del día, aviso, entrega idempotente, tareas y plantillas', async ({
   const templateName = `Aviso Operación ${suffix}`
   await page.goto('/ajustes/plantillas')
   await page.getByRole('button', { name: 'Nueva plantilla' }).first().click()
-  const templateDialog = page.getByRole('dialog', { name: 'Nueva plantilla' })
-  await templateDialog.getByLabel('Nombre de la plantilla').fill(templateName)
+  const templateDialog = page.getByRole('dialog', { name: 'Nueva Plantilla' })
+  await templateDialog.getByLabel('Nombre de la Plantilla').fill(templateName)
   await templateDialog
     .getByLabel('Mensaje')
     .fill('Hola {{paciente}}, retira {{medicamento}} en {{farmacia}}.')
   await templateDialog
-    .getByRole('button', { name: 'Guardar plantilla' })
+    .getByRole('button', { name: 'Guardar Plantilla' })
     .click()
   await expect(templateDialog).toBeHidden()
   await expect(page.getByText(templateName)).toBeVisible()

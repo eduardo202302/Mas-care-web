@@ -51,13 +51,13 @@ describe('PatientForm', () => {
       </QueryClientProvider>,
     )
     const user = userEvent.setup()
-    await user.type(screen.getByLabelText('Nombre completo'), 'Paciente Demo')
-    await user.click(screen.getByRole('button', { name: 'Crear paciente' }))
+    await user.type(screen.getByLabelText('Nombre Completo'), 'Paciente Demo')
+    await user.click(screen.getByRole('button', { name: 'Crear Paciente' }))
     expect(
       await screen.findByText('Ya existe una ficha con ese nombre.'),
     ).toBeInTheDocument()
     expect(screen.getByText('La sucursal no está activa.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Nombre completo')).toHaveAttribute(
+    expect(screen.getByLabelText('Nombre Completo')).toHaveAttribute(
       'aria-invalid',
       'true',
     )

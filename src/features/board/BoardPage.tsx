@@ -2,13 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { ExportButton } from '@/components/ExportButton'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import {
-  LayoutGrid,
-  List,
-  RefreshCw,
-  TriangleAlert,
-} from 'lucide-react'
+import { LayoutGrid, List, RefreshCw, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { EmptyState } from '@/components/EmptyState'
 import { usePipeline } from '@/lib/pipeline'
 import { NewCycleDialog } from './NewCycleDialog'
@@ -39,7 +35,11 @@ import {
   moveCycle,
 } from './board-api'
 import { BoardFilters as BoardFilterBar } from './BoardFilters'
-import { BoardNoticeDialog, ChangeExpectedDateDialog, StockOutDialog } from './BoardDialogs'
+import {
+  BoardNoticeDialog,
+  ChangeExpectedDateDialog,
+  StockOutDialog,
+} from './BoardDialogs'
 import { CycleCard } from './CycleCard'
 import { CycleTable } from './CycleTable'
 import { IncidentFormDialog } from '@/features/incidents/IncidentFormDialog'
@@ -53,11 +53,14 @@ export default function BoardPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { data: me } = useMe()
   const { data: pipeline } = usePipeline()
-  const [newCycleFor, setNewCycleFor] = useState<BoardColumnKey | 'top' | null>(null)
+  const [newCycleFor, setNewCycleFor] = useState<BoardColumnKey | 'top' | null>(
+    null,
+  )
   const canCreateCycle = useCan('treatments:write')
   const boardView = useUiStore((state) => state.boardView)
   const setBoardView = useUiStore((state) => state.setBoardView)
-  const [tableControlsSlot, setTableControlsSlot] = useState<HTMLDivElement | null>(null)
+  const [tableControlsSlot, setTableControlsSlot] =
+    useState<HTMLDivElement | null>(null)
 
   const canMove = useCan('cycle:move')
   const canEditDate = useCan('cycle:edit-date')
@@ -71,7 +74,8 @@ export default function BoardPage() {
   )
   const privileged = me?.role === 'owner' || me?.role === 'admin'
   const branches = me?.branches ?? []
-  const lockedBranch = !privileged && branches.length === 1 ? branches[0]?.id : undefined
+  const lockedBranch =
+    !privileged && branches.length === 1 ? branches[0]?.id : undefined
   const defaultBranch =
     !privileged && branches.length > 0 ? branches[0]?.id : undefined
   const effectiveFilters = useMemo<BoardFilters>(
@@ -113,7 +117,9 @@ export default function BoardPage() {
     enabled: branchReady,
   })
 
-  const [loadingColumn, setLoadingColumn] = useState<BoardColumnKey | null>(null)
+  const [loadingColumn, setLoadingColumn] = useState<BoardColumnKey | null>(
+    null,
+  )
   const [noticeCard, setNoticeCard] = useState<BoardCard | null>(null)
   const [deliveryCard, setDeliveryCard] = useState<BoardCard | null>(null)
   const [dateCard, setDateCard] = useState<BoardCard | null>(null)
@@ -171,7 +177,10 @@ export default function BoardPage() {
         return
       }
       if (error instanceof ApiError && error.status === 409) {
-        toast.push('Alguien movió esta tarjeta. Actualizamos el tablero.', 'warning')
+        toast.push(
+          'Alguien movió esta tarjeta. Actualizamos el tablero.',
+          'warning',
+        )
         void queryClient.invalidateQueries({ queryKey: ['board'] })
         return
       }
@@ -190,7 +199,10 @@ export default function BoardPage() {
         }
       }
       if (result.incident_id) {
-        toast.push('Se creó una incidencia por falta de existencias.', 'warning')
+        toast.push(
+          'Se creó una incidencia por falta de existencias.',
+          'warning',
+        )
       }
     },
     onSettled: (_data, _error, variables) => {
@@ -252,7 +264,12 @@ export default function BoardPage() {
           previous ? appendColumnPage(previous, status, page) : previous,
       )
     } catch (error) {
-      toast.push(error instanceof Error ? error.message : 'No pudimos cargar más tarjetas.', 'error')
+      toast.push(
+        error instanceof Error
+          ? error.message
+          : 'No pudimos cargar más tarjetas.',
+        'error',
+      )
     } finally {
       setLoadingColumn(null)
     }
@@ -329,19 +346,11 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="animate-in flex h-full min-h-0 -mt-4 flex-col">
-      <div className="mb-3 shrink-0">
-        <p className="text-tealmax mb-1 text-sm font-medium">
-          Operación diaria
-        </p>
-        <h1 className="font-display text-petroleo text-2xl font-bold tracking-tight sm:text-3xl">
-          Tablero de Reposiciones
-        </h1>
-        <p className="text-muted mt-1 text-sm whitespace-nowrap">
-          Mueve cada ciclo por avisar, avisado, confirmado y preparado. La
-          columna de entregados no admite arrastre.
-        </p>
-      </div>
+    <div className="animate-in -mt-4 flex h-full min-h-0 flex-col">
+      <PageHeader
+        title="Tablero de Reposiciones"
+        subtitle="Mueve cada ciclo por avisar, avisado, confirmado y preparado. La columna de entregados no admite arrastre."
+      />
 
       <nav
         role="tablist"
@@ -357,7 +366,7 @@ export default function BoardPage() {
             className={`flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-semibold transition ${
               view === 'board'
                 ? 'border-tealmax text-petroleo'
-                : 'border-transparent text-muted hover:text-ink'
+                : 'text-muted hover:text-ink border-transparent'
             }`}
           >
             <LayoutGrid className="size-3.5" />
@@ -371,14 +380,17 @@ export default function BoardPage() {
             className={`flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-semibold transition ${
               view === 'table'
                 ? 'border-tealmax text-petroleo'
-                : 'border-transparent text-muted hover:text-ink'
+                : 'text-muted hover:text-ink border-transparent'
             }`}
           >
             <List className="size-3.5" />
             Tabla
           </button>
         </div>
-        <div ref={setTableControlsSlot} className="flex items-center gap-2 pb-2" />
+        <div
+          ref={setTableControlsSlot}
+          className="flex items-center gap-2 pb-2"
+        />
       </nav>
 
       <BoardFilterBar
@@ -397,7 +409,11 @@ export default function BoardPage() {
               />
             )}
             {canCreateCycle && (
-              <Button type="button" variant="primary" onClick={() => setNewCycleFor('top')}>
+              <Button
+                type="button"
+                variant="primary"
+                onClick={() => setNewCycleFor('top')}
+              >
                 + Crear nuevo
               </Button>
             )}
@@ -411,7 +427,9 @@ export default function BoardPage() {
               }}
               disabled={board.isFetching}
             >
-              <RefreshCw className={`size-4 ${board.isFetching ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`size-4 ${board.isFetching ? 'animate-spin' : ''}`}
+              />
             </Button>
           </div>
         }
@@ -431,72 +449,78 @@ export default function BoardPage() {
 
       {/* Only the table view is height-constrained so its body scrolls internally; the kanban view keeps growing with the page. */}
       <div className={view === 'table' ? 'min-h-0 flex-1' : undefined}>
-      {view === 'table' ? (
-        <CycleTable
-          filters={effectiveFilters}
-          canMove={canMove}
-          canWrite={canWrite}
-          onBoardFiltersChange={updateFilters}
-          onMove={(card, to) => moveFromMenu(card, to)}
-          onOpenCard={(card) => navigate(`/pacientes/${card.patient.id}`)}
-          controlsSlot={tableControlsSlot}
-        />
-      ) : board.isLoading || !branchReady ? (
-        <div
-          className="flex gap-4 overflow-hidden"
-          role="status"
-          aria-busy="true"
-          aria-label="Cargando tablero…"
-        >
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div
-              key={index}
-              className="border-border w-[min(85vw,300px)] shrink-0 rounded-xl border bg-white p-3 xl:w-auto xl:flex-1"
-            >
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="mt-2 h-3 w-24" />
-              {Array.from({ length: 3 }).map((__, cardIndex) => (
-                <Skeleton key={cardIndex} className="mt-3 h-40 w-full rounded-xl" />
-              ))}
-            </div>
-          ))}
-        </div>
-      ) : board.data && board.data.totals.open + board.data.totals.closed === 0 ? (
-        <EmptyState
-          title="El tablero está vacío"
-          description="Cuando haya ciclos de reposición para esta sucursal, aparecerán aquí."
-        />
-      ) : (
-        <KanbanBoard<BoardCard>
-          columns={columns}
-          getId={(card) => card.cycle_id}
-          getLabel={(card) => `${card.patient.nombre}, ${card.medication.nombre}`}
-          canDragItem={(card, columnKey) =>
-            canMove && columnKey !== 'closed' && isOpenCycle(card)
-          }
-          onMove={handleMove}
-          testIdPrefix="board"
-          ariaLabel="Tablero de Reposiciones"
-          renderCard={(card, options) => (
-            <CycleCard
-              card={card}
-              canMove={canMove}
-              canEditDate={canEditDate}
-              canWrite={canWrite}
-              canCreateIncident={canCreateIncident}
-              canMarkStock={canMarkStock}
-              dragHandleProps={options.dragHandleProps}
-              onNotice={() => setNoticeCard(card)}
-              onDeliver={() => setDeliveryCard(card)}
-              onNotPickedUp={() => notPickedUp.mutate(card)}
-              onChangeDate={() => setDateCard(card)}
-              onCreateIncident={() => setIncidentCard(card)}
-              onMoveTo={(to) => moveFromMenu(card, to)}
-              onUpdateStock={() => setStockCard(card)}
-            />
-          )}
-        />
-      )}
+        {view === 'table' ? (
+          <CycleTable
+            filters={effectiveFilters}
+            canMove={canMove}
+            canWrite={canWrite}
+            onBoardFiltersChange={updateFilters}
+            onMove={(card, to) => moveFromMenu(card, to)}
+            onOpenCard={(card) => navigate(`/pacientes/${card.patient.id}`)}
+            controlsSlot={tableControlsSlot}
+          />
+        ) : board.isLoading || !branchReady ? (
+          <div
+            className="flex gap-4 overflow-hidden"
+            role="status"
+            aria-busy="true"
+            aria-label="Cargando tablero…"
+          >
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div
+                key={index}
+                className="border-border w-[min(85vw,300px)] shrink-0 rounded-xl border bg-white p-3 xl:w-auto xl:flex-1"
+              >
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="mt-2 h-3 w-24" />
+                {Array.from({ length: 3 }).map((__, cardIndex) => (
+                  <Skeleton
+                    key={cardIndex}
+                    className="mt-3 h-40 w-full rounded-xl"
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : board.data &&
+          board.data.totals.open + board.data.totals.closed === 0 ? (
+          <EmptyState
+            title="El tablero está vacío"
+            description="Cuando haya ciclos de reposición para esta sucursal, aparecerán aquí."
+          />
+        ) : (
+          <KanbanBoard<BoardCard>
+            columns={columns}
+            getId={(card) => card.cycle_id}
+            getLabel={(card) =>
+              `${card.patient.nombre}, ${card.medication.nombre}`
+            }
+            canDragItem={(card, columnKey) =>
+              canMove && columnKey !== 'closed' && isOpenCycle(card)
+            }
+            onMove={handleMove}
+            testIdPrefix="board"
+            ariaLabel="Tablero de Reposiciones"
+            renderCard={(card, options) => (
+              <CycleCard
+                card={card}
+                canMove={canMove}
+                canEditDate={canEditDate}
+                canWrite={canWrite}
+                canCreateIncident={canCreateIncident}
+                canMarkStock={canMarkStock}
+                dragHandleProps={options.dragHandleProps}
+                onNotice={() => setNoticeCard(card)}
+                onDeliver={() => setDeliveryCard(card)}
+                onNotPickedUp={() => notPickedUp.mutate(card)}
+                onChangeDate={() => setDateCard(card)}
+                onCreateIncident={() => setIncidentCard(card)}
+                onMoveTo={(to) => moveFromMenu(card, to)}
+                onUpdateStock={() => setStockCard(card)}
+              />
+            )}
+          />
+        )}
       </div>
 
       {!canMove && view === 'board' && board.data && (
@@ -507,7 +531,10 @@ export default function BoardPage() {
       )}
 
       {noticeCard && (
-        <BoardNoticeDialog card={noticeCard} onClose={() => setNoticeCard(null)} />
+        <BoardNoticeDialog
+          card={noticeCard}
+          onClose={() => setNoticeCard(null)}
+        />
       )}
       {deliveryCard && (
         <DeliveryDialog
@@ -519,7 +546,10 @@ export default function BoardPage() {
             void queryClient.invalidateQueries({ queryKey: ['board'] })
             void queryClient.invalidateQueries({ queryKey: ['cycles'] })
             void queryClient.invalidateQueries({ queryKey: ['patients'] })
-            toast.push('Entrega registrada. El siguiente ciclo ya está en el tablero.', 'success')
+            toast.push(
+              'Entrega registrada. El siguiente ciclo ya está en el tablero.',
+              'success',
+            )
           }}
         />
       )}
