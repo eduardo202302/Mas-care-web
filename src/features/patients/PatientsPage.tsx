@@ -662,7 +662,10 @@ export default function PatientsPage() {
                 }
               : null
           }
-          onSortChange={(index) => toggleColumnSort(columnPrefs.keys[index])}
+          onSortChange={(index) => {
+            const key = columnPrefs.keys[index]
+            if (key) toggleColumnSort(key)
+          }}
           onRowDoubleClick={(index) => {
             const patient = displayPatients[index]
             if (patient)
