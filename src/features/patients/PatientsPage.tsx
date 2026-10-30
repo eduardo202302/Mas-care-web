@@ -750,60 +750,58 @@ export default function PatientsPage() {
         </p>
       )}
       <div className="min-h-0 flex-1">
-        {patients.isFetching || !branchReady ? (
-          <TableSkeleton columns={columnPrefs.keys.length} />
-        ) : (
-          <DataTable
-            columns={columnPrefs.keys.map(
-              (key) =>
-                allColumns.find((column) => column.key === key)?.label ?? key,
-            )}
-            rows={tableRows}
-            actions={rowActions}
-            sortableColumns={columnPrefs.keys.map((_, index) => index)}
-            sort={
-              activeSortKey
-                ? {
-                    index: columnPrefs.keys.findIndex(
-                      (key) => key === activeSortKey,
-                    ),
-                    dir: activeSortDir ?? 'asc',
-                  }
-                : null
-            }
-            onSortChange={(index) => {
-              const key = columnPrefs.keys[index]
-              if (key) toggleColumnSort(key)
-            }}
-            onRowDoubleClick={(index) => {
-              const patient = displayPatients[index]
-              if (patient)
-                navigate(`/pacientes/${encodeURIComponent(patient.id)}`)
-            }}
-            emptyTitle={
-              archived === 'true'
-                ? 'No hay pacientes archivados'
-                : 'Todavía no hay pacientes'
-            }
-            emptyDescription={
-              canCreate
-                ? 'Crea una ficha para comenzar el seguimiento de tus pacientes.'
-                : 'Cuando haya pacientes en tu organización, aparecerán aquí.'
-            }
-            footer={
-              <Pagination
-                page={page}
-                rows={rows}
-                total={patients.data?.total ?? 0}
-                onChange={setPage}
-                onRowsChange={(next) => {
-                  setRows(next)
-                  setPage(1)
-                }}
-              />
-            }
-          />
-        )}
+      {patients.isFetching || !branchReady ? (
+        <TableSkeleton columns={columnPrefs.keys.length} />
+      ) : (
+        <DataTable
+          columns={columnPrefs.keys.map(
+            (key) =>
+              allColumns.find((column) => column.key === key)?.label ?? key,
+          )}
+          rows={tableRows}
+          actions={rowActions}
+          sortableColumns={columnPrefs.keys.map((_, index) => index)}
+          sort={
+            activeSortKey
+              ? {
+                  index: columnPrefs.keys.findIndex((key) => key === activeSortKey),
+                  dir: activeSortDir ?? 'asc',
+                }
+              : null
+          }
+          onSortChange={(index) => {
+            const key = columnPrefs.keys[index]
+            if (key) toggleColumnSort(key)
+          }}
+          onRowDoubleClick={(index) => {
+            const patient = displayPatients[index]
+            if (patient)
+              navigate(`/pacientes/${encodeURIComponent(patient.id)}`)
+          }}
+          emptyTitle={
+            archived === 'true'
+              ? 'No hay pacientes archivados'
+              : 'Todavía no hay pacientes'
+          }
+          emptyDescription={
+            canCreate
+              ? 'Crea una ficha para comenzar el seguimiento de tus pacientes.'
+              : 'Cuando haya pacientes en tu organización, aparecerán aquí.'
+          }
+          footer={
+            <Pagination
+              page={page}
+              rows={rows}
+              total={patients.data?.total ?? 0}
+              onChange={setPage}
+              onRowsChange={(next) => {
+                setRows(next)
+                setPage(1)
+              }}
+            />
+          }
+        />
+      )}
       </div>
       {formOpen && (editing ? canUpdate : canCreate) && (
         <Dialog

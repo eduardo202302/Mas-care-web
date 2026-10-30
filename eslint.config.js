@@ -6,7 +6,7 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'src/lib/api-types.ts'] },
+  { ignores: ['dist', 'src/lib/api-types.ts', '.github/skills', '.github/agents', '.github/hooks'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
