@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
+import { Plus, ShieldCheck } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import type { components } from '@/lib/api-types'
@@ -20,6 +21,7 @@ export default function RolesPage() {
   const canManage = useCan('roles:write')
   const queryClient = useQueryClient()
   const [formOpen, setFormOpen] = useState(false)
+  const [viewOnly, setViewOnly] = useState(false)
   const [editing, setEditing] = useState<RoleDto | null>(null)
   const [deleting, setDeleting] = useState<RoleDto | null>(null)
   const [page, setPage] = useState(1)
@@ -80,11 +82,20 @@ export default function RolesPage() {
   function closeForm() {
     setFormOpen(false)
     setEditing(null)
+    setViewOnly(false)
     save.reset()
   }
   function openEdit(role: RoleDto) {
     save.reset()
     setEditing(role)
+    setViewOnly(false)
+    setFormOpen(true)
+  }
+  /** Doble clic en la fila: mismo formulario, pero bloqueado. */
+  function openView(role: RoleDto) {
+    save.reset()
+    setEditing(role)
+    setViewOnly(true)
     setFormOpen(true)
   }
 
@@ -92,7 +103,7 @@ export default function RolesPage() {
     index === 0
       ? role.name
       : index === 1
-        ? role.description ?? ''
+        ? (role.description ?? '')
         : index === 2
           ? role.memberCount
           : index === 3
@@ -150,33 +161,27 @@ export default function RolesPage() {
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
-      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">
-            Administración
-          </p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Roles
-          </h1>
-          <p className="text-muted mt-2 max-w-2xl text-sm">
-            Define qué pantallas puede ver cada tipo de usuario. Asigna el rol
-            al crear o editar un usuario.
-          </p>
-        </div>
-        {canManage && (
-          <Button
-            variant="primary"
-            onClick={() => {
-              save.reset()
-              setEditing(null)
-              setFormOpen(true)
-            }}
-          >
-            <Plus className="size-4" />
-            Nuevo rol
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Roles"
+        subtitle="Define qué pantallas puede ver cada tipo de usuario. Asigna el rol al crear o editar un usuario."
+        actions={
+          <>
+            {canManage && (
+              <Button
+                variant="primary"
+                onClick={() => {
+                  save.reset()
+                  setEditing(null)
+                  setFormOpen(true)
+                }}
+              >
+                <Plus className="size-4" />
+                Nuevo rol
+              </Button>
+            )}
+          </>
+        }
+      />
       {roles.isError && (
         <p
           role="alert"
@@ -202,11 +207,10 @@ export default function RolesPage() {
             sortableColumns={[0, 1, 2, 3, 4]}
             sort={sort}
             onSortChange={toggleSort}
-            onRowDoubleClick={
-              canManage
-                ? (index) => list[index] && openEdit(list[index])
-                : undefined
-            }
+            onRowDoubleClick={(index) => {
+              const role = list[index]
+              if (role) openView(role)
+            }}
             emptyTitle="Aún no hay roles"
             emptyDescription="Crea un rol para controlar qué pantallas ve cada usuario."
             footer={
@@ -227,8 +231,17 @@ export default function RolesPage() {
       {formOpen && (
         <Dialog
           size="lg"
-          title={editing ? `Editar rol: ${editing.name}` : 'Nuevo rol'}
+          title={
+            viewOnly
+              ? `Ver Rol: ${editing?.name}`
+              : editing
+                ? `Editar Rol: ${editing.name}`
+                : 'Nuevo Rol'
+          }
           description="Marca las pantallas que este rol puede ver."
+          icon={<ShieldCheck className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={closeForm}
         >
           {catalog.isError && (
@@ -251,6 +264,8 @@ export default function RolesPage() {
               }}
               onCancel={closeForm}
               submitting={save.isPending}
+              readOnly={viewOnly}
+              onEdit={() => setViewOnly(false)}
             />
           )}
         </Dialog>

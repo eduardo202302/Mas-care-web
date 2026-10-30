@@ -24,7 +24,10 @@ export function WhatsAppAccountCard() {
     mutationFn: () =>
       api<Account>('/api/v1/automation/whatsapp-account', {
         method: 'PUT',
-        body: JSON.stringify({ phone_number_id: phoneNumberId.trim(), access_token: token.trim() }),
+        body: JSON.stringify({
+          phone_number_id: phoneNumberId.trim(),
+          access_token: token.trim(),
+        }),
       }),
     onSuccess: async () => {
       setToken('')
@@ -33,7 +36,8 @@ export function WhatsAppAccountCard() {
     },
   })
   const disconnect = useMutation({
-    mutationFn: () => api('/api/v1/automation/whatsapp-account', { method: 'DELETE' }),
+    mutationFn: () =>
+      api('/api/v1/automation/whatsapp-account', { method: 'DELETE' }),
     onSuccess: refresh,
   })
   const ready = phoneNumberId.trim().length >= 5 && token.trim().length >= 20
@@ -45,10 +49,12 @@ export function WhatsAppAccountCard() {
         Número de WhatsApp Business
       </h2>
       <p className="text-muted text-xs">
-        Cada organización conecta su propio número de WhatsApp Business (Meta). Así cada respuesta llega a la
-        organización correcta. Necesitas el <strong>identificador del número</strong> y un{' '}
-        <strong>token de acceso permanente</strong> de Meta (no el temporal de 24 horas). Después registra la
-        plantilla aprobada en Ajustes → Plantillas.
+        Cada organización conecta su propio número de WhatsApp Business (Meta).
+        Así cada respuesta llega a la organización correcta. Necesitas el{' '}
+        <strong>identificador del número</strong> y un{' '}
+        <strong>token de acceso permanente</strong> de Meta (no el temporal de
+        24 horas). Después registra la plantilla aprobada en Ajustes →
+        Plantillas.
       </p>
       {account.data?.connected && (
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -59,7 +65,12 @@ export function WhatsAppAccountCard() {
             variant="danger"
             disabled={disconnect.isPending}
             onClick={() => {
-              if (window.confirm('¿Desconectar el número de WhatsApp? Los avisos por WhatsApp dejarán de salir.')) disconnect.mutate()
+              if (
+                window.confirm(
+                  '¿Desconectar el número de WhatsApp? Los avisos por WhatsApp dejarán de salir.',
+                )
+              )
+                disconnect.mutate()
             }}
           >
             Desconectar
@@ -94,12 +105,24 @@ export function WhatsAppAccountCard() {
             className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
           />
         </label>
-        <Button type="submit" variant="primary" disabled={!ready || connect.isPending}>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={!ready || connect.isPending}
+        >
           {account.data?.connected ? 'Reemplazar' : 'Conectar número'}
         </Button>
       </form>
-      {connect.isError && <p role="alert" className="text-sm text-red-700">{connect.error.message}</p>}
-      {disconnect.isError && <p role="alert" className="text-sm text-red-700">{disconnect.error.message}</p>}
+      {connect.isError && (
+        <p role="alert" className="text-sm text-red-700">
+          {connect.error.message}
+        </p>
+      )}
+      {disconnect.isError && (
+        <p role="alert" className="text-sm text-red-700">
+          {disconnect.error.message}
+        </p>
+      )}
     </section>
   )
 }

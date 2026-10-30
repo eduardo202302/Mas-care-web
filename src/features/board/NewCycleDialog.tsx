@@ -7,7 +7,11 @@ import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { useToast } from '@/components/ui/Toast'
 import { api } from '@/lib/http'
-import { boardColumnLabels, boardColumns, type BoardColumnKey } from '@/lib/board'
+import {
+  boardColumnLabels,
+  boardColumns,
+  type BoardColumnKey,
+} from '@/lib/board'
 import { usePipeline } from '@/lib/pipeline'
 import { useMe } from '@/lib/permissions'
 import { medicationName, type Medication } from '@/lib/treatments'
@@ -61,21 +65,30 @@ export function NewCycleDialog({
   const toast = useToast()
   const { data: pipeline } = usePipeline()
   const { data: me } = useMe()
-  const [status, setStatus] = useState<BoardColumnKey>(initialStatus ?? 'to_notify')
+  const [status, setStatus] = useState<BoardColumnKey>(
+    initialStatus ?? 'to_notify',
+  )
   const [treatmentId, setTreatmentId] = useState('')
   const [patientId, setPatientId] = useState('')
   const [type, setType] = useState('')
   const [priority, setPriority] = useState('')
   const [branchOverride, setBranchOverride] = useState<string | null>(null)
-  const [medicationOverride, setMedicationOverride] = useState<string | null>(null)
-  const [responsibleOverride, setResponsibleOverride] = useState<string | null>(null)
-  const [treatmentNameOverride, setTreatmentNameOverride] = useState<string | null>(null)
+  const [medicationOverride, setMedicationOverride] = useState<string | null>(
+    null,
+  )
+  const [responsibleOverride, setResponsibleOverride] = useState<string | null>(
+    null,
+  )
+  const [treatmentNameOverride, setTreatmentNameOverride] = useState<
+    string | null
+  >(null)
   const [quantity, setQuantity] = useState('')
   const [coverageEndOn, setCoverageEndOn] = useState('')
 
   const eligible = useQuery({
     queryKey: ['eligible-treatments'],
-    queryFn: () => api<{ data: Eligible[] }>('/api/v1/cycles/eligible-treatments'),
+    queryFn: () =>
+      api<{ data: Eligible[] }>('/api/v1/cycles/eligible-treatments'),
   })
   const patients = useQuery({
     queryKey: ['patients', { limit: 100 }],
@@ -83,25 +96,36 @@ export function NewCycleDialog({
   })
   const medications = useQuery({
     queryKey: ['medications', { archived: 'false', limit: 100 }],
-    queryFn: () => api<{ data: Medication[] }>('/api/v1/medications?archived=false&limit=100'),
+    queryFn: () =>
+      api<{ data: Medication[] }>(
+        '/api/v1/medications?archived=false&limit=100',
+      ),
   })
   const users = useQuery({
     queryKey: ['users', { limit: 100 }],
-    queryFn: () => api<{ data: { id: string; name: string }[] }>('/api/v1/users?limit=100'),
+    queryFn: () =>
+      api<{ data: { id: string; name: string }[] }>('/api/v1/users?limit=100'),
   })
   const eligibleOptions = eligible.data?.data ?? []
   const selected = eligibleOptions.find((option) => option.id === treatmentId)
   const stageName = (key: BoardColumnKey) =>
-    pipeline?.stages.find((s) => s.system_status === key)?.name ?? boardColumnLabels[key]
+    pipeline?.stages.find((s) => s.system_status === key)?.name ??
+    boardColumnLabels[key]
   const matchedMedication = medications.data?.data.find(
     (medication) => medicationName(medication) === selected?.medication,
   )
   const branchId = branchOverride ?? selected?.branch_id ?? ''
   const medicationId = medicationOverride ?? matchedMedication?.id ?? ''
-  const responsibleUserId = responsibleOverride ?? selected?.responsible?.id ?? ''
+  const responsibleUserId =
+    responsibleOverride ?? selected?.responsible?.id ?? ''
   const treatmentName = treatmentNameOverride ?? selected?.medication ?? ''
   const formComplete = Boolean(
-    treatmentName && patientId && quantity && coverageEndOn && branchId && medicationId,
+    treatmentName &&
+    patientId &&
+    quantity &&
+    coverageEndOn &&
+    branchId &&
+    medicationId,
   )
 
   function selectTreatment(option: Eligible) {
@@ -188,13 +212,19 @@ export function NewCycleDialog({
           if (formComplete && !create.isPending) create.mutate({ again: false })
         }}
       >
-        <ModalSection icon={<RefreshCw className="size-4" />} title="Tratamiento" tone="mint">
+        <ModalSection
+          icon={<RefreshCw className="size-4" />}
+          title="Tratamiento"
+          tone="mint"
+        >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium">Tratamiento</span>
               <input
                 value={treatmentName}
-                onChange={(event) => setTreatmentNameOverride(event.target.value)}
+                onChange={(event) =>
+                  setTreatmentNameOverride(event.target.value)
+                }
                 placeholder="Nombre del Tratamiento"
                 className={fieldClass}
               />
@@ -203,7 +233,9 @@ export function NewCycleDialog({
               <span className="text-ink text-sm font-medium">Etapa</span>
               <select
                 value={status}
-                onChange={(event) => setStatus(event.target.value as BoardColumnKey)}
+                onChange={(event) =>
+                  setStatus(event.target.value as BoardColumnKey)
+                }
                 className={fieldClass}
               >
                 {stageOptions.map((key) => (
@@ -217,7 +249,11 @@ export function NewCycleDialog({
         </ModalSection>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <ModalSection icon={<RefreshCw className="size-4" />} title="Ciclo" tone="sky">
+          <ModalSection
+            icon={<RefreshCw className="size-4" />}
+            title="Ciclo"
+            tone="sky"
+          >
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium">Embudo</span>
               <input
@@ -229,7 +265,9 @@ export function NewCycleDialog({
             </label>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="grid gap-1.5">
-                <span className="text-ink text-sm font-medium">Tipo de Ciclo</span>
+                <span className="text-ink text-sm font-medium">
+                  Tipo de Ciclo
+                </span>
                 <select
                   value={type}
                   onChange={(event) => setType(event.target.value)}
@@ -274,17 +312,19 @@ export function NewCycleDialog({
                   value={quantity}
                   onChange={(event) => setQuantity(event.target.value)}
                   placeholder="—"
-                  className={`${fieldClass} disabled:opacity-60 disabled:cursor-not-allowed`}
+                  className={`${fieldClass} disabled:cursor-not-allowed disabled:opacity-60`}
                 />
               </label>
               <label className="grid gap-1.5">
-                <span className="text-ink text-sm font-medium">Fecha de Cierre</span>
+                <span className="text-ink text-sm font-medium">
+                  Fecha de Cierre
+                </span>
                 <input
                   type="date"
                   disabled={!treatmentId && !treatmentName}
                   value={coverageEndOn}
                   onChange={(event) => setCoverageEndOn(event.target.value)}
-                  className={`${fieldClass} disabled:opacity-60 disabled:cursor-not-allowed`}
+                  className={`${fieldClass} disabled:cursor-not-allowed disabled:opacity-60`}
                 />
               </label>
             </div>
@@ -329,7 +369,8 @@ export function NewCycleDialog({
           </label>
           {patients.isError && (
             <p role="alert" className="text-sm text-red-700">
-              No pudimos cargar los pacientes. {(patients.error as Error).message}
+              No pudimos cargar los pacientes.{' '}
+              {(patients.error as Error).message}
             </p>
           )}
         </ModalSection>

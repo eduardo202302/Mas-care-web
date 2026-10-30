@@ -7200,6 +7200,1396 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/medical-specialties": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List medical specialties */
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                    isActive?: "true" | "false";
+                    page?: number;
+                    rows?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Specialties */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["MedicalSpecialty"][];
+                            total: number;
+                            page: number;
+                            rows: number;
+                        };
+                    };
+                };
+                /** @description specialties:read required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create a medical specialty */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["MedicalSpecialtyCreate"];
+                };
+            };
+            responses: {
+                /** @description Specialty created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MedicalSpecialty"];
+                    };
+                };
+                /** @description specialties:write required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Name already in use */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medical-specialties/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a medical specialty */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Specialty */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MedicalSpecialty"];
+                    };
+                };
+                /** @description Specialty not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a medical specialty */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["MedicalSpecialtyPatch"];
+                };
+            };
+            responses: {
+                /** @description Specialty updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MedicalSpecialty"];
+                    };
+                };
+                /** @description Specialty not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Name already in use */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/medical-centers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List medical centers */
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                    isActive?: "true" | "false";
+                    centerType?: "clinic" | "hospital" | "medical_center" | "private_office" | "other";
+                    page?: number;
+                    rows?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Medical centers */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["MedicalCenter"][];
+                            total: number;
+                            page: number;
+                            rows: number;
+                        };
+                    };
+                };
+                /** @description medical-centers:read required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create a medical center */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["MedicalCenterCreate"];
+                };
+            };
+            responses: {
+                /** @description Medical center created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MedicalCenter"];
+                    };
+                };
+                /** @description medical-centers:write required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medical-centers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a medical center */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Medical center */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MedicalCenter"];
+                    };
+                };
+                /** @description Medical center not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a medical center */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["MedicalCenterPatch"];
+                };
+            };
+            responses: {
+                /** @description Medical center updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MedicalCenter"];
+                    };
+                };
+                /** @description Medical center not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/medical-centers/{id}/doctors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List doctors linked to a medical center */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Doctor links */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: (components["schemas"]["DoctorMedicalCenterLink"] & {
+                                doctor: components["schemas"]["Doctor"];
+                            })[];
+                        };
+                    };
+                };
+                /** @description Medical center not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/health-conditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List health conditions */
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                    isActive?: "true" | "false";
+                    page?: number;
+                    rows?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Health conditions */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["HealthCondition"][];
+                            total: number;
+                            page: number;
+                            rows: number;
+                        };
+                    };
+                };
+                /** @description health-conditions:read required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create a health condition */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["HealthConditionCreate"];
+                };
+            };
+            responses: {
+                /** @description Health condition created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HealthCondition"];
+                    };
+                };
+                /** @description health-conditions:write required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Name already in use */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/health-conditions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a health condition */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Health condition */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HealthCondition"];
+                    };
+                };
+                /** @description Health condition not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a health condition */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["HealthConditionPatch"];
+                };
+            };
+            responses: {
+                /** @description Health condition updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HealthCondition"];
+                    };
+                };
+                /** @description Health condition not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Name already in use */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/doctors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List doctors */
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                    isActive?: "true" | "false";
+                    specialtyId?: string;
+                    medicalCenterId?: string;
+                    page?: number;
+                    rows?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Doctors */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Doctor"][];
+                            total: number;
+                            page: number;
+                            rows: number;
+                        };
+                    };
+                };
+                /** @description doctors:read required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create a doctor */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DoctorCreate"];
+                };
+            };
+            responses: {
+                /** @description Doctor created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Doctor"];
+                    };
+                };
+                /** @description doctors:write required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description License number already in use */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/doctors/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a doctor */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Doctor */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Doctor"];
+                    };
+                };
+                /** @description Doctor not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a doctor */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DoctorPatch"];
+                };
+            };
+            responses: {
+                /** @description Doctor updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Doctor"];
+                    };
+                };
+                /** @description Doctor not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description License number already in use */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/doctors/{id}/patients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a doctor's active patients */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Patient links */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description doctors:read required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Doctor not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/doctors/{id}/specialties": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link a specialty to a doctor */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DoctorSpecialtyInput"];
+                };
+            };
+            responses: {
+                /** @description Specialty linked */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DoctorSpecialtyLink"];
+                    };
+                };
+                /** @description Doctor or specialty not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Specialty already linked */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/doctors/{id}/specialties/{specialtyId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Unlink a specialty from a doctor */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    specialtyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Specialty unlinked */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Link not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/doctors/{id}/medical-centers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link a medical center to a doctor */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DoctorMedicalCenterInput"];
+                };
+            };
+            responses: {
+                /** @description Medical center linked */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DoctorMedicalCenterLink"];
+                    };
+                };
+                /** @description Doctor or medical center not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Medical center already linked */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/doctors/{id}/medical-centers/{medicalCenterId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a doctor's medical center link (office, position, schedule, or deactivate) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    medicalCenterId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DoctorMedicalCenterPatch"];
+                };
+            };
+            responses: {
+                /** @description Link updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DoctorMedicalCenterLink"];
+                    };
+                };
+                /** @description Active link not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Medical center already linked */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/patients/{id}/doctors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a patient's active doctors */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Doctor links */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: (components["schemas"]["PatientDoctorLink"] & {
+                                doctor: {
+                                    id: string;
+                                    firstName: string;
+                                    lastName: string;
+                                    phone: string | null;
+                                    licenseNumber: string | null;
+                                };
+                            })[];
+                        };
+                    };
+                };
+                /** @description Patient not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Associate a doctor with a patient; promoting isPrimary demotes any other active primary doctor */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["PatientDoctorInput"];
+                };
+            };
+            responses: {
+                /** @description Doctor linked */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PatientDoctorLink"];
+                    };
+                };
+                /** @description Patient or doctor not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Doctor already linked */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{id}/doctors/{doctorId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a patient's active doctor link (notes, isPrimary, or deactivate preserving history) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    doctorId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["PatientDoctorPatch"];
+                };
+            };
+            responses: {
+                /** @description Link updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PatientDoctorLink"];
+                    };
+                };
+                /** @description Active link not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Doctor already linked */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/patients/{id}/conditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a patient's active health conditions */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Condition links */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: (components["schemas"]["PatientConditionLink"] & {
+                                condition: {
+                                    id: string;
+                                    name: string;
+                                };
+                            })[];
+                        };
+                    };
+                };
+                /** @description Patient not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Register a health condition for a patient */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["PatientConditionInput"];
+                };
+            };
+            responses: {
+                /** @description Condition linked */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PatientConditionLink"];
+                    };
+                };
+                /** @description Patient or health condition not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Condition already linked */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{id}/conditions/{conditionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a patient's condition record (status, diagnosedOn, notes, or deactivate preserving history) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    conditionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["PatientConditionPatch"];
+                };
+            };
+            responses: {
+                /** @description Condition updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PatientConditionLink"];
+                    };
+                };
+                /** @description Active condition link not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Condition already linked */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7254,6 +8644,18 @@ export interface components {
             registrationLink: string;
             /** Format: uri */
             loginLink: string;
+            phone: string | null;
+            ownerName: string | null;
+            industry: string | null;
+            type: string | null;
+            city: string | null;
+            state: string | null;
+            postalCode: string | null;
+            employeeCount: number | null;
+            annualRevenue: number | null;
+            timezone: string | null;
+            description: string | null;
+            linkedinUrl: string | null;
             createdAt: string;
             updatedAt: string;
         };
@@ -7272,6 +8674,18 @@ export interface components {
             registrationLink: string;
             /** Format: uri */
             loginLink: string;
+            phone: string | null;
+            ownerName: string | null;
+            industry: string | null;
+            type: string | null;
+            city: string | null;
+            state: string | null;
+            postalCode: string | null;
+            employeeCount: number | null;
+            annualRevenue: number | null;
+            timezone: string | null;
+            description: string | null;
+            linkedinUrl: string | null;
             createdAt: string;
             updatedAt: string;
             memberCount: number;
@@ -7289,6 +8703,18 @@ export interface components {
             pin?: string;
             domain: string;
             logo?: string | null;
+            phone?: string | "";
+            ownerName?: string | "";
+            industry?: string | "";
+            type?: string | "";
+            city?: string | "";
+            state?: string | "";
+            postalCode?: string | "";
+            employeeCount?: number | null;
+            annualRevenue?: number | null;
+            timezone?: string | "";
+            description?: string | "";
+            linkedinUrl?: string | "";
         };
         CompanyPatch: {
             name?: string;
@@ -7302,6 +8728,18 @@ export interface components {
             pin?: string;
             domain?: string;
             logo?: string | null;
+            phone?: string | "";
+            ownerName?: string | "";
+            industry?: string | "";
+            type?: string | "";
+            city?: string | "";
+            state?: string | "";
+            postalCode?: string | "";
+            employeeCount?: number | null;
+            annualRevenue?: number | null;
+            timezone?: string | "";
+            description?: string | "";
+            linkedinUrl?: string | "";
         };
         CompanyListQuery: {
             q?: string;
@@ -8275,9 +9713,9 @@ export interface components {
             sort?: string;
             /** @enum {string} */
             status?: "to_notify" | "notified" | "confirmed" | "prepared" | "delivered" | "not_picked_up" | "cancelled";
-            cursor?: string;
-            /** @default 30 */
-            limit: number;
+            /** @default 1 */
+            page: number;
+            rows?: number;
         };
         ErrorResponse: {
             error: {
@@ -8606,6 +10044,251 @@ export interface components {
             rows?: number;
             /** @enum {string} */
             separator?: "," | ";";
+        };
+        MedicalSpecialty: {
+            id: string;
+            organizationId: string;
+            name: string;
+            description: string | null;
+            isActive: boolean;
+            createdAt: string;
+            updatedAt: string;
+        };
+        MedicalSpecialtyCreate: {
+            name: string;
+            description?: string | null;
+            isActive?: boolean;
+        };
+        MedicalSpecialtyPatch: {
+            name?: string;
+            description?: string | null;
+            isActive?: boolean;
+        };
+        MedicalSpecialtyListQuery: {
+            q?: string;
+            /** @enum {string} */
+            isActive?: "true" | "false";
+            /** @default 1 */
+            page: number;
+            rows?: number;
+        };
+        MedicalCenter: {
+            id: string;
+            organizationId: string;
+            name: string;
+            /** @enum {string} */
+            centerType: "clinic" | "hospital" | "medical_center" | "private_office" | "other";
+            rnc: string | null;
+            phone: string | null;
+            email: string | null;
+            address: string | null;
+            province: string | null;
+            municipality: string | null;
+            notes: string | null;
+            isActive: boolean;
+            createdAt: string;
+            updatedAt: string;
+        };
+        MedicalCenterCreate: {
+            name: string;
+            /** @enum {string} */
+            centerType?: "clinic" | "hospital" | "medical_center" | "private_office" | "other";
+            rnc?: string | null;
+            phone?: string | null;
+            /** Format: email */
+            email?: string | null;
+            address?: string | null;
+            province?: string | null;
+            municipality?: string | null;
+            notes?: string | null;
+            isActive?: boolean;
+        };
+        MedicalCenterPatch: {
+            name?: string;
+            /** @enum {string} */
+            centerType?: "clinic" | "hospital" | "medical_center" | "private_office" | "other";
+            rnc?: string | null;
+            phone?: string | null;
+            /** Format: email */
+            email?: string | null;
+            address?: string | null;
+            province?: string | null;
+            municipality?: string | null;
+            notes?: string | null;
+            isActive?: boolean;
+        };
+        MedicalCenterListQuery: {
+            q?: string;
+            /** @enum {string} */
+            isActive?: "true" | "false";
+            /** @enum {string} */
+            centerType?: "clinic" | "hospital" | "medical_center" | "private_office" | "other";
+            /** @default 1 */
+            page: number;
+            rows?: number;
+        };
+        HealthCondition: {
+            id: string;
+            organizationId: string;
+            name: string;
+            description: string | null;
+            isActive: boolean;
+            createdAt: string;
+            updatedAt: string;
+        };
+        HealthConditionCreate: {
+            name: string;
+            description?: string | null;
+            isActive?: boolean;
+        };
+        HealthConditionPatch: {
+            name?: string;
+            description?: string | null;
+            isActive?: boolean;
+        };
+        HealthConditionListQuery: {
+            q?: string;
+            /** @enum {string} */
+            isActive?: "true" | "false";
+            /** @default 1 */
+            page: number;
+            rows?: number;
+        };
+        Doctor: {
+            id: string;
+            organizationId: string;
+            firstName: string;
+            lastName: string;
+            licenseNumber: string | null;
+            phone: string | null;
+            email: string | null;
+            notes: string | null;
+            isActive: boolean;
+            createdAt: string;
+            updatedAt: string;
+        };
+        DoctorCreate: {
+            firstName: string;
+            lastName: string;
+            licenseNumber?: string | null;
+            phone?: string | null;
+            /** Format: email */
+            email?: string | null;
+            notes?: string | null;
+            isActive?: boolean;
+        };
+        DoctorPatch: {
+            firstName?: string;
+            lastName?: string;
+            licenseNumber?: string | null;
+            phone?: string | null;
+            /** Format: email */
+            email?: string | null;
+            notes?: string | null;
+            isActive?: boolean;
+        };
+        DoctorListQuery: {
+            q?: string;
+            /** @enum {string} */
+            isActive?: "true" | "false";
+            specialtyId?: string;
+            medicalCenterId?: string;
+            /** @default 1 */
+            page: number;
+            rows?: number;
+        };
+        DoctorSpecialtyLink: {
+            organizationId: string;
+            doctorId: string;
+            specialtyId: string;
+            createdAt: string;
+        };
+        DoctorSpecialtyInput: {
+            specialtyId: string;
+        };
+        DoctorMedicalCenterLink: {
+            id: string;
+            organizationId: string;
+            doctorId: string;
+            medicalCenterId: string;
+            officeNumber: string | null;
+            position: string | null;
+            scheduleNotes: string | null;
+            phoneExtension: string | null;
+            isActive: boolean;
+            createdAt: string;
+            updatedAt: string;
+        };
+        DoctorMedicalCenterInput: {
+            medicalCenterId: string;
+            officeNumber?: string | null;
+            position?: string | null;
+            scheduleNotes?: string | null;
+            phoneExtension?: string | null;
+        };
+        DoctorMedicalCenterPatch: {
+            officeNumber?: string | null;
+            position?: string | null;
+            scheduleNotes?: string | null;
+            phoneExtension?: string | null;
+            isActive?: boolean;
+        };
+        PatientDoctorLink: {
+            id: string;
+            organizationId: string;
+            patientId: string;
+            doctorId: string;
+            isPrimary: boolean;
+            isActive: boolean;
+            notes: string | null;
+            startedAt: string;
+            endedAt: string | null;
+            createdAt: string;
+            updatedAt: string;
+        };
+        PatientDoctorInput: {
+            doctorId: string;
+            /** @default false */
+            isPrimary: boolean;
+            notes?: string | null;
+        };
+        PatientDoctorPatch: {
+            isPrimary?: boolean;
+            isActive?: boolean;
+            notes?: string | null;
+        };
+        PatientConditionLink: {
+            id: string;
+            organizationId: string;
+            patientId: string;
+            healthConditionId: string;
+            /** @enum {string} */
+            status: "active" | "controlled" | "resolved";
+            diagnosedOn: string | null;
+            notes: string | null;
+            isActive: boolean;
+            recordedBy: string;
+            createdAt: string;
+            updatedAt: string;
+        };
+        PatientConditionInput: {
+            healthConditionId: string;
+            /**
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "controlled" | "resolved";
+            /** Format: date */
+            diagnosedOn?: string | null;
+            notes?: string | null;
+        };
+        PatientConditionPatch: {
+            /** @enum {string} */
+            status?: "active" | "controlled" | "resolved";
+            /** Format: date */
+            diagnosedOn?: string | null;
+            notes?: string | null;
+            isActive?: boolean;
         };
     };
     responses: never;

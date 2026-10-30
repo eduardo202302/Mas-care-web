@@ -76,7 +76,9 @@ export function DataTable({
   if (!rows.length)
     return (
       <div className="border-border flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-white">
-        <EmptyState title={emptyTitle} description={emptyDescription} />
+        <div className="min-h-0 flex-1 overflow-auto">
+          <EmptyState title={emptyTitle} description={emptyDescription} />
+        </div>
         {footer && <div className="shrink-0">{footer}</div>}
       </div>
     )

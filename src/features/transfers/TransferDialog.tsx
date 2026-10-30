@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowRightLeft, TriangleAlert } from 'lucide-react'
+import { ArrowRightLeft, PackageCheck, TriangleAlert } from 'lucide-react'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
+import { ModalSection } from '@/components/ui/ModalSection'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { api } from '@/lib/http'
 import { newIdempotencyKey } from '@/lib/operations'
 import type { Treatment } from '@/lib/treatments'
@@ -18,6 +20,10 @@ import {
 import type { components } from '@/lib/api-types'
 
 type Branch = components['schemas']['Branch']
+
+/** Mismo control que el resto de la app: ancho completo y anillo de foco. */
+const control =
+  'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2'
 
 export function TransferDialog({
   patientId,
@@ -118,13 +124,16 @@ export function TransferDialog({
 
   return (
     <Dialog
-      title="Trasladar paciente"
+      title="Trasladar Paciente"
       description={patientName}
+      icon={<ArrowRightLeft className="size-5" />}
+      compactHeader
+      bodyClassName="pt-3"
       onClose={onClose}
       size="lg"
     >
       <form
-        className="grid gap-4"
+        className="grid gap-5"
         onSubmit={(event) => {
           event.preventDefault()
           if (inFlight.current || invalid) return
@@ -132,60 +141,71 @@ export function TransferDialog({
           transfer.mutate(false)
         }}
       >
-        <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
-            Sucursal destino
-          </span>
-          <select
-            value={toBranchId}
-            onChange={(event) => setToBranchId(event.target.value)}
-            required
-            className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
-          >
-            <option value="" disabled>
-              Selecciona una sucursal
-            </option>
-            {destinations.map((branch) => (
-              <option key={branch.id} value={branch.id}>
-                {branch.name}
+        <ModalSection
+          icon={<ArrowRightLeft className="size-4" />}
+          title="Destino y Motivo"
+          tone="mint"
+        >
+          <label className="grid gap-1.5">
+            <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+              Sucursal Destino
+            </span>
+            <select
+              value={toBranchId}
+              onChange={(event) => setToBranchId(event.target.value)}
+              required
+              className={control}
+            >
+              <option value="" disabled>
+                Selecciona una sucursal
               </option>
-            ))}
-          </select>
-          {destinations.length === 0 && (
-            <p className="text-xs text-red-700">
-              No hay otra sucursal activa disponible para trasladar a este
-              paciente.
-            </p>
-          )}
-        </label>
-        <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
-            Motivo del traslado
-          </span>
-          <textarea
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-            required
-            rows={3}
-            maxLength={2000}
-            placeholder="Explica por qué se traslada al paciente"
-            className="border-border focus:border-tealmax rounded-lg border bg-white px-3 py-2 text-sm outline-none"
-          />
-        </label>
-        <div className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium">
-            Tratamientos a trasladar
-          </span>
+              {destinations.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+            {destinations.length === 0 && (
+              <p className="text-xs text-red-700">
+                No hay otra sucursal activa disponible para trasladar a este
+                paciente.
+              </p>
+            )}
+          </label>
+          <div className="grid gap-1.5">
+            <label
+              htmlFor="transfer-reason"
+              className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
+            >
+              Motivo del Traslado
+            </label>
+            <TextAreaField
+              id="transfer-reason"
+              className="min-h-8 py-1.5 text-xs"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              required
+              maxLength={2000}
+              placeholder="Explica por qué se traslada al paciente"
+            />
+          </div>
+        </ModalSection>
+
+        <ModalSection
+          icon={<PackageCheck className="size-4" />}
+          title="Tratamientos a Trasladar"
+          tone="sky"
+        >
           {activeTreatments.length === 0 ? (
             <p className="text-muted text-sm">
               Este paciente no tiene tratamientos activos; el traslado solo
               moverá su ficha.
             </p>
           ) : (
-            <ul className="border-border grid gap-2 rounded-lg border p-3">
+            <ul className="grid gap-2">
               {activeTreatments.map((treatment) => (
                 <li key={treatment.id}>
-                  <label className="flex items-center gap-2 text-sm">
+                  <label className="text-ink flex items-center gap-2 text-sm">
                     <input
                       type="checkbox"
                       checked={selectedTreatmentIds.includes(treatment.id)}
@@ -197,26 +217,30 @@ export function TransferDialog({
               ))}
             </ul>
           )}
-        </div>
-        <div className="bg-surface border-border rounded-lg border px-3 py-2 text-sm">
-          <p className="text-ink font-medium">Resumen</p>
+        </ModalSection>
+
+        <div className="border-border bg-surface rounded-xl border px-4 py-3 text-sm">
+          <p className="text-ink font-semibold">Resumen</p>
           <p className="text-muted mt-1">
             {destinationBranch
               ? `${patientName} se trasladará a ${destinationBranch.name} con ${selectedTreatmentIds.length} tratamiento(s).`
               : 'Selecciona una sucursal destino para ver el resumen.'}
           </p>
         </div>
+
         {warnings && warnings.length > 0 && (
           <div className="flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
             <p className="flex items-center gap-2 font-medium">
               <TriangleAlert className="size-4 shrink-0" />
-              Hay advertencias antes de completar el traslado
+              Hay Advertencias Antes de Completar el Traslado
             </p>
             <ul className="ml-6 list-disc">
               {warnings.map((warning, index) => (
                 <li key={index}>
                   {transferWarningLabel(warning.code)}
-                  {warning.medication_name ? ` · ${warning.medication_name}` : ''}
+                  {warning.medication_name
+                    ? ` · ${warning.medication_name}`
+                    : ''}
                 </li>
               ))}
             </ul>
@@ -245,7 +269,7 @@ export function TransferDialog({
               <ArrowRightLeft className="size-4" />
               {transfer.isPending
                 ? 'Confirmando…'
-                : 'Confirmar traslado de todas formas'}
+                : 'Confirmar Traslado de Todas Formas'}
             </Button>
           ) : (
             <Button
@@ -254,7 +278,7 @@ export function TransferDialog({
               disabled={transfer.isPending || invalid}
             >
               <ArrowRightLeft className="size-4" />
-              {transfer.isPending ? 'Trasladando…' : 'Trasladar paciente'}
+              {transfer.isPending ? 'Trasladando…' : 'Trasladar Paciente'}
             </Button>
           )}
         </FormActions>

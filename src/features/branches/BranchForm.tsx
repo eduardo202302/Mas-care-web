@@ -1,19 +1,30 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
-import { Button } from '@/components/ui/Button'
-import { FormActions } from '@/components/ui/FormActions'
+import { Building2, Palette } from 'lucide-react'
+import { FormFields, FormFooter } from '@/components/ui/FormMode'
+import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
 import { branchSchema, type BranchFormValues } from '@/schemas/branch'
+
+/** Mismo control que el resto de la app: alto fijo, borde y anillo de foco. */
+const control =
+  'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2'
 
 type Props = {
   initialValues?: BranchFormValues
   onSave: (values: BranchFormValues) => Promise<void>
   onCancel: () => void
   submitting?: boolean
+  /** Muestra el formulario bloqueado, como visor de la ficha. */
+  readOnly?: boolean
+  /** Desbloquea los campos desde el botón Editar del modo ver. */
+  onEdit?: () => void
 }
 
 export function BranchForm({
+  readOnly = false,
+  onEdit,
   initialValues,
   onSave,
   onCancel,
@@ -64,57 +75,67 @@ export function BranchForm({
   }
   return (
     <form className="grid gap-5" onSubmit={handleSubmit(submit)}>
-      <TextField
-        label="Nombre de sucursal"
-        {...register('name')}
-        error={errors.name?.message}
-        placeholder="Sucursal Centro"
-      />
-      <div className="grid gap-1.5">
-        <label htmlFor="labelColor" className="text-ink text-sm font-medium">
-          Color de etiqueta
-        </label>
-        <div className="border-border flex h-10 items-center gap-3 rounded-lg border px-3">
-          <input
-            type="color"
-            id="labelColor"
-            {...register('labelColor')}
-            aria-invalid={Boolean(errors.labelColor)}
-            className="size-6 cursor-pointer rounded border-0 bg-transparent p-0"
+      <FormFields readOnly={readOnly}>
+        <ModalSection
+          icon={<Building2 className="size-4" />}
+          title="Datos de la Sucursal"
+          tone="mint"
+        >
+          <TextField
+            label="Nombre de Sucursal"
+            {...register('name')}
+            error={errors.name?.message}
+            placeholder="Sucursal Centro"
           />
-          <span className="text-muted text-sm">
-            Identifica visualmente esta sucursal.
-          </span>
-        </div>
-        {errors.labelColor?.message && (
-          <p className="text-xs text-red-700">{errors.labelColor.message}</p>
+        </ModalSection>
+
+        <ModalSection
+          icon={<Palette className="size-4" />}
+          title="Etiqueta de Color"
+          tone="sky"
+        >
+          <div className="grid gap-1.5">
+            <label
+              htmlFor="labelColor"
+              className="text-ink text-sm font-medium"
+            >
+              Color de la Etiqueta
+            </label>
+            <div className={`${control} flex items-center gap-3`}>
+              <input
+                type="color"
+                id="labelColor"
+                {...register('labelColor')}
+                aria-invalid={Boolean(errors.labelColor)}
+                className="size-6 cursor-pointer rounded border-0 bg-transparent p-0"
+              />
+              <span className="text-muted text-sm">
+                Identifica visualmente esta sucursal.
+              </span>
+            </div>
+            {errors.labelColor?.message && (
+              <p className="text-xs text-red-700">
+                {errors.labelColor.message}
+              </p>
+            )}
+          </div>
+        </ModalSection>
+        {errors.root?.server?.message && (
+          <p
+            role="alert"
+            className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800"
+          >
+            {errors.root.server.message}
+          </p>
         )}
-      </div>
-      {errors.root?.server?.message && (
-        <p
-          role="alert"
-          className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800"
-        >
-          {errors.root.server.message}
-        </p>
-      )}
-      <FormActions>
-        <Button type="button" className="w-full sm:w-auto" onClick={onCancel}>
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          variant="primary"
-          className="w-full sm:w-auto"
-          disabled={submitting}
-        >
-          {submitting
-            ? 'Guardando…'
-            : initialValues
-              ? 'Guardar cambios'
-              : 'Crear sucursal'}
-        </Button>
-      </FormActions>
+      </FormFields>
+      <FormFooter
+        readOnly={readOnly}
+        onEdit={onEdit}
+        onClose={onCancel}
+        submitting={submitting}
+        submitLabel={initialValues ? 'Guardar Cambios' : 'Crear Sucursal'}
+      />
     </form>
   )
 }

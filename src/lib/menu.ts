@@ -1,8 +1,10 @@
 import {
   Activity,
+  Award,
   Building2,
   Circle,
   HeartPulse,
+  Hospital,
   Kanban,
   ListChecks,
   ListTree,
@@ -13,6 +15,7 @@ import {
   Settings2,
   ShieldCheck,
   SlidersHorizontal,
+  Stethoscope,
   Store,
   TriangleAlert,
   UserRound,
@@ -30,9 +33,11 @@ export type MenuNode<T extends { id: string; parentId: string | null }> = T & {
 /** Icons a menu item can use; the catalog stores the key (lucide name). */
 export const menuIcons: Record<string, LucideIcon> = {
   activity: Activity,
+  award: Award,
   'building-2': Building2,
   circle: Circle,
   'heart-pulse': HeartPulse,
+  hospital: Hospital,
   kanban: Kanban,
   'triangle-alert': TriangleAlert,
   packages: PackageSearch,
@@ -44,6 +49,7 @@ export const menuIcons: Record<string, LucideIcon> = {
   'settings-2': Settings2,
   'shield-check': ShieldCheck,
   'sliders-horizontal': SlidersHorizontal,
+  stethoscope: Stethoscope,
   store: Store,
   'user-round': UserRound,
   users: Users,

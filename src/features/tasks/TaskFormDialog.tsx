@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ClipboardList, UserCheck } from 'lucide-react'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/TextField'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { FormActions } from '@/components/ui/FormActions'
+import { ModalSection } from '@/components/ui/ModalSection'
 import { api } from '@/lib/http'
 import type { paths } from '@/lib/api-types'
 import {
@@ -23,6 +26,10 @@ export type TaskTreatmentOption = {
   id: string
   label: string
 }
+
+/** Mismo control que el resto de la app: ancho completo y anillo de foco. */
+const control =
+  'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2'
 
 export function TaskFormDialog({
   patientId: presetPatientId,
@@ -106,149 +113,168 @@ export function TaskFormDialog({
 
   return (
     <Dialog
-      title="Nueva tarea"
+      title="Nueva Tarea"
       description={
         patientName
           ? `Para ${patientName}`
           : 'Organiza el seguimiento del equipo.'
       }
+      icon={<ClipboardList className="size-5" />}
+      compactHeader
+      bodyClassName="pt-3"
       onClose={onClose}
     >
       <form
-        className="grid gap-4"
+        className="grid gap-5"
         onSubmit={(event) => {
           event.preventDefault()
           if (!title.trim() || create.isPending) return
           create.mutate()
         }}
       >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="grid gap-1.5">
-            <span className="text-ink text-sm font-medium">Tipo</span>
-            <select
-              value={type}
-              onChange={(event) => changeType(event.target.value as TaskType)}
-              className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
-            >
-              {taskTypes.map((value) => (
-                <option key={value} value={value}>
-                  {taskTypeLabels[value]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-1.5">
-            <span className="text-ink text-sm font-medium">
-              Vence <span className="text-muted font-normal">(opcional)</span>
-            </span>
-            <input
-              type="datetime-local"
-              value={dueAt}
-              onChange={(event) => setDueAt(event.target.value)}
-              className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
-            />
-          </label>
-        </div>
+        <ModalSection
+          icon={<ClipboardList className="size-4" />}
+          title="Detalles de la Tarea"
+          tone="mint"
+        >
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">Tipo</span>
+              <select
+                value={type}
+                onChange={(event) => changeType(event.target.value as TaskType)}
+                className={control}
+              >
+                {taskTypes.map((value) => (
+                  <option key={value} value={value}>
+                    {taskTypeLabels[value]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">
+                Vence <span className="text-muted font-normal">(Opcional)</span>
+              </span>
+              <input
+                type="datetime-local"
+                value={dueAt}
+                onChange={(event) => setDueAt(event.target.value)}
+                className={control}
+              />
+            </label>
+          </div>
 
-        <TextField
-          label="Título"
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          maxLength={200}
-          required
-          placeholder="Llamar para confirmar retiro"
-        />
-
-        <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium">
-            Descripción{' '}
-            <span className="text-muted font-normal">(opcional)</span>
-          </span>
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            maxLength={5000}
-            rows={3}
-            className="border-border focus:border-tealmax rounded-lg border bg-white px-3 py-2 text-sm outline-none"
-            placeholder="Detalles para quien atienda la tarea"
+          <TextField
+            label="Título"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            maxLength={200}
+            required
+            placeholder="Llamar para confirmar retiro"
           />
-        </label>
 
-        {!presetPatientId && (
+          <div className="grid gap-1.5">
+            <label
+              htmlFor="task-description"
+              className="text-ink text-sm font-medium"
+            >
+              Descripción{' '}
+              <span className="text-muted font-normal">(Opcional)</span>
+            </label>
+            <TextAreaField
+              id="task-description"
+              className="min-h-8 py-1.5 text-xs"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              maxLength={5000}
+              placeholder="Detalles para quien atienda la tarea"
+            />
+          </div>
+        </ModalSection>
+
+        <ModalSection
+          icon={<UserCheck className="size-4" />}
+          title="Asignación"
+          tone="sky"
+        >
+          {!presetPatientId && (
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">
+                Paciente{' '}
+                <span className="text-muted font-normal">(Opcional)</span>
+              </span>
+              <select
+                value={patientId}
+                onChange={(event) => {
+                  const next = event.target.value
+                  setPatientId(next)
+                  setTreatmentId('')
+                  const patient = patients.data?.data.find(
+                    (item) => item.id === next,
+                  )
+                  if (patient?.primaryBranchId) {
+                    setBranchId(patient.primaryBranchId)
+                  }
+                }}
+                className={control}
+              >
+                <option value="">Sin paciente</option>
+                {(patients.data?.data ?? []).map((patient) => (
+                  <option key={patient.id} value={patient.id}>
+                    {patient.fullName}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {treatmentOptions.length > 0 && (patientId || presetPatientId) && (
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">
+                Tratamiento{' '}
+                <span className="text-muted font-normal">(Opcional)</span>
+              </span>
+              <select
+                value={treatmentId}
+                onChange={(event) => setTreatmentId(event.target.value)}
+                className={control}
+              >
+                <option value="">Sin tratamiento</option>
+                {treatmentOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
           <label className="grid gap-1.5">
             <span className="text-ink text-sm font-medium">
-              Paciente{' '}
-              <span className="text-muted font-normal">(opcional)</span>
+              Asignar a{' '}
+              <span className="text-muted font-normal">(Opcional)</span>
             </span>
             <select
-              value={patientId}
-              onChange={(event) => {
-                const next = event.target.value
-                setPatientId(next)
-                setTreatmentId('')
-                const patient = patients.data?.data.find(
-                  (item) => item.id === next,
-                )
-                if (patient?.primaryBranchId) {
-                  setBranchId(patient.primaryBranchId)
-                }
-              }}
-              className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+              value={assignedTo}
+              onChange={(event) => setAssignedTo(event.target.value)}
+              className={control}
             >
-              <option value="">Sin paciente</option>
-              {(patients.data?.data ?? []).map((patient) => (
-                <option key={patient.id} value={patient.id}>
-                  {patient.fullName}
+              <option value="">Sin asignar</option>
+              {(users.data?.data ?? []).map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name} · {user.email}
                 </option>
               ))}
             </select>
           </label>
-        )}
 
-        {treatmentOptions.length > 0 && (patientId || presetPatientId) && (
-          <label className="grid gap-1.5">
-            <span className="text-ink text-sm font-medium">
-              Tratamiento{' '}
-              <span className="text-muted font-normal">(opcional)</span>
-            </span>
-            <select
-              value={treatmentId}
-              onChange={(event) => setTreatmentId(event.target.value)}
-              className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
-            >
-              <option value="">Sin tratamiento</option>
-              {treatmentOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-
-        <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium">
-            Asignar a <span className="text-muted font-normal">(opcional)</span>
-          </span>
-          <select
-            value={assignedTo}
-            onChange={(event) => setAssignedTo(event.target.value)}
-            className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
-          >
-            <option value="">Sin asignar</option>
-            {(users.data?.data ?? []).map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name} · {user.email}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {selectedPatient?.primaryBranchId && !branchId && (
-          <p className="text-muted text-xs">
-            Se usará la sucursal principal del paciente.
-          </p>
-        )}
+          {selectedPatient?.primaryBranchId && !branchId && (
+            <p className="text-muted text-xs">
+              Se usará la sucursal principal del paciente.
+            </p>
+          )}
+        </ModalSection>
 
         {create.isError && (
           <p role="alert" className="text-sm text-red-700">
@@ -265,7 +291,7 @@ export function TaskFormDialog({
             variant="primary"
             disabled={!title.trim() || create.isPending}
           >
-            {create.isPending ? 'Creando…' : 'Crear tarea'}
+            {create.isPending ? 'Creando…' : 'Crear Tarea'}
           </Button>
         </FormActions>
       </form>

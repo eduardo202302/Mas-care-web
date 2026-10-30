@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Search, SlidersHorizontal } from 'lucide-react'
 import { Dialog } from '@/components/ui/Dialog'
 
 export type PropertyGroup = {
@@ -29,35 +30,72 @@ export function PropertiesDialog({
       ),
     }))
     .filter((group) => group.items.length > 0)
+  const total = visible.reduce((sum, group) => sum + group.items.length, 0)
 
   return (
-    <Dialog title={title} description="Todos los campos y su valor actual." onClose={onClose} size="lg">
-      <input
-        type="search"
-        aria-label="Buscar propiedad"
-        placeholder="Buscar propiedad o valor"
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-        className="border-border mb-4 h-10 w-full rounded-lg border bg-white px-3 text-sm"
-      />
-      <div className="grid max-h-[60vh] gap-5 overflow-y-auto pr-1">
+    <Dialog
+      title={title}
+      description="Todos los campos y su valor actual."
+      icon={<SlidersHorizontal className="size-5" />}
+      compactHeader
+      bodyClassName="pt-3"
+      onClose={onClose}
+      size="lg"
+    >
+      <label className="relative mb-3 block">
+        <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
+        <input
+          type="search"
+          aria-label="Buscar propiedad"
+          placeholder="Buscar propiedad o valor"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none focus:ring-2"
+        />
+      </label>
+
+      <div className="grid max-h-[55vh] gap-3 overflow-y-auto pr-1">
         {visible.length === 0 && (
-          <p className="text-muted text-sm">Ninguna propiedad coincide con la búsqueda.</p>
+          <p className="text-muted text-sm">
+            Ninguna propiedad coincide con la búsqueda.
+          </p>
         )}
         {visible.map((group) => (
-          <section key={group.name} aria-label={group.name}>
-            <h3 className="text-petroleo mb-2 text-sm font-semibold">{group.name}</h3>
-            <dl className="grid gap-2 text-sm">
+          <section
+            key={group.name}
+            aria-label={group.name}
+            className="border-border overflow-hidden rounded-xl border"
+          >
+            <header className="bg-modulos flex items-center gap-2 px-4 py-2.5">
+              <h3 className="text-petroleo flex-1 text-sm font-semibold">
+                {group.name}
+              </h3>
+              <span className="bg-surface text-muted rounded-full px-2 py-0.5 text-xs font-semibold">
+                {group.items.length}
+              </span>
+            </header>
+            <dl className="bg-surface grid gap-0 p-0">
               {group.items.map((item) => (
-                <div key={item.label} className="border-border grid grid-cols-[minmax(120px,0.8fr)_1.2fr] gap-3 border-b pb-2 last:border-0">
-                  <dt className="text-muted">{item.label}</dt>
-                  <dd className="whitespace-pre-wrap">{item.value || '—'}</dd>
+                <div
+                  key={item.label}
+                  className="border-border grid grid-cols-[minmax(110px,0.7fr)_1.3fr] gap-3 border-b px-4 py-2 text-sm last:border-0"
+                >
+                  <dt className="text-muted text-xs font-semibold tracking-wide uppercase">
+                    {item.label}
+                  </dt>
+                  <dd className="text-ink whitespace-pre-wrap">
+                    {item.value || '—'}
+                  </dd>
                 </div>
               ))}
             </dl>
           </section>
         ))}
       </div>
+
+      <p className="text-muted mt-3 text-xs">
+        {total} {total === 1 ? 'campo' : 'campos'} mostrados
+      </p>
     </Dialog>
   )
 }

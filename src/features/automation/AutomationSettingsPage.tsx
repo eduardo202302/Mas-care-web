@@ -6,6 +6,7 @@ import { CheckCircle2, Power, ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { TextField } from '@/components/ui/TextField'
 import { TelegramBotCard } from '@/features/telegram/TelegramBotCard'
@@ -162,9 +163,7 @@ export default function AutomationSettingsPage() {
   if (!canManage)
     return (
       <div className="animate-in">
-        <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-          Automatización
-        </h1>
+        <PageHeader title="Automatización" />
         <p
           role="alert"
           className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
@@ -176,17 +175,10 @@ export default function AutomationSettingsPage() {
 
   return (
     <div className="animate-in">
-      <div className="mb-7">
-        <p className="text-tealmax mb-2 text-sm font-medium">Ajustes</p>
-        <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-          Automatización
-        </h1>
-        <p className="text-muted mt-2 max-w-2xl text-sm leading-6">
-          Controla cuándo y cómo se envían los avisos automáticos por
-          WhatsApp. El sistema nunca envía nada en silencio ni sin poder
-          detenerse.
-        </p>
-      </div>
+      <PageHeader
+        title="Automatización"
+        subtitle="Controla cuándo y cómo se envían los avisos automáticos por WhatsApp. El sistema nunca envía nada en silencio ni sin poder detenerse."
+      />
 
       {settings.isLoading ? (
         <div
@@ -232,9 +224,7 @@ export default function AutomationSettingsPage() {
           </section>
 
           <section className="border-border grid gap-4 rounded-xl border bg-white p-5 md:p-6">
-            <h2 className="text-ink text-sm font-semibold">
-              Reglas de envío
-            </h2>
+            <h2 className="text-ink text-sm font-semibold">Reglas de envío</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField
                 label="Zona horaria (IANA)"
@@ -332,7 +322,9 @@ export default function AutomationSettingsPage() {
         </form>
       )}
 
-      <div className="mt-6"><AutomationRules /></div>
+      <div className="mt-6">
+        <AutomationRules />
+      </div>
       <WhatsAppAccountCard />
       <TelegramBotCard />
       <section className="mt-8 border-t border-red-100 pt-6">
@@ -341,8 +333,8 @@ export default function AutomationSettingsPage() {
           Zona de emergencia
         </h2>
         <p className="text-muted mt-1 max-w-2xl text-sm">
-          Apaga los avisos automáticos de inmediato para toda la
-          organización. Úsalo si algo salió mal y necesitas parar ahora.
+          Apaga los avisos automáticos de inmediato para toda la organización.
+          Úsalo si algo salió mal y necesitas parar ahora.
         </p>
         <Button
           type="button"
@@ -363,8 +355,7 @@ export default function AutomationSettingsPage() {
         >
           <p className="text-ink text-sm">
             ¿Seguro que quieres detener todos los avisos automáticos ahora?
-            Podrás volver a activarlos cuando quieras desde esta misma
-            página.
+            Podrás volver a activarlos cuando quieras desde esta misma página.
           </p>
           {killSwitch.isError && (
             <p role="alert" className="mt-3 text-sm text-red-700">

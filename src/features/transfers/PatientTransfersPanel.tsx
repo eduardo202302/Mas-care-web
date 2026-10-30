@@ -26,7 +26,10 @@ export function PatientTransfersPanel({ patientId }: { patientId: string }) {
   if (transfers.isLoading) return <TableSkeleton columns={5} />
   if (transfers.isError)
     return (
-      <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+      <p
+        role="alert"
+        className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+      >
         No pudimos cargar los traslados. {transfers.error.message}
       </p>
     )

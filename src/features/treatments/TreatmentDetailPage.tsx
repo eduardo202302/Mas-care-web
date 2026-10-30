@@ -7,13 +7,23 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import { ArrowLeft, FileText, Mail, Phone, Users } from 'lucide-react'
-import { CustomValuesView, customPropertyGroups } from '@/components/CustomFields'
+import {
+  CustomValuesView,
+  customPropertyGroups,
+} from '@/components/CustomFields'
 import { useCustomProperties } from '@/lib/custom-properties'
-import { PropertiesDialog, type PropertyGroup } from '@/components/PropertiesDialog'
-import { RecordActionsMenu, type RecordAction } from '@/components/RecordActionsMenu'
+import {
+  PropertiesDialog,
+  type PropertyGroup,
+} from '@/components/PropertiesDialog'
+import {
+  RecordActionsMenu,
+  type RecordAction,
+} from '@/components/RecordActionsMenu'
 import { StatusChip } from '@/components/StatusChip'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { api } from '@/lib/http'
@@ -29,13 +39,25 @@ import {
   type Medication,
   type Treatment,
 } from '@/lib/treatments'
-import { activityDetail, activityLabelFor, taskDueLabel, taskTypeLabels, type TaskList } from '@/lib/operations'
+import {
+  activityDetail,
+  activityLabelFor,
+  taskDueLabel,
+  taskTypeLabels,
+  type TaskList,
+} from '@/lib/operations'
 import { cycleStatusLabels, type CycleTableResponse } from '@/lib/board'
 import { incidentTypeLabels, type Incident } from '@/lib/incidents'
 import type { TreatmentFormValues } from '@/schemas/treatment'
-import { PauseDialog, useSetAutomationPaused } from '@/features/messaging/PauseAutomation'
+import {
+  PauseDialog,
+  useSetAutomationPaused,
+} from '@/features/messaging/PauseAutomation'
 import { TreatmentForm } from './TreatmentForm'
-import { TreatmentActionDialog, type TreatmentActionType } from './TreatmentActionDialog'
+import {
+  TreatmentActionDialog,
+  type TreatmentActionType,
+} from './TreatmentActionDialog'
 
 type ActivityList =
   paths['/api/v1/patients/{id}/activities']['get']['responses'][200]['content']['application/json']
@@ -76,55 +98,82 @@ export default function TreatmentDetailPage() {
   const [editing, setEditing] = useState(false)
   const [action, setAction] = useState<TreatmentActionType | null>(null)
   const [askingPause, setAskingPause] = useState(false)
-  const automation = useSetAutomationPaused('treatments', id, [['treatments', id], ['outbox']])
+  const automation = useSetAutomationPaused('treatments', id, [
+    ['treatments', id],
+    ['outbox'],
+  ])
 
   const treatment = useQuery({
     queryKey: ['treatments', id],
-    queryFn: () => api<Treatment>(`/api/v1/treatments/${encodeURIComponent(id)}`),
+    queryFn: () =>
+      api<Treatment>(`/api/v1/treatments/${encodeURIComponent(id)}`),
   })
   const patient = useQuery({
     queryKey: ['patients', patientId],
-    queryFn: () => api<components['schemas']['Patient']>(`/api/v1/patients/${encodeURIComponent(patientId)}`),
+    queryFn: () =>
+      api<components['schemas']['Patient']>(
+        `/api/v1/patients/${encodeURIComponent(patientId)}`,
+      ),
   })
   const medications = useQuery({
     queryKey: ['medications', { archived: 'false', limit: 100 }],
-    queryFn: () => api<{ data: Medication[] }>('/api/v1/medications?archived=false&limit=100'),
+    queryFn: () =>
+      api<{ data: Medication[] }>(
+        '/api/v1/medications?archived=false&limit=100',
+      ),
   })
   const branches = useQuery({
     queryKey: ['branches'],
-    queryFn: () => api<{ data: { id: string; name: string; labelColor?: string }[] }>('/api/v1/branches'),
+    queryFn: () =>
+      api<{ data: { id: string; name: string; labelColor?: string }[] }>(
+        '/api/v1/branches',
+      ),
   })
   const users = useQuery({
     queryKey: ['users', { limit: 100 }],
-    queryFn: () => api<{ data: { id: string; name: string }[] }>('/api/v1/users?limit=100'),
+    queryFn: () =>
+      api<{ data: { id: string; name: string }[] }>('/api/v1/users?limit=100'),
   })
   const activities = useInfiniteQuery({
     queryKey: ['patients', patientId, 'activities', { treatmentId: id }],
     queryFn: ({ pageParam }) => {
       const params = new URLSearchParams({ limit: '25', treatment_id: id })
       if (pageParam) params.set('cursor', pageParam)
-      return api<ActivityList>(`/api/v1/patients/${encodeURIComponent(patientId)}/activities?${params.toString()}`)
+      return api<ActivityList>(
+        `/api/v1/patients/${encodeURIComponent(patientId)}/activities?${params.toString()}`,
+      )
     },
     initialPageParam: '',
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   })
   const cycles = useQuery({
     queryKey: ['cycles', 'treatment', id],
-    queryFn: () => api<CycleTableResponse>(`/api/v1/cycles?treatment_ids=${encodeURIComponent(id)}&limit=50`),
+    queryFn: () =>
+      api<CycleTableResponse>(
+        `/api/v1/cycles?treatment_ids=${encodeURIComponent(id)}&limit=50`,
+      ),
   })
   const tasks = useQuery({
     queryKey: ['tasks', 'treatment', id],
-    queryFn: () => api<TaskList>(`/api/v1/tasks?treatment_id=${encodeURIComponent(id)}&status=open&limit=20`),
+    queryFn: () =>
+      api<TaskList>(
+        `/api/v1/tasks?treatment_id=${encodeURIComponent(id)}&status=open&limit=20`,
+      ),
     enabled: canReadTasks,
   })
   const incidents = useQuery({
     queryKey: ['patients', patientId, 'incidents'],
-    queryFn: () => api<{ data: Incident[] }>(`/api/v1/patients/${encodeURIComponent(patientId)}/incidents`),
+    queryFn: () =>
+      api<{ data: Incident[] }>(
+        `/api/v1/patients/${encodeURIComponent(patientId)}/incidents`,
+      ),
   })
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: ['treatments'] })
-    await queryClient.invalidateQueries({ queryKey: ['patients', patientId, 'activities'] })
+    await queryClient.invalidateQueries({
+      queryKey: ['patients', patientId, 'activities'],
+    })
     await queryClient.invalidateQueries({ queryKey: ['cycles'] })
   }
   const addActivity = useMutation({
@@ -136,7 +185,9 @@ export default function TreatmentDetailPage() {
           body: body.trim(),
           treatmentId: id,
           metadata: {},
-          ...(kind === 'email' || kind === 'meeting' ? { occurredOn: date } : {}),
+          ...(kind === 'email' || kind === 'meeting'
+            ? { occurredOn: date }
+            : {}),
         }),
       }),
     onSuccess: async () => {
@@ -169,15 +220,22 @@ export default function TreatmentDetailPage() {
     },
   })
 
-  if (treatment.isLoading) return <Skeleton className="h-96 w-full rounded-xl" />
+  if (treatment.isLoading)
+    return <Skeleton className="h-96 w-full rounded-xl" />
   if (treatment.isError || !treatment.data) {
     return (
       <div>
-        <Link to={`/pacientes/${patientId}`} className="text-tealmax inline-flex items-center gap-2 text-sm">
+        <Link
+          to={`/pacientes/${patientId}`}
+          className="text-tealmax inline-flex items-center gap-2 text-sm"
+        >
           <ArrowLeft className="size-4" />
           Volver al paciente
         </Link>
-        <p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">
+        <p
+          role="alert"
+          className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800"
+        >
           No pudimos cargar esta ficha. {treatment.error?.message}
         </p>
       </div>
@@ -185,16 +243,23 @@ export default function TreatmentDetailPage() {
   }
 
   const record = treatment.data
-  const medication = medications.data?.data.find((item) => item.id === record.medicationId)
+  const medication = medications.data?.data.find(
+    (item) => item.id === record.medicationId,
+  )
   const branch = branches.data?.data.find((item) => item.id === record.branchId)
-  const responsible = users.data?.data.find((item) => item.id === record.responsibleUserId)?.name
+  const responsible = users.data?.data.find(
+    (item) => item.id === record.responsibleUserId,
+  )?.name
   const derived = derivedStatusLabel(record.derived_status)
   const rows = activities.data?.pages.flatMap((page) => page.data) ?? []
   const openIncidents = (incidents.data?.data ?? []).filter(
-    (incident) => incident.status !== 'resolved' && (incident as { treatmentId?: string | null }).treatmentId === id,
+    (incident) =>
+      incident.status !== 'resolved' &&
+      (incident as { treatmentId?: string | null }).treatmentId === id,
   )
   const openCycles = (cycles.data?.data ?? []).filter((card) => !card.closed_at)
-  const isActiveOrPaused = record.status === 'active' || record.status === 'paused'
+  const isActiveOrPaused =
+    record.status === 'active' || record.status === 'paused'
 
   async function viewFullHistory() {
     setTab('history')
@@ -202,22 +267,42 @@ export default function TreatmentDetailPage() {
     while (more) more = (await activities.fetchNextPage()).hasNextPage
   }
   const actions: RecordAction[] = [
-    ...(canWrite && record.status !== 'finished' ? [{ label: 'Editar', onClick: () => setEditing(true) }] : []),
+    ...(canWrite && record.status !== 'finished'
+      ? [{ label: 'Editar', onClick: () => setEditing(true) }]
+      : []),
     ...(canWrite && isActiveOrPaused && record.status === 'active'
       ? [{ label: 'Pausar', onClick: () => setAction('pause') }]
       : []),
     ...(canWrite && isActiveOrPaused
-      ? [{ label: 'Finalizar', danger: true, onClick: () => setAction('finish') }]
+      ? [
+          {
+            label: 'Finalizar',
+            danger: true,
+            onClick: () => setAction('finish'),
+          },
+        ]
       : []),
     ...(canWrite && record.status === 'active'
-      ? [(record as { automationPaused?: boolean }).automationPaused
-          ? { label: 'Reanudar avisos automáticos', onClick: () => automation.mutate({ paused: false }) }
-          : { label: 'Pausar avisos automáticos', onClick: () => setAskingPause(true) }]
+      ? [
+          (record as { automationPaused?: boolean }).automationPaused
+            ? {
+                label: 'Reanudar avisos automáticos',
+                onClick: () => automation.mutate({ paused: false }),
+              }
+            : {
+                label: 'Pausar avisos automáticos',
+                onClick: () => setAskingPause(true),
+              },
+        ]
       : []),
     { label: 'Ver historial completo', onClick: () => void viewFullHistory() },
-    { label: 'Ver todas las propiedades', onClick: () => setPropertiesOpen(true) },
+    {
+      label: 'Ver todas las propiedades',
+      onClick: () => setPropertiesOpen(true),
+    },
   ]
-  const treatmentValues = (record as { customValues?: Record<string, unknown> }).customValues ?? {}
+  const treatmentValues =
+    (record as { customValues?: Record<string, unknown> }).customValues ?? {}
   const groups: PropertyGroup[] = [
     {
       name: 'Datos',
@@ -236,16 +321,25 @@ export default function TreatmentDetailPage() {
         { label: 'Estado', value: treatmentStatusLabel(record.status) },
         { label: 'Motivo del estado', value: record.statusReason },
         { label: 'Prescriptor', value: record.prescriberName },
-        { label: 'Receta vence', value: formatDate(record.prescriptionExpiresOn) },
+        {
+          label: 'Receta vence',
+          value: formatDate(record.prescriptionExpiresOn),
+        },
       ],
     },
     {
       name: 'Cobertura',
       items: [
         { label: 'Fin de cobertura', value: formatDate(record.coverageEndOn) },
-        { label: 'Días restantes', value: daysRemainingLabel(record.days_remaining) },
+        {
+          label: 'Días restantes',
+          value: daysRemainingLabel(record.days_remaining),
+        },
         { label: 'Última entrega', value: formatDate(record.lastDeliveryOn) },
-        { label: 'Cobertura ajustada a mano', value: record.coverageManuallyAdjusted ? 'Sí' : 'No' },
+        {
+          label: 'Cobertura ajustada a mano',
+          value: record.coverageManuallyAdjusted ? 'Sí' : 'No',
+        },
         { label: 'Motivo del ajuste', value: record.coverageAdjustReason },
       ],
     },
@@ -269,39 +363,76 @@ export default function TreatmentDetailPage() {
 
   return (
     <div className="animate-in">
-      <Link to={`/pacientes/${patientId}`} className="text-muted hover:text-petroleo mb-5 inline-flex items-center gap-2 text-sm">
+      <Link
+        to={`/pacientes/${patientId}`}
+        className="text-muted hover:text-petroleo mb-5 inline-flex items-center gap-2 text-sm"
+      >
         <ArrowLeft className="size-4" />
         {patient.data?.fullName ?? 'Paciente'}
       </Link>
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-1 text-sm">Ficha del tratamiento</p>
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">{medicationName(medication)}</h1>
-            <span className="text-muted border-border rounded-full border bg-white px-2 py-0.5 font-mono text-xs font-medium">
-              #{record.numericId}
-            </span>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {derived ? <StatusChip status={derived} /> : <span className="text-muted text-sm">{treatmentStatusLabel(record.status)}</span>}
-            {record.prescription_flag && <StatusChip status="Receta por renovar" />}
-          </div>
-        </div>
-        <RecordActionsMenu actions={actions} />
-      </header>
+      <PageHeader
+        title={medicationName(medication)}
+        meta={`#${record.numericId}`}
+        actions={<RecordActionsMenu actions={actions} />}
+      />
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {derived ? (
+          <StatusChip status={derived} />
+        ) : (
+          <span className="text-muted text-sm">
+            {treatmentStatusLabel(record.status)}
+          </span>
+        )}
+        {record.prescription_flag && <StatusChip status="Receta por renovar" />}
+      </div>
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.35fr)_minmax(230px,0.8fr)]">
         <div className="grid gap-4">
           <Panel title="Datos del tratamiento">
             <dl className="grid gap-3 text-sm">
-              <div><dt className="text-muted">Pauta</dt><dd className="mt-0.5">{treatmentPauta(record, medication)}</dd></div>
-              <div><dt className="text-muted">Cantidad por ciclo</dt><dd className="mt-0.5">{String(record.quantityPerCycle)}</dd></div>
-              <div><dt className="text-muted">Fin de cobertura</dt><dd className="mt-0.5">{formatDate(record.coverageEndOn)} · {daysRemainingLabel(record.days_remaining)}</dd></div>
-              <div><dt className="text-muted">Prescriptor</dt><dd className="mt-0.5">{record.prescriberName || '—'}</dd></div>
-              <div><dt className="text-muted">Receta vence</dt><dd className="mt-0.5">{formatDate(record.prescriptionExpiresOn)}</dd></div>
-              <div><dt className="text-muted">Responsable</dt><dd className="mt-0.5">{responsible ?? 'Sin responsable'}</dd></div>
-              <div><dt className="text-muted">Notas</dt><dd className="mt-0.5 whitespace-pre-wrap">{record.notes || 'Sin notas'}</dd></div>
-              <div><dt className="text-muted">Avisos automáticos</dt><dd className="mt-0.5">{(record as { automationPaused?: boolean }).automationPaused ? 'Pausados' : 'Activos'}</dd></div>
+              <div>
+                <dt className="text-muted">Pauta</dt>
+                <dd className="mt-0.5">{treatmentPauta(record, medication)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted">Cantidad por ciclo</dt>
+                <dd className="mt-0.5">{String(record.quantityPerCycle)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted">Fin de cobertura</dt>
+                <dd className="mt-0.5">
+                  {formatDate(record.coverageEndOn)} ·{' '}
+                  {daysRemainingLabel(record.days_remaining)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted">Prescriptor</dt>
+                <dd className="mt-0.5">{record.prescriberName || '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-muted">Receta vence</dt>
+                <dd className="mt-0.5">
+                  {formatDate(record.prescriptionExpiresOn)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted">Responsable</dt>
+                <dd className="mt-0.5">{responsible ?? 'Sin responsable'}</dd>
+              </div>
+              <div>
+                <dt className="text-muted">Notas</dt>
+                <dd className="mt-0.5 whitespace-pre-wrap">
+                  {record.notes || 'Sin notas'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted">Avisos automáticos</dt>
+                <dd className="mt-0.5">
+                  {(record as { automationPaused?: boolean }).automationPaused
+                    ? 'Pausados'
+                    : 'Activos'}
+                </dd>
+              </div>
             </dl>
           </Panel>
           <CustomValuesView entity="treatment" values={treatmentValues} />
@@ -315,10 +446,22 @@ export default function TreatmentDetailPage() {
             </div>
             {tab === 'history' && canWriteActivity && (
               <div className="flex flex-wrap gap-2">
-                <Button onClick={() => setKind('note')}><FileText className="size-4" />Nota</Button>
-                <Button onClick={() => setKind('call')}><Phone className="size-4" />Llamada</Button>
-                <Button onClick={() => setKind('email')}><Mail className="size-4" />Correo</Button>
-                <Button onClick={() => setKind('meeting')}><Users className="size-4" />Reunión</Button>
+                <Button onClick={() => setKind('note')}>
+                  <FileText className="size-4" />
+                  Nota
+                </Button>
+                <Button onClick={() => setKind('call')}>
+                  <Phone className="size-4" />
+                  Llamada
+                </Button>
+                <Button onClick={() => setKind('email')}>
+                  <Mail className="size-4" />
+                  Correo
+                </Button>
+                <Button onClick={() => setKind('meeting')}>
+                  <Users className="size-4" />
+                  Reunión
+                </Button>
               </div>
             )}
           </div>
@@ -333,25 +476,47 @@ export default function TreatmentDetailPage() {
                         <li key={activity.id} className="relative">
                           <span className="bg-tealmax absolute top-1 -left-[26px] size-2.5 rounded-full ring-4 ring-white" />
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="text-petroleo text-sm font-semibold">{activityLabelFor(activity.type)}</p>
-                            <time className="text-muted text-xs">{new Date(activity.occurredAt).toLocaleString('es')}</time>
+                            <p className="text-petroleo text-sm font-semibold">
+                              {activityLabelFor(activity.type)}
+                            </p>
+                            <time className="text-muted text-xs">
+                              {new Date(activity.occurredAt).toLocaleString(
+                                'es',
+                              )}
+                            </time>
                           </div>
-                          {detail && <p className="text-ink mt-1 text-sm leading-6 whitespace-pre-wrap">{detail}</p>}
-                          {authorName(activity) && <p className="text-muted mt-1 text-[11px]">Registrado por {authorName(activity)}</p>}
+                          {detail && (
+                            <p className="text-ink mt-1 text-sm leading-6 whitespace-pre-wrap">
+                              {detail}
+                            </p>
+                          )}
+                          {authorName(activity) && (
+                            <p className="text-muted mt-1 text-[11px]">
+                              Registrado por {authorName(activity)}
+                            </p>
+                          )}
                         </li>
                       )
                     })}
                   </ol>
                   {activities.hasNextPage && (
                     <div className="mt-4 flex justify-center">
-                      <Button onClick={() => activities.fetchNextPage()} disabled={activities.isFetchingNextPage}>
-                        {activities.isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
+                      <Button
+                        onClick={() => activities.fetchNextPage()}
+                        disabled={activities.isFetchingNextPage}
+                      >
+                        {activities.isFetchingNextPage
+                          ? 'Cargando…'
+                          : 'Cargar más'}
                       </Button>
                     </div>
                   )}
                 </>
               ) : (
-                <EmptyState title="Sin actividad todavía" description="Las notas, llamadas, correos, reuniones y cambios de este tratamiento aparecerán aquí." />
+                <EmptyState
+                  title="Sin actividad todavía"
+                  description="Las notas, llamadas, correos, reuniones y cambios de este tratamiento aparecerán aquí."
+                />
               )}
             </div>
           ) : (
@@ -359,14 +524,24 @@ export default function TreatmentDetailPage() {
               {cycles.data?.data.length ? (
                 <ul className="grid gap-2">
                   {cycles.data.data.map((card) => (
-                    <li key={card.cycle_id} className="border-border flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3 text-sm">
-                      <span className="font-medium">{cycleStatusLabels[card.status]}</span>
-                      <span className="text-muted">Fecha prevista {formatDate(card.expected_on)}</span>
+                    <li
+                      key={card.cycle_id}
+                      className="border-border flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3 text-sm"
+                    >
+                      <span className="font-medium">
+                        {cycleStatusLabels[card.status]}
+                      </span>
+                      <span className="text-muted">
+                        Fecha prevista {formatDate(card.expected_on)}
+                      </span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <EmptyState title="Sin ciclos" description="Este tratamiento no tiene ciclos recientes." />
+                <EmptyState
+                  title="Sin ciclos"
+                  description="Este tratamiento no tiene ciclos recientes."
+                />
               )}
             </div>
           )}
@@ -374,7 +549,10 @@ export default function TreatmentDetailPage() {
 
         <div className="grid gap-4">
           <Panel title="Paciente">
-            <Link to={`/pacientes/${patientId}`} className="text-petroleo hover:text-tealmax text-sm font-semibold hover:underline">
+            <Link
+              to={`/pacientes/${patientId}`}
+              className="text-petroleo hover:text-tealmax text-sm font-semibold hover:underline"
+            >
               {patient.data?.fullName ?? 'Ver paciente'}
             </Link>
           </Panel>
@@ -385,7 +563,10 @@ export default function TreatmentDetailPage() {
             {openCycles.length ? (
               <ul className="grid gap-2 text-sm">
                 {openCycles.map((card) => (
-                  <li key={card.cycle_id}>{cycleStatusLabels[card.status]} · {formatDate(card.expected_on)}</li>
+                  <li key={card.cycle_id}>
+                    {cycleStatusLabels[card.status]} ·{' '}
+                    {formatDate(card.expected_on)}
+                  </li>
                 ))}
               </ul>
             ) : (
@@ -396,9 +577,16 @@ export default function TreatmentDetailPage() {
             {tasks.data?.data.length ? (
               <ul className="grid gap-3">
                 {tasks.data.data.map((task) => (
-                  <li key={task.id} className="border-border border-b pb-3 last:border-0 last:pb-0">
-                    <p className="text-ink text-sm font-semibold">{task.title}</p>
-                    <p className="text-muted mt-0.5 text-xs">{taskTypeLabels[task.type]} · {taskDueLabel(task)}</p>
+                  <li
+                    key={task.id}
+                    className="border-border border-b pb-3 last:border-0 last:pb-0"
+                  >
+                    <p className="text-ink text-sm font-semibold">
+                      {task.title}
+                    </p>
+                    <p className="text-muted mt-0.5 text-xs">
+                      {taskTypeLabels[task.type]} · {taskDueLabel(task)}
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -410,11 +598,19 @@ export default function TreatmentDetailPage() {
             {openIncidents.length ? (
               <ul className="grid gap-3">
                 {openIncidents.map((incident) => (
-                  <li key={incident.id} className="border-border border-b pb-3 last:border-0 last:pb-0">
-                    <Link to={`/incidencias?incident=${incident.id}`} className="text-petroleo hover:text-tealmax text-sm font-semibold hover:underline">
+                  <li
+                    key={incident.id}
+                    className="border-border border-b pb-3 last:border-0 last:pb-0"
+                  >
+                    <Link
+                      to={`/incidencias?incident=${incident.id}`}
+                      className="text-petroleo hover:text-tealmax text-sm font-semibold hover:underline"
+                    >
                       {incidentTypeLabels[incident.type]}
                     </Link>
-                    <p className="text-muted mt-1 line-clamp-2 text-xs">{incident.description}</p>
+                    <p className="text-muted mt-1 line-clamp-2 text-xs">
+                      {incident.description}
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -426,7 +622,11 @@ export default function TreatmentDetailPage() {
       </div>
 
       {kind && (
-        <Dialog title={kindTitle[kind]} description="Este registro quedará en el historial del tratamiento." onClose={() => setKind(null)}>
+        <Dialog
+          title={kindTitle[kind]}
+          description="Este registro quedará en el historial del tratamiento."
+          onClose={() => setKind(null)}
+        >
           <form
             className="mt-5 grid gap-4"
             onSubmit={(event) => {
@@ -437,17 +637,41 @@ export default function TreatmentDetailPage() {
             {(kind === 'email' || kind === 'meeting') && (
               <label className="text-ink grid gap-1 text-sm font-medium">
                 Fecha
-                <input type="date" required value={date} onChange={(event) => setDate(event.target.value)} className="border-border h-10 rounded-lg border px-3 text-sm" />
+                <input
+                  type="date"
+                  required
+                  value={date}
+                  onChange={(event) => setDate(event.target.value)}
+                  className="border-border h-10 rounded-lg border px-3 text-sm"
+                />
               </label>
             )}
             <label className="text-ink grid gap-1 text-sm font-medium">
               Resumen
-              <textarea rows={5} required value={body} onChange={(event) => setBody(event.target.value)} className="border-border focus:border-tealmax rounded-lg border px-3 py-2 text-sm outline-none" />
+              <textarea
+                rows={5}
+                required
+                value={body}
+                onChange={(event) => setBody(event.target.value)}
+                className="border-border focus:border-tealmax rounded-lg border px-3 py-2 text-sm outline-none"
+              />
             </label>
-            {addActivity.isError && <p role="alert" className="text-sm text-red-700">{addActivity.error.message}</p>}
+            {addActivity.isError && (
+              <p role="alert" className="text-sm text-red-700">
+                {addActivity.error.message}
+              </p>
+            )}
             <div className="flex justify-end gap-2">
-              <Button type="button" onClick={() => setKind(null)}>Cancelar</Button>
-              <Button variant="primary" type="submit" disabled={addActivity.isPending || !body.trim()}>Guardar</Button>
+              <Button type="button" onClick={() => setKind(null)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                disabled={addActivity.isPending || !body.trim()}
+              >
+                Guardar
+              </Button>
             </div>
           </form>
         </Dialog>
@@ -458,12 +682,28 @@ export default function TreatmentDetailPage() {
           pending={automation.isPending}
           error={automation.error?.message}
           onClose={() => setAskingPause(false)}
-          onConfirm={(text) => automation.mutate({ paused: true, ...(text ? { reason: text } : {}) }, { onSuccess: () => setAskingPause(false) })}
+          onConfirm={(text) =>
+            automation.mutate(
+              { paused: true, ...(text ? { reason: text } : {}) },
+              { onSuccess: () => setAskingPause(false) },
+            )
+          }
         />
       )}
-      {propertiesOpen && <PropertiesDialog title="Todas las propiedades" groups={groups} onClose={() => setPropertiesOpen(false)} />}
+      {propertiesOpen && (
+        <PropertiesDialog
+          title="Todas las propiedades"
+          groups={groups}
+          onClose={() => setPropertiesOpen(false)}
+        />
+      )}
       {editing && (
-        <Dialog title="Editar tratamiento" description="Define la pauta, la cobertura y los datos de la receta." onClose={() => setEditing(false)} size="lg">
+        <Dialog
+          title="Editar tratamiento"
+          description="Define la pauta, la cobertura y los datos de la receta."
+          onClose={() => setEditing(false)}
+          size="lg"
+        >
           <TreatmentForm
             treatment={record}
             medications={medications.data?.data ?? []}
@@ -476,7 +716,12 @@ export default function TreatmentDetailPage() {
         </Dialog>
       )}
       {action && (
-        <TreatmentActionDialog action={action} treatment={record} onClose={() => setAction(null)} onCompleted={invalidate} />
+        <TreatmentActionDialog
+          action={action}
+          treatment={record}
+          onClose={() => setAction(null)}
+          onCompleted={invalidate}
+        />
       )}
     </div>
   )

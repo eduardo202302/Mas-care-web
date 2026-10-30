@@ -7,7 +7,10 @@ import {
   MoreHorizontal,
   UserRound,
 } from 'lucide-react'
-import { DragHandle, type DragHandleProps } from '@/components/kanban/KanbanBoard'
+import {
+  DragHandle,
+  type DragHandleProps,
+} from '@/components/kanban/KanbanBoard'
 import { BranchTag } from '@/components/BranchTag'
 import { incidentTypeLabels, type Incident } from '@/lib/incidents'
 import { formatDateTime } from '@/lib/operations'

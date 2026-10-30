@@ -6,10 +6,19 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { Plus, SlidersHorizontal, TriangleAlert } from 'lucide-react'
+import { Building2, Plus, TriangleAlert, User } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
+import {
+  ActiveFilterChips,
+  AdvancedFilterButton,
+  AdvancedFilterDialog,
+  FilterBarRow,
+  FilterField,
+  filterControlClass,
+} from '@/components/ui/AdvancedFilter'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { useToast } from '@/components/ui/Toast'
 import { KanbanBoard, type KanbanMove } from '@/components/kanban/KanbanBoard'
 import { api } from '@/lib/http'
@@ -132,6 +141,7 @@ export default function IncidentsPage() {
   })
 
   const [createOpen, setCreateOpen] = useState(false)
+  const [filterDraft, setFilterDraft] = useState<IncidentFilters | null>(null)
   const [resolveTarget, setResolveTarget] = useState<Incident | null>(null)
   const [assignTarget, setAssignTarget] = useState<Incident | null>(null)
   const [detailTarget, setDetailTarget] = useState<Incident | null>(null)
@@ -212,8 +222,7 @@ export default function IncidentsPage() {
       more: () => void newIncidents.fetchNextPage(),
     },
     in_progress: {
-      cards:
-        inProgressIncidents.data?.pages.flatMap((page) => page.data) ?? [],
+      cards: inProgressIncidents.data?.pages.flatMap((page) => page.data) ?? [],
       hasMore: Boolean(inProgressIncidents.hasNextPage),
       loading: inProgressIncidents.isFetchingNextPage,
       more: () => void inProgressIncidents.fetchNextPage(),
@@ -236,60 +245,97 @@ export default function IncidentsPage() {
     (sum, status) => sum + datasets[status].cards.length,
     0,
   )
-  const hasFilters = Boolean(filters.branch_id || filters.type || filters.assigned_to)
+  const hasFilters = Boolean(
+    filters.branch_id || filters.type || filters.assigned_to,
+  )
+  const filterCount = [
+    filters.branch_id,
+    filters.type,
+    filters.assigned_to,
+  ].filter(Boolean).length
+  const draftHasFilters = filterDraft
+    ? Boolean(
+        filterDraft.branch_id || filterDraft.type || filterDraft.assigned_to,
+      )
+    : false
+  function filterChipValue(key: 'branch_id' | 'type' | 'assigned_to') {
+    if (key === 'branch_id')
+      return branches.find((b) => b.id === filters.branch_id)?.name ?? '—'
+    if (key === 'type')
+      return (
+        incidentTypeOptions.find((o) => o.value === filters.type)?.label ?? '—'
+      )
+    return (
+      users.data?.data.find((u) => u.id === filters.assigned_to)?.name ?? '—'
+    )
+  }
+  const activeFilterChips = (
+    [
+      ['branch_id', 'Sucursal'],
+      ['type', 'Tipo'],
+      ['assigned_to', 'Responsable'],
+    ] as const
+  )
+    .filter(([key]) => Boolean(filters[key]))
+    .map(([key, label]) => ({
+      key,
+      label,
+      value: filterChipValue(key),
+    }))
 
   return (
     <div className="animate-in">
-      <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-tealmax mb-1 text-sm font-medium">Seguimiento</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Incidencias
-          </h1>
-          <p className="text-muted mt-1 max-w-2xl text-sm">
-            Nueva → En curso → Resuelta. Para resolver una incidencia se exige
-            una resolución escrita.
-          </p>
-        </div>
-        {canCreate && (
-          <Button variant="primary" onClick={() => setCreateOpen(true)}>
-            <Plus className="size-4" />
-            Nueva incidencia
-          </Button>
-        )}
-      </header>
-
-      <section
-        aria-label="Filtros de incidencias"
-        className="border-border shadow-card mb-5 rounded-xl border bg-white p-3"
-      >
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-muted flex items-center gap-2 text-xs font-semibold tracking-wide uppercase">
-            <SlidersHorizontal className="size-3.5" />
-            Filtros
-          </p>
-          {hasFilters && (
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-7 px-2 text-xs"
-              onClick={() => updateFilters({})}
-            >
-              Limpiar
+      <PageHeader
+        title="Incidencias"
+        subtitle="Nueva → En curso → Resuelta. Para resolver una incidencia se exige una resolución escrita."
+        actions={
+          canCreate && (
+            <Button variant="primary" onClick={() => setCreateOpen(true)}>
+              <Plus className="size-4" />
+              Nueva incidencia
             </Button>
-          )}
-        </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <label className="grid gap-1">
-            <span className="text-muted text-[11px] font-medium">Sucursal</span>
+          )
+        }
+      />
+
+      <FilterBarRow aria-label="Filtros de incidencias">
+        <AdvancedFilterButton
+          open={filterDraft !== null}
+          count={filterCount}
+          onClick={() => setFilterDraft({ ...filters })}
+        />
+      </FilterBarRow>
+      <ActiveFilterChips
+        chips={activeFilterChips}
+        onRemove={(key) => updateFilters({ ...filters, [key]: undefined })}
+      />
+      {filterDraft && (
+        <AdvancedFilterDialog
+          open
+          description="Combina estos criterios para acotar el pipeline."
+          onClose={() => setFilterDraft(null)}
+          onClear={() => {
+            setFilterDraft({})
+            updateFilters({})
+          }}
+          clearDisabled={!hasFilters && !draftHasFilters}
+          onApply={() => {
+            updateFilters(filterDraft)
+            setFilterDraft(null)
+          }}
+        >
+          <FilterField label="Sucursal" icon={<Building2 className="size-4" />}>
             <select
               aria-label="Sucursal"
-              value={filters.branch_id ?? ''}
+              value={filterDraft.branch_id ?? ''}
               disabled={Boolean(lockedBranch)}
               onChange={(event) =>
-                updateFilters({ ...filters, branch_id: event.target.value || undefined })
+                setFilterDraft({
+                  ...filterDraft,
+                  branch_id: event.target.value || undefined,
+                })
               }
-              className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+              className={`${filterControlClass} pl-11`}
             >
               {privileged && <option value="">Todas las sucursales</option>}
               {branches.map((branch) => (
@@ -298,19 +344,19 @@ export default function IncidentsPage() {
                 </option>
               ))}
             </select>
-          </label>
-          <label className="grid gap-1">
-            <span className="text-muted text-[11px] font-medium">Tipo</span>
+          </FilterField>
+          <FilterField label="Tipo" icon={<TriangleAlert className="size-4" />}>
             <select
               aria-label="Tipo de incidencia"
-              value={filters.type ?? ''}
+              value={filterDraft.type ?? ''}
               onChange={(event) =>
-                updateFilters({
-                  ...filters,
-                  type: (event.target.value || undefined) as IncidentFilters['type'],
+                setFilterDraft({
+                  ...filterDraft,
+                  type: (event.target.value ||
+                    undefined) as IncidentFilters['type'],
                 })
               }
-              className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+              className={`${filterControlClass} pl-11`}
             >
               <option value="">Todos</option>
               {incidentTypeOptions.map((option) => (
@@ -319,21 +365,18 @@ export default function IncidentsPage() {
                 </option>
               ))}
             </select>
-          </label>
-          <label className="grid gap-1">
-            <span className="text-muted text-[11px] font-medium">
-              Responsable
-            </span>
+          </FilterField>
+          <FilterField label="Responsable" icon={<User className="size-4" />}>
             <select
               aria-label="Responsable"
-              value={filters.assigned_to ?? ''}
+              value={filterDraft.assigned_to ?? ''}
               onChange={(event) =>
-                updateFilters({
-                  ...filters,
+                setFilterDraft({
+                  ...filterDraft,
                   assigned_to: event.target.value || undefined,
                 })
               }
-              className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
+              className={`${filterControlClass} pl-11`}
             >
               <option value="">Todos</option>
               {(users.data?.data ?? []).map((user) => (
@@ -342,9 +385,9 @@ export default function IncidentsPage() {
                 </option>
               ))}
             </select>
-          </label>
-        </div>
-      </section>
+          </FilterField>
+        </AdvancedFilterDialog>
+      )}
 
       {error && (
         <div
@@ -432,10 +475,7 @@ export default function IncidentsPage() {
         />
       )}
       {detailTarget && (
-        <IncidentDetailDialog
-          incident={detailTarget}
-          onClose={closeDetail}
-        />
+        <IncidentDetailDialog incident={detailTarget} onClose={closeDetail} />
       )}
     </div>
   )

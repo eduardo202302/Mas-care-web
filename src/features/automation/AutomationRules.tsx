@@ -23,8 +23,14 @@ export function useAutomationRules(enabled = true) {
   })
 }
 
-const paramField: Record<string, { name: 'followUpDays' | 'days'; label: string }> = {
-  treatment_created: { name: 'followUpDays', label: 'Días hasta el seguimiento' },
+const paramField: Record<
+  string,
+  { name: 'followUpDays' | 'days'; label: string }
+> = {
+  treatment_created: {
+    name: 'followUpDays',
+    label: 'Días hasta el seguimiento',
+  },
   cycle_no_response: { name: 'days', label: 'Días sin respuesta' },
 }
 
@@ -59,7 +65,10 @@ export function AutomationRules() {
       {rules.data?.data.map((rule) => {
         const extra = paramField[rule.key]
         return (
-          <div key={rule.key} className="border-border grid gap-2 rounded-lg border p-4">
+          <div
+            key={rule.key}
+            className="border-border grid gap-2 rounded-lg border p-4"
+          >
             <label className="flex items-start justify-between gap-4">
               <span>
                 <span className="text-ink block text-sm font-medium">

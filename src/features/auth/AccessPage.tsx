@@ -198,7 +198,7 @@ export function AuthFrame({
             <p className="text-tealmax text-sm font-semibold">{eyebrow}</p>
           )}
           <h1
-            className={`font-display text-petroleo text-3xl font-bold tracking-tight ${
+            className={`font-display text-petroleo text-2xl font-bold tracking-tight ${
               eyebrow ? 'mt-2' : ''
             }`}
           >

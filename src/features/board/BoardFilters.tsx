@@ -118,9 +118,9 @@ export function BoardFilters({
     onChange({ ...filters, [key]: undefined })
   }
 
-  const activeEntries = (Object.keys(filterChipLabel) as (keyof Filters)[]).filter(
-    (key) => Boolean(filters[key]),
-  )
+  const activeEntries = (
+    Object.keys(filterChipLabel) as (keyof Filters)[]
+  ).filter((key) => Boolean(filters[key]))
   const hasFilters = Object.values(filters).some(Boolean)
   const draftHasFilters = Object.values(draft).some(Boolean)
   const mine = Boolean(meId) && filters.responsible_user_id === meId
@@ -141,7 +141,10 @@ export function BoardFilters({
     return branchOptions.find((branch) => branch.id === id)?.name ?? id
   }
   function derivedLabel(value: string) {
-    return derivedStatusOptions.find((option) => option.value === value)?.label ?? value
+    return (
+      derivedStatusOptions.find((option) => option.value === value)?.label ??
+      value
+    )
   }
   function chipValue(key: keyof Filters): string {
     const value = filters[key]
@@ -226,168 +229,178 @@ export function BoardFilters({
         </div>
       )}
       {panelOpen && (
-      <Dialog
-        title="Filtro Avanzado"
-        description="Combina estos criterios para acotar el tablero."
-        icon={<Filter className="size-6" />}
-        onClose={() => setPanelOpen(false)}
-        size="lg"
-      >
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium">Sucursal</span>
-          <span className="relative block">
-            <FieldIcon>
-              <Building2 className="size-4" />
-            </FieldIcon>
-            <select
-              aria-label="Sucursal"
-              value={draft.branch_id ?? ''}
-              disabled={branchLocked}
-              onChange={(event) => setDraftField('branch_id', event.target.value)}
-              className={`${controlClass} pl-11`}
-            >
-              {privileged && <option value="">Todas las sucursales</option>}
-              {branchOptions.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
-                </option>
-              ))}
-            </select>
-          </span>
-        </label>
-        <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium">Responsable</span>
-          <span className="relative block">
-            <FieldIcon>
-              <User className="size-4" />
-            </FieldIcon>
-            <select
-              aria-label="Responsable"
-              value={draft.responsible_user_id ?? ''}
-              onChange={(event) =>
-                setDraftField('responsible_user_id', event.target.value)
-              }
-              className={`${controlClass} pl-11`}
-            >
-              <option value="">Todos</option>
-              {(users.data?.data ?? []).map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          </span>
-        </label>
-        <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium">Medicamento</span>
-          <span className="relative block">
-            <FieldIcon>
-              <Pill className="size-4" />
-            </FieldIcon>
-            <select
-              aria-label="Medicamento"
-              value={draft.medication_id ?? ''}
-              onChange={(event) => setDraftField('medication_id', event.target.value)}
-              className={`${controlClass} pl-11`}
-            >
-              <option value="">Todos</option>
-              {(medications.data?.data ?? []).map((medication) => (
-                <option key={medication.id} value={medication.id}>
-                  {medication.brandName ||
-                    medication.genericName ||
-                    medication.activeIngredient ||
-                    'Medicamento'}
-                </option>
-              ))}
-            </select>
-          </span>
-        </label>
-        <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium">Estado derivado</span>
-          <span className="relative block">
-            <FieldIcon>
-              <Tag className="size-4" />
-            </FieldIcon>
-            <select
-              aria-label="Estado derivado"
-              value={draft.derived_status ?? ''}
-              onChange={(event) => {
-                const value = event.target.value as DerivedStatus | ''
-                setDraftField('derived_status', value || undefined)
-              }}
-              className={`${controlClass} pl-11`}
-            >
-              <option value="">Todos</option>
-              {derivedStatusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </span>
-        </label>
-        <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium">Desde</span>
-          <span className="relative block">
-            <FieldIcon>
-              <CalendarDays className="size-4" />
-            </FieldIcon>
-            <input
-              aria-label="Fecha prevista desde"
-              type="date"
-              value={draft.expected_from ?? ''}
-              onChange={(event) => setDraftField('expected_from', event.target.value)}
-              className={`${controlClass} pl-11`}
-            />
-          </span>
-        </label>
-        <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium">Hasta</span>
-          <span className="relative block">
-            <FieldIcon>
-              <CalendarDays className="size-4" />
-            </FieldIcon>
-            <input
-              aria-label="Fecha prevista hasta"
-              type="date"
-              value={draft.expected_to ?? ''}
-              onChange={(event) => setDraftField('expected_to', event.target.value)}
-              className={`${controlClass} pl-11`}
-            />
-          </span>
-        </label>
-      </div>
-      <div className="mt-5 flex flex-col-reverse items-stretch justify-between gap-3 border-t border-border pt-4 sm:flex-row sm:items-center">
-        <Button
-          type="button"
-          className="gap-1.5 hover:border-red-200 hover:bg-red-50 hover:text-red-800"
-          disabled={!hasFilters && !draftHasFilters}
-          onClick={clearDraft}
+        <Dialog
+          title="Filtro Avanzado"
+          description="Combina estos criterios para acotar el tablero."
+          icon={<Filter className="size-6" />}
+          onClose={() => setPanelOpen(false)}
+          size="lg"
         >
-          <Trash2 className="size-3.5" />
-          Limpiar filtros
-        </Button>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            className="hover:border-red-200 hover:bg-red-50 hover:text-red-800"
-            onClick={() => setPanelOpen(false)}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            className="hover:bg-emerald-700 gap-1.5"
-            onClick={applyDraft}
-          >
-            <Check className="size-3.5" />
-            Aplicar filtros
-          </Button>
-        </div>
-      </div>
-      </Dialog>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">Sucursal</span>
+              <span className="relative block">
+                <FieldIcon>
+                  <Building2 className="size-4" />
+                </FieldIcon>
+                <select
+                  aria-label="Sucursal"
+                  value={draft.branch_id ?? ''}
+                  disabled={branchLocked}
+                  onChange={(event) =>
+                    setDraftField('branch_id', event.target.value)
+                  }
+                  className={`${controlClass} pl-11`}
+                >
+                  {privileged && <option value="">Todas las sucursales</option>}
+                  {branchOptions.map((branch) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
+              </span>
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">Responsable</span>
+              <span className="relative block">
+                <FieldIcon>
+                  <User className="size-4" />
+                </FieldIcon>
+                <select
+                  aria-label="Responsable"
+                  value={draft.responsible_user_id ?? ''}
+                  onChange={(event) =>
+                    setDraftField('responsible_user_id', event.target.value)
+                  }
+                  className={`${controlClass} pl-11`}
+                >
+                  <option value="">Todos</option>
+                  {(users.data?.data ?? []).map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+                </select>
+              </span>
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">Medicamento</span>
+              <span className="relative block">
+                <FieldIcon>
+                  <Pill className="size-4" />
+                </FieldIcon>
+                <select
+                  aria-label="Medicamento"
+                  value={draft.medication_id ?? ''}
+                  onChange={(event) =>
+                    setDraftField('medication_id', event.target.value)
+                  }
+                  className={`${controlClass} pl-11`}
+                >
+                  <option value="">Todos</option>
+                  {(medications.data?.data ?? []).map((medication) => (
+                    <option key={medication.id} value={medication.id}>
+                      {medication.brandName ||
+                        medication.genericName ||
+                        medication.activeIngredient ||
+                        'Medicamento'}
+                    </option>
+                  ))}
+                </select>
+              </span>
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">
+                Estado derivado
+              </span>
+              <span className="relative block">
+                <FieldIcon>
+                  <Tag className="size-4" />
+                </FieldIcon>
+                <select
+                  aria-label="Estado derivado"
+                  value={draft.derived_status ?? ''}
+                  onChange={(event) => {
+                    const value = event.target.value as DerivedStatus | ''
+                    setDraftField('derived_status', value || undefined)
+                  }}
+                  className={`${controlClass} pl-11`}
+                >
+                  <option value="">Todos</option>
+                  {derivedStatusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </span>
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">Desde</span>
+              <span className="relative block">
+                <FieldIcon>
+                  <CalendarDays className="size-4" />
+                </FieldIcon>
+                <input
+                  aria-label="Fecha prevista desde"
+                  type="date"
+                  value={draft.expected_from ?? ''}
+                  onChange={(event) =>
+                    setDraftField('expected_from', event.target.value)
+                  }
+                  className={`${controlClass} pl-11`}
+                />
+              </span>
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">Hasta</span>
+              <span className="relative block">
+                <FieldIcon>
+                  <CalendarDays className="size-4" />
+                </FieldIcon>
+                <input
+                  aria-label="Fecha prevista hasta"
+                  type="date"
+                  value={draft.expected_to ?? ''}
+                  onChange={(event) =>
+                    setDraftField('expected_to', event.target.value)
+                  }
+                  className={`${controlClass} pl-11`}
+                />
+              </span>
+            </label>
+          </div>
+          <div className="border-border mt-5 flex flex-col-reverse items-stretch justify-between gap-3 border-t pt-4 sm:flex-row sm:items-center">
+            <Button
+              type="button"
+              className="gap-1.5 hover:border-red-200 hover:bg-red-50 hover:text-red-800"
+              disabled={!hasFilters && !draftHasFilters}
+              onClick={clearDraft}
+            >
+              <Trash2 className="size-3.5" />
+              Limpiar filtros
+            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                className="hover:border-red-200 hover:bg-red-50 hover:text-red-800"
+                onClick={() => setPanelOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                className="gap-1.5 hover:bg-emerald-700"
+                onClick={applyDraft}
+              >
+                <Check className="size-3.5" />
+                Aplicar filtros
+              </Button>
+            </div>
+          </div>
+        </Dialog>
       )}
     </section>
   )

@@ -59,6 +59,18 @@ describe('CompanyForm', () => {
         status: 'inactive',
         pin: screen.getByLabelText<HTMLInputElement>('PIN').value,
         domain: 'https://farmacia.com',
+        phone: '',
+        ownerName: '',
+        industry: '',
+        type: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        employeeCount: '',
+        annualRevenue: '',
+        timezone: '',
+        description: '',
+        linkedinUrl: '',
       }),
     )
   })

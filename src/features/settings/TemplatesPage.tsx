@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/ui/PageHeader'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -30,8 +31,17 @@ type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
 
 // Fields the API returns for WhatsApp templates; the generated type predates them.
-type WaInfo = { attemptNumber?: number; waStatus?: 'draft' | 'pending' | 'approved' | 'rejected'; waTemplateName?: string | null }
-const waStatusLabels = { draft: 'borrador', pending: 'pendiente', approved: 'aprobada', rejected: 'rechazada' } as const
+type WaInfo = {
+  attemptNumber?: number
+  waStatus?: 'draft' | 'pending' | 'approved' | 'rejected'
+  waTemplateName?: string | null
+}
+const waStatusLabels = {
+  draft: 'borrador',
+  pending: 'pendiente',
+  approved: 'aprobada',
+  rejected: 'rechazada',
+} as const
 
 const channelMeta: Record<
   MessageChannel,
@@ -46,7 +56,9 @@ export default function TemplatesPage() {
   const queryClient = useQueryClient()
   const canWrite = useCan('templates:write')
   const canTest = useCan('automation:manage')
-  const [testing, setTesting] = useState<{ id: string; name: string } | null>(null)
+  const [testing, setTesting] = useState<{ id: string; name: string } | null>(
+    null,
+  )
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<MessageTemplate | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
@@ -100,29 +112,26 @@ export default function TemplatesPage() {
 
   return (
     <div className="animate-in">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">Ajustes</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Plantillas de aviso
-          </h1>
-          <p className="text-muted mt-2 text-sm">
-            Mensajes base para avisar reposiciones por WhatsApp o llamada.
-          </p>
-        </div>
-        {canWrite && (
-          <Button
-            variant="primary"
-            onClick={() => {
-              setEditing(null)
-              setFormOpen(true)
-            }}
-          >
-            <Plus className="size-4" />
-            Nueva plantilla
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Plantillas de aviso"
+        subtitle="Mensajes base para avisar reposiciones por WhatsApp o llamada."
+        actions={
+          <>
+            {canWrite && (
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setEditing(null)
+                  setFormOpen(true)
+                }}
+              >
+                <Plus className="size-4" />
+                Nueva plantilla
+              </Button>
+            )}
+          </>
+        }
+      />
 
       {feedback && (
         <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
@@ -234,10 +243,25 @@ export default function TemplatesPage() {
                           </div>
                           {template.channel !== 'call' && (
                             <p className="text-muted mt-1 text-[11px]">
-                              {{ 1: 'Primer aviso', 2: 'Primer recordatorio', 3: 'Último recordatorio' }[(template as WaInfo).attemptNumber ?? 1] ?? 'Aviso'}
+                              {{
+                                1: 'Primer aviso',
+                                2: 'Primer recordatorio',
+                                3: 'Último recordatorio',
+                              }[(template as WaInfo).attemptNumber ?? 1] ??
+                                'Aviso'}
                               {template.channel === 'whatsapp' && (
-                                <> · Meta: {waStatusLabels[(template as WaInfo).waStatus ?? 'draft']}
-                                  {(template as WaInfo).waTemplateName ? ` (${(template as WaInfo).waTemplateName})` : ''}</>
+                                <>
+                                  {' '}
+                                  · Meta:{' '}
+                                  {
+                                    waStatusLabels[
+                                      (template as WaInfo).waStatus ?? 'draft'
+                                    ]
+                                  }
+                                  {(template as WaInfo).waTemplateName
+                                    ? ` (${(template as WaInfo).waTemplateName})`
+                                    : ''}
+                                </>
                               )}
                             </p>
                           )}
@@ -267,15 +291,23 @@ export default function TemplatesPage() {
                               >
                                 {template.isActive ? 'Desactivar' : 'Activar'}
                               </Button>
-                              {canTest && template.channel === 'whatsapp' && (template as WaInfo).waStatus === 'approved' && (
-                                <Button
-                                  variant="ghost"
-                                  className="h-8 px-3 text-xs"
-                                  onClick={() => setTesting({ id: template.id, name: template.name })}
-                                >
-                                  Enviar prueba
-                                </Button>
-                              )}
+                              {canTest &&
+                                template.channel === 'whatsapp' &&
+                                (template as WaInfo).waStatus ===
+                                  'approved' && (
+                                  <Button
+                                    variant="ghost"
+                                    className="h-8 px-3 text-xs"
+                                    onClick={() =>
+                                      setTesting({
+                                        id: template.id,
+                                        name: template.name,
+                                      })
+                                    }
+                                  >
+                                    Enviar prueba
+                                  </Button>
+                                )}
                             </div>
                           )}
                         </article>

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { FileQuestion } from 'lucide-react'
 import { EmptyState } from '@/components/EmptyState'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { isReportType, reportLabels } from '@/lib/reports'
 import { useUiStore } from '@/stores/ui-store'
 import { ReportFilterBar, useReportFilters } from './FilterBar'
@@ -48,17 +49,16 @@ export default function ReportPage() {
 
   return (
     <div className="animate-in report-print-page">
-      <header className="mb-5">
-        <p className="text-tealmax mb-2 text-sm font-medium">Informes</p>
-        <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-          {reportLabels[tipo]}
-        </h1>
-        <p className="text-muted mt-1 text-xs">
-          Generado el {new Date().toLocaleString('es')}
-        </p>
-      </header>
+      <PageHeader
+        title={reportLabels[tipo]}
+        subtitle={`Generado el ${new Date().toLocaleString('es')}`}
+      />
 
-      <ReportFilterBar reportType={tipo} filters={filters} onChange={setFilters} />
+      <ReportFilterBar
+        reportType={tipo}
+        filters={filters}
+        onChange={setFilters}
+      />
 
       {tipo === 'adherence' && <AdherenceReport filters={filters} />}
       {tipo === 'overdue' && <OverdueReport filters={filters} />}

@@ -2,15 +2,27 @@ import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
-import { Building2, ChevronDown, RefreshCw, Trash2, Upload } from 'lucide-react'
+import {
+  Briefcase,
+  Building2,
+  ChevronDown,
+  Link as LinkIcon,
+  MapPin,
+  RefreshCw,
+  Trash2,
+  Upload,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
+import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
 import {
   companyFormSchema,
+  companyIndustries,
   companyLinks,
   companyStatuses,
+  companyTypes,
   generateCompanyPin,
   normalizeCompanyDomain,
   type CompanyFormValues,
@@ -82,6 +94,18 @@ export function CompanyForm({
       status: 'active',
       pin: generateCompanyPin(),
       domain: '',
+      phone: '',
+      ownerName: '',
+      industry: '',
+      type: '',
+      city: '',
+      state: '',
+      postalCode: '',
+      employeeCount: '',
+      annualRevenue: '',
+      timezone: '',
+      description: '',
+      linkedinUrl: '',
     },
   })
 
@@ -183,11 +207,12 @@ export function CompanyForm({
   }
 
   return (
-    <form className="grid gap-5" onSubmit={handleSubmit(submit)}>
-      <fieldset className="grid gap-4">
-        <legend className="text-ink text-sm font-semibold">
-          Información básica
-        </legend>
+    <form className="grid gap-4" onSubmit={handleSubmit(submit)}>
+      <ModalSection
+        icon={<Building2 className="size-4" />}
+        title="Información básica"
+        tone="mint"
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
           <div className="border-border bg-surface grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl border">
             {logo ? (
@@ -250,7 +275,7 @@ export function CompanyForm({
             )}
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <TextField
             label="Nombre"
             required
@@ -265,6 +290,13 @@ export function CompanyForm({
             placeholder="contacto@farmacia.com"
             {...register('email')}
             error={errors.email?.message}
+          />
+          <TextField
+            label="Teléfono"
+            type="tel"
+            placeholder="+52 55 1234 5678"
+            {...register('phone')}
+            error={errors.phone?.message}
           />
         </div>
         <div className="grid gap-1.5">
@@ -333,10 +365,137 @@ export function CompanyForm({
             </p>
           )}
         </div>
-      </fieldset>
+      </ModalSection>
 
-      <fieldset className="border-border grid gap-4 border-t pt-5">
-        <legend className="text-ink text-sm font-semibold">Links</legend>
+      <ModalSection
+        icon={<Briefcase className="size-4" />}
+        title="Perfil de la empresa"
+        tone="sky"
+      >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <TextField
+            label="Propietario de la empresa"
+            placeholder="Eduardo Vallejo"
+            {...register('ownerName')}
+            error={errors.ownerName?.message}
+          />
+          <div className="grid gap-1.5">
+            <label
+              htmlFor="company-industry"
+              className="text-ink text-sm font-medium"
+            >
+              Industria
+            </label>
+            <div className="relative">
+              <select
+                id="company-industry"
+                {...register('industry')}
+                aria-invalid={Boolean(errors.industry)}
+                className={`${fieldClass} h-10 appearance-none pr-9`}
+              >
+                <option value="">Selecciona una opción</option>
+                {companyIndustries.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+          <div className="grid gap-1.5">
+            <label
+              htmlFor="company-type"
+              className="text-ink text-sm font-medium"
+            >
+              Tipo
+            </label>
+            <div className="relative">
+              <select
+                id="company-type"
+                {...register('type')}
+                aria-invalid={Boolean(errors.type)}
+                className={`${fieldClass} h-10 appearance-none pr-9`}
+              >
+                <option value="">Selecciona una opción</option>
+                {companyTypes.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+          <TextField
+            label="Número de empleados"
+            type="number"
+            min={0}
+            {...register('employeeCount')}
+            error={errors.employeeCount?.message}
+          />
+          <TextField
+            label="Ingresos anuales"
+            type="number"
+            min={0}
+            {...register('annualRevenue')}
+            error={errors.annualRevenue?.message}
+          />
+        </div>
+        <TextField
+          label="Descripción"
+          {...register('description')}
+          error={errors.description?.message}
+        />
+        <TextField
+          label="Página de empresa en LinkedIn"
+          placeholder="https://www.linkedin.com/company/..."
+          {...register('linkedinUrl')}
+          error={errors.linkedinUrl?.message}
+        />
+      </ModalSection>
+
+      <ModalSection
+        icon={<MapPin className="size-4" />}
+        title="Ubicación"
+        tone="amber"
+      >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <TextField
+            label="Ciudad"
+            {...register('city')}
+            error={errors.city?.message}
+          />
+          <TextField
+            label="Estado/Región"
+            {...register('state')}
+            error={errors.state?.message}
+          />
+          <TextField
+            label="Código Postal"
+            {...register('postalCode')}
+            error={errors.postalCode?.message}
+          />
+          <TextField
+            label="Huso horario"
+            placeholder="America/Mexico_City"
+            {...register('timezone')}
+            error={errors.timezone?.message}
+          />
+        </div>
+      </ModalSection>
+
+      <ModalSection
+        icon={<LinkIcon className="size-4" />}
+        title="Links"
+        tone="mint"
+      >
         <div className="grid gap-1.5">
           <TextField
             label="Dominio"
@@ -354,7 +513,7 @@ export function CompanyForm({
           value={links.registrationLink}
         />
         <LinkField label="Link para iniciar sesión" value={links.loginLink} />
-      </fieldset>
+      </ModalSection>
 
       {errors.root?.server?.message && (
         <p

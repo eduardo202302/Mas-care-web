@@ -4,11 +4,22 @@ import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
-import { AlertTriangle, ChevronDown } from 'lucide-react'
+import {
+  AlertTriangle,
+  ChevronDown,
+  Phone,
+  Stethoscope,
+  UserRound,
+} from 'lucide-react'
 import { CustomFields } from '@/components/CustomFields'
-import { useCustomProperties, validateCustomValues } from '@/lib/custom-properties'
+import {
+  useCustomProperties,
+  validateCustomValues,
+} from '@/lib/custom-properties'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
+import { ModalSection } from '@/components/ui/ModalSection'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
 import { api } from '@/lib/http'
@@ -35,7 +46,6 @@ export function PatientForm({
     handleSubmit,
     watch,
     setError,
-    setValue,
     formState: { errors },
   } = useForm<PatientFormValues>({
     resolver: zodResolver(patientSchema),
@@ -61,7 +71,7 @@ export function PatientForm({
           documentId: '',
           birthDate: '',
           phone: '',
-          phoneHasWhatsapp: false,
+          phoneHasWhatsapp: true,
           email: '',
           address: '',
           zone: '',
@@ -72,7 +82,8 @@ export function PatientForm({
   })
 
   const [customValues, setCustomValues] = useState<Record<string, unknown>>(
-    ((patient as { customValues?: Record<string, unknown> } | undefined)?.customValues) ?? {},
+    (patient as { customValues?: Record<string, unknown> } | undefined)
+      ?.customValues ?? {},
   )
   const [customErrors, setCustomErrors] = useState<Record<string, string>>({})
   const customDefs = useCustomProperties('patient').data?.data ?? []
@@ -157,11 +168,11 @@ export function PatientForm({
     }
   }
 
-  const fieldClass =
-    'border-border text-ink placeholder:text-muted/70 focus:border-tealmax focus:ring-tealmax/15 w-full rounded-lg border bg-white px-3 text-sm transition outline-none focus:ring-2 aria-[invalid=true]:border-red-400'
+  const control =
+    'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2'
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="grid gap-6">
+    <form onSubmit={handleSubmit(submit)} className="grid gap-5">
       {possibleDuplicates.length > 0 && (
         <aside
           className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-sm text-amber-950"
@@ -172,7 +183,7 @@ export function PatientForm({
             aria-hidden="true"
           />
           <div>
-            <p className="font-semibold">Posible paciente duplicado</p>
+            <p className="font-semibold">Posible Paciente Duplicado</p>
             <p className="mt-0.5 text-xs text-amber-900/80">
               Revisa estas fichas antes de continuar.
             </p>
@@ -192,16 +203,15 @@ export function PatientForm({
           </div>
         </aside>
       )}
-      <section className="grid gap-4">
-        <div className="border-border border-b pb-2">
-          <h3 className="text-petroleo text-sm font-semibold">
-            Identificación
-          </h3>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+      <ModalSection
+        icon={<UserRound className="size-4" />}
+        title="Identificación"
+        tone="mint"
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <TextField
-              label="Nombre completo"
+              label="Nombre Completo"
               required
               placeholder="Nombre y apellidos"
               {...register('fullName')}
@@ -215,50 +225,34 @@ export function PatientForm({
             error={errors.documentId?.message}
           />
           <TextField
-            label="Fecha de nacimiento"
+            label="Fecha de Nacimiento"
             type="date"
             {...register('birthDate')}
             error={errors.birthDate?.message}
           />
         </div>
-      </section>
-      <section className="grid gap-4">
-        <div className="border-border border-b pb-2">
-          <h3 className="text-petroleo text-sm font-semibold">Contacto</h3>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+      </ModalSection>
+
+      <ModalSection
+        icon={<Phone className="size-4" />}
+        title="Contacto"
+        tone="sky"
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
           <TextField
-            label="Teléfono"
+            label="WhatsApp"
             type="tel"
             placeholder="+502 5555 5555"
             {...register('phone')}
             error={errors.phone?.message}
           />
           <TextField
-            label="Correo electrónico"
+            label="Correo Electrónico"
             type="email"
             placeholder="paciente@correo.com"
             {...register('email')}
             error={errors.email?.message}
           />
-          <label className="border-border bg-surface/50 hover:border-tealmax/40 flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition sm:col-span-2">
-            <input
-              type="checkbox"
-              className="accent-tealmax mt-0.5 size-4 shrink-0 cursor-pointer"
-              checked={watch('phoneHasWhatsapp')}
-              onChange={(event) =>
-                setValue('phoneHasWhatsapp', event.target.checked)
-              }
-            />
-            <span>
-              <span className="text-ink block text-sm font-medium">
-                Este teléfono tiene WhatsApp
-              </span>
-              <span className="text-muted block text-xs">
-                Lo usaremos para recordatorios y confirmaciones.
-              </span>
-            </span>
-          </label>
           <TextField
             label="Dirección"
             placeholder="Calle, número y colonia"
@@ -272,12 +266,14 @@ export function PatientForm({
             error={errors.zone?.message}
           />
         </div>
-      </section>
-      <section className="grid gap-4">
-        <div className="border-border border-b pb-2">
-          <h3 className="text-petroleo text-sm font-semibold">Atención</h3>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+      </ModalSection>
+
+      <ModalSection
+        icon={<Stethoscope className="size-4" />}
+        title="Atención"
+        tone="amber"
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
           <div className="grid gap-1.5">
             <label
               htmlFor="patient-branch"
@@ -293,7 +289,7 @@ export function PatientForm({
                 aria-describedby={
                   errors.primaryBranchId ? 'patient-branch-error' : undefined
                 }
-                className={`${fieldClass} h-10 appearance-none pr-9`}
+                className={`${control} appearance-none pr-9`}
               >
                 {branches.map((branch) => (
                   <option key={branch.id} value={branch.id}>
@@ -312,53 +308,26 @@ export function PatientForm({
               </p>
             )}
           </div>
-          <div className="grid gap-1.5">
-            <label
-              htmlFor="patient-channel"
-              className="text-ink text-sm font-medium"
-            >
-              Canal preferido
-            </label>
-            <div className="relative">
-              <select
-                id="patient-channel"
-                {...register('preferredChannel')}
-                className={`${fieldClass} h-10 appearance-none pr-9`}
-              >
-                <option value="whatsapp">WhatsApp</option>
-                <option value="call">Llamada</option>
-                <option value="sms">SMS</option>
-                <option value="telegram">Telegram</option>
-              </select>
-              <ChevronDown
-                className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
-                aria-hidden="true"
-              />
-            </div>
-            <p className="text-muted text-xs">
-              Cómo preferimos contactar al paciente.
-            </p>
-          </div>
           <div className="grid gap-1.5 sm:col-span-2">
             <label
               htmlFor="patient-notes"
               className="text-ink text-sm font-medium"
             >
-              Notas de cuidado
+              Notas de Cuidado{' '}
+              <span className="text-muted font-normal">(Opcional)</span>
             </label>
-            <textarea
+            <TextAreaField
               id="patient-notes"
-              rows={4}
+              className="min-h-8 py-1.5 text-xs"
               placeholder="Alergias, indicaciones o detalles relevantes…"
               {...register('careNotes')}
-              className={`${fieldClass} min-h-24 resize-y py-2.5`}
             />
             {errors.careNotes?.message && (
               <p className="text-xs text-red-700">{errors.careNotes.message}</p>
             )}
           </div>
         </div>
-      </section>
+      </ModalSection>
       {errors.root?.server?.message && (
         <p
           role="alert"
@@ -386,8 +355,8 @@ export function PatientForm({
           {submitting
             ? 'Guardando…'
             : patient
-              ? 'Guardar cambios'
-              : 'Crear paciente'}
+              ? 'Guardar Cambios'
+              : 'Crear Paciente'}
         </Button>
       </FormActions>
     </form>

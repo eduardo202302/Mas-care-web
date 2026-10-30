@@ -1,21 +1,15 @@
 import { BranchTag } from '@/components/BranchTag'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { StatusChip } from '@/components/StatusChip'
 import { statusLabels } from '@/components/status-labels'
 
 export default function ChipsPage() {
   return (
     <div className="animate-in">
-      <div className="mb-8">
-        <p className="text-tealmax mb-2 text-sm font-medium">
-          Entorno de desarrollo
-        </p>
-        <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-          Componentes de estado
-        </h1>
-        <p className="text-muted mt-2 text-sm">
-          Muestra de etiquetas para revisar contraste, color y lectura.
-        </p>
-      </div>
+      <PageHeader
+        title="Componentes de estado"
+        subtitle="Muestra de etiquetas para revisar contraste, color y lectura."
+      />
       <section className="border-border rounded-xl border bg-white p-6 md:p-8">
         <h2 className="text-ink text-sm font-semibold">Estados de operación</h2>
         <p className="text-muted mt-1 text-sm">

@@ -1,9 +1,10 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, ListTree, TextCursorInput } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
+import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
 import { cn } from '@/lib/cn'
@@ -131,77 +132,91 @@ export function MenuItemForm({
 
   return (
     <form className="grid gap-5" onSubmit={handleSubmit(submit)}>
-      <TextField
-        label="Nombre"
-        required
-        placeholder="pacientes"
-        readOnly={editing}
-        {...register('key')}
-        error={errors.key?.message}
-      />
-      <TextField
-        label="Etiqueta"
-        required
-        placeholder="Pacientes"
-        {...register('label')}
-        error={errors.label?.message}
-      />
-      <TextField
-        label="Ruta"
-        placeholder="/pacientes (vacío para un grupo de submenús)"
-        {...register('path')}
-        error={errors.path?.message}
-      />
-      <div className="grid gap-5 sm:grid-cols-2">
+      <ModalSection
+        icon={<TextCursorInput className="size-4" />}
+        title="Datos del Ítem"
+        tone="mint"
+      >
+        <TextField
+          label="Nombre"
+          required
+          placeholder="pacientes"
+          readOnly={editing}
+          {...register('key')}
+          error={errors.key?.message}
+        />
+        <TextField
+          label="Etiqueta"
+          required
+          placeholder="Pacientes"
+          {...register('label')}
+          error={errors.label?.message}
+        />
+        <TextField
+          label="Ruta"
+          placeholder="/pacientes (vacío para un grupo de submenús)"
+          {...register('path')}
+          error={errors.path?.message}
+        />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <SelectField
+            id="menu-icon"
+            label="Ícono"
+            error={errors.icon?.message}
+            {...register('icon')}
+          >
+            {Object.keys(menuIcons).map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </SelectField>
+          <TextField
+            label="Orden"
+            required
+            inputMode="numeric"
+            {...register('order')}
+            error={errors.order?.message}
+          />
+        </div>
+      </ModalSection>
+
+      <ModalSection
+        icon={<ListTree className="size-4" />}
+        title="Ubicación y Visibilidad"
+        tone="sky"
+      >
         <SelectField
-          id="menu-icon"
-          label="Ícono"
-          error={errors.icon?.message}
-          {...register('icon')}
+          id="menu-parent"
+          label="Menú Padre"
+          error={errors.parentId?.message}
+          locked={parentLocked}
+          {...register('parentId')}
         >
-          {Object.keys(menuIcons).map((name) => (
-            <option key={name} value={name}>
-              {name}
+          <option value="">Ninguno (nivel superior)</option>
+          {parents.map((parent) => (
+            <option key={parent.id} value={parent.id}>
+              {parent.label}
             </option>
           ))}
         </SelectField>
-        <TextField
-          label="Orden"
-          required
-          inputMode="numeric"
-          {...register('order')}
-          error={errors.order?.message}
-        />
-      </div>
-      <SelectField
-        id="menu-parent"
-        label="Menú padre"
-        error={errors.parentId?.message}
-        locked={parentLocked}
-        {...register('parentId')}
-      >
-        <option value="">Ninguno (nivel superior)</option>
-        {parents.map((parent) => (
-          <option key={parent.id} value={parent.id}>
-            {parent.label}
-          </option>
-        ))}
-      </SelectField>
-      {parentLocked && (
-        <p className="text-muted -mt-3 text-xs">
-          Este ítem tiene submenús, por eso debe quedarse en el nivel superior.
-        </p>
-      )}
-      <label className="border-border flex cursor-pointer items-center gap-3 rounded-lg border p-3">
-        <input
-          type="checkbox"
-          {...register('isActive')}
-          className="accent-tealmax size-4 cursor-pointer"
-        />
-        <span className="text-ink text-sm font-medium">
-          Activo (visible en el menú)
-        </span>
-      </label>
+        {parentLocked && (
+          <p className="text-muted text-xs">
+            Este ítem tiene submenús, por eso debe quedarse en el nivel
+            superior.
+          </p>
+        )}
+        <label className="border-border flex cursor-pointer items-center gap-3 rounded-lg border p-3">
+          <input
+            type="checkbox"
+            {...register('isActive')}
+            className="accent-tealmax size-4 cursor-pointer"
+          />
+          <span className="text-ink text-sm font-medium">
+            Activo (Visible en el Menú)
+          </span>
+        </label>
+      </ModalSection>
       {errors.root?.server?.message && (
         <p
           role="alert"
@@ -223,8 +238,8 @@ export function MenuItemForm({
           {submitting
             ? 'Guardando…'
             : editing
-              ? 'Guardar cambios'
-              : 'Crear ítem'}
+              ? 'Guardar Cambios'
+              : 'Crear Ítem'}
         </Button>
       </FormActions>
     </form>

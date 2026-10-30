@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import {
   useInfiniteQuery,
   useMutation,
@@ -16,14 +16,26 @@ import {
   PackageCheck,
   Phone,
   Plus,
+  ShieldCheck,
   TriangleAlert,
+  UserRound,
   Users,
+  type LucideIcon,
 } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
-import { CustomValuesView, customPropertyGroups } from '@/components/CustomFields'
+import {
+  CustomValuesView,
+  customPropertyGroups,
+} from '@/components/CustomFields'
 import { useCustomProperties } from '@/lib/custom-properties'
-import { PropertiesDialog, type PropertyGroup } from '@/components/PropertiesDialog'
-import { RecordActionsMenu, type RecordAction } from '@/components/RecordActionsMenu'
+import {
+  PropertiesDialog,
+  type PropertyGroup,
+} from '@/components/PropertiesDialog'
+import {
+  RecordActionsMenu,
+  type RecordAction,
+} from '@/components/RecordActionsMenu'
 import { EnrollAutomationButton } from '@/features/automation/AutomationRules'
 import { PatientTelegramPanel } from '@/features/telegram/PatientTelegramPanel'
 import { ConversationDialog } from '@/features/messaging/ConversationDialog'
@@ -31,11 +43,14 @@ import { PatientAutomationPanel } from '@/features/messaging/PauseAutomation'
 import { EmptyState } from '@/components/EmptyState'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { FormActions } from '@/components/ui/FormActions'
+import { ModalSection } from '@/components/ui/ModalSection'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { TextField } from '@/components/ui/TextField'
 import { api } from '@/lib/http'
 import { formatPhone } from '@/lib/phone'
-import { useCan, useMe } from '@/lib/permissions'
+import { useCan } from '@/lib/permissions'
 import type { components, paths } from '@/lib/api-types'
 import {
   medicationName,
@@ -69,12 +84,12 @@ import { NoticeDialog } from '@/features/dashboard/NoticeDialog'
 import { DeliveryDialog } from '@/features/dashboard/DeliveryDialog'
 import { TaskFormDialog } from '@/features/tasks/TaskFormDialog'
 import { IncidentFormDialog } from '@/features/incidents/IncidentFormDialog'
-import {
-  incidentTypeLabels,
-  type Incident,
-} from '@/lib/incidents'
+import { incidentTypeLabels, type Incident } from '@/lib/incidents'
 import { TransferDialog } from '@/features/transfers/TransferDialog'
 import { PatientTransfersPanel } from '@/features/transfers/PatientTransfersPanel'
+import { PatientDoctorsPanel } from './PatientDoctorsPanel'
+import { PatientConditionsPanel } from './PatientConditionsPanel'
+import { PatientInfoPackPanel } from './PatientInfoPackPanel'
 
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
@@ -105,14 +120,23 @@ function Panel({
   title,
   children,
   action,
+  inlineAction = false,
 }: {
   title: string
   children: React.ReactNode
   action?: React.ReactNode
+  /** Deja la acción pegada al título en vez de empujarla al extremo derecho. */
+  inlineAction?: boolean
 }) {
   return (
     <section className="border-border rounded-xl border bg-white p-5">
-      <div className="mb-4 flex items-center justify-between gap-2">
+      <div
+        className={
+          inlineAction
+            ? 'mb-4 flex items-center gap-2'
+            : 'mb-4 flex items-center justify-between gap-2'
+        }
+      >
         <h2 className="text-petroleo font-semibold">{title}</h2>
         {action}
       </div>
@@ -121,9 +145,35 @@ function Panel({
   )
 }
 
+function QuickAction({
+  icon: Icon,
+  label,
+  tone,
+  onClick,
+}: {
+  icon: LucideIcon
+  label: string
+  tone: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-muted hover:text-petroleo flex flex-col items-center gap-1 text-[11px] font-medium"
+    >
+      <span
+        className={`grid size-8 place-items-center rounded-full border transition hover:brightness-95 ${tone}`}
+      >
+        <Icon className="size-3.5" />
+      </span>
+      {label}
+    </button>
+  )
+}
+
 export default function PatientDetailPage() {
   const { id = '' } = useParams()
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const canUpdate = useCan('patients:write')
   const canArchive = useCan('patients:archive')
@@ -136,11 +186,12 @@ export default function PatientDetailPage() {
   const canCreateIncident = useCan('incident:create')
   const canTransfer = useCan('patient:transfer')
   const canViewMessages = useCan('outbox:view')
-  const { data: me } = useMe()
   const [activeTab, setActiveTab] = useState<
-    'history' | 'treatments' | 'transfers'
+    'history' | 'treatments' | 'infopack' | 'transfers'
   >('history')
   const [transferOpen, setTransferOpen] = useState(false)
+  const [doctorAddOpen, setDoctorAddOpen] = useState(false)
+  const [conditionAddOpen, setConditionAddOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [activityType, setActivityType] = useState<
     'note' | 'call' | 'email' | 'meeting' | null
@@ -304,22 +355,6 @@ export default function PatientDetailPage() {
       await queryClient.invalidateQueries({ queryKey: ['patients', id] })
     },
   })
-  const duplicate = useMutation({
-    mutationFn: () =>
-      api<components['schemas']['Patient']>(
-        `/api/v1/patients/${encodeURIComponent(id)}/duplicate`,
-        { method: 'POST' },
-      ),
-    onSuccess: async (copy) => {
-      await queryClient.invalidateQueries({ queryKey: ['patients'] })
-      navigate(`/pacientes/${encodeURIComponent(copy.id)}`)
-    },
-  })
-  async function viewFullHistory() {
-    setActiveTab('history')
-    let more = activities.hasNextPage
-    while (more) more = (await activities.fetchNextPage()).hasNextPage
-  }
   async function invalidateTreatments() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['treatments'] }),
@@ -459,13 +494,6 @@ export default function PatientDetailPage() {
   const branch = branches.data?.data.find(
     (item) => item.id === record.primaryBranchId,
   )
-  const responsible =
-    record.responsibleUserId === me?.user.id
-      ? me.user.name
-      : record.responsibleUserId
-        ? 'Usuario asignado'
-        : 'Sin responsable'
-  const channelLabels: Record<string, string> = { whatsapp: 'WhatsApp', call: 'Llamada', sms: 'SMS', telegram: 'Telegram' }
   const treatmentRows = treatments.data?.data ?? []
   const medicationsById = new Map<string, Medication>(
     (medications.data?.data ?? []).map((medication) => [
@@ -499,36 +527,35 @@ export default function PatientDetailPage() {
     completeTask.error?.message ?? prepareTask.error?.message
 
   const recordActions: RecordAction[] = [
-    ...(canUpdate ? [{ label: 'Editar', onClick: () => setEditing(true) }] : []),
-    ...(canTransfer && !record.archivedAt
-      ? [{ label: 'Trasladar', onClick: () => setTransferOpen(true) }]
-      : []),
     ...(canUpdate && !record.archivedAt
       ? [
           {
-            label: 'Duplicar (sin tratamientos)',
-            onClick: () => {
-              if (
-                window.confirm(
-                  'Se creará una copia del paciente SIN sus tratamientos, documento ni teléfono, para no duplicar ciclos de reposición. ¿Continuar?',
-                )
-              )
-                duplicate.mutate()
-            },
+            label: 'Editar',
+            onClick: () => setEditing(true),
           },
         ]
+      : []),
+    ...(canTransfer && !record.archivedAt
+      ? [{ label: 'Trasladar', onClick: () => setTransferOpen(true) }]
       : []),
     ...(canArchive && !record.archivedAt
       ? [{ label: 'Archivar', danger: true, onClick: () => archive.mutate() }]
       : []),
-    ...(canViewMessages ? [{ label: 'Ver conversación', onClick: () => setConversationOpen(true) }] : []),
-    { label: 'Ver historial completo', onClick: () => void viewFullHistory() },
+    ...(canViewMessages
+      ? [
+          {
+            label: 'Ver conversación',
+            onClick: () => setConversationOpen(true),
+          },
+        ]
+      : []),
     {
       label: 'Ver todas las propiedades',
       onClick: () => setPropertiesOpen(true),
     },
   ]
-  const patientValues = (record as { customValues?: Record<string, unknown> }).customValues ?? {}
+  const patientValues =
+    (record as { customValues?: Record<string, unknown> }).customValues ?? {}
   const propertyGroups: PropertyGroup[] = [
     {
       name: 'Datos',
@@ -543,15 +570,17 @@ export default function PatientDetailPage() {
     {
       name: 'Contacto',
       items: [
-        { label: 'Teléfono', value: record.phone ? formatPhone(record.phone) : undefined },
-        { label: 'Tiene WhatsApp', value: record.phoneHasWhatsapp ? 'Sí' : 'No' },
+        {
+          label: 'WhatsApp',
+          value: record.phone ? formatPhone(record.phone) : undefined,
+        },
         { label: 'Correo', value: record.email },
         { label: 'Dirección', value: record.address },
-        { label: 'Zona', value: record.zone },
-        { label: 'Canal preferido', value: channelLabels[record.preferredChannel] },
         {
           label: 'Consentimiento de recordatorios',
-          value: record.reminderConsent ? 'Otorgado' : 'Sin consentimiento vigente',
+          value: record.reminderConsent
+            ? 'Otorgado'
+            : 'Sin consentimiento vigente',
         },
       ],
     },
@@ -577,10 +606,7 @@ export default function PatientDetailPage() {
     },
     {
       name: 'Asignación',
-      items: [
-        { label: 'Sucursal', value: branch?.name },
-        { label: 'Responsable', value: responsible },
-      ],
+      items: [{ label: 'Sucursal', value: branch?.name }],
     },
     ...customPropertyGroups(patientDefs, patientValues),
   ]
@@ -594,22 +620,80 @@ export default function PatientDetailPage() {
         <ArrowLeft className="size-4" />
         Pacientes
       </Link>
-      <header className="mb-4 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-tealmax text-sm">Ficha del paciente</p>
-          <h1 className="font-display text-petroleo text-2xl font-bold tracking-tight">
-            {record.fullName}
-            {record.documentId ? ` - ${record.documentId}` : ''}
-          </h1>
-          <p className="text-muted mt-1 text-sm">
-            {record.phone ? formatPhone(record.phone) : 'Sin teléfono'}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {!record.archivedAt && <EnrollAutomationButton patientId={record.id} />}
-          <RecordActionsMenu actions={recordActions} />
-        </div>
-      </header>
+      <PageHeader
+        title={record.fullName}
+        meta={record.phone ? formatPhone(record.phone) : undefined}
+        size="large"
+        below={
+          (canAddActivity || canWriteTasks) && (
+            <div className="flex flex-wrap items-center gap-3">
+              {canAddActivity && (
+                <QuickAction
+                  icon={FileText}
+                  label="Nota"
+                  tone="border-amber-200 bg-amber-50 text-amber-700"
+                  onClick={() => setActivityType('note')}
+                />
+              )}
+              {canAddActivity && (
+                <QuickAction
+                  icon={Mail}
+                  label="Correo"
+                  tone="border-sky-200 bg-sky-50 text-sky-700"
+                  onClick={() => setActivityType('email')}
+                />
+              )}
+              {canAddActivity && (
+                <QuickAction
+                  icon={Phone}
+                  label="Llamada"
+                  tone="border-emerald-200 bg-emerald-50 text-emerald-700"
+                  onClick={() => setActivityType('call')}
+                />
+              )}
+              {canWriteTasks && (
+                <QuickAction
+                  icon={ClipboardList}
+                  label="Tarea"
+                  tone="border-violet-200 bg-violet-50 text-violet-700"
+                  onClick={() => setTaskOpen(true)}
+                />
+              )}
+              {canAddActivity && (
+                <QuickAction
+                  icon={Users}
+                  label="Reunión"
+                  tone="border-teal-200 bg-teal-50 text-teal-700"
+                  onClick={() => setActivityType('meeting')}
+                />
+              )}
+            </div>
+          )
+        }
+        actions={
+          <div className="grid justify-items-end gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {!record.archivedAt && (
+                <EnrollAutomationButton patientId={record.id} />
+              )}
+              <RecordActionsMenu actions={recordActions} />
+            </div>
+            <div className="flex justify-end">
+              {branch ? (
+                <BranchTag
+                  name={branch.name}
+                  labelColor={branch.labelColor}
+                  solid
+                />
+              ) : (
+                <span className="text-muted text-sm">
+                  Sin sucursal asignada
+                </span>
+              )}
+            </div>
+          </div>
+        }
+      />
       {record.archivedAt && (
         <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
           Este paciente está archivado.
@@ -619,10 +703,6 @@ export default function PatientDetailPage() {
         <div className="grid gap-4">
           <Panel title="Datos del paciente">
             <dl className="grid gap-3 text-sm">
-              <div>
-                <dt className="text-muted">Responsable</dt>
-                <dd className="mt-0.5">{responsible}</dd>
-              </div>
               <div>
                 <dt className="text-muted">WhatsApp</dt>
                 <dd className="mt-0.5">
@@ -662,26 +742,29 @@ export default function PatientDetailPage() {
           <PatientTelegramPanel patientId={record.id} canEdit={canUpdate} />
           <PatientAutomationPanel
             patientId={record.id}
-            paused={Boolean((record as { automationPaused?: boolean }).automationPaused)}
-            reason={(record as { automationPausedReason?: string | null }).automationPausedReason}
+            paused={Boolean(
+              (record as { automationPaused?: boolean }).automationPaused,
+            )}
+            reason={
+              (record as { automationPausedReason?: string | null })
+                .automationPausedReason
+            }
             canEdit={canUpdate && !record.archivedAt}
           />
-          <Panel title="Canal preferido">
-            <p className="text-ink text-sm">
-              {channelLabels[record.preferredChannel]}
-              {record.phone ? ' · WhatsApp disponible' : ''}
-            </p>
-          </Panel>
           <Panel
             title="Consentimiento"
+            inlineAction
             action={
               canRecordConsent && (
                 <Button
-                  className="h-8 px-2 text-xs"
+                  type="button"
+                  variant="ghost"
+                  className="size-6 px-0"
+                  aria-expanded={consentOpen}
+                  aria-label="Registrar consentimiento"
                   onClick={() => setConsentOpen(true)}
                 >
-                  <Plus className="size-3.5" />
-                  Registrar
+                  <Plus className="size-4" />
                 </Button>
               )
             }
@@ -715,6 +798,12 @@ export default function PatientDetailPage() {
                 Tratamientos
               </button>
               <button
+                className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'infopack' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
+                onClick={() => setActiveTab('infopack')}
+              >
+                InfoPack
+              </button>
+              <button
                 className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'transfers' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
                 onClick={() => setActiveTab('transfers')}
               >
@@ -722,29 +811,9 @@ export default function PatientDetailPage() {
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {activeTab === 'history' ? (
-                <>
-                  {canAddActivity && (
-                    <>
-                      <Button onClick={() => setActivityType('note')}>
-                        <FileText className="size-4" />
-                        Nota
-                      </Button>
-                      <Button onClick={() => setActivityType('call')}>
-                        <Phone className="size-4" />
-                        Llamada
-                      </Button>
-                      <Button onClick={() => setActivityType('email')}>
-                        <Mail className="size-4" />
-                        Correo
-                      </Button>
-                      <Button onClick={() => setActivityType('meeting')}>
-                        <Users className="size-4" />
-                        Reunión
-                      </Button>
-                    </>
-                  )}
-                  {canWriteTreatment && activeTreatments.length === 1 && (
+              {activeTab === 'history'
+                ? canWriteTreatment &&
+                  activeTreatments.length === 1 && (
                     <Button
                       variant="coral"
                       onClick={() =>
@@ -754,28 +823,21 @@ export default function PatientDetailPage() {
                       <MessageCircle className="size-4" />
                       Avisar
                     </Button>
-                  )}
-                  {canWriteTasks && (
-                    <Button onClick={() => setTaskOpen(true)}>
-                      <ClipboardList className="size-4" />
-                      Tarea
-                    </Button>
-                  )}
-                </>
-              ) : activeTab === 'treatments' ? (
-                canWriteTreatment && (
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      setEditingTreatment(null)
-                      setTreatmentFormOpen(true)
-                    }}
-                  >
-                    <Plus className="size-4" />
-                    Nuevo tratamiento
-                  </Button>
-                )
-              ) : null}
+                  )
+                : activeTab === 'treatments'
+                  ? canWriteTreatment && (
+                      <Button
+                        variant="primary"
+                        onClick={() => {
+                          setEditingTreatment(null)
+                          setTreatmentFormOpen(true)
+                        }}
+                      >
+                        <Plus className="size-4" />
+                        Nuevo tratamiento
+                      </Button>
+                    )
+                  : null}
             </div>
           </div>
           {activeTab === 'history' ? (
@@ -907,6 +969,16 @@ export default function PatientDetailPage() {
                 </p>
               )}
             </div>
+          ) : activeTab === 'infopack' ? (
+            <div className="mt-6">
+              <PatientInfoPackPanel
+                patientId={record.id}
+                patient={record}
+                branchName={branch?.name}
+                treatments={treatmentRows}
+                medicationsById={medicationsById}
+              />
+            </div>
           ) : (
             <div className="mt-6">
               <PatientTransfersPanel patientId={record.id} />
@@ -914,6 +986,56 @@ export default function PatientDetailPage() {
           )}
         </section>
         <div className="grid gap-4">
+          <Panel title="Tratamientos activos">
+            {treatments.isLoading ? (
+              <div
+                role="status"
+                aria-busy="true"
+                aria-label="Cargando tratamientos activos…"
+                className="grid gap-3"
+              >
+                {Array.from({ length: 2 }).map((_, index) => (
+                  <div key={index} className="grid gap-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-40" />
+                  </div>
+                ))}
+              </div>
+            ) : treatments.isError ? (
+              <p className="text-muted text-sm">
+                No se pudieron cargar los tratamientos.
+              </p>
+            ) : (
+              <ActiveTreatmentsPanel
+                treatments={activeTreatments}
+                medications={medicationsById}
+              />
+            )}
+          </Panel>
+          <Panel
+            title="Médicos"
+            inlineAction
+            action={
+              canUpdate && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="size-6 px-0"
+                  aria-expanded={doctorAddOpen}
+                  aria-label="Agregar médico"
+                  onClick={() => setDoctorAddOpen(true)}
+                >
+                  <Plus className="size-4" />
+                </Button>
+              )
+            }
+          >
+            <PatientDoctorsPanel
+              patientId={record.id}
+              addOpen={doctorAddOpen}
+              onCloseAdd={() => setDoctorAddOpen(false)}
+            />
+          </Panel>
           <Panel title="Cuidadores">
             {caregivers.isLoading ? (
               <div
@@ -952,57 +1074,44 @@ export default function PatientDetailPage() {
               </p>
             )}
           </Panel>
-          <Panel title="Sucursal">
-            <div className="grid gap-3">
-              <div>
-                <p className="text-muted mb-1 text-xs">Sucursal</p>
-                {branch ? (
-                  <BranchTag
-                    name={branch.name}
-                    labelColor={branch.labelColor}
-                  />
-                ) : (
-                  <span className="text-sm">Sucursal</span>
-                )}
-              </div>
-            </div>
-          </Panel>
-          <Panel title="Tratamientos activos">
-            {treatments.isLoading ? (
-              <div
-                role="status"
-                aria-busy="true"
-                aria-label="Cargando tratamientos activos…"
-                className="grid gap-3"
-              >
-                {Array.from({ length: 2 }).map((_, index) => (
-                  <div key={index} className="grid gap-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-40" />
-                  </div>
-                ))}
-              </div>
-            ) : treatments.isError ? (
-              <p className="text-muted text-sm">
-                No se pudieron cargar los tratamientos.
-              </p>
-            ) : (
-              <ActiveTreatmentsPanel
-                treatments={activeTreatments}
-                medications={medicationsById}
-              />
-            )}
+          <Panel
+            title="Condiciones de salud"
+            inlineAction
+            action={
+              canUpdate && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="size-6 px-0"
+                  aria-expanded={conditionAddOpen}
+                  aria-label="Agregar condición"
+                  onClick={() => setConditionAddOpen(true)}
+                >
+                  <Plus className="size-4" />
+                </Button>
+              )
+            }
+          >
+            <PatientConditionsPanel
+              patientId={record.id}
+              addOpen={conditionAddOpen}
+              onCloseAdd={() => setConditionAddOpen(false)}
+            />
           </Panel>
           <Panel
             title="Tareas abiertas"
+            inlineAction
             action={
               canWriteTasks && (
                 <Button
-                  className="h-8 px-2 text-xs"
+                  type="button"
+                  variant="ghost"
+                  className="size-6 px-0"
+                  aria-expanded={taskOpen}
+                  aria-label="Nueva tarea"
                   onClick={() => setTaskOpen(true)}
                 >
-                  <Plus className="size-3.5" />
-                  Nueva
+                  <Plus className="size-4" />
                 </Button>
               )
             }
@@ -1069,14 +1178,18 @@ export default function PatientDetailPage() {
           </Panel>
           <Panel
             title="Incidencias abiertas"
+            inlineAction
             action={
               canCreateIncident && (
                 <Button
-                  className="h-8 px-2 text-xs"
+                  type="button"
+                  variant="ghost"
+                  className="size-6 px-0"
+                  aria-expanded={incidentOpen}
+                  aria-label="Nueva incidencia"
                   onClick={() => setIncidentOpen(true)}
                 >
-                  <Plus className="size-3.5" />
-                  Nueva
+                  <Plus className="size-4" />
                 </Button>
               )
             }
@@ -1115,7 +1228,12 @@ export default function PatientDetailPage() {
           </Panel>
         </div>
       </div>
-      {conversationOpen && <ConversationDialog patientId={record.id} onClose={() => setConversationOpen(false)} />}
+      {conversationOpen && (
+        <ConversationDialog
+          patientId={record.id}
+          onClose={() => setConversationOpen(false)}
+        />
+      )}
       {propertiesOpen && (
         <PropertiesDialog
           title="Todas las propiedades"
@@ -1125,8 +1243,11 @@ export default function PatientDetailPage() {
       )}
       {editing && (
         <Dialog
-          title="Editar paciente"
+          title="Editar Paciente"
           description="Actualiza los datos de la ficha."
+          icon={<UserRound className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={() => setEditing(false)}
           size="lg"
         >
@@ -1223,12 +1344,15 @@ export default function PatientDetailPage() {
       )}
       {consentOpen && canRecordConsent && (
         <Dialog
-          title="Registrar consentimiento"
+          title="Registrar Consentimiento"
           description="Guarda la decisión y el canal autorizado por el paciente."
+          icon={<ShieldCheck className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={() => setConsentOpen(false)}
         >
           <form
-            className="mt-5 grid gap-4"
+            className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
               recordConsent.mutate({
@@ -1238,46 +1362,60 @@ export default function PatientDetailPage() {
               })
             }}
           >
-            <label className="text-ink flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={consentGranted}
-                onChange={(event) => setConsentGranted(event.target.checked)}
-              />
-              El paciente otorga consentimiento
-            </label>
-            <div className="grid gap-1.5">
-              <label
-                htmlFor="consent-channel"
-                className="text-ink text-sm font-medium"
-              >
-                Canal
+            <ModalSection
+              icon={<ShieldCheck className="size-4" />}
+              title="Consentimiento"
+              tone="mint"
+            >
+              <label className="text-ink flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={consentGranted}
+                  onChange={(event) => setConsentGranted(event.target.checked)}
+                />
+                El paciente otorga consentimiento
               </label>
-              <select
-                id="consent-channel"
-                value={consentChannel}
-                onChange={(event) =>
-                  setConsentChannel(event.target.value as typeof consentChannel)
-                }
-                className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
-              >
-                <option value="whatsapp">WhatsApp</option>
-                <option value="call">Llamada</option>
-                <option value="sms">SMS</option>
-              </select>
-            </div>
-            <TextField
-              label="Evidencia (opcional)"
-              value={consentEvidence}
-              onChange={(event) => setConsentEvidence(event.target.value)}
-              placeholder="Referencia o detalle del consentimiento"
-            />
+            </ModalSection>
+            <ModalSection
+              icon={<ShieldCheck className="size-4" />}
+              title="Canal y Evidencia"
+              tone="sky"
+            >
+              <div className="grid gap-1.5">
+                <label
+                  htmlFor="consent-channel"
+                  className="text-ink text-sm font-medium"
+                >
+                  Canal
+                </label>
+                <select
+                  id="consent-channel"
+                  value={consentChannel}
+                  onChange={(event) =>
+                    setConsentChannel(
+                      event.target.value as typeof consentChannel,
+                    )
+                  }
+                  className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2"
+                >
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="call">Llamada</option>
+                  <option value="sms">SMS</option>
+                </select>
+              </div>
+              <TextField
+                label="Evidencia (Opcional)"
+                value={consentEvidence}
+                onChange={(event) => setConsentEvidence(event.target.value)}
+                placeholder="Referencia o detalle del consentimiento"
+              />
+            </ModalSection>
             {recordConsent.isError && (
               <p role="alert" className="text-sm text-red-700">
                 {recordConsent.error.message}
               </p>
             )}
-            <div className="flex justify-end gap-2">
+            <FormActions>
               <Button type="button" onClick={() => setConsentOpen(false)}>
                 Cancelar
               </Button>
@@ -1286,9 +1424,9 @@ export default function PatientDetailPage() {
                 variant="primary"
                 disabled={recordConsent.isPending}
               >
-                Registrar consentimiento
+                Registrar Consentimiento
               </Button>
-            </div>
+            </FormActions>
           </form>
         </Dialog>
       )}

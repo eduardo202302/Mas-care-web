@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { MapPin, Plus } from 'lucide-react'
+import { Building2, MapPin, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { BranchTag } from '@/components/BranchTag'
@@ -27,6 +28,7 @@ export default function BranchesPage() {
     components['schemas']['Branch'] | null
   >(null)
   const [formOpen, setFormOpen] = useState(false)
+  const [viewOnly, setViewOnly] = useState(false)
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
@@ -34,9 +36,7 @@ export default function BranchesPage() {
   const branches = useQuery({
     queryKey: ['branches', 'table', page, rows],
     queryFn: () =>
-      api<BranchList>(
-        `/api/v1/branches?${pageQuery({ page, rows })}`,
-      ),
+      api<BranchList>(`/api/v1/branches?${pageQuery({ page, rows })}`),
   })
   const save = useMutation({
     mutationFn: (values: BranchFormValues) => {
@@ -66,6 +66,7 @@ export default function BranchesPage() {
   function closeForm() {
     setFormOpen(false)
     setEditing(null)
+    setViewOnly(false)
   }
   function openCreate() {
     setEditing(null)
@@ -73,13 +74,27 @@ export default function BranchesPage() {
   }
   function openEdit(branch: components['schemas']['Branch']) {
     setEditing(branch)
+    setViewOnly(false)
+    setFormOpen(true)
+  }
+  /** Doble clic en la fila: mismo formulario, pero bloqueado. */
+  function openView(branch: components['schemas']['Branch']) {
+    setEditing(branch)
+    setViewOnly(true)
     setFormOpen(true)
   }
   async function submit(values: BranchFormValues) {
     await save.mutateAsync(values)
   }
-  const data = applyColumnSort(branches.data?.data ?? [], sort, (branch, index) =>
-    index === 0 ? branch.name : index === 1 ? branch.address ?? '' : branch.labelColor,
+  const data = applyColumnSort(
+    branches.data?.data ?? [],
+    sort,
+    (branch, index) =>
+      index === 0
+        ? branch.name
+        : index === 1
+          ? (branch.address ?? '')
+          : branch.labelColor,
   )
   const tableRows = data.map((branch) => {
     const name = branch.name
@@ -123,23 +138,20 @@ export default function BranchesPage() {
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
-      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-tealmax mb-2 text-sm font-medium">Configuración</p>
-          <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
-            Sucursales
-          </h1>
-          <p className="text-muted mt-2 text-sm">
-            Organiza los puntos de atención de tu farmacia.
-          </p>
-        </div>
-        {canCreate && (
-          <Button variant="primary" onClick={openCreate}>
-            <Plus className="size-4" />
-            Nueva sucursal
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Sucursales"
+        subtitle="Organiza los puntos de atención de tu farmacia."
+        actions={
+          <>
+            {canCreate && (
+              <Button variant="primary" onClick={openCreate}>
+                <Plus className="size-4" />
+                Nueva sucursal
+              </Button>
+            )}
+          </>
+        }
+      />
       {branches.isError && (
         <p
           role="alert"
@@ -169,7 +181,7 @@ export default function BranchesPage() {
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {
               const branch = data[index]
-              if (branch && canUpdate) openEdit(branch)
+              if (branch) openView(branch)
             }}
             emptyTitle="Todavía no hay sucursales"
             emptyDescription={
@@ -194,8 +206,17 @@ export default function BranchesPage() {
       </div>
       {formOpen && (
         <Dialog
-          title={editing ? 'Editar sucursal' : 'Nueva sucursal'}
+          title={
+            viewOnly
+              ? 'Ver Sucursal'
+              : editing
+                ? 'Editar Sucursal'
+                : 'Nueva Sucursal'
+          }
           description="Completa los datos de este punto de atención."
+          icon={<Building2 className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={closeForm}
         >
           <BranchForm
@@ -211,6 +232,8 @@ export default function BranchesPage() {
             onSave={submit}
             onCancel={closeForm}
             submitting={save.isPending}
+            readOnly={viewOnly}
+            onEdit={() => setViewOnly(false)}
           />
         </Dialog>
       )}

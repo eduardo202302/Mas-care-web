@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PAGE_ROWS_OPTIONS } from '@/lib/paging'
 
@@ -27,7 +27,14 @@ export function Pagination({
   return (
     <div className="border-border flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
       <div className="flex items-center gap-3">
+        <span className="text-muted text-sm">
+          {from}–{to} de {total} · Página {page} de {pages}
+        </span>
         <div className="flex gap-2">
+          <Button aria-label="Primera página" disabled={disabled || page <= 1} onClick={() => onChange(1)}>
+            <ChevronFirst className="size-4" />
+            Inicio
+          </Button>
           <Button aria-label="Página anterior" disabled={disabled || page <= 1} onClick={() => onChange(page - 1)}>
             <ChevronLeft className="size-4" />
             Anterior
@@ -36,10 +43,11 @@ export function Pagination({
             Siguiente
             <ChevronRight className="size-4" />
           </Button>
+          <Button aria-label="Última página" disabled={disabled || page >= pages} onClick={() => onChange(pages)}>
+            Fin
+            <ChevronLast className="size-4" />
+          </Button>
         </div>
-        <span className="text-muted text-sm">
-          {from}–{to} de {total} · Página {page} de {pages}
-        </span>
       </div>
       {onRowsChange && (
         <label className="text-muted flex items-center gap-2 text-sm">
