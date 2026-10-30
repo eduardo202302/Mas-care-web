@@ -1,23 +1,31 @@
 import { useEffect, useId, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
+import { cn } from '@/lib/cn'
 import { Button } from './Button'
 
 export function Dialog({
   title,
   description,
   icon,
+  dense = false,
+  compactHeader = false,
   onClose,
   children,
   size = 'md',
+  bodyClassName,
 }: {
   title: string
   description?: string
   icon?: ReactNode
+  dense?: boolean
+  compactHeader?: boolean
   onClose: () => void
   children: ReactNode
   size?: 'md' | 'lg'
+  bodyClassName?: string
 }) {
+  const compact = dense || compactHeader
   const titleId = useId()
   const descriptionId = useId()
   useEffect(() => {
@@ -40,24 +48,31 @@ export function Dialog({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className={`animate-in border-border flex max-h-[calc(100dvh-2rem)] w-full flex-col overflow-hidden rounded-2xl border bg-white shadow-2xl sm:max-h-[calc(100dvh-3rem)] ${size === 'lg' ? 'max-w-3xl' : 'max-w-xl'}`}
+        className={`animate-in border-border flex w-full flex-col overflow-hidden rounded-2xl border bg-white shadow-2xl ${dense ? '' : 'max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)]'} ${size === 'lg' ? 'max-w-3xl' : 'max-w-xl'}`}
       >
-        <header className="border-border flex shrink-0 items-start justify-between gap-4 border-b px-6 py-5">
-          <div className="flex items-start gap-4">
+        <header
+          className={`border-border flex shrink-0 items-start justify-between gap-4 border-b ${compact ? 'px-5 py-3' : 'px-6 py-5'}`}
+        >
+          <div className={`flex items-start ${compact ? 'gap-3' : 'gap-4'}`}>
             {icon && (
-              <div className="bg-modulos text-cuidado flex size-14 shrink-0 items-center justify-center rounded-2xl">
+              <div
+                className={`bg-modulos text-cuidado flex shrink-0 items-center justify-center rounded-2xl ${compact ? 'size-10 rounded-xl' : 'size-14'}`}
+              >
                 {icon}
               </div>
             )}
             <div>
               <h2
                 id={titleId}
-                className="font-display text-petroleo text-xl font-bold"
+                className={`font-display text-petroleo font-bold ${compact ? 'text-lg' : 'text-xl'}`}
               >
                 {title}
               </h2>
               {description && (
-                <p id={descriptionId} className="text-muted mt-1 text-sm">
+                <p
+                  id={descriptionId}
+                  className={`text-muted text-sm ${compact ? 'mt-0.5' : 'mt-1'}`}
+                >
                   {description}
                 </p>
               )}
@@ -73,7 +88,13 @@ export function Dialog({
             <X className="size-4" />
           </Button>
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        <div
+          className={cn(
+            'min-h-0 flex-1',
+            dense ? 'px-5 pt-2 pb-4' : 'overflow-y-auto px-6 py-5',
+            bodyClassName,
+          )}
+        >
           {children}
         </div>
       </section>

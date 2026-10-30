@@ -18,6 +18,7 @@ import {
   Plus,
   TriangleAlert,
   Users,
+  type LucideIcon,
 } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
 import { CustomValuesView, customPropertyGroups } from '@/components/CustomFields'
@@ -75,6 +76,9 @@ import {
 } from '@/lib/incidents'
 import { TransferDialog } from '@/features/transfers/TransferDialog'
 import { PatientTransfersPanel } from '@/features/transfers/PatientTransfersPanel'
+import { PatientDoctorsPanel } from './PatientDoctorsPanel'
+import { PatientConditionsPanel } from './PatientConditionsPanel'
+import { PatientInfoPackPanel } from './PatientInfoPackPanel'
 
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
@@ -121,6 +125,33 @@ function Panel({
   )
 }
 
+function QuickAction({
+  icon: Icon,
+  label,
+  tone,
+  onClick,
+}: {
+  icon: LucideIcon
+  label: string
+  tone: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-muted hover:text-petroleo flex flex-col items-center gap-1 text-[11px] font-medium"
+    >
+      <span
+        className={`grid size-8 place-items-center rounded-full border transition hover:brightness-95 ${tone}`}
+      >
+        <Icon className="size-3.5" />
+      </span>
+      {label}
+    </button>
+  )
+}
+
 export default function PatientDetailPage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
@@ -138,7 +169,7 @@ export default function PatientDetailPage() {
   const canViewMessages = useCan('outbox:view')
   const { data: me } = useMe()
   const [activeTab, setActiveTab] = useState<
-    'history' | 'treatments' | 'transfers'
+    'history' | 'treatments' | 'infopack' | 'transfers'
   >('history')
   const [transferOpen, setTransferOpen] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -599,15 +630,70 @@ export default function PatientDetailPage() {
           <p className="text-tealmax text-sm">Ficha del paciente</p>
           <h1 className="font-display text-petroleo text-2xl font-bold tracking-tight">
             {record.fullName}
-            {record.documentId ? ` - ${record.documentId}` : ''}
+            {record.phone ? (
+              <span className="text-muted text-lg font-medium">
+                {' - '}
+                {formatPhone(record.phone)}
+              </span>
+            ) : null}
           </h1>
-          <p className="text-muted mt-1 text-sm">
-            {record.phone ? formatPhone(record.phone) : 'Sin teléfono'}
-          </p>
+          {(canAddActivity || canWriteTasks) && (
+            <div className="mt-3 flex flex-wrap gap-4">
+              {canAddActivity && (
+                <QuickAction
+                  icon={FileText}
+                  label="Nota"
+                  tone="border-amber-200 bg-amber-50 text-amber-700"
+                  onClick={() => setActivityType('note')}
+                />
+              )}
+              {canAddActivity && (
+                <QuickAction
+                  icon={Mail}
+                  label="Correo"
+                  tone="border-sky-200 bg-sky-50 text-sky-700"
+                  onClick={() => setActivityType('email')}
+                />
+              )}
+              {canAddActivity && (
+                <QuickAction
+                  icon={Phone}
+                  label="Llamada"
+                  tone="border-emerald-200 bg-emerald-50 text-emerald-700"
+                  onClick={() => setActivityType('call')}
+                />
+              )}
+              {canWriteTasks && (
+                <QuickAction
+                  icon={ClipboardList}
+                  label="Tarea"
+                  tone="border-violet-200 bg-violet-50 text-violet-700"
+                  onClick={() => setTaskOpen(true)}
+                />
+              )}
+              {canAddActivity && (
+                <QuickAction
+                  icon={Users}
+                  label="Reunión"
+                  tone="border-teal-200 bg-teal-50 text-teal-700"
+                  onClick={() => setActivityType('meeting')}
+                />
+              )}
+            </div>
+          )}
         </div>
-        <div className="flex flex-wrap gap-2">
-          {!record.archivedAt && <EnrollAutomationButton patientId={record.id} />}
-          <RecordActionsMenu actions={recordActions} />
+        <div className="grid justify-items-end gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {!record.archivedAt && <EnrollAutomationButton patientId={record.id} />}
+            <RecordActionsMenu actions={recordActions} />
+          </div>
+          <div className="flex justify-end">
+            {branch ? (
+              <BranchTag name={branch.name} labelColor={branch.labelColor} solid />
+            ) : (
+              <span className="text-muted text-sm">Sin sucursal asignada</span>
+            )}
+          </div>
         </div>
       </header>
       {record.archivedAt && (
@@ -715,6 +801,12 @@ export default function PatientDetailPage() {
                 Tratamientos
               </button>
               <button
+                className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'infopack' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
+                onClick={() => setActiveTab('infopack')}
+              >
+                InfoPack
+              </button>
+              <button
                 className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'transfers' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
                 onClick={() => setActiveTab('transfers')}
               >
@@ -723,45 +815,18 @@ export default function PatientDetailPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               {activeTab === 'history' ? (
-                <>
-                  {canAddActivity && (
-                    <>
-                      <Button onClick={() => setActivityType('note')}>
-                        <FileText className="size-4" />
-                        Nota
-                      </Button>
-                      <Button onClick={() => setActivityType('call')}>
-                        <Phone className="size-4" />
-                        Llamada
-                      </Button>
-                      <Button onClick={() => setActivityType('email')}>
-                        <Mail className="size-4" />
-                        Correo
-                      </Button>
-                      <Button onClick={() => setActivityType('meeting')}>
-                        <Users className="size-4" />
-                        Reunión
-                      </Button>
-                    </>
-                  )}
-                  {canWriteTreatment && activeTreatments.length === 1 && (
-                    <Button
-                      variant="coral"
-                      onClick={() =>
-                        setNoticeTreatment(activeTreatments[0] ?? null)
-                      }
-                    >
-                      <MessageCircle className="size-4" />
-                      Avisar
-                    </Button>
-                  )}
-                  {canWriteTasks && (
-                    <Button onClick={() => setTaskOpen(true)}>
-                      <ClipboardList className="size-4" />
-                      Tarea
-                    </Button>
-                  )}
-                </>
+                canWriteTreatment &&
+                activeTreatments.length === 1 && (
+                  <Button
+                    variant="coral"
+                    onClick={() =>
+                      setNoticeTreatment(activeTreatments[0] ?? null)
+                    }
+                  >
+                    <MessageCircle className="size-4" />
+                    Avisar
+                  </Button>
+                )
               ) : activeTab === 'treatments' ? (
                 canWriteTreatment && (
                   <Button
@@ -907,6 +972,14 @@ export default function PatientDetailPage() {
                 </p>
               )}
             </div>
+          ) : activeTab === 'infopack' ? (
+            <div className="mt-6">
+              <PatientInfoPackPanel
+                patientId={record.id}
+                treatments={treatmentRows}
+                medicationsById={medicationsById}
+              />
+            </div>
           ) : (
             <div className="mt-6">
               <PatientTransfersPanel patientId={record.id} />
@@ -914,6 +987,35 @@ export default function PatientDetailPage() {
           )}
         </section>
         <div className="grid gap-4">
+          <Panel title="Tratamientos activos">
+            {treatments.isLoading ? (
+              <div
+                role="status"
+                aria-busy="true"
+                aria-label="Cargando tratamientos activos…"
+                className="grid gap-3"
+              >
+                {Array.from({ length: 2 }).map((_, index) => (
+                  <div key={index} className="grid gap-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-40" />
+                  </div>
+                ))}
+              </div>
+            ) : treatments.isError ? (
+              <p className="text-muted text-sm">
+                No se pudieron cargar los tratamientos.
+              </p>
+            ) : (
+              <ActiveTreatmentsPanel
+                treatments={activeTreatments}
+                medications={medicationsById}
+              />
+            )}
+          </Panel>
+          <Panel title="Médicos">
+            <PatientDoctorsPanel patientId={record.id} />
+          </Panel>
           <Panel title="Cuidadores">
             {caregivers.isLoading ? (
               <div
@@ -952,46 +1054,8 @@ export default function PatientDetailPage() {
               </p>
             )}
           </Panel>
-          <Panel title="Sucursal">
-            <div className="grid gap-3">
-              <div>
-                <p className="text-muted mb-1 text-xs">Sucursal</p>
-                {branch ? (
-                  <BranchTag
-                    name={branch.name}
-                    labelColor={branch.labelColor}
-                  />
-                ) : (
-                  <span className="text-sm">Sucursal</span>
-                )}
-              </div>
-            </div>
-          </Panel>
-          <Panel title="Tratamientos activos">
-            {treatments.isLoading ? (
-              <div
-                role="status"
-                aria-busy="true"
-                aria-label="Cargando tratamientos activos…"
-                className="grid gap-3"
-              >
-                {Array.from({ length: 2 }).map((_, index) => (
-                  <div key={index} className="grid gap-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-40" />
-                  </div>
-                ))}
-              </div>
-            ) : treatments.isError ? (
-              <p className="text-muted text-sm">
-                No se pudieron cargar los tratamientos.
-              </p>
-            ) : (
-              <ActiveTreatmentsPanel
-                treatments={activeTreatments}
-                medications={medicationsById}
-              />
-            )}
+          <Panel title="Condiciones de salud">
+            <PatientConditionsPanel patientId={record.id} />
           </Panel>
           <Panel
             title="Tareas abiertas"

@@ -52,6 +52,19 @@ const TreatmentDetailPage = lazy(
 )
 const ReportsIndexPage = lazy(() => import('@/features/reports/ReportsIndexPage'))
 const ReportPage = lazy(() => import('@/features/reports/ReportPage'))
+const DoctorsPage = lazy(() => import('@/features/doctors/DoctorsPage'))
+const DoctorDetailPage = lazy(
+  () => import('@/features/doctors/DoctorDetailPage'),
+)
+const MedicalSpecialtiesPage = lazy(
+  () => import('@/features/medical-specialties/MedicalSpecialtiesPage'),
+)
+const MedicalCentersPage = lazy(
+  () => import('@/features/medical-centers/MedicalCentersPage'),
+)
+const HealthConditionsPage = lazy(
+  () => import('@/features/health-conditions/HealthConditionsPage'),
+)
 
 export const router = createBrowserRouter([
   {
@@ -95,6 +108,20 @@ export const router = createBrowserRouter([
                     element: <TreatmentDetailPage />,
                   },
                   { path: '/medicamentos', element: <MedicationsPage /> },
+                  { path: '/medicos', element: <DoctorsPage /> },
+                  { path: '/medicos/:id', element: <DoctorDetailPage /> },
+                  {
+                    path: '/especialidades',
+                    element: <MedicalSpecialtiesPage />,
+                  },
+                  {
+                    path: '/centros-medicos',
+                    element: <MedicalCentersPage />,
+                  },
+                  {
+                    path: '/condiciones-salud',
+                    element: <HealthConditionsPage />,
+                  },
                   { path: '/ajustes/usuarios', element: <UsersPage /> },
                   { path: '/ajustes/sucursales', element: <BranchesPage /> },
                   { path: '/ajustes/umbrales', element: <ThresholdsPage /> },

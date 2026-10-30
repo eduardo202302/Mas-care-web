@@ -221,8 +221,10 @@ export default function CompaniesPage() {
         : index === 2
           ? company.pin
           : index === 3
-            ? company.domain
-            : company.registrationLink,
+            ? (company.phone ?? '')
+            : index === 4
+              ? company.domain
+              : company.registrationLink,
   )
   const tableRows = sortedCompanies.map((company) => [
     <span
@@ -249,6 +251,9 @@ export default function CompaniesPage() {
       className="text-petroleo font-mono text-sm font-semibold tracking-[0.25em]"
     >
       {company.pin}
+    </span>,
+    <span key="phone" className="text-ink text-sm">
+      {company.phone || <span className="text-muted">—</span>}
     </span>,
     <a
       key="domain"
@@ -320,13 +325,13 @@ export default function CompaniesPage() {
 
       <div className="min-h-0 flex-1">
       {companies.isFetching ? (
-        <TableSkeleton columns={5} avatar />
+        <TableSkeleton columns={6} avatar />
       ) : (
         <DataTable
-          columns={['Compañía', 'Estado', 'PIN', 'Dominio', 'Links']}
+          columns={['Compañía', 'Estado', 'PIN', 'Teléfono', 'Dominio', 'Links']}
           rows={tableRows}
           actions={rowActions}
-          sortableColumns={[0, 1, 2, 3]}
+          sortableColumns={[0, 1, 2, 3, 4]}
           sort={sort}
           onSortChange={toggleSort}
           onRowDoubleClick={(index) => {
@@ -370,6 +375,7 @@ export default function CompaniesPage() {
         <Dialog
           title={editing ? 'Editar compañía' : 'Nueva compañía'}
           description="Completa la información y revisa los enlaces generados."
+          icon={<Building2 className="size-6" />}
           size="lg"
           onClose={closeForm}
         >
@@ -385,6 +391,18 @@ export default function CompaniesPage() {
                     status: editing.status,
                     pin: editing.pin,
                     domain: editing.domain,
+                    phone: editing.phone ?? '',
+                    ownerName: editing.ownerName ?? '',
+                    industry: editing.industry ?? '',
+                    type: editing.type ?? '',
+                    city: editing.city ?? '',
+                    state: editing.state ?? '',
+                    postalCode: editing.postalCode ?? '',
+                    employeeCount: editing.employeeCount?.toString() ?? '',
+                    annualRevenue: editing.annualRevenue?.toString() ?? '',
+                    timezone: editing.timezone ?? '',
+                    description: editing.description ?? '',
+                    linkedinUrl: editing.linkedinUrl ?? '',
                   }
                 : undefined
             }

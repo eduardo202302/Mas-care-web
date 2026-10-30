@@ -2,6 +2,37 @@ import { z } from 'zod'
 
 export const companyStatuses = ['active', 'inactive'] as const
 
+export const companyIndustries = [
+  'Farmacia',
+  'Salud',
+  'Retail',
+  'Tecnología',
+  'Alimentos y bebidas',
+  'Educación',
+  'Finanzas',
+  'Manufactura',
+  'Servicios',
+  'Otro',
+] as const
+
+export const companyTypes = [
+  'Cliente',
+  'Prospecto',
+  'Partner',
+  'Proveedor',
+  'Otro',
+] as const
+
+const optionalTextField = (max: number) =>
+  z.string().trim().max(max, `Máximo ${max} caracteres.`)
+
+const optionalNumericField = (max: number, pattern: RegExp, message: string) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .refine((value) => value === '' || pattern.test(value), message)
+
 export const companyFormSchema = z.object({
   name: z
     .string()
@@ -51,6 +82,18 @@ export const companyFormSchema = z.object({
         return false
       }
     }, 'Ingresa un dominio válido, por ejemplo https://farmacia.com.'),
+  phone: optionalTextField(30),
+  ownerName: optionalTextField(120),
+  industry: optionalTextField(120),
+  type: optionalTextField(60),
+  city: optionalTextField(120),
+  state: optionalTextField(120),
+  postalCode: optionalTextField(20),
+  employeeCount: optionalNumericField(10, /^\d+$/, 'Ingresa un número entero.'),
+  annualRevenue: optionalNumericField(18, /^\d+(\.\d{1,2})?$/, 'Ingresa un monto válido.'),
+  timezone: optionalTextField(60),
+  description: optionalTextField(2_000),
+  linkedinUrl: optionalTextField(300),
 })
 
 export type CompanyFormValues = z.infer<typeof companyFormSchema>
