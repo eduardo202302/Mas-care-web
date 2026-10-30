@@ -46,6 +46,7 @@ export default function TasksPage() {
   const canOperate = useCan('treatments:write')
   const [filter, setFilter] = useState<TaskFilter>('today')
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
   const [formOpen, setFormOpen] = useState(false)
   const [feedback, setFeedback] = useState<string | null>(null)
 
@@ -60,12 +61,12 @@ export default function TasksPage() {
   }, [feedback])
 
   const tasks = useQuery({
-    queryKey: ['tasks', filter, activeBranchId ?? 'all', page],
+    queryKey: ['tasks', filter, activeBranchId ?? 'all', page, rows],
     queryFn: () => {
       const params = new URLSearchParams({
         filter,
         page: String(page),
-        rows: String(PAGE_ROWS),
+        rows: String(rows),
       })
       if (activeBranchId) params.set('branch_id', activeBranchId)
       return api<TaskList>(`/api/v1/tasks?${params.toString()}`)
@@ -125,7 +126,7 @@ export default function TasksPage() {
     },
   })
 
-  const rows = tasks.data?.data ?? []
+  const items = tasks.data?.data ?? []
   const actionError =
     complete.error?.message ?? cancel.error?.message ?? prepare.error?.message
 
@@ -201,7 +202,7 @@ export default function TasksPage() {
                 </div>
               ))}
             </div>
-          ) : rows.length === 0 ? (
+          ) : items.length === 0 ? (
             <div className="p-5">
               <EmptyState
                 title={
@@ -221,7 +222,7 @@ export default function TasksPage() {
               />
             </div>
           ) : (
-            rows.map((task) => {
+            items.map((task) => {
               const overdue = isTaskOverdue(task)
               const isCompleting =
                 complete.isPending && complete.variables?.id === task.id
@@ -329,17 +330,20 @@ export default function TasksPage() {
             })
           )}
         </div>
+        <Pagination
+          page={page}
+          rows={rows}
+          total={tasks.data?.total ?? 0}
+          onChange={setPage}
+          onRowsChange={(next) => {
+            setRows(next)
+            setPage(1)
+          }}
+          disabled={tasks.isFetching}
+        />
       </section>
 
-      <Pagination
-        page={page}
-        rows={PAGE_ROWS}
-        total={tasks.data?.total ?? 0}
-        onChange={setPage}
-        disabled={tasks.isFetching}
-      />
-
-      {!rows.length && !tasks.isLoading && branchReady && (
+      {!items.length && !tasks.isLoading && branchReady && (
         <p className="text-muted mt-4 flex items-center gap-2 text-xs">
           <ListChecks className="size-4" />
           Las tareas completadas se guardan en el historial del paciente.

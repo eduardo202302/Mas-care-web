@@ -1,7 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Search, SlidersHorizontal, X } from 'lucide-react'
+import {
+  Building2,
+  CalendarDays,
+  Check,
+  Filter,
+  Pill,
+  Search,
+  SlidersHorizontal,
+  Tag,
+  Trash2,
+  User,
+  X,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { Dialog } from '@/components/ui/Dialog'
 import { api } from '@/lib/http'
 import type { paths } from '@/lib/api-types'
 import {
@@ -16,7 +29,15 @@ type MedicationList =
   paths['/api/v1/medications']['get']['responses'][200]['content']['application/json']
 
 const controlClass =
-  'border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none'
+  'border-border focus:border-tealmax h-10 w-full min-w-0 truncate rounded-lg border bg-white px-3 text-sm outline-none'
+
+function FieldIcon({ children }: { children: ReactNode }) {
+  return (
+    <span className="bg-modulos text-cuidado pointer-events-none absolute top-1/2 left-1.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-md">
+      {children}
+    </span>
+  )
+}
 
 const filterChipLabel: Partial<Record<keyof Filters, string>> = {
   branch_id: 'Sucursal',
@@ -34,6 +55,7 @@ export function BoardFilters({
   branchLocked,
   privileged,
   meId,
+  rightActions,
 }: {
   filters: Filters
   onChange: (next: Filters) => void
@@ -41,9 +63,11 @@ export function BoardFilters({
   branchLocked: boolean
   privileged: boolean
   meId?: string
+  rightActions?: ReactNode
 }) {
   const [query, setQuery] = useState(filters.q ?? '')
   const [panelOpen, setPanelOpen] = useState(false)
+  const [draft, setDraft] = useState<Filters>(filters)
   const users = useQuery({
     queryKey: ['users', 'board-filter'],
     queryFn: () => api<UserList>('/api/v1/users?limit=100'),
@@ -71,6 +95,25 @@ export function BoardFilters({
     onChange({ ...filters, [key]: value || undefined })
   }
 
+  function setDraftField<K extends keyof Filters>(key: K, value: Filters[K]) {
+    setDraft((prev) => ({ ...prev, [key]: value || undefined }))
+  }
+
+  function openPanel() {
+    setDraft(filters)
+    setPanelOpen(true)
+  }
+
+  function applyDraft() {
+    onChange(draft)
+    setPanelOpen(false)
+  }
+
+  function clearDraft() {
+    setDraft({})
+    onChange({})
+  }
+
   function removeFilter(key: keyof Filters) {
     onChange({ ...filters, [key]: undefined })
   }
@@ -79,6 +122,7 @@ export function BoardFilters({
     (key) => Boolean(filters[key]),
   )
   const hasFilters = Object.values(filters).some(Boolean)
+  const draftHasFilters = Object.values(draft).some(Boolean)
   const mine = Boolean(meId) && filters.responsible_user_id === meId
 
   function userLabel(id: string) {
@@ -110,10 +154,7 @@ export function BoardFilters({
   }
 
   return (
-    <section
-      aria-label="Filtros del tablero"
-      className="border-border shadow-card mb-5 rounded-xl border bg-white p-3"
-    >
+    <section aria-label="Filtros del tablero" className="mb-4">
       <div className="flex flex-wrap items-center gap-2">
         <span className="relative min-w-[220px] flex-1">
           <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
@@ -125,52 +166,50 @@ export function BoardFilters({
             className={`${controlClass} pl-9`}
           />
         </span>
+        {meId && (
+          <div role="tablist" aria-label="Alcance" className="flex gap-1">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!mine}
+              onClick={() => removeFilter('responsible_user_id')}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                !mine
+                  ? 'bg-surface text-petroleo'
+                  : 'text-muted hover:bg-surface hover:text-ink'
+              }`}
+            >
+              Todos los ciclos
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mine}
+              onClick={() => set('responsible_user_id', meId)}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                mine
+                  ? 'bg-surface text-petroleo'
+                  : 'text-muted hover:bg-surface hover:text-ink'
+              }`}
+            >
+              Asignados a mí
+            </button>
+          </div>
+        )}
         <Button
           type="button"
-          variant={panelOpen || hasFilters ? 'primary' : 'secondary'}
+          variant={hasFilters ? 'primary' : 'secondary'}
+          aria-haspopup="dialog"
+          aria-expanded={panelOpen}
           className="h-10 gap-1.5"
-          onClick={() => setPanelOpen((open) => !open)}
+          onClick={openPanel}
         >
           <SlidersHorizontal className="size-3.5" />
-          Filtro{activeEntries.length > 0 ? ` (${activeEntries.length})` : ''}
+          Filtro Avanzado
+          {activeEntries.length > 0 ? ` (${activeEntries.length})` : ''}
         </Button>
-        {hasFilters && (
-          <Button type="button" variant="ghost" className="h-10 px-2 text-xs" onClick={() => onChange({})}>
-            <X className="size-3.5" />
-            Borrar todo
-          </Button>
-        )}
+        {rightActions}
       </div>
-      {meId && (
-        <div role="tablist" aria-label="Alcance" className="mt-3 flex gap-1.5">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!mine}
-            onClick={() => removeFilter('responsible_user_id')}
-            className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
-              !mine
-                ? 'border-border bg-white text-petroleo shadow-sm'
-                : 'border-transparent bg-surface text-muted hover:text-ink'
-            }`}
-          >
-            Todos los ciclos
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mine}
-            onClick={() => set('responsible_user_id', meId)}
-            className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
-              mine
-                ? 'border-border bg-white text-petroleo shadow-sm'
-                : 'border-transparent bg-surface text-muted hover:text-ink'
-            }`}
-          >
-            Asignados a mí
-          </button>
-        </div>
-      )}
       {activeEntries.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {activeEntries.map((key) => (
@@ -187,107 +226,168 @@ export function BoardFilters({
         </div>
       )}
       {panelOpen && (
-      <div className="mt-3 grid gap-3 border-t border-border pt-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-        <label className="grid gap-1">
-          <span className="text-muted text-[11px] font-medium">Sucursal</span>
-          <select
-            aria-label="Sucursal"
-            value={filters.branch_id ?? ''}
-            disabled={branchLocked}
-            onChange={(event) => set('branch_id', event.target.value)}
-            className={controlClass}
-          >
-            {privileged && <option value="">Todas las sucursales</option>}
-            {branchOptions.map((branch) => (
-              <option key={branch.id} value={branch.id}>
-                {branch.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="grid gap-1">
-          <span className="text-muted text-[11px] font-medium">
-            Responsable
+      <Dialog
+        title="Filtro Avanzado"
+        description="Combina estos criterios para acotar el tablero."
+        icon={<Filter className="size-6" />}
+        onClose={() => setPanelOpen(false)}
+        size="lg"
+      >
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="grid gap-1.5">
+          <span className="text-ink text-sm font-medium">Sucursal</span>
+          <span className="relative block">
+            <FieldIcon>
+              <Building2 className="size-4" />
+            </FieldIcon>
+            <select
+              aria-label="Sucursal"
+              value={draft.branch_id ?? ''}
+              disabled={branchLocked}
+              onChange={(event) => setDraftField('branch_id', event.target.value)}
+              className={`${controlClass} pl-11`}
+            >
+              {privileged && <option value="">Todas las sucursales</option>}
+              {branchOptions.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
           </span>
-          <select
-            aria-label="Responsable"
-            value={filters.responsible_user_id ?? ''}
-            onChange={(event) =>
-              set('responsible_user_id', event.target.value)
-            }
-            className={controlClass}
-          >
-            <option value="">Todos</option>
-            {(users.data?.data ?? []).map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name}
-              </option>
-            ))}
-          </select>
         </label>
-        <label className="grid gap-1">
-          <span className="text-muted text-[11px] font-medium">
-            Medicamento
+        <label className="grid gap-1.5">
+          <span className="text-ink text-sm font-medium">Responsable</span>
+          <span className="relative block">
+            <FieldIcon>
+              <User className="size-4" />
+            </FieldIcon>
+            <select
+              aria-label="Responsable"
+              value={draft.responsible_user_id ?? ''}
+              onChange={(event) =>
+                setDraftField('responsible_user_id', event.target.value)
+              }
+              className={`${controlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {(users.data?.data ?? []).map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
           </span>
-          <select
-            aria-label="Medicamento"
-            value={filters.medication_id ?? ''}
-            onChange={(event) => set('medication_id', event.target.value)}
-            className={controlClass}
-          >
-            <option value="">Todos</option>
-            {(medications.data?.data ?? []).map((medication) => (
-              <option key={medication.id} value={medication.id}>
-                {medication.brandName ||
-                  medication.genericName ||
-                  medication.activeIngredient ||
-                  'Medicamento'}
-              </option>
-            ))}
-          </select>
         </label>
-        <label className="grid gap-1">
-          <span className="text-muted text-[11px] font-medium">
-            Estado derivado
+        <label className="grid gap-1.5">
+          <span className="text-ink text-sm font-medium">Medicamento</span>
+          <span className="relative block">
+            <FieldIcon>
+              <Pill className="size-4" />
+            </FieldIcon>
+            <select
+              aria-label="Medicamento"
+              value={draft.medication_id ?? ''}
+              onChange={(event) => setDraftField('medication_id', event.target.value)}
+              className={`${controlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {(medications.data?.data ?? []).map((medication) => (
+                <option key={medication.id} value={medication.id}>
+                  {medication.brandName ||
+                    medication.genericName ||
+                    medication.activeIngredient ||
+                    'Medicamento'}
+                </option>
+              ))}
+            </select>
           </span>
-          <select
-            aria-label="Estado derivado"
-            value={filters.derived_status ?? ''}
-            onChange={(event) => {
-              const value = event.target.value as DerivedStatus | ''
-              set('derived_status', value || undefined)
-            }}
-            className={controlClass}
-          >
-            <option value="">Todos</option>
-            {derivedStatusOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
         </label>
-        <label className="grid gap-1">
-          <span className="text-muted text-[11px] font-medium">Desde</span>
-          <input
-            aria-label="Fecha prevista desde"
-            type="date"
-            value={filters.expected_from ?? ''}
-            onChange={(event) => set('expected_from', event.target.value)}
-            className={controlClass}
-          />
+        <label className="grid gap-1.5">
+          <span className="text-ink text-sm font-medium">Estado derivado</span>
+          <span className="relative block">
+            <FieldIcon>
+              <Tag className="size-4" />
+            </FieldIcon>
+            <select
+              aria-label="Estado derivado"
+              value={draft.derived_status ?? ''}
+              onChange={(event) => {
+                const value = event.target.value as DerivedStatus | ''
+                setDraftField('derived_status', value || undefined)
+              }}
+              className={`${controlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {derivedStatusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </span>
         </label>
-        <label className="grid gap-1">
-          <span className="text-muted text-[11px] font-medium">Hasta</span>
-          <input
-            aria-label="Fecha prevista hasta"
-            type="date"
-            value={filters.expected_to ?? ''}
-            onChange={(event) => set('expected_to', event.target.value)}
-            className={controlClass}
-          />
+        <label className="grid gap-1.5">
+          <span className="text-ink text-sm font-medium">Desde</span>
+          <span className="relative block">
+            <FieldIcon>
+              <CalendarDays className="size-4" />
+            </FieldIcon>
+            <input
+              aria-label="Fecha prevista desde"
+              type="date"
+              value={draft.expected_from ?? ''}
+              onChange={(event) => setDraftField('expected_from', event.target.value)}
+              className={`${controlClass} pl-11`}
+            />
+          </span>
+        </label>
+        <label className="grid gap-1.5">
+          <span className="text-ink text-sm font-medium">Hasta</span>
+          <span className="relative block">
+            <FieldIcon>
+              <CalendarDays className="size-4" />
+            </FieldIcon>
+            <input
+              aria-label="Fecha prevista hasta"
+              type="date"
+              value={draft.expected_to ?? ''}
+              onChange={(event) => setDraftField('expected_to', event.target.value)}
+              className={`${controlClass} pl-11`}
+            />
+          </span>
         </label>
       </div>
+      <div className="mt-5 flex flex-col-reverse items-stretch justify-between gap-3 border-t border-border pt-4 sm:flex-row sm:items-center">
+        <Button
+          type="button"
+          className="gap-1.5 hover:border-red-200 hover:bg-red-50 hover:text-red-800"
+          disabled={!hasFilters && !draftHasFilters}
+          onClick={clearDraft}
+        >
+          <Trash2 className="size-3.5" />
+          Limpiar filtros
+        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            className="hover:border-red-200 hover:bg-red-50 hover:text-red-800"
+            onClick={() => setPanelOpen(false)}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            className="hover:bg-emerald-700 gap-1.5"
+            onClick={applyDraft}
+          >
+            <Check className="size-3.5" />
+            Aplicar filtros
+          </Button>
+        </div>
+      </div>
+      </Dialog>
       )}
     </section>
   )

@@ -10,6 +10,7 @@ import { Pagination } from '@/components/Pagination'
 import { api } from '@/lib/http'
 import { PAGE_ROWS, pageQuery } from '@/lib/paging'
 import { useCan } from '@/lib/permissions'
+import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import type { BranchFormValues } from '@/schemas/branch'
 import { BranchForm } from './BranchForm'
 import type { components, paths } from '@/lib/api-types'
@@ -27,12 +28,14 @@ export default function BranchesPage() {
   >(null)
   const [formOpen, setFormOpen] = useState(false)
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
+  const [sort, toggleSort] = useColumnSort()
   // Distinct key from the full lookup list ['branches'] used by selectors.
   const branches = useQuery({
-    queryKey: ['branches', 'table', page],
+    queryKey: ['branches', 'table', page, rows],
     queryFn: () =>
       api<BranchList>(
-        `/api/v1/branches?${pageQuery({ page, rows: PAGE_ROWS })}`,
+        `/api/v1/branches?${pageQuery({ page, rows })}`,
       ),
   })
   const save = useMutation({
@@ -75,7 +78,9 @@ export default function BranchesPage() {
   async function submit(values: BranchFormValues) {
     await save.mutateAsync(values)
   }
-  const data = branches.data?.data ?? []
+  const data = applyColumnSort(branches.data?.data ?? [], sort, (branch, index) =>
+    index === 0 ? branch.name : index === 1 ? branch.address ?? '' : branch.labelColor,
+  )
   const tableRows = data.map((branch) => {
     const name = branch.name
     const color = branch.labelColor
@@ -117,8 +122,8 @@ export default function BranchesPage() {
   ))
 
   return (
-    <div className="animate-in">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <div className="animate-in flex h-full min-h-0 flex-col">
+      <div className="mb-7 flex shrink-0 flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-tealmax mb-2 text-sm font-medium">Configuración</p>
           <h1 className="font-display text-petroleo text-3xl font-bold tracking-tight">
@@ -138,7 +143,7 @@ export default function BranchesPage() {
       {branches.isError && (
         <p
           role="alert"
-          className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+          className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
         >
           No pudimos cargar las sucursales. {branches.error.message}
         </p>
@@ -146,38 +151,47 @@ export default function BranchesPage() {
       {remove.isError && (
         <p
           role="alert"
-          className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+          className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
         >
           No pudimos eliminar la sucursal. {remove.error.message}
         </p>
       )}
-      {branches.isFetching ? (
-        <TableSkeleton columns={3} />
-      ) : (
-        <DataTable
-          columns={['Sucursal', 'Dirección', 'Etiqueta']}
-          rows={tableRows}
-          actions={tableActions}
-          onRowDoubleClick={(index) => {
-            const branch = data[index]
-            if (branch && canUpdate) openEdit(branch)
-          }}
-          emptyTitle="Todavía no hay sucursales"
-          emptyDescription={
-            canCreate
-              ? 'Crea la primera sucursal para empezar a organizar tu operación.'
-              : 'Cuando tu organización tenga sucursales, aparecerán aquí.'
-          }
-        />
-      )}
-      {!branches.isFetching && (
-        <Pagination
-          page={page}
-          rows={PAGE_ROWS}
-          total={branches.data?.total ?? 0}
-          onChange={setPage}
-        />
-      )}
+      <div className="min-h-0 flex-1">
+        {branches.isFetching ? (
+          <TableSkeleton columns={3} />
+        ) : (
+          <DataTable
+            columns={['Sucursal', 'Dirección', 'Etiqueta']}
+            rows={tableRows}
+            actions={tableActions}
+            sortableColumns={[0, 1, 2]}
+            sort={sort}
+            onSortChange={toggleSort}
+            onRowDoubleClick={(index) => {
+              const branch = data[index]
+              if (branch && canUpdate) openEdit(branch)
+            }}
+            emptyTitle="Todavía no hay sucursales"
+            emptyDescription={
+              canCreate
+                ? 'Crea la primera sucursal para empezar a organizar tu operación.'
+                : 'Cuando tu organización tenga sucursales, aparecerán aquí.'
+            }
+            footer={
+              <Pagination
+                page={page}
+                rows={rows}
+                total={branches.data?.total ?? 0}
+                onChange={setPage}
+                onRowsChange={(next) => {
+                  setRows(next)
+                  setPage(1)
+                }}
+              />
+            }
+          />
+        )}
+      </div>
       {formOpen && (
         <Dialog
           title={editing ? 'Editar sucursal' : 'Nueva sucursal'}

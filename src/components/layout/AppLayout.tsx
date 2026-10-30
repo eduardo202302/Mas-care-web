@@ -110,7 +110,7 @@ export function AppLayout() {
     navigate('/acceso', { replace: true })
   }
   return (
-    <div className="bg-modulos text-ink min-h-screen">
+    <div className="bg-modulos text-ink h-screen overflow-hidden">
       <aside
         className={cn(
           'bg-petroleo fixed inset-y-0 left-0 z-30 flex w-64 -translate-x-full flex-col text-white transition-transform md:translate-x-0',
@@ -163,8 +163,8 @@ export function AppLayout() {
           </div>
         </div>
       </aside>
-      <div className="min-h-screen md:pl-64">
-        <header className="border-border sticky top-0 z-20 flex h-[76px] items-center border-b bg-white/95 px-5 backdrop-blur md:hidden">
+      <div className="flex h-screen flex-col md:pl-64">
+        <header className="border-border z-20 flex h-[76px] shrink-0 items-center border-b bg-white/95 px-5 backdrop-blur md:hidden">
           <Button
             variant="ghost"
             className="-ml-2 size-10 px-0"
@@ -174,7 +174,7 @@ export function AppLayout() {
             <Menu className="size-5" />
           </Button>
         </header>
-        <main className="mx-auto w-full max-w-[1440px] px-5 py-8 md:px-8 lg:px-10">
+        <main className="mx-auto min-h-0 w-full max-w-[1440px] flex-1 overflow-y-auto px-5 py-8 md:px-8 lg:px-10">
           <Outlet />
         </main>
       </div>

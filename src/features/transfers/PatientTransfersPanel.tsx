@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRightLeft } from 'lucide-react'
-import { EmptyState } from '@/components/EmptyState'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { DataTable } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
@@ -12,16 +11,17 @@ import type { PatientTransferList } from '@/lib/transfers'
 /** Transfer history for one patient, shown in a tab of the patient detail page. */
 export function PatientTransfersPanel({ patientId }: { patientId: string }) {
   const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(PAGE_ROWS)
   const transfers = useQuery({
-    queryKey: ['patients', patientId, 'transfers', page],
+    queryKey: ['patients', patientId, 'transfers', page, rows],
     queryFn: () =>
       api<PatientTransferList>(
-        `/api/v1/patients/${encodeURIComponent(patientId)}/transfers?${pageQuery({ page, rows: PAGE_ROWS })}`,
+        `/api/v1/patients/${encodeURIComponent(patientId)}/transfers?${pageQuery({ page, rows })}`,
       ),
     enabled: Boolean(patientId),
   })
 
-  const rows = transfers.data?.data ?? []
+  const items = transfers.data?.data ?? []
 
   if (transfers.isLoading) return <TableSkeleton columns={5} />
   if (transfers.isError)
@@ -30,43 +30,40 @@ export function PatientTransfersPanel({ patientId }: { patientId: string }) {
         No pudimos cargar los traslados. {transfers.error.message}
       </p>
     )
-  if (rows.length === 0)
-    return (
-      <EmptyState
-        title="Sin traslados"
-        description="Cuando este paciente se traslade de sucursal, el historial aparecerá aquí."
-      />
-    )
 
   return (
-    <div className="grid gap-3">
-      <DataTable
-        columns={['Fecha', 'De', 'A', 'Motivo', 'Tratamientos', 'Registrado por']}
-        rows={rows.map((row) => [
-          <span key="date">
-            {new Date(row.occurred_at).toLocaleString('es')}
-          </span>,
-          <span key="from">{row.from_branch.name}</span>,
-          <span key="to" className="inline-flex items-center gap-1.5">
-            <ArrowRightLeft className="text-tealmax size-3.5" />
-            {row.to_branch.name}
-          </span>,
-          <span key="reason" className="text-muted line-clamp-2">
-            {row.reason}
-          </span>,
-          <span key="count">{row.treatments_count}</span>,
-          <span key="by">{row.created_by.name}</span>,
-        ])}
-        emptyTitle="Sin traslados"
-        emptyDescription="Cuando este paciente se traslade de sucursal, el historial aparecerá aquí."
-      />
-      <Pagination
-        page={page}
-        rows={PAGE_ROWS}
-        total={transfers.data?.total ?? 0}
-        onChange={setPage}
-        disabled={transfers.isFetching}
-      />
-    </div>
+    <DataTable
+      columns={['Fecha', 'De', 'A', 'Motivo', 'Tratamientos', 'Registrado por']}
+      rows={items.map((row) => [
+        <span key="date">
+          {new Date(row.occurred_at).toLocaleString('es')}
+        </span>,
+        <span key="from">{row.from_branch.name}</span>,
+        <span key="to" className="inline-flex items-center gap-1.5">
+          <ArrowRightLeft className="text-tealmax size-3.5" />
+          {row.to_branch.name}
+        </span>,
+        <span key="reason" className="text-muted line-clamp-2">
+          {row.reason}
+        </span>,
+        <span key="count">{row.treatments_count}</span>,
+        <span key="by">{row.created_by.name}</span>,
+      ])}
+      emptyTitle="Sin traslados"
+      emptyDescription="Cuando este paciente se traslade de sucursal, el historial aparecerá aquí."
+      footer={
+        <Pagination
+          page={page}
+          rows={rows}
+          total={transfers.data?.total ?? 0}
+          onChange={setPage}
+          onRowsChange={(next) => {
+            setRows(next)
+            setPage(1)
+          }}
+          disabled={transfers.isFetching}
+        />
+      }
+    />
   )
 }

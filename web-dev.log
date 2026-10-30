@@ -680,3 +680,984 @@
 [2m10:26:09 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
 [2m10:26:09 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
 [2m10:26:09 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m10:26:36 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles.css[22m
+[2m10:26:36 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/layout/AppLayout.tsx[22m
+[2m10:26:36 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m10:26:36 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/dashboard/DashboardPage.tsx[22m
+[2m10:26:36 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/menu/MenuPage.tsx[22m
+[2m10:26:36 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m10:26:36 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/settings/ThresholdsPage.tsx[22m
+[2m10:26:37 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mindex.html[22m
+[2m10:26:37 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles.css[22m
+[2m10:26:37 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/layout/AppLayout.tsx[22m
+[2m10:26:37 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m10:26:37 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/dashboard/DashboardPage.tsx[22m
+[2m10:26:37 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/dashboard/NoticeDialog.tsx[22m
+[2m10:26:37 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/menu/MenuPage.tsx[22m
+[2m10:26:37 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/settings/ThresholdsPage.tsx[22m
+[2m10:38:04 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m10:38:04 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m10:38:04 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mindex.html[22m
+[2m10:38:04 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m10:49:15 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:49:23 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:50:19 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:51:20 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:51:20 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\board\BoardFilters.tsx: Expected corresponding JSX closing tag for <div>. (292:4)
+
+[0m [90m 290 |[31m       [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 291 |[31m       )}
+[31m[1m>[22m[31m[90m 292 |[31m     [33m<[31m[33m/[31m[33msection[31m[33m>[31m
+ [90m     |[31m     [31m[1m^[22m[31m
+ [90m 293 |[31m   )
+ [90m 294 |[31m }
+ [90m 295 |[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/board/BoardFilters.tsx[39m:292:4
+[33m  290 |        </div>
+  291 |        )}
+  292 |      </section>
+      |      ^
+  293 |    )
+  294 |  }[39m
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4745:16)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4767:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4777:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:39
+      at TypeScriptParserMixin.tryParse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6930:20)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12460:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12527:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11706:28)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11362:23)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4782:20)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOpBaseRightExpr (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11012:34)
+      at TypeScriptParserMixin.parseExprOpRightExpr (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11007:21)
+      at TypeScriptParserMixin.parseExprOp (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10973:27)
+      at TypeScriptParserMixin.parseExprOp (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9329:18)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10934:17)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9809:20)
+      at TypeScriptParserMixin.parseExpressionBase (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10810:23)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12460:12)
+      at TypeScriptParserMixin.parseExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4650:31)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4729:36)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4767:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4777:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+[2m10:51:28 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:52:59 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m10:55:27 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m10:58:04 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:58:11 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:58:17 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:58:17 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\board\BoardFilters.tsx: Expected corresponding JSX closing tag for <Dialog>. (315:6)
+
+[0m [90m 313 |[31m         [33m<[31m[33m/[31m[33mButton[31m[33m>[31m
+ [90m 314 |[31m       [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+[31m[1m>[22m[31m[90m 315 |[31m       [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m     |[31m       [31m[1m^[22m[31m
+ [90m 316 |[31m       )}
+ [90m 317 |[31m     [33m<[31m[33m/[31m[33msection[31m[33m>[31m
+ [90m 318 |[31m   )[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/board/BoardFilters.tsx[39m:315:6
+[33m  313 |          </Button>
+  314 |        </div>
+  315 |        </div>
+      |        ^
+  316 |        )}
+  317 |      </section>[39m
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4745:16)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4767:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4777:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:39
+      at TypeScriptParserMixin.tryParse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6930:20)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12460:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12527:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11706:28)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11362:23)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4782:20)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOpBaseRightExpr (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11012:34)
+      at TypeScriptParserMixin.parseExprOpRightExpr (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11007:21)
+      at TypeScriptParserMixin.parseExprOp (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10973:27)
+      at TypeScriptParserMixin.parseExprOp (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9329:18)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10934:17)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9809:20)
+      at TypeScriptParserMixin.parseExpressionBase (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10810:23)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12460:12)
+      at TypeScriptParserMixin.parseExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4650:31)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4729:36)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4767:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4777:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+[2m10:58:25 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m10:59:17 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m11:00:22 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m11:09:01 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:09:09 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:09:15 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:09:50 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:11:37 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:11:43 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:13:10 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:14:13 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:24:25 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mindex.html[22m
+[2m11:27:07 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mindex.html[22m
+[2m11:38:59 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:39:01 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:39:03 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:39:43 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:48:44 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/ui/Dialog.tsx[22m
+[2m11:48:45 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/ui/Dialog.tsx[22m
+[2m11:49:52 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m11:51:37 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m11:51:37 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:01:40 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:03:59 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:04:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:04:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:04:14 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:05:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:05:11 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m12:05:11 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:07:36 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:07:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:07:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:08:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:08:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m12:08:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:12:17 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:12:28 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:12:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:12:37 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:12:44 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:13:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:13:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m12:13:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:17:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:18:05 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:19:06 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:19:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m12:19:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:20:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:21:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:21:17 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m12:21:17 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:23:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:23:22 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:23:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:23:30 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:23:33 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:23:36 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:23:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:23:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:23:45 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:23:53 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:23:53 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 1 error:
+C:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/board/BoardFilters.tsx:386:10: ERROR: The character ">" is not valid inside a JSX element[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/board/BoardFilters.tsx[39m:386:0
+[33m  
+  [33mThe character ">" is not valid inside a JSX element[33m
+  384 |                
+  385 |              onClick={() => setPanelOpen(false)}
+  386 |            >
+      |            ^
+  387 |              <Check className="size-3.5" />
+  388 |              Aplicar filtros
+  [39m
+      at failureErrorWithLog (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\esbuild@0.28.2\node_modules\esbuild\lib\main.js:1752:15)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\esbuild@0.28.2\node_modules\esbuild\lib\main.js:1019:50
+      at responseCallbacks.<computed> (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\esbuild@0.28.2\node_modules\esbuild\lib\main.js:886:9)
+      at handleIncomingPacket (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\esbuild@0.28.2\node_modules\esbuild\lib\main.js:941:12)
+      at Socket.readFromStdout (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\esbuild@0.28.2\node_modules\esbuild\lib\main.js:864:7)
+      at Socket.emit (node:events:514:28)
+      at addChunk (node:internal/streams/readable:569:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:520:3)
+      at Readable.push (node:internal/streams/readable:400:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:194:23)
+[2m12:24:06 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardFilters.tsx[22m
+[2m12:24:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:24:26 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m12:24:26 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:24:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:24:49 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m12:24:49 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:29:29 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:29:33 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:29:38 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:29:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:29:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m12:29:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:33:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:33:57 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:33:58 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m12:33:58 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:43:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:43:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:43:18 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:43:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:43:34 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:43:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:44:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:44:02 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m12:44:02 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:54:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:54:30 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:54:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:54:40 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:54:53 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:55:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:55:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:55:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m12:55:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m12:55:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m12:55:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m1:01:06 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:01:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:01:13 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:01:17 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:01:24 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:01:54 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m1:01:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/graph.html[22m
+[2m1:01:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mgraphify-out/.graph.html.stale[22m
+[2m1:15:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:15:50 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:15:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:15:52 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:15:53 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:17:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m1:17:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m1:17:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m1:17:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m1:17:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:17:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m1:17:27 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:23:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:46:54 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:46:59 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:47:02 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:47:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m1:47:38 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:10:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m2:15:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m2:15:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m2:23:29 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:23:33 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:23:37 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:29:54 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:29:58 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:30:03 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:32:03 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m2:32:50 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m2:32:53 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m2:34:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m2:34:26 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m2:34:29 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m2:38:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:39:06 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:40:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m2:41:29 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:44:36 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:44:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:46:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:46:45 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:47:54 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:48:03 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:49:53 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:49:59 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:50:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:51:02 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:51:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m2:52:40 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:07:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:07:59 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:08:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:08:12 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:08:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:12:29 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:12:33 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:12:37 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:13:31 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:16:14 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:16:18 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:16:22 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:31:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/NewCycleDialog.tsx[22m
+[2m3:31:52 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m3:34:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m3:37:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m3:37:22 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m3:37:26 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m3:37:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m3:38:13 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m3:44:21 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m3:44:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m3:45:14 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m3:45:17 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m3:45:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m3:45:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m3:45:36 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m3:45:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m3:45:44 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m3:45:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:32:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/dashboard/DashboardPage.tsx, /src/features/roles/RolesPage.tsx, /src/features/patients/PatientsPage.tsx, /src/features/users/UsersPage.tsx, /src/features/transfers/PatientTransfersPanel.tsx, /src/features/medications/MedicationsPage.tsx[22m
+[2m4:33:02 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/Pagination.tsx[22m
+[2m4:34:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/DataTable.tsx[22m
+[2m4:34:06 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m4:34:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m4:34:13 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m4:34:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m4:34:21 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m4:34:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m4:34:34 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m4:34:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx, /src/features/board/CycleTableControls.tsx, /src/features/patients/PatientsPage.tsx[22m
+[2m4:35:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:35:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:35:53 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:36:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:36:26 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:36:33 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:36:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:36:45 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:36:58 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:37:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:37:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:37:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m4:37:28 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:38:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:39:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:46:21 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:46:30 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m4:50:24 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/roles/RolesPage.tsx[22m
+[2m4:50:28 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/roles/RolesPage.tsx[22m
+[2m4:50:45 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/roles/RolesPage.tsx[22m
+[2m4:50:46 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/roles/RolesPage.tsx[22m
+[2m4:50:57 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/branches/BranchesPage.tsx[22m
+[2m4:51:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/branches/BranchesPage.tsx[22m
+[2m4:51:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medications/MedicationsPage.tsx[22m
+[2m4:51:10 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\medications\MedicationsPage.tsx: Identifier 'rows' has already been declared. (124:8)
+
+[0m [90m 122 |[31m   }
+ [90m 123 |[31m
+[31m[1m>[22m[31m[90m 124 |[31m   [36mconst[31m rows [33m=[31m (medications[33m.[31mdata[33m?[31m[33m.[31mdata [33m?[31m[33m?[31m [])[33m.[31mmap((item) [33m=>[31m [
+ [90m     |[31m         [31m[1m^[22m[31m
+ [90m 125 |[31m     [33m<[31m[33mspan[31m key[33m=[31m[32m"name"[31m className[33m=[31m[32m"text-petroleo font-semibold"[31m[33m>[31m
+ [90m 126 |[31m       {item[33m.[31mbrandName [33m||[31m
+ [90m 127 |[31m         item[33m.[31mgenericName [33m||[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/medications/MedicationsPage.tsx[39m:124:8
+[33m  124 |    const rows = (medications.data?.data ?? []).map((item) => [
+  125 |      <span key="name" className="text-petroleo font-semibold">
+  126 |        {item.brandName ||
+      |         ^
+  127 |          item.genericName ||
+  128 |          item.activeIngredient ||[39m
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptScopeHandler.checkRedeclarationInScope (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:1623:19)
+      at TypeScriptScopeHandler.declareName (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:1589:12)
+      at TypeScriptScopeHandler.declareName (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4898:11)
+      at TypeScriptParserMixin.declareNameFromIdentifier (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7590:16)
+      at TypeScriptParserMixin.checkIdentifier (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7586:12)
+      at TypeScriptParserMixin.checkLVal (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7523:12)
+      at TypeScriptParserMixin.parseVarId (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13446:10)
+      at TypeScriptParserMixin.parseVarId (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9775:11)
+      at TypeScriptParserMixin.parseVar (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13417:12)
+      at TypeScriptParserMixin.parseVarStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13264:10)
+      at TypeScriptParserMixin.parseVarStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9431:31)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12885:23)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseStatementListItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12781:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13350:61)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13343:10)
+      at TypeScriptParserMixin.parseBlock (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13331:10)
+      at TypeScriptParserMixin.parseFunctionBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12134:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12120:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9195:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13479:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12437:14)
+      at TypeScriptParserMixin.parseFunction (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13478:10)
+      at TypeScriptParserMixin.parseExportDefaultExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13941:19)
+      at TypeScriptParserMixin.parseExportDefaultExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9425:18)
+      at TypeScriptParserMixin.parseExport (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13862:25)
+      at TypeScriptParserMixin.parseExport (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9408:20)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12912:27)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseModuleItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12778:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13350:36)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13343:10)
+      at TypeScriptParserMixin.parseProgram (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12656:10)
+      at TypeScriptParserMixin.parseTopLevel (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12646:25)
+      at TypeScriptParserMixin.parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:14522:25)
+      at TypeScriptParserMixin.parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10149:18)
+      at parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:14556:38)
+      at parser (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transformation\normalize-file.js:51:37)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:261:32)
+[2m4:51:11 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medications/MedicationsPage.tsx[22m
+[2m4:51:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medications/MedicationsPage.tsx[22m
+[2m4:51:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:51:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:52:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:52:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:52:17 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:52:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:52:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:52:47 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:52:49 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:52:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:52:58 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:53:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m4:53:29 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/transfers/PatientTransfersPanel.tsx[22m
+[2m4:53:40 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/users/UsersPage.tsx[22m
+[2m4:53:40 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\users\UsersPage.tsx: Identifier 'rows' has already been declared. (283:8)
+
+[0m [90m 281 |[31m   })
+ [90m 282 |[31m
+[31m[1m>[22m[31m[90m 283 |[31m   [36mconst[31m rows [33m=[31m (users[33m.[31mdata[33m?[31m[33m.[31mdata [33m?[31m[33m?[31m [])[33m.[31mmap((user) [33m=>[31m [
+ [90m     |[31m         [31m[1m^[22m[31m
+ [90m 284 |[31m     [33m<[31m[33mspan[31m key[33m=[31m[32m"id"[31m className[33m=[31m[32m"text-ink"[31m[33m>[31m
+ [90m 285 |[31m       {user[33m.[31mid [33m?[31m[33m?[31m [32m'—'[31m}
+ [90m 286 |[31m     [33m<[31m[33m/[31m[33mspan[31m[33m>[31m[33m,[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/users/UsersPage.tsx[39m:283:8
+[33m  281 |    })
+  282 |  
+  283 |    const rows = (users.data?.data ?? []).map((user) => [
+      |          ^
+  284 |      <span key="id" className="text-ink">
+  285 |        {user.id ?? '—'}[39m
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptScopeHandler.checkRedeclarationInScope (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:1623:19)
+      at TypeScriptScopeHandler.declareName (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:1589:12)
+      at TypeScriptScopeHandler.declareName (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4898:11)
+      at TypeScriptParserMixin.declareNameFromIdentifier (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7590:16)
+      at TypeScriptParserMixin.checkIdentifier (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7586:12)
+      at TypeScriptParserMixin.checkLVal (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7523:12)
+      at TypeScriptParserMixin.parseVarId (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13446:10)
+      at TypeScriptParserMixin.parseVarId (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9775:11)
+      at TypeScriptParserMixin.parseVar (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13417:12)
+      at TypeScriptParserMixin.parseVarStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13264:10)
+      at TypeScriptParserMixin.parseVarStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9431:31)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12885:23)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseStatementListItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12781:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13350:61)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13343:10)
+      at TypeScriptParserMixin.parseBlock (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13331:10)
+      at TypeScriptParserMixin.parseFunctionBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12134:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12120:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9195:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13479:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12437:14)
+      at TypeScriptParserMixin.parseFunction (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13478:10)
+      at TypeScriptParserMixin.parseExportDefaultExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13941:19)
+      at TypeScriptParserMixin.parseExportDefaultExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9425:18)
+      at TypeScriptParserMixin.parseExport (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13862:25)
+      at TypeScriptParserMixin.parseExport (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9408:20)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12912:27)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseModuleItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12778:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13350:36)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13343:10)
+      at TypeScriptParserMixin.parseProgram (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12656:10)
+      at TypeScriptParserMixin.parseTopLevel (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12646:25)
+      at TypeScriptParserMixin.parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:14522:25)
+      at TypeScriptParserMixin.parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10149:18)
+      at parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:14556:38)
+      at parser (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transformation\normalize-file.js:51:37)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:261:32)
+[2m4:53:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/users/UsersPage.tsx[22m
+[2m4:53:46 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/users/UsersPage.tsx[22m
+[2m4:53:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m4:53:55 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\companies\CompaniesPage.tsx: Identifier 'rows' has already been declared. (214:8)
+
+[0m [90m 212 |[31m   }
+ [90m 213 |[31m
+[31m[1m>[22m[31m[90m 214 |[31m   [36mconst[31m rows [33m=[31m (companies[33m.[31mdata[33m?[31m[33m.[31mdata [33m?[31m[33m?[31m [])[33m.[31mmap((company) [33m=>[31m [
+ [90m     |[31m         [31m[1m^[22m[31m
+ [90m 215 |[31m     [33m<[31m[33mspan[31m
+ [90m 216 |[31m       key[33m=[31m[32m"company"[31m
+ [90m 217 |[31m       className[33m=[31m[32m"text-petroleo inline-flex items-center gap-2 text-left font-semibold"[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/companies/CompaniesPage.tsx[39m:214:8
+[33m  212 |    }
+  213 |  
+  214 |    const rows = (companies.data?.data ?? []).map((company) => [
+      |          ^
+  215 |      <span
+  216 |        key="company"[39m
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptScopeHandler.checkRedeclarationInScope (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:1623:19)
+      at TypeScriptScopeHandler.declareName (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:1589:12)
+      at TypeScriptScopeHandler.declareName (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4898:11)
+      at TypeScriptParserMixin.declareNameFromIdentifier (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7590:16)
+      at TypeScriptParserMixin.checkIdentifier (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7586:12)
+      at TypeScriptParserMixin.checkLVal (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7523:12)
+      at TypeScriptParserMixin.parseVarId (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13446:10)
+      at TypeScriptParserMixin.parseVarId (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9775:11)
+      at TypeScriptParserMixin.parseVar (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13417:12)
+      at TypeScriptParserMixin.parseVarStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13264:10)
+      at TypeScriptParserMixin.parseVarStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9431:31)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12885:23)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseStatementListItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12781:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13350:61)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13343:10)
+      at TypeScriptParserMixin.parseBlock (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13331:10)
+      at TypeScriptParserMixin.parseFunctionBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12134:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12120:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9195:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13479:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12437:14)
+      at TypeScriptParserMixin.parseFunction (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13478:10)
+      at TypeScriptParserMixin.parseExportDefaultExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13941:19)
+      at TypeScriptParserMixin.parseExportDefaultExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9425:18)
+      at TypeScriptParserMixin.parseExport (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13862:25)
+      at TypeScriptParserMixin.parseExport (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9408:20)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12912:27)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseModuleItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12778:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13350:36)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13343:10)
+      at TypeScriptParserMixin.parseProgram (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12656:10)
+      at TypeScriptParserMixin.parseTopLevel (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12646:25)
+      at TypeScriptParserMixin.parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:14522:25)
+      at TypeScriptParserMixin.parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10149:18)
+      at parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:14556:38)
+      at parser (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transformation\normalize-file.js:51:37)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:261:32)
+[2m4:53:57 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m4:54:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m4:54:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/tasks/TasksPage.tsx[22m
+[2m4:54:15 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\tasks\TasksPage.tsx: Identifier 'rows' has already been declared. (129:8)
+
+[0m [90m 127 |[31m   })
+ [90m 128 |[31m
+[31m[1m>[22m[31m[90m 129 |[31m   [36mconst[31m rows [33m=[31m tasks[33m.[31mdata[33m?[31m[33m.[31mdata [33m?[31m[33m?[31m []
+ [90m     |[31m         [31m[1m^[22m[31m
+ [90m 130 |[31m   [36mconst[31m actionError [33m=[31m
+ [90m 131 |[31m     complete[33m.[31merror[33m?[31m[33m.[31mmessage [33m?[31m[33m?[31m cancel[33m.[31merror[33m?[31m[33m.[31mmessage [33m?[31m[33m?[31m prepare[33m.[31merror[33m?[31m[33m.[31mmessage
+ [90m 132 |[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/tasks/TasksPage.tsx[39m:129:8
+[33m  127 |    })
+  128 |  
+  129 |    const rows = tasks.data?.data ?? []
+      |          ^
+  130 |    const actionError =
+  131 |      complete.error?.message ?? cancel.error?.message ?? prepare.error?.message[39m
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptScopeHandler.checkRedeclarationInScope (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:1623:19)
+      at TypeScriptScopeHandler.declareName (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:1589:12)
+      at TypeScriptScopeHandler.declareName (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4898:11)
+      at TypeScriptParserMixin.declareNameFromIdentifier (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7590:16)
+      at TypeScriptParserMixin.checkIdentifier (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7586:12)
+      at TypeScriptParserMixin.checkLVal (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7523:12)
+      at TypeScriptParserMixin.parseVarId (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13446:10)
+      at TypeScriptParserMixin.parseVarId (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9775:11)
+      at TypeScriptParserMixin.parseVar (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13417:12)
+      at TypeScriptParserMixin.parseVarStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13264:10)
+      at TypeScriptParserMixin.parseVarStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9431:31)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12885:23)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseStatementListItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12781:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13350:61)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13343:10)
+      at TypeScriptParserMixin.parseBlock (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13331:10)
+      at TypeScriptParserMixin.parseFunctionBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12134:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12120:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9195:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13479:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12437:14)
+      at TypeScriptParserMixin.parseFunction (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13478:10)
+      at TypeScriptParserMixin.parseExportDefaultExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13941:19)
+      at TypeScriptParserMixin.parseExportDefaultExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9425:18)
+      at TypeScriptParserMixin.parseExport (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13862:25)
+      at TypeScriptParserMixin.parseExport (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9408:20)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12912:27)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseModuleItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12778:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13350:36)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13343:10)
+      at TypeScriptParserMixin.parseProgram (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12656:10)
+      at TypeScriptParserMixin.parseTopLevel (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12646:25)
+      at TypeScriptParserMixin.parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:14522:25)
+      at TypeScriptParserMixin.parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10149:18)
+      at parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:14556:38)
+      at parser (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transformation\normalize-file.js:51:37)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:261:32)
+[2m4:54:17 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/tasks/TasksPage.tsx[22m
+[2m4:54:17 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\tasks\TasksPage.tsx: Identifier 'rows' has already been declared. (129:8)
+
+[0m [90m 127 |[31m   })
+ [90m 128 |[31m
+[31m[1m>[22m[31m[90m 129 |[31m   [36mconst[31m rows [33m=[31m tasks[33m.[31mdata[33m?[31m[33m.[31mdata [33m?[31m[33m?[31m []
+ [90m     |[31m         [31m[1m^[22m[31m
+ [90m 130 |[31m   [36mconst[31m actionError [33m=[31m
+ [90m 131 |[31m     complete[33m.[31merror[33m?[31m[33m.[31mmessage [33m?[31m[33m?[31m cancel[33m.[31merror[33m?[31m[33m.[31mmessage [33m?[31m[33m?[31m prepare[33m.[31merror[33m?[31m[33m.[31mmessage
+ [90m 132 |[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/tasks/TasksPage.tsx[39m:129:8
+[33m  127 |    })
+  128 |  
+  129 |    const rows = tasks.data?.data ?? []
+      |          ^
+  130 |    const actionError =
+  131 |      complete.error?.message ?? cancel.error?.message ?? prepare.error?.message[39m
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptScopeHandler.checkRedeclarationInScope (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:1623:19)
+      at TypeScriptScopeHandler.declareName (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:1589:12)
+      at TypeScriptScopeHandler.declareName (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4898:11)
+      at TypeScriptParserMixin.declareNameFromIdentifier (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7590:16)
+      at TypeScriptParserMixin.checkIdentifier (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7586:12)
+      at TypeScriptParserMixin.checkLVal (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:7523:12)
+      at TypeScriptParserMixin.parseVarId (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13446:10)
+      at TypeScriptParserMixin.parseVarId (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9775:11)
+      at TypeScriptParserMixin.parseVar (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13417:12)
+      at TypeScriptParserMixin.parseVarStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13264:10)
+      at TypeScriptParserMixin.parseVarStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9431:31)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12885:23)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseStatementListItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12781:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13350:61)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13343:10)
+      at TypeScriptParserMixin.parseBlock (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13331:10)
+      at TypeScriptParserMixin.parseFunctionBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12134:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12120:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9195:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13479:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12437:14)
+      at TypeScriptParserMixin.parseFunction (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13478:10)
+      at TypeScriptParserMixin.parseExportDefaultExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13941:19)
+      at TypeScriptParserMixin.parseExportDefaultExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9425:18)
+      at TypeScriptParserMixin.parseExport (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13862:25)
+      at TypeScriptParserMixin.parseExport (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9408:20)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12912:27)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseModuleItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12778:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13350:36)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13343:10)
+      at TypeScriptParserMixin.parseProgram (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12656:10)
+      at TypeScriptParserMixin.parseTopLevel (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12646:25)
+      at TypeScriptParserMixin.parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:14522:25)
+      at TypeScriptParserMixin.parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10149:18)
+      at parse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:14556:38)
+      at parser (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transformation\normalize-file.js:51:37)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+core@7.29.7\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\gensync@1.0.0-beta.2\node_modules\gensync\index.js:261:32)
+[2m4:54:18 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/tasks/TasksPage.tsx[22m
+[2m4:54:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/tasks/TasksPage.tsx[22m
+[2m4:54:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/tasks/TasksPage.tsx[22m
+[2m4:54:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/tasks/TasksPage.tsx[22m
+[2m4:54:33 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/dashboard/DashboardPage.tsx[22m
+[2m4:54:36 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/dashboard/DashboardPage.tsx[22m
+[2m4:54:37 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/dashboard/DashboardPage.tsx[22m
+[2m4:54:45 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/dashboard/DashboardPage.tsx[22m
+[2m4:54:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/dashboard/DashboardPage.tsx[22m
+[2m5:03:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m5:03:06 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m5:03:11 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m5:03:14 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m5:05:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m5:06:02 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m5:06:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m5:13:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/dashboard/DashboardPage.tsx, /src/features/roles/RolesPage.tsx, /src/features/patients/PatientsPage.tsx, /src/features/users/UsersPage.tsx, /src/features/transfers/PatientTransfersPanel.tsx, /src/features/medications/MedicationsPage.tsx, /src/features/board/CycleTable.tsx, /src/components/Pagination.tsx, /src/features/tasks/TasksPage.tsx, /src/features/companies/CompaniesPage.tsx, /src/features/branches/BranchesPage.tsx[22m
+[2m5:14:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/DataTable.tsx[22m
+[2m5:14:52 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m5:14:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m5:15:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m5:15:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:15:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:22:46 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/DataTable.tsx[22m
+[2m5:23:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/DataTable.tsx[22m
+[2m5:23:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/DataTable.tsx[22m
+[2m5:23:12 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/DataTable.tsx[22m
+[2m5:23:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/layout/AppLayout.tsx[22m
+[2m5:23:26 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/layout/AppLayout.tsx[22m
+[2m5:23:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m5:23:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m5:24:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m5:24:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m5:24:59 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m5:24:59 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\board\BoardPage.tsx: Unterminated JSX contents. (580:10)
+
+[0m [90m 578 |[31m         [33m/[31m[33m>[31m
+ [90m 579 |[31m       )}
+[31m[1m>[22m[31m[90m 580 |[31m     [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m     |[31m           [31m[1m^[22m[31m
+ [90m 581 |[31m   )
+ [90m 582 |[31m }
+ [90m 583 |[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/board/BoardPage.tsx[39m:580:10
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptParserMixin.jsxReadToken (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4466:20)
+      at TypeScriptParserMixin.getTokenFromCode (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4792:12)
+      at TypeScriptParserMixin.getTokenFromCode (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10010:11)
+      at TypeScriptParserMixin.nextToken (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:5805:10)
+      at TypeScriptParserMixin.next (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:5715:10)
+      at TypeScriptParserMixin.eat (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:5719:12)
+      at TypeScriptParserMixin.expect (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6921:15)
+      at TypeScriptParserMixin.jsxParseClosingElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4698:10)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4713:37)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4716:32)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4767:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4777:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:39
+      at TypeScriptParserMixin.tryParse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6930:20)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12460:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12527:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11706:28)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11362:23)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4782:20)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9809:20)
+      at TypeScriptParserMixin.parseExpressionBase (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10810:23)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12455:16)
+      at TypeScriptParserMixin.parseExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:17)
+      at TypeScriptParserMixin.parseReturnStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13176:28)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12832:21)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseStatementListItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12781:17)
+[2m5:25:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m5:25:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/BoardPage.tsx[22m
+[2m5:25:34 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:25:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:25:46 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:25:53 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:25:58 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:26:14 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:26:14 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\patients\PatientsPage.tsx: Unterminated JSX contents. (717:10)
+
+[0m [90m 715 |[31m         [33m<[31m[33m/[31m[33mDialog[31m[33m>[31m
+ [90m 716 |[31m       )}
+[31m[1m>[22m[31m[90m 717 |[31m     [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m     |[31m           [31m[1m^[22m[31m
+ [90m 718 |[31m   )
+ [90m 719 |[31m }
+ [90m 720 |[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/patients/PatientsPage.tsx[39m:717:10
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptParserMixin.jsxReadToken (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4466:20)
+      at TypeScriptParserMixin.getTokenFromCode (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4792:12)
+      at TypeScriptParserMixin.getTokenFromCode (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10010:11)
+      at TypeScriptParserMixin.nextToken (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:5805:10)
+      at TypeScriptParserMixin.next (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:5715:10)
+      at TypeScriptParserMixin.eat (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:5719:12)
+      at TypeScriptParserMixin.expect (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6921:15)
+      at TypeScriptParserMixin.jsxParseClosingElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4698:10)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4713:37)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4716:32)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4767:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4777:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:39
+      at TypeScriptParserMixin.tryParse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6930:20)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12460:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12527:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11706:28)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11362:23)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4782:20)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9809:20)
+      at TypeScriptParserMixin.parseExpressionBase (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10810:23)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12455:16)
+      at TypeScriptParserMixin.parseExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:17)
+      at TypeScriptParserMixin.parseReturnStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13176:28)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12832:21)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseStatementListItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12781:17)
+[2m5:26:18 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:26:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m5:26:38 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m5:26:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m5:26:46 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m5:26:50 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m5:26:54 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m5:27:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m5:27:11 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/users/UsersPage.tsx[22m
+[2m5:27:14 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/users/UsersPage.tsx[22m
+[2m5:27:17 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/users/UsersPage.tsx[22m
+[2m5:27:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/users/UsersPage.tsx[22m
+[2m5:27:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/users/UsersPage.tsx[22m
+[2m5:27:27 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/users/UsersPage.tsx[22m
+[2m5:27:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/users/UsersPage.tsx[22m
+[2m5:27:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/roles/RolesPage.tsx[22m
+[2m5:27:45 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/roles/RolesPage.tsx[22m
+[2m5:27:50 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/roles/RolesPage.tsx[22m
+[2m5:27:54 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/roles/RolesPage.tsx[22m
+[2m5:30:31 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/roles/RolesPage.tsx[22m
+[2m5:30:38 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/branches/BranchesPage.tsx[22m
+[2m5:30:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/branches/BranchesPage.tsx[22m
+[2m5:30:44 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/branches/BranchesPage.tsx[22m
+[2m5:30:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/branches/BranchesPage.tsx[22m
+[2m5:30:58 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/branches/BranchesPage.tsx[22m
+[2m5:31:05 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medications/MedicationsPage.tsx[22m
+[2m5:31:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medications/MedicationsPage.tsx[22m
+[2m5:31:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medications/MedicationsPage.tsx[22m
+[2m5:31:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medications/MedicationsPage.tsx[22m
+[2m5:31:24 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medications/MedicationsPage.tsx[22m
+[2m5:31:33 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medications/MedicationsPage.tsx[22m
+[2m5:31:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m5:31:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m5:31:46 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m5:31:52 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m5:32:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m5:35:47 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m5:35:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m5:35:59 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m5:36:03 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m5:36:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m5:36:14 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTable.tsx[22m
+[2m5:36:22 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:36:26 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:36:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:36:36 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:36:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:36:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:36:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:36:57 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m

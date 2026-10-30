@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-29T00:00:00Z",
+  "title": "Design System: MAS CARE",
+  "extensions": {
+    "colorMeta": {
+      "tealmax": {
+        "role": "primary",
+        "displayName": "Deep Clinical Teal",
+        "canonical": "#0e7c86",
+        "tonalRamp": ["#04242a", "#063840", "#0a4f58", "#0e6670", "#0e7c86", "#3a9aa3", "#7bc0c7", "#c9e8ea"]
+      },
+      "petroleo": {
+        "role": "secondary",
+        "displayName": "Midnight Petrol",
+        "canonical": "#0a3d4a",
+        "tonalRamp": ["#020d11", "#041a20", "#07262f", "#0a3d4a", "#0e4f5e", "#1f6b7a", "#5a96a2", "#aed2d9"]
+      },
+      "cuidado": {
+        "role": "tertiary",
+        "displayName": "Reassurance Green",
+        "canonical": "#2db88a",
+        "tonalRamp": ["#0a2e21", "#124a37", "#1c6b50", "#249b74", "#2db88a", "#52c79d", "#86d9ba", "#b7ead6"]
+      },
+      "coral": {
+        "role": "accent",
+        "displayName": "Alert Coral",
+        "canonical": "#ff8a5b",
+        "tonalRamp": ["#3a1407", "#641f0b", "#8f2c0f", "#c94a1f", "#ff8a5b", "#ffab85", "#ffcab0", "#ffe9dc"]
+      },
+      "surface": { "role": "neutral", "displayName": "Clinic Surface", "canonical": "#f4f9fa" },
+      "modulos": { "role": "neutral", "displayName": "Module Mist", "canonical": "#def5e3" },
+      "border": { "role": "neutral", "displayName": "Hairline Border", "canonical": "#e3eef0" },
+      "ink": { "role": "neutral", "displayName": "Ink Teal", "canonical": "#173c44" },
+      "muted": { "role": "neutral", "displayName": "Muted Slate", "canonical": "#71878c" },
+      "expired-bg": { "role": "danger", "displayName": "Expired Wash", "canonical": "#fdecea" },
+      "expired-text": { "role": "danger", "displayName": "Expired Text", "canonical": "#8e1b1b" },
+      "expired-border": { "role": "danger", "displayName": "Expired Border", "canonical": "#f5b5b0" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (Manrope)", "purpose": "Dialog/section titles and the MAS CARE wordmark only." },
+      "body": { "displayName": "Body (DM Sans)", "purpose": "All working UI text: labels, tables, forms, chips." }
+    },
+    "shadows": [
+      { "name": "card-hint", "value": "0 2px 8px rgb(10 61 74 / 4%)", "purpose": "The only shadow allowed on a resting, non-overlay surface (selected dashboard metric)." },
+      { "name": "overlay-lg", "value": "0 10px 15px -3px rgb(0 0 0 / 0.1)", "purpose": "Dropdown and record-action menus." },
+      { "name": "overlay-2xl", "value": "0 25px 50px -12px rgb(0 0 0 / 0.25)", "purpose": "Dialogs." }
+    ],
+    "motion": [
+      { "name": "enter", "value": "300ms ease-out, opacity 0→1 + translateY(5px→0)", "purpose": "Dialogs and freshly mounted panels (.animate-in)." },
+      { "name": "skeleton-shimmer", "value": "1.7s infinite linear sweep", "purpose": "Loading skeleton placeholders." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The only button that should anchor a form or primary flow.",
+      "html": "<button class=\"ds-btn-primary\">Guardar</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #ffffff; background: var(--tealmax, #0e7c86); box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: none; transition: background-color 0.15s ease; } .ds-btn-primary:hover { background: var(--petroleo, #0a3d4a); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--tealmax, #0e7c86); } .ds-btn-primary:disabled { opacity: 0.5; pointer-events: none; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Default button for anything that isn't the primary action.",
+      "html": "<button class=\"ds-btn-secondary\">Cancelar</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--ink, #173c44); background: #ffffff; border: 1px solid var(--borde, #e3eef0); transition: background-color 0.15s ease; } .ds-btn-secondary:hover { background: var(--fondo, #f4f9fa); } .ds-btn-secondary:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--tealmax, #0e7c86); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Icon-only chrome: close buttons, menu toggles.",
+      "html": "<button class=\"ds-btn-ghost\" aria-label=\"Cerrar\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg></button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; width: 40px; padding: 0; border-radius: 8px; color: var(--muted, #71878c); background: transparent; border: none; transition: color 0.15s ease, background-color 0.15s ease; } .ds-btn-ghost:hover { color: var(--ink, #173c44); background: #ffffff; } .ds-btn-ghost:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--tealmax, #0e7c86); }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive actions only.",
+      "html": "<button class=\"ds-btn-danger\">Eliminar</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; transition: background-color 0.15s ease; } .ds-btn-danger:hover { background: #fee2e2; }"
+    },
+    {
+      "name": "Coral Button",
+      "kind": "button",
+      "refersTo": "button-coral",
+      "description": "A second, sparingly-used \"do this now\" affordance, distinct from primary teal.",
+      "html": "<button class=\"ds-btn-coral\">Enviar aviso</button>",
+      "css": ".ds-btn-coral { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #ffffff; background: var(--coral, #ff8a5b); box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: none; transition: background-color 0.15s ease; } .ds-btn-coral:hover { background: rgba(255, 138, 91, 0.9); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "Labeled input with teal focus ring and red error state.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-input-example\">Nombre</label><input class=\"ds-field-input\" id=\"ds-input-example\" type=\"text\" placeholder=\"Nombre completo\" /></div>",
+      "css": ".ds-field { display: grid; gap: 6px; } .ds-field-label { font-size: 14px; font-weight: 500; color: var(--ink, #173c44); } .ds-field-input { height: 40px; width: 100%; padding: 0 12px; border-radius: 8px; border: 1px solid var(--borde, #e3eef0); background: #ffffff; color: var(--ink, #173c44); font-size: 14px; outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease; } .ds-field-input:focus { border-color: var(--tealmax, #0e7c86); box-shadow: 0 0 0 2px rgba(14,124,134,0.15); } .ds-field-input[aria-invalid=\"true\"] { border-color: #f87171; }"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "status-chip",
+      "description": "The only place a derived treatment status may render a color; mirrors the API's derived_status.",
+      "html": "<span class=\"ds-chip\" data-status=\"vence-pronto\">Vence pronto</span>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; border-radius: 9999px; border: 1px solid transparent; padding: 4px 10px; font-size: 12px; font-weight: 600; } .ds-chip[data-status=\"al-dia\"] { background: #ecfdf5; color: #064e3b; border-color: #a7f3d0; } .ds-chip[data-status=\"proxima-reposicion\"] { background: #f0f9ff; color: #0c4a6e; border-color: #bae6fd; } .ds-chip[data-status=\"vence-pronto\"] { background: #fffbeb; color: #451a03; border-color: #fde68a; } .ds-chip[data-status=\"retiro-pendiente\"] { background: #f5f3ff; color: #4c1d95; border-color: #ddd6fe; } .ds-chip[data-status=\"vencido\"] { background: var(--expired-bg, #fdecea); color: var(--expired-text, #8e1b1b); border-color: var(--expired-border, #f5b5b0); } .ds-chip[data-status=\"receta-por-renovar\"] { background: #f1f5f9; color: #1e293b; border-color: #cbd5e1; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The default white, bordered, flat container used for every section and list panel.",
+      "html": "<section class=\"ds-card\"><h3 class=\"ds-card-title\">Pacientes activos</h3><p class=\"ds-card-body\">128 pacientes con cobertura vigente.</p></section>",
+      "css": ".ds-card { border-radius: 12px; border: 1px solid var(--borde, #e3eef0); background: #ffffff; padding: 20px; } .ds-card-title { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--petroleo, #0a3d4a); } .ds-card-body { margin: 0; font-size: 13px; color: var(--muted, #71878c); }"
+    },
+    {
+      "name": "Dialog",
+      "kind": "custom",
+      "refersTo": "dialog",
+      "description": "The one surface in the system allowed a heavy shadow; title uses the display font.",
+      "html": "<div class=\"ds-dialog\"><header class=\"ds-dialog-header\"><h2 class=\"ds-dialog-title\">Confirmar entrega</h2><button class=\"ds-dialog-close\" aria-label=\"Cerrar\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg></button></header><div class=\"ds-dialog-body\"><p>Contenido del diálogo.</p></div></div>",
+      "css": ".ds-dialog { width: 100%; max-width: 560px; display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; border: 1px solid var(--borde, #e3eef0); background: #ffffff; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); } .ds-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--borde, #e3eef0); padding: 20px 24px; } .ds-dialog-title { margin: 0; font-family: 'Manrope', sans-serif; font-size: 20px; font-weight: 700; color: var(--petroleo, #0a3d4a); } .ds-dialog-close { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: none; background: transparent; color: var(--muted, #71878c); cursor: pointer; } .ds-dialog-close:hover { color: var(--ink, #173c44); background: #ffffff; } .ds-dialog-body { padding: 20px 24px; overflow-y: auto; }"
+    },
+    {
+      "name": "Sidebar Navigation",
+      "kind": "nav",
+      "refersTo": "sidebar-nav-link",
+      "description": "Signature component: the dark petrol command sidebar with teal/white active states.",
+      "html": "<nav class=\"ds-sidebar\"><a class=\"ds-sidebar-link ds-sidebar-link--active\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\"/></svg>Tablero</a><a class=\"ds-sidebar-link\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 3v18h18\"/><path d=\"M18 17V9\"/><path d=\"M13 17V5\"/><path d=\"M8 17v-3\"/></svg>Reportes</a></nav>",
+      "css": ".ds-sidebar { display: flex; flex-direction: column; gap: 4px; width: 256px; background: var(--petroleo, #0a3d4a); padding: 16px; border-radius: 12px; } .ds-sidebar-link { display: flex; align-items: center; gap: 12px; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); text-decoration: none; transition: background-color 0.15s ease, color 0.15s ease; } .ds-sidebar-link:hover { background: rgba(255,255,255,0.08); color: #ffffff; } .ds-sidebar-link--active { background: rgba(255,255,255,0.12); color: #ffffff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Refill Command Center",
+    "overview": "MAS CARE is where a pharmacy watches every patient's medication coverage the way a control room watches a fleet: calm at rest, precise about what needs a human in the next hour. The system stays flat and quiet by default so that the one derived status that actually changes an action — vence pronto, vencido, próxima reposición — is the only thing that visually asserts itself. Nothing is decorative; color, radius, and weight are all spent on legibility and on surfacing what's due. The mood is calm & trustworthy: deep clinical teal and petrol for structure and action, a single reassurance green held in reserve, and coral/red used narrowly so an overdue patient actually reads as urgent rather than one alert among many. Density is built for staff moving through many patients per shift, but nothing is cramped: borders and whitespace do the organizing, not shadows.",
+    "keyCharacteristics": [
+      "Flat, bordered surfaces at rest; real shadows reserved for things that float above the page (dialogs, menus, toasts).",
+      "One accent (tealmax) carries every primary action and every focus ring — it is never used for decoration.",
+      "Status color is never invented in a component; it always traces back to the API's derived status map.",
+      "Display font (Manrope, bold) only on titles and the wordmark; DM Sans carries all working text."
+    ],
+    "rules": [
+      { "name": "The One Accent Rule", "body": "Tealmax is the only color allowed to mean \"act here.\" If a second color starts carrying primary actions, the hierarchy has broken.", "section": "colors" },
+      { "name": "The Status-Is-Not-Decoration Rule", "body": "A status color only ever comes from StatusChip's status map (mirroring the API's derived_status). No component recomputes or re-interprets status color independently.", "section": "colors" },
+      { "name": "The Display-Is-Rare Rule", "body": "Manrope appears only on titles and the wordmark. Everything a user scans quickly — tables, forms, chips — stays in DM Sans so the two fonts never compete for the same job.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "A surface earns a real shadow only by floating above the page (dialog, menu, toast). Everything else reads through its border and background, not its shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep tealmax exclusive to primary actions and focus rings (The One Accent Rule).",
+      "Do drive status color only through StatusChip's map, matching the API's derived_status (The Status-Is-Not-Decoration Rule).",
+      "Do use shadow-card (4% tint) at most — never a heavier shadow — on a surface that sits flat on the page.",
+      "Do reserve Manrope/font-display for titles and the wordmark; everything else is DM Sans."
+    ],
+    "donts": [
+      "Don't add shadow-lg/shadow-xl/shadow-2xl to a resting card, section, or table — those are for dialogs, menus, and toasts only.",
+      "Don't introduce a second \"primary\" accent color; coral and danger-red are narrow exceptions, not alternatives to tealmax.",
+      "Don't recompute a patient's status color client-side; it must come from the API's derived status, surfaced only through StatusChip.",
+      "Don't use cuidado (reassurance green) for a button or large fill — it is reserved for the wordmark icon and the sidebar scrollbar tint."
+    ]
+  }
+}
