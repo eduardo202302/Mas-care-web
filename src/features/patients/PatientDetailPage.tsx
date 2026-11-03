@@ -42,6 +42,7 @@ import { ConversationDialog } from '@/features/messaging/ConversationDialog'
 import { PatientAutomationPanel } from '@/features/messaging/PauseAutomation'
 import { EmptyState } from '@/components/EmptyState'
 import { Dialog } from '@/components/ui/Dialog'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { FormActions } from '@/components/ui/FormActions'
@@ -88,13 +89,12 @@ import { incidentTypeLabels, type Incident } from '@/lib/incidents'
 import { TransferDialog } from '@/features/transfers/TransferDialog'
 import { PatientTransfersPanel } from '@/features/transfers/PatientTransfersPanel'
 import { PatientDoctorsPanel } from './PatientDoctorsPanel'
+import { PatientCaregiversPanel } from './PatientCaregiversPanel'
 import { PatientConditionsPanel } from './PatientConditionsPanel'
 import { PatientInfoPackPanel } from './PatientInfoPackPanel'
 
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
-type CaregiverList =
-  paths['/api/v1/patients/{id}/caregivers']['get']['responses'][200]['content']['application/json']
 type ActivityList =
   paths['/api/v1/patients/{id}/activities']['get']['responses'][200]['content']['application/json']
 type TreatmentListResponse =
@@ -115,6 +115,14 @@ const activityDialogTitle = {
   email: 'Registrar correo',
   meeting: 'Registrar reunión',
 } as const
+
+function addressText(
+  details: components['schemas']['Patient']['addressDetails'],
+  key: string,
+): string {
+  const value = (details as Record<string, unknown> | null)?.[key]
+  return typeof value === 'string' ? value : ''
+}
 
 function Panel({
   title,
@@ -191,6 +199,7 @@ export default function PatientDetailPage() {
   >('history')
   const [transferOpen, setTransferOpen] = useState(false)
   const [doctorAddOpen, setDoctorAddOpen] = useState(false)
+  const [caregiverAddOpen, setCaregiverAddOpen] = useState(false)
   const [conditionAddOpen, setConditionAddOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [activityType, setActivityType] = useState<
@@ -222,6 +231,7 @@ export default function PatientDetailPage() {
   )
   const [taskOpen, setTaskOpen] = useState(false)
   const [incidentOpen, setIncidentOpen] = useState(false)
+  const [confirmArchive, setConfirmArchive] = useState(false)
 
   const patient = useQuery({
     queryKey: ['patients', id],
@@ -234,14 +244,6 @@ export default function PatientDetailPage() {
   const branches = useQuery({
     queryKey: ['branches'],
     queryFn: () => api<BranchList>('/api/v1/branches'),
-  })
-  const caregivers = useQuery({
-    queryKey: ['patients', id, 'caregivers'],
-    queryFn: () =>
-      api<CaregiverList>(
-        `/api/v1/patients/${encodeURIComponent(id)}/caregivers`,
-      ),
-    enabled: Boolean(id),
   })
   const activities = useInfiniteQuery({
     queryKey: ['patients', id, 'activities'],
@@ -291,14 +293,22 @@ export default function PatientDetailPage() {
   })
   const update = useMutation({
     mutationFn: (values: PatientFormValues) => {
+      const { address, state, city, sector, latitude, longitude, ...rest } =
+        values
       const body: components['schemas']['PatientPatch'] = {
-        ...values,
+        ...rest,
+        addressDetails: {
+          ...(address ? { address } : {}),
+          ...(state ? { region: state } : {}),
+          ...(city ? { city } : {}),
+          ...(sector ? { sector } : {}),
+          ...(latitude ? { latitude: Number(latitude) } : {}),
+          ...(longitude ? { longitude: Number(longitude) } : {}),
+        },
         documentId: values.documentId || null,
         birthDate: values.birthDate || null,
         phone: values.phone || null,
         email: values.email || null,
-        address: values.address || null,
-        zone: values.zone || null,
         careNotes: values.careNotes || null,
         responsibleUserId: values.responsibleUserId || null,
       }
@@ -348,6 +358,18 @@ export default function PatientDetailPage() {
     mutationFn: () =>
       api<components['schemas']['Patient']>(
         `/api/v1/patients/${encodeURIComponent(id)}/archive`,
+        { method: 'POST' },
+      ),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['patients'] })
+      await queryClient.invalidateQueries({ queryKey: ['patients', id] })
+      setConfirmArchive(false)
+    },
+  })
+  const restore = useMutation({
+    mutationFn: () =>
+      api<components['schemas']['Patient']>(
+        `/api/v1/patients/${encodeURIComponent(id)}/restore`,
         { method: 'POST' },
       ),
     onSuccess: async () => {
@@ -539,7 +561,19 @@ export default function PatientDetailPage() {
       ? [{ label: 'Trasladar', onClick: () => setTransferOpen(true) }]
       : []),
     ...(canArchive && !record.archivedAt
-      ? [{ label: 'Archivar', danger: true, onClick: () => archive.mutate() }]
+      ? [
+          {
+            label: 'Archivar',
+            danger: true,
+            onClick: () => {
+              archive.reset()
+              setConfirmArchive(true)
+            },
+          },
+        ]
+      : []),
+    ...(canArchive && record.archivedAt
+      ? [{ label: 'Restaurar', onClick: () => restore.mutate() }]
       : []),
     ...(canViewMessages
       ? [
@@ -575,7 +609,10 @@ export default function PatientDetailPage() {
           value: record.phone ? formatPhone(record.phone) : undefined,
         },
         { label: 'Correo', value: record.email },
-        { label: 'Dirección', value: record.address },
+        {
+          label: 'Dirección',
+          value: addressText(record.addressDetails, 'address') || undefined,
+        },
         {
           label: 'Consentimiento de recordatorios',
           value: record.reminderConsent
@@ -612,7 +649,8 @@ export default function PatientDetailPage() {
   ]
 
   return (
-    <div className="animate-in">
+    <div className="animate-in flex h-full min-h-0 flex-col">
+      <div className="shrink-0">
       <Link
         to="/pacientes"
         className="text-muted hover:text-petroleo mb-2 inline-flex items-center gap-2 text-sm"
@@ -699,6 +737,8 @@ export default function PatientDetailPage() {
           Este paciente está archivado.
         </p>
       )}
+      </div>
+      <div className="app-scroll min-h-0 flex-1 overflow-y-auto">
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.35fr)_minmax(230px,0.8fr)]">
         <div className="grid gap-4">
           <Panel title="Datos del paciente">
@@ -724,10 +764,16 @@ export default function PatientDetailPage() {
                 </dd>
               </div>
               <div>
-                <dt className="text-muted">Dirección y zona</dt>
+                <dt className="text-muted">Dirección</dt>
                 <dd className="mt-0.5">
-                  {[record.address, record.zone].filter(Boolean).join(' · ') ||
-                    'Sin registrar'}
+                  {[
+                    addressText(record.addressDetails, 'address'),
+                    addressText(record.addressDetails, 'city'),
+                    addressText(record.addressDetails, 'region'),
+                    addressText(record.addressDetails, 'sector'),
+                  ]
+                    .filter(Boolean)
+                    .join(' · ') || 'Sin registrar'}
                 </dd>
               </div>
               <div>
@@ -1036,43 +1082,29 @@ export default function PatientDetailPage() {
               onCloseAdd={() => setDoctorAddOpen(false)}
             />
           </Panel>
-          <Panel title="Cuidadores">
-            {caregivers.isLoading ? (
-              <div
-                role="status"
-                aria-busy="true"
-                aria-label="Cargando cuidadores…"
-                className="grid gap-3"
-              >
-                {Array.from({ length: 2 }).map((_, index) => (
-                  <div key={index} className="grid gap-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-40" />
-                  </div>
-                ))}
-              </div>
-            ) : caregivers.data?.data.length ? (
-              <ul className="grid gap-3">
-                {caregivers.data.data.map((caregiver) => (
-                  <li
-                    key={caregiver.id}
-                    className="border-border border-b pb-3 last:border-0 last:pb-0"
-                  >
-                    <p className="text-sm font-semibold">
-                      {caregiver.fullName}
-                      {caregiver.isPrimary ? ' · Principal' : ''}
-                    </p>
-                    <p className="text-muted mt-0.5 text-xs">
-                      {caregiver.relationship} · {caregiver.phone}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted text-sm">
-                No hay cuidadores registrados.
-              </p>
-            )}
+          <Panel
+            title="Cuidadores"
+            inlineAction
+            action={
+              canUpdate && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="size-6 px-0"
+                  aria-expanded={caregiverAddOpen}
+                  aria-label="Agregar cuidador"
+                  onClick={() => setCaregiverAddOpen(true)}
+                >
+                  <Plus className="size-4" />
+                </Button>
+              )
+            }
+          >
+            <PatientCaregiversPanel
+              patientId={record.id}
+              addOpen={caregiverAddOpen}
+              onCloseAdd={() => setCaregiverAddOpen(false)}
+            />
           </Panel>
           <Panel
             title="Condiciones de salud"
@@ -1227,6 +1259,7 @@ export default function PatientDetailPage() {
             )}
           </Panel>
         </div>
+      </div>
       </div>
       {conversationOpen && (
         <ConversationDialog
@@ -1531,6 +1564,26 @@ export default function PatientDetailPage() {
               queryKey: ['patients', id, 'incidents'],
             })
           }
+        />
+      )}
+      {confirmArchive && (
+        <ConfirmDialog
+          title="Confirmar"
+          description={
+            <>
+              ¿Está seguro que desea archivar a{' '}
+              <strong>{record.fullName}</strong>?
+              {archive.isError && (
+                <p role="alert" className="mt-3 text-sm text-red-800">
+                  {archive.error.message}
+                </p>
+              )}
+            </>
+          }
+          confirmLabel="Archivar"
+          confirming={archive.isPending}
+          onConfirm={() => archive.mutate()}
+          onClose={() => setConfirmArchive(false)}
         />
       )}
     </div>

@@ -199,7 +199,7 @@ export function NewCycleDialog({
 
   return (
     <Dialog
-      title="Nuevo Ciclo"
+      title="Nuevo Tratamiento"
       description="El ciclo se creará a partir de un tratamiento existente sin un ciclo abierto."
       icon={<Plus className="size-6" />}
       onClose={onClose}
@@ -377,12 +377,12 @@ export function NewCycleDialog({
 
         <ModalSection
           icon={<Package className="size-4" />}
-          title="Producto Y Compañía"
+          title="Producto Y Sucursal"
           tone="sky"
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Compañía</span>
+              <span className="text-ink text-sm font-medium">Sucursal</span>
               <select
                 value={branchId}
                 onChange={(event) => setBranchOverride(event.target.value)}

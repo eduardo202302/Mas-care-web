@@ -291,6 +291,498 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/companies/{id}/activities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List CRM activities logged for a company */
+        get: {
+            parameters: {
+                query?: {
+                    type?: "note" | "email" | "call" | "meeting" | "task";
+                    limit?: number;
+                    page?: number;
+                    rows?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Company activities */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["CompanyActivity"][];
+                            total: number;
+                            page: number;
+                            rows: number;
+                        };
+                    };
+                };
+                /** @description Platform owner required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Company not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Log a CRM activity for a company */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CompanyActivityCreate"];
+                };
+            };
+            responses: {
+                /** @description Activity created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CompanyActivity"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Platform owner required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Company not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/companies/{id}/activities/{activityId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a company CRM activity */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    activityId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CompanyActivityPatch"];
+                };
+            };
+            responses: {
+                /** @description Activity updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CompanyActivity"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Platform owner required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Activity not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/companies/{id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List users belonging to a company (for deal owner selection) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Company members */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["CompanyMember"][];
+                        };
+                    };
+                };
+                /** @description Platform owner required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Company not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/companies/{id}/medications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List medications belonging to a company (for deal line items) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Company medications */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Medication"][];
+                        };
+                    };
+                };
+                /** @description Platform owner required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Company not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/companies/{id}/deals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List deals (ofertas) for a company */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    rows?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Company deals */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Deal"][];
+                            total: number;
+                            page: number;
+                            rows: number;
+                        };
+                    };
+                };
+                /** @description Platform owner required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Company not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create a deal (oferta) for a company */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DealCreate"];
+                };
+            };
+            responses: {
+                /** @description Deal created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Deal"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Platform owner required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Company not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/companies/{id}/deals/{dealId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a deal (oferta) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    dealId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DealPatch"];
+                };
+            };
+            responses: {
+                /** @description Deal updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Deal"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Platform owner required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Deal not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/v1/users": {
         parameters: {
             query?: never;
@@ -580,12 +1072,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List active branches */
+        /** List branches */
         get: {
             parameters: {
                 query?: {
                     page?: number;
                     rows?: number;
+                    archived?: "true" | "false";
                 };
                 header?: never;
                 path?: never;
@@ -824,6 +1317,62 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/branches/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore an archived branch */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Branch restored */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Branch"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Branch not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/patients": {
         parameters: {
             query?: never;
@@ -868,7 +1417,9 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            data: components["schemas"]["Patient"][];
+                            data: (components["schemas"]["Patient"] & {
+                                primaryConditionName: string | null;
+                            })[];
                             nextCursor: string | null;
                             total: number;
                             page: number;
@@ -1897,6 +2448,53 @@ export interface paths {
             requestBody?: never;
             responses: {
                 /** @description Medication archived */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Medication"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medications/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore an archived medication */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Medication restored */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -8302,6 +8900,12 @@ export interface paths {
                                     lastName: string;
                                     phone: string | null;
                                     licenseNumber: string | null;
+                                    specialties: {
+                                        specialty: {
+                                            id: string;
+                                            name: string;
+                                        };
+                                    }[];
                                 };
                             })[];
                         };
@@ -8604,6 +9208,7 @@ export interface components {
             organization: {
                 id: string;
                 name: string;
+                googleMapsApiKey: string | null;
             };
             role: string;
             roleId: string | null;
@@ -8631,6 +9236,7 @@ export interface components {
         };
         Company: {
             id: string;
+            numericId: string;
             name: string;
             /** Format: email */
             email: string;
@@ -8651,16 +9257,28 @@ export interface components {
             city: string | null;
             state: string | null;
             postalCode: string | null;
+            address: string | null;
+            sector: string | null;
+            latitude: string | null;
+            longitude: string | null;
             employeeCount: number | null;
             annualRevenue: number | null;
             timezone: string | null;
             description: string | null;
             linkedinUrl: string | null;
+            googleMapsApiKey: string | null;
             createdAt: string;
             updatedAt: string;
         };
+        CompanyContact: {
+            id: string;
+            fullName: string;
+            email: string | null;
+            phone: string | null;
+        };
         CompanyDetail: {
             id: string;
+            numericId: string;
             name: string;
             /** Format: email */
             email: string;
@@ -8681,15 +9299,138 @@ export interface components {
             city: string | null;
             state: string | null;
             postalCode: string | null;
+            address: string | null;
+            sector: string | null;
+            latitude: string | null;
+            longitude: string | null;
             employeeCount: number | null;
             annualRevenue: number | null;
             timezone: string | null;
             description: string | null;
             linkedinUrl: string | null;
+            googleMapsApiKey: string | null;
             createdAt: string;
             updatedAt: string;
             memberCount: number;
             branchCount: number;
+            patientCount: number;
+            openCycleCount: number;
+            openIncidentCount: number;
+            contacts: components["schemas"]["CompanyContact"][];
+        };
+        CompanyActivity: {
+            id: string;
+            numericId: string;
+            /** @enum {string} */
+            type: "note" | "email" | "call" | "meeting" | "task";
+            title: string | null;
+            body: string | null;
+            contactName: string | null;
+            dueAt: string | null;
+            completedAt: string | null;
+            occurredAt: string;
+            createdAt: string;
+            updatedAt: string;
+            authorId: string;
+            authorName: string;
+        };
+        CompanyActivityCreate: {
+            /** @enum {string} */
+            type: "note" | "email" | "call" | "meeting" | "task";
+            title?: string | null;
+            body?: string | null;
+            contactName?: string | null;
+            dueAt?: string | null;
+            occurredAt?: string | null;
+        };
+        CompanyActivityPatch: {
+            title?: string | null;
+            body?: string | null;
+            contactName?: string | null;
+            dueAt?: string | null;
+            completed?: boolean;
+        };
+        CompanyActivityListQuery: {
+            /** @enum {string} */
+            type?: "note" | "email" | "call" | "meeting" | "task";
+            limit?: number;
+            /** @default 1 */
+            page: number;
+            rows?: number;
+        };
+        DealLineItem: {
+            id: string;
+            name: string;
+            quantity: number;
+            unitPrice: number;
+        };
+        Deal: {
+            id: string;
+            numericId: string;
+            name: string;
+            /** @enum {string} */
+            pipeline: "sales";
+            /** @enum {string} */
+            stage: "appointment_scheduled" | "qualified_to_buy" | "presentation_scheduled" | "decision_maker_bought_in" | "contract_sent" | "closed_won" | "closed_lost";
+            /** @enum {string} */
+            dealType: "new_business" | "existing_business";
+            /** @enum {string} */
+            priority: "low" | "medium" | "high";
+            amount: number | null;
+            closeDate: string | null;
+            contactId: string | null;
+            contactName: string | null;
+            ownerUserId: string | null;
+            ownerName: string | null;
+            lineItems: components["schemas"]["DealLineItem"][];
+            createdAt: string;
+            updatedAt: string;
+        };
+        CompanyMember: {
+            id: string;
+            name: string;
+            email: string;
+        };
+        DealCreate: {
+            name: string;
+            /** @enum {string} */
+            pipeline?: "sales";
+            /** @enum {string} */
+            stage?: "appointment_scheduled" | "qualified_to_buy" | "presentation_scheduled" | "decision_maker_bought_in" | "contract_sent" | "closed_won" | "closed_lost";
+            /** @enum {string} */
+            dealType?: "new_business" | "existing_business";
+            /** @enum {string} */
+            priority?: "low" | "medium" | "high";
+            amount?: number | null;
+            closeDate?: string | null;
+            ownerUserId?: string | null;
+            contactId?: string | null;
+            lineItems?: {
+                name: string;
+                /** @default 1 */
+                quantity: number;
+                unitPrice: number | null;
+            }[];
+        };
+        DealPatch: {
+            name?: string;
+            /** @enum {string} */
+            pipeline?: "sales";
+            /** @enum {string} */
+            stage?: "appointment_scheduled" | "qualified_to_buy" | "presentation_scheduled" | "decision_maker_bought_in" | "contract_sent" | "closed_won" | "closed_lost";
+            /** @enum {string} */
+            dealType?: "new_business" | "existing_business";
+            /** @enum {string} */
+            priority?: "low" | "medium" | "high";
+            amount?: number | null;
+            closeDate?: string | null;
+            ownerUserId?: string | null;
+            contactId?: string | null;
+        };
+        DealListQuery: {
+            /** @default 1 */
+            page: number;
+            rows?: number;
         };
         CompanyCreate: {
             name: string;
@@ -8710,11 +9451,16 @@ export interface components {
             city?: string | "";
             state?: string | "";
             postalCode?: string | "";
+            address?: string | "";
+            sector?: string | "";
+            latitude?: string | "";
+            longitude?: string | "";
             employeeCount?: number | null;
             annualRevenue?: number | null;
             timezone?: string | "";
             description?: string | "";
             linkedinUrl?: string | "";
+            googleMapsApiKey?: string | "";
         };
         CompanyPatch: {
             name?: string;
@@ -8735,11 +9481,16 @@ export interface components {
             city?: string | "";
             state?: string | "";
             postalCode?: string | "";
+            address?: string | "";
+            sector?: string | "";
+            latitude?: string | "";
+            longitude?: string | "";
             employeeCount?: number | null;
             annualRevenue?: number | null;
             timezone?: string | "";
             description?: string | "";
             linkedinUrl?: string | "";
+            googleMapsApiKey?: string | "";
         };
         CompanyListQuery: {
             q?: string;
@@ -8750,11 +9501,18 @@ export interface components {
         };
         Branch: {
             id: string;
+            numericId: string;
             organizationId: string;
             name: string;
             labelColor: string;
             phone: string | null;
-            address: string | null;
+            addressDetails: {
+                [key: string]: unknown;
+            } | null;
+            description: string | null;
+            managerName: string | null;
+            managerPhone: string | null;
+            managerEmail: string | null;
             openingHours?: unknown;
             archivedAt: string | null;
             createdAt: string;
@@ -8764,7 +9522,19 @@ export interface components {
             /** @default #CDE9EC */
             labelColor: string;
             phone?: string;
-            address?: string;
+            addressDetails?: {
+                address?: string;
+                region?: string;
+                city?: string;
+                sector?: string;
+                postalCode?: string;
+                latitude?: number | null;
+                longitude?: number | null;
+            };
+            description?: string | "";
+            managerName?: string | "";
+            managerPhone?: string | "";
+            managerEmail?: string | "";
             openingHours?: {
                 [key: string]: string;
             };
@@ -8774,10 +9544,31 @@ export interface components {
             /** @default #CDE9EC */
             labelColor: string;
             phone?: string;
-            address?: string;
+            addressDetails?: {
+                address?: string;
+                region?: string;
+                city?: string;
+                sector?: string;
+                postalCode?: string;
+                latitude?: number | null;
+                longitude?: number | null;
+            };
+            description?: string | "";
+            managerName?: string | "";
+            managerPhone?: string | "";
+            managerEmail?: string | "";
             openingHours?: {
                 [key: string]: string;
             };
+        };
+        BranchListQuery: {
+            page?: number;
+            rows?: number;
+            /**
+             * @default false
+             * @enum {string}
+             */
+            archived: "true" | "false";
         };
         Patient: {
             id: string;
@@ -8790,8 +9581,9 @@ export interface components {
             phone: string | null;
             phoneHasWhatsapp: boolean;
             email: string | null;
-            address: string | null;
-            zone: string | null;
+            addressDetails: {
+                [key: string]: unknown;
+            } | null;
             /** @enum {string} */
             preferredChannel: "whatsapp" | "call" | "sms";
             reminderConsent: boolean;
@@ -8812,8 +9604,14 @@ export interface components {
             phoneHasWhatsapp?: boolean;
             /** Format: email */
             email?: string | null;
-            address?: string | null;
-            zone?: string | null;
+            addressDetails?: {
+                address?: string;
+                region?: string;
+                city?: string;
+                sector?: string;
+                latitude?: number | null;
+                longitude?: number | null;
+            } | null;
             /** @enum {string} */
             preferredChannel?: "whatsapp" | "call" | "sms" | "telegram";
             careNotes?: string | null;
@@ -8839,8 +9637,14 @@ export interface components {
             phoneHasWhatsapp?: boolean;
             /** Format: email */
             email?: string | null;
-            address?: string | null;
-            zone?: string | null;
+            addressDetails?: {
+                address?: string;
+                region?: string;
+                city?: string;
+                sector?: string;
+                latitude?: number | null;
+                longitude?: number | null;
+            } | null;
             /** @enum {string} */
             preferredChannel?: "whatsapp" | "call" | "sms" | "telegram";
             careNotes?: string | null;
@@ -8894,12 +9698,23 @@ export interface components {
             fullName: string;
             phone: string;
             relationship: string;
+            addressDetails: {
+                [key: string]: unknown;
+            } | null;
             isPrimary: boolean;
         };
         CaregiverInput: {
             fullName: string;
             phone: string;
             relationship: string;
+            addressDetails?: {
+                address?: string;
+                region?: string;
+                city?: string;
+                sector?: string;
+                latitude?: number | null;
+                longitude?: number | null;
+            } | null;
             /** @default false */
             isPrimary: boolean;
         };
@@ -8907,6 +9722,14 @@ export interface components {
             fullName?: string;
             phone?: string;
             relationship?: string;
+            addressDetails?: {
+                address?: string;
+                region?: string;
+                city?: string;
+                sector?: string;
+                latitude?: number | null;
+                longitude?: number | null;
+            } | null;
             /** @default false */
             isPrimary: boolean;
         };
@@ -8961,6 +9784,7 @@ export interface components {
         };
         Medication: {
             id: string;
+            numericId: string;
             organizationId: string;
             brandName: string | null;
             genericName: string | null;
@@ -9088,6 +9912,7 @@ export interface components {
         };
         OrganizationUser: {
             id: string;
+            numericId: string;
             name: string;
             username?: string | null;
             /** Format: email */
@@ -9277,6 +10102,9 @@ export interface components {
             title: string;
             description?: string | null;
             due_at?: string | null;
+            /** @enum {string} */
+            priority?: "low" | "medium" | "high" | "urgent";
+            reminder_minutes_before?: number | null;
             assigned_to?: string | null;
             branch_id?: string | null;
             patient_id?: string | null;
@@ -9290,6 +10118,9 @@ export interface components {
             title?: string;
             description?: string | null;
             due_at?: string | null;
+            /** @enum {string} */
+            priority?: "low" | "medium" | "high" | "urgent";
+            reminder_minutes_before?: number | null;
             assigned_to?: string | null;
             branch_id?: string | null;
             patient_id?: string | null;
@@ -9362,6 +10193,7 @@ export interface components {
         };
         MenuItem: {
             id: string;
+            numericId: string;
             key: string;
             label: string;
             path: string | null;
@@ -9409,6 +10241,7 @@ export interface components {
         };
         Role: {
             id: string;
+            numericId: string;
             key: string | null;
             name: string;
             description: string | null;
@@ -9466,10 +10299,6 @@ export interface components {
             rows?: number;
             /** @enum {string} */
             active?: "true" | "false";
-        };
-        OptionalPaging: {
-            page?: number;
-            rows?: number;
         };
         BoardCard: {
             cycle_id: string;
@@ -9774,6 +10603,7 @@ export interface components {
         };
         TransferHistoryRow: {
             id: string;
+            numeric_id: string;
             occurred_at: string;
             from_branch: {
                 id: string;
@@ -10047,6 +10877,7 @@ export interface components {
         };
         MedicalSpecialty: {
             id: string;
+            numericId: string;
             organizationId: string;
             name: string;
             description: string | null;
@@ -10074,6 +10905,7 @@ export interface components {
         };
         MedicalCenter: {
             id: string;
+            numericId: string;
             organizationId: string;
             name: string;
             /** @enum {string} */
@@ -10081,9 +10913,9 @@ export interface components {
             rnc: string | null;
             phone: string | null;
             email: string | null;
-            address: string | null;
-            province: string | null;
-            municipality: string | null;
+            addressDetails: {
+                [key: string]: unknown;
+            } | null;
             notes: string | null;
             isActive: boolean;
             createdAt: string;
@@ -10097,9 +10929,14 @@ export interface components {
             phone?: string | null;
             /** Format: email */
             email?: string | null;
-            address?: string | null;
-            province?: string | null;
-            municipality?: string | null;
+            addressDetails?: {
+                address?: string;
+                region?: string;
+                city?: string;
+                sector?: string;
+                latitude?: number | null;
+                longitude?: number | null;
+            } | null;
             notes?: string | null;
             isActive?: boolean;
         };
@@ -10111,9 +10948,14 @@ export interface components {
             phone?: string | null;
             /** Format: email */
             email?: string | null;
-            address?: string | null;
-            province?: string | null;
-            municipality?: string | null;
+            addressDetails?: {
+                address?: string;
+                region?: string;
+                city?: string;
+                sector?: string;
+                latitude?: number | null;
+                longitude?: number | null;
+            } | null;
             notes?: string | null;
             isActive?: boolean;
         };
@@ -10129,6 +10971,7 @@ export interface components {
         };
         HealthCondition: {
             id: string;
+            numericId: string;
             organizationId: string;
             name: string;
             description: string | null;
@@ -10156,6 +10999,7 @@ export interface components {
         };
         Doctor: {
             id: string;
+            numericId: string;
             organizationId: string;
             firstName: string;
             lastName: string;
@@ -10266,6 +11110,7 @@ export interface components {
             status: "active" | "controlled" | "resolved";
             diagnosedOn: string | null;
             notes: string | null;
+            isPrimary: boolean;
             isActive: boolean;
             recordedBy: string;
             createdAt: string;
@@ -10281,6 +11126,8 @@ export interface components {
             /** Format: date */
             diagnosedOn?: string | null;
             notes?: string | null;
+            /** @default false */
+            isPrimary: boolean;
         };
         PatientConditionPatch: {
             /** @enum {string} */
@@ -10288,6 +11135,7 @@ export interface components {
             /** Format: date */
             diagnosedOn?: string | null;
             notes?: string | null;
+            isPrimary?: boolean;
             isActive?: boolean;
         };
     };

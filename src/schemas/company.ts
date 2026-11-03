@@ -88,12 +88,14 @@ export const companyFormSchema = z.object({
   type: optionalTextField(60),
   city: optionalTextField(120),
   state: optionalTextField(120),
-  postalCode: optionalTextField(20),
+  address: optionalTextField(500),
+  sector: optionalTextField(120),
+  latitude: optionalTextField(20),
+  longitude: optionalTextField(20),
   employeeCount: optionalNumericField(10, /^\d+$/, 'Ingresa un número entero.'),
-  annualRevenue: optionalNumericField(18, /^\d+(\.\d{1,2})?$/, 'Ingresa un monto válido.'),
-  timezone: optionalTextField(60),
   description: optionalTextField(2_000),
   linkedinUrl: optionalTextField(300),
+  googleMapsApiKey: optionalTextField(500),
 })
 
 export type CompanyFormValues = z.infer<typeof companyFormSchema>

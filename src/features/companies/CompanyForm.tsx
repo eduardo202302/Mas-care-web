@@ -6,12 +6,14 @@ import {
   Briefcase,
   Building2,
   ChevronDown,
+  KeyRound,
   Link as LinkIcon,
   MapPin,
   RefreshCw,
   Trash2,
   Upload,
 } from 'lucide-react'
+import { AddressMapPicker } from '@/components/AddressMapPicker'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
@@ -82,6 +84,7 @@ export function CompanyForm({
     register,
     handleSubmit,
     setValue,
+    getValues,
     setError,
     watch,
     formState: { errors },
@@ -100,12 +103,14 @@ export function CompanyForm({
       type: '',
       city: '',
       state: '',
-      postalCode: '',
+      address: '',
+      sector: '',
+      latitude: '',
+      longitude: '',
       employeeCount: '',
-      annualRevenue: '',
-      timezone: '',
       description: '',
       linkedinUrl: '',
+      googleMapsApiKey: '',
     },
   })
 
@@ -440,13 +445,6 @@ export function CompanyForm({
             {...register('employeeCount')}
             error={errors.employeeCount?.message}
           />
-          <TextField
-            label="Ingresos anuales"
-            type="number"
-            min={0}
-            {...register('annualRevenue')}
-            error={errors.annualRevenue?.message}
-          />
         </div>
         <TextField
           label="Descripción"
@@ -465,30 +463,81 @@ export function CompanyForm({
         icon={<MapPin className="size-4" />}
         title="Ubicación"
         tone="amber"
+        action={
+          <AddressMapPicker
+            getValues={() => ({
+              address: getValues('address') ?? '',
+              city: getValues('city') ?? '',
+              state: getValues('state') ?? '',
+              sector: getValues('sector') ?? '',
+              latitude: getValues('latitude') ?? '',
+              longitude: getValues('longitude') ?? '',
+            })}
+            onApply={(next) => {
+              setValue('address', next.address, { shouldDirty: true })
+              setValue('city', next.city, { shouldDirty: true })
+              setValue('state', next.state, { shouldDirty: true })
+              setValue('sector', next.sector, { shouldDirty: true })
+              setValue('latitude', next.latitude, { shouldDirty: true })
+              setValue('longitude', next.longitude, { shouldDirty: true })
+            }}
+          />
+        }
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <TextField
+              label="Dirección"
+              placeholder="G5CJ+2X Santo Domingo Este"
+              {...register('address')}
+              error={errors.address?.message}
+            />
+          </div>
+          <TextField
+            label="Región"
+            {...register('state')}
+            error={errors.state?.message}
+          />
           <TextField
             label="Ciudad"
             {...register('city')}
             error={errors.city?.message}
           />
           <TextField
-            label="Estado/Región"
-            {...register('state')}
-            error={errors.state?.message}
+            label="Sector"
+            {...register('sector')}
+            error={errors.sector?.message}
           />
           <TextField
-            label="Código Postal"
-            {...register('postalCode')}
-            error={errors.postalCode?.message}
+            label="Latitud"
+            placeholder="14.6349"
+            {...register('latitude')}
+            error={errors.latitude?.message}
           />
           <TextField
-            label="Huso horario"
-            placeholder="America/Mexico_City"
-            {...register('timezone')}
-            error={errors.timezone?.message}
+            label="Longitud"
+            placeholder="-90.5069"
+            {...register('longitude')}
+            error={errors.longitude?.message}
           />
         </div>
+      </ModalSection>
+
+      <ModalSection
+        icon={<KeyRound className="size-4" />}
+        title="Integraciones"
+        tone="sky"
+      >
+        <TextField
+          label="Google Maps API Key"
+          placeholder="AIza…"
+          {...register('googleMapsApiKey')}
+          error={errors.googleMapsApiKey?.message}
+        />
+        <p className="text-muted text-xs">
+          Se usa para el mapa de ubicación en Pacientes, Sucursales y Centros
+          Médicos de esta compañía.
+        </p>
       </ModalSection>
 
       <ModalSection

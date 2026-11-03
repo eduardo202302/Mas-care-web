@@ -272,7 +272,7 @@ export function TreatmentForm({
                     id="treatment-medication-options"
                     role="listbox"
                     aria-label="Medicamentos"
-                    className="border-border mt-1 max-h-56 overflow-y-auto rounded-lg border bg-white p-1 shadow-lg"
+                    className="app-scroll border-border mt-1 max-h-56 overflow-y-auto rounded-lg border bg-white p-1 shadow-lg"
                   >
                     {filteredMedications.length ? (
                       filteredMedications.map((medication) => (

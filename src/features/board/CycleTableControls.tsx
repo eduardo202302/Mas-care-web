@@ -49,7 +49,7 @@ function CheckList({
         {label}
         {value.length > 0 && ` (${value.length})`}
       </summary>
-      <div className="grid max-h-48 gap-1 overflow-y-auto px-3 pb-2">
+      <div className="app-scroll grid max-h-48 gap-1 overflow-y-auto px-3 pb-2">
         {options.map((option) => (
           <label key={option.id} className="flex items-center gap-2 text-sm">
             <input

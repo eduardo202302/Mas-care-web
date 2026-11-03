@@ -19,7 +19,7 @@ function mockReadOnlyApi() {
       name: 'Solo lectura',
       email: 'read@example.test',
     },
-    organization: { id: 'org-1', name: 'Farmacia Demo' },
+    organization: { id: 'org-1', name: 'Farmacia Demo', googleMapsApiKey: null },
     role: 'read_only',
     roleId: null,
     roleName: null,
@@ -30,11 +30,16 @@ function mockReadOnlyApi() {
   } satisfies components['schemas']['Me']
   const branch = {
     id: 'branch-1',
+    numericId: '1',
     organizationId: 'org-1',
     name: 'Centro',
     labelColor: '#0e7c86',
     phone: null,
-    address: null,
+    addressDetails: null,
+    description: null,
+    managerName: null,
+    managerPhone: null,
+    managerEmail: null,
     archivedAt: null,
     createdAt: '2026-10-23T00:00:00.000Z',
   } satisfies components['schemas']['Branch']
@@ -49,8 +54,7 @@ function mockReadOnlyApi() {
     phone: '70000000',
     phoneHasWhatsapp: false,
     email: null,
-    address: null,
-    zone: null,
+    addressDetails: null,
     preferredChannel: 'call',
     reminderConsent: false,
     reminderConsentAt: null,
@@ -62,6 +66,7 @@ function mockReadOnlyApi() {
   } satisfies components['schemas']['Patient']
   const medication = {
     id: 'medication-1',
+    numericId: '1',
     organizationId: 'org-1',
     brandName: 'Marca demo',
     genericName: 'Genérico demo',

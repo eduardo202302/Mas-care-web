@@ -54,7 +54,7 @@ export function PropertiesDialog({
         />
       </label>
 
-      <div className="grid max-h-[55vh] gap-3 overflow-y-auto pr-1">
+      <div className="app-scroll grid max-h-[55vh] gap-3 overflow-y-auto pr-1">
         {visible.length === 0 && (
           <p className="text-muted text-sm">
             Ninguna propiedad coincide con la búsqueda.

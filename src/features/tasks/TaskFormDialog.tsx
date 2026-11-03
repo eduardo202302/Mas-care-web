@@ -10,9 +10,13 @@ import { ModalSection } from '@/components/ui/ModalSection'
 import { api } from '@/lib/http'
 import type { paths } from '@/lib/api-types'
 import {
+  taskPriorityLabels,
+  taskPriorities,
+  taskReminderOptions,
   taskTypeDefaultTitle,
   taskTypeLabels,
   taskTypes,
+  type TaskPriority,
   type TaskType,
 } from '@/lib/operations'
 import { useUiStore } from '@/stores/ui-store'
@@ -50,10 +54,12 @@ export function TaskFormDialog({
 }) {
   const queryClient = useQueryClient()
   const activeBranchId = useUiStore((state) => state.activeBranchId)
-  const [type, setType] = useState<TaskType>('call')
-  const [title, setTitle] = useState(taskTypeDefaultTitle.call)
+  const [type, setType] = useState<TaskType | ''>('')
+  const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [dueAt, setDueAt] = useState('')
+  const [priority, setPriority] = useState<TaskPriority | ''>('')
+  const [reminderMinutesBefore, setReminderMinutesBefore] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
   const [patientId, setPatientId] = useState(presetPatientId ?? '')
   const [treatmentId, setTreatmentId] = useState(presetTreatmentId ?? '')
@@ -77,10 +83,14 @@ export function TaskFormDialog({
       api('/api/v1/tasks', {
         method: 'POST',
         body: JSON.stringify({
-          type,
+          type: type as TaskType,
           title: title.trim(),
           ...(description.trim() ? { description: description.trim() } : {}),
           ...(dueAt ? { due_at: new Date(dueAt).toISOString() } : {}),
+          priority: priority as TaskPriority,
+          ...(reminderMinutesBefore
+            ? { reminder_minutes_before: Number(reminderMinutesBefore) }
+            : {}),
           ...(assignedTo ? { assigned_to: assignedTo } : {}),
           ...(patientId ? { patient_id: patientId } : {}),
           ...(treatmentId ? { treatment_id: treatmentId } : {}),
@@ -104,7 +114,7 @@ export function TaskFormDialog({
   )
 
   function changeType(next: TaskType) {
-    const previousDefault = taskTypeDefaultTitle[type]
+    const previousDefault = type ? taskTypeDefaultTitle[type] : undefined
     setType(next)
     if (!title.trim() || title === previousDefault) {
       setTitle(taskTypeDefaultTitle[next])
@@ -128,7 +138,7 @@ export function TaskFormDialog({
         className="grid gap-5"
         onSubmit={(event) => {
           event.preventDefault()
-          if (!title.trim() || create.isPending) return
+          if (!title.trim() || !type || !priority || create.isPending) return
           create.mutate()
         }}
       >
@@ -137,6 +147,15 @@ export function TaskFormDialog({
           title="Detalles de la Tarea"
           tone="mint"
         >
+          <TextField
+            label="Título"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            maxLength={200}
+            required
+            placeholder="Llamar para confirmar retiro"
+          />
+
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium">Tipo</span>
@@ -144,7 +163,11 @@ export function TaskFormDialog({
                 value={type}
                 onChange={(event) => changeType(event.target.value as TaskType)}
                 className={control}
+                required
               >
+                <option value="" disabled>
+                  Selecciona un tipo
+                </option>
                 {taskTypes.map((value) => (
                   <option key={value} value={value}>
                     {taskTypeLabels[value]}
@@ -163,16 +186,43 @@ export function TaskFormDialog({
                 className={control}
               />
             </label>
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">Prioridad</span>
+              <select
+                value={priority}
+                onChange={(event) =>
+                  setPriority(event.target.value as TaskPriority)
+                }
+                className={control}
+                required
+              >
+                <option value="" disabled>
+                  Selecciona una prioridad
+                </option>
+                {taskPriorities.map((value) => (
+                  <option key={value} value={value}>
+                    {taskPriorityLabels[value]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">Recordatorio</span>
+              <select
+                value={reminderMinutesBefore}
+                onChange={(event) =>
+                  setReminderMinutesBefore(event.target.value)
+                }
+                className={control}
+              >
+                {taskReminderOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
-
-          <TextField
-            label="Título"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            maxLength={200}
-            required
-            placeholder="Llamar para confirmar retiro"
-          />
 
           <div className="grid gap-1.5">
             <label
@@ -289,7 +339,7 @@ export function TaskFormDialog({
           <Button
             type="submit"
             variant="primary"
-            disabled={!title.trim() || create.isPending}
+            disabled={!title.trim() || !type || !priority || create.isPending}
           >
             {create.isPending ? 'Creando…' : 'Crear Tarea'}
           </Button>

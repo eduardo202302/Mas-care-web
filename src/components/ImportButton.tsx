@@ -19,7 +19,9 @@ const FIELDS: Record<Entity, Field[]> = {
     { key: 'birthDate', label: 'Fecha de nacimiento' },
     { key: 'primaryBranchId', label: 'Sucursal' },
     { key: 'address', label: 'Dirección' },
-    { key: 'zone', label: 'Zona' },
+    { key: 'region', label: 'Región' },
+    { key: 'city', label: 'Ciudad' },
+    { key: 'sector', label: 'Sector' },
   ],
   treatments: [
     { key: 'patientDocumentId', label: 'Documento del paciente' },

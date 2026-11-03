@@ -1,21 +1,13 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  Building2,
-  ExternalLink,
-  KeyRound,
-  Link2,
-  Pencil,
-  Plus,
-  Search,
-} from 'lucide-react'
+import { Building2, Plus, Search } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/Button'
 import { FilterBarRow } from '@/components/ui/AdvancedFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
-import { ModalSection } from '@/components/ui/ModalSection'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
@@ -24,7 +16,7 @@ import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import type { CompanyFormValues } from '@/schemas/company'
 import type { components, paths } from '@/lib/api-types'
 import { CompanyForm } from './CompanyForm'
-import { CopyLinkButton, LinkField } from './CopyLink'
+import { CopyLinkButton } from './CopyLink'
 
 type Company = components['schemas']['Company']
 type CompanyList =
@@ -53,112 +45,13 @@ function statusBadge(status: Company['status']) {
   )
 }
 
-function CompanyDetail({
-  company,
-  onEdit,
-}: {
-  company: Company
-  onEdit: () => void
-}) {
-  return (
-    <div className="grid gap-4">
-      <div className="bg-surface flex items-center gap-4 rounded-xl p-4">
-        <span className="bg-tealmax/10 text-petroleo grid size-14 shrink-0 place-items-center overflow-hidden rounded-full">
-          {company.logo ? (
-            <img src={company.logo} alt="" className="size-full object-cover" />
-          ) : (
-            <Building2 className="size-6" />
-          )}
-        </span>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-petroleo truncate text-lg font-semibold">
-              {company.name}
-            </h3>
-            {statusBadge(company.status)}
-          </div>
-          <p className="text-muted truncate text-sm">{company.email}</p>
-        </div>
-      </div>
-
-      <ModalSection
-        icon={<KeyRound className="size-4" />}
-        title="Datos de la Compañía"
-        tone="mint"
-      >
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="grid gap-0.5">
-            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
-              PIN
-            </dt>
-            <dd className="text-petroleo font-mono text-lg font-semibold tracking-[0.3em]">
-              {company.pin}
-            </dd>
-          </div>
-          <div className="grid gap-0.5">
-            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
-              Dominio
-            </dt>
-            <dd className="truncate text-sm">
-              <a
-                href={company.domain}
-                target="_blank"
-                rel="noreferrer"
-                className="text-petroleo inline-flex items-center gap-1 hover:underline"
-              >
-                {company.domain}
-                <ExternalLink className="size-3.5" />
-              </a>
-            </dd>
-          </div>
-          <div className="grid gap-0.5">
-            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
-              Creada
-            </dt>
-            <dd className="text-ink text-sm">
-              {new Date(company.createdAt).toLocaleDateString('es')}
-            </dd>
-          </div>
-          <div className="grid gap-0.5">
-            <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
-              Actualizada
-            </dt>
-            <dd className="text-ink text-sm">
-              {new Date(company.updatedAt).toLocaleDateString('es')}
-            </dd>
-          </div>
-        </div>
-      </ModalSection>
-
-      <ModalSection
-        icon={<Link2 className="size-4" />}
-        title="Links de Acceso"
-        tone="sky"
-      >
-        <LinkField
-          label="Link para registrarse"
-          value={company.registrationLink}
-        />
-        <LinkField label="Link para iniciar sesión" value={company.loginLink} />
-      </ModalSection>
-
-      <div className="flex justify-end">
-        <Button type="button" onClick={onEdit}>
-          <Pencil className="size-4" />
-          Editar Compañía
-        </Button>
-      </div>
-    </div>
-  )
-}
-
 export default function CompaniesPage() {
   const canManage = useCan('companies:write')
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
-  const [selected, setSelected] = useState<Company | null>(null)
   const [editing, setEditing] = useState<Company | null>(null)
   const [formOpen, setFormOpen] = useState(false)
   const [sort, toggleSort] = useColumnSort()
@@ -183,7 +76,7 @@ export default function CompaniesPage() {
     onSuccess: async (company) => {
       await queryClient.invalidateQueries({ queryKey: ['companies'] })
       closeForm()
-      setSelected(company)
+      navigate(`/companias/${encodeURIComponent(company.id)}`)
     },
   })
 
@@ -193,10 +86,9 @@ export default function CompaniesPage() {
         method: 'PATCH',
         body: JSON.stringify(values),
       }),
-    onSuccess: async (company) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['companies'] })
       closeForm()
-      setSelected(company)
     },
   })
 
@@ -222,13 +114,11 @@ export default function CompaniesPage() {
   }
 
   function openCreate() {
-    setSelected(null)
     setEditing(null)
     setFormOpen(true)
   }
 
   function openEdit(company: Company) {
-    setSelected(null)
     setEditing(company)
     setFormOpen(true)
   }
@@ -246,18 +136,22 @@ export default function CompaniesPage() {
     sort,
     (company, index) =>
       index === 0
-        ? company.name
+        ? company.numericId
         : index === 1
           ? company.status
           : index === 2
-            ? company.pin
+            ? company.name
             : index === 3
               ? (company.phone ?? '')
               : index === 4
-                ? company.domain
+                ? (company.city ?? '')
                 : company.registrationLink,
   )
   const tableRows = sortedCompanies.map((company) => [
+    <span key="id" className="text-muted font-mono text-xs">
+      {company.numericId}
+    </span>,
+    statusBadge(company.status),
     <span
       key="company"
       className="text-petroleo inline-flex items-center gap-2 text-left font-semibold"
@@ -276,26 +170,12 @@ export default function CompaniesPage() {
         </span>
       </span>
     </span>,
-    statusBadge(company.status),
-    <span
-      key="pin"
-      className="text-petroleo font-mono text-sm font-semibold tracking-[0.25em]"
-    >
-      {company.pin}
-    </span>,
     <span key="phone" className="text-ink text-sm">
       {company.phone || <span className="text-muted">—</span>}
     </span>,
-    <a
-      key="domain"
-      href={company.domain}
-      target="_blank"
-      rel="noreferrer"
-      className="text-muted hover:text-petroleo inline-flex max-w-[220px] items-center gap-1 truncate hover:underline"
-    >
-      <span className="truncate">{company.domain}</span>
-      <ExternalLink className="size-3.5 shrink-0" />
-    </a>,
+    <span key="city" className="text-ink text-sm">
+      {company.city || <span className="text-muted">—</span>}
+    </span>,
     <div key="links" className="flex flex-wrap gap-1">
       <CopyLinkButton value={company.registrationLink} label="Registro" />
       <CopyLinkButton value={company.loginLink} label="Login" />
@@ -357,11 +237,11 @@ export default function CompaniesPage() {
         ) : (
           <DataTable
             columns={[
-              'Compañía',
+              'ID',
               'Estado',
-              'PIN',
+              'Compañía',
               'Teléfono',
-              'Dominio',
+              'Ciudad',
               'Links',
             ]}
             rows={tableRows}
@@ -371,7 +251,7 @@ export default function CompaniesPage() {
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {
               const company = sortedCompanies[index]
-              if (company) setSelected(company)
+              if (company) navigate(`/companias/${encodeURIComponent(company.id)}`)
             }}
             emptyTitle="Todavía no hay compañías"
             emptyDescription={
@@ -394,20 +274,6 @@ export default function CompaniesPage() {
           />
         )}
       </div>
-
-      {selected && (
-        <Dialog
-          title="Ficha de Compañía"
-          description="Información, PIN y enlaces de acceso."
-          icon={<Building2 className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          size="lg"
-          onClose={() => setSelected(null)}
-        >
-          <CompanyDetail company={selected} onEdit={() => openEdit(selected)} />
-        </Dialog>
-      )}
 
       {formOpen && (
         <Dialog
@@ -435,12 +301,14 @@ export default function CompaniesPage() {
                     type: editing.type ?? '',
                     city: editing.city ?? '',
                     state: editing.state ?? '',
-                    postalCode: editing.postalCode ?? '',
+                    address: editing.address ?? '',
+                    sector: editing.sector ?? '',
+                    latitude: editing.latitude ?? '',
+                    longitude: editing.longitude ?? '',
                     employeeCount: editing.employeeCount?.toString() ?? '',
-                    annualRevenue: editing.annualRevenue?.toString() ?? '',
-                    timezone: editing.timezone ?? '',
                     description: editing.description ?? '',
                     linkedinUrl: editing.linkedinUrl ?? '',
+                    googleMapsApiKey: editing.googleMapsApiKey ?? '',
                   }
                 : undefined
             }

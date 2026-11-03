@@ -19,6 +19,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
+import { formatPhone } from '@/lib/phone'
 import { useCan } from '@/lib/permissions'
 import { roleLabel } from '@/lib/role-labels'
 import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
@@ -96,7 +97,7 @@ function UserDetail({
               WhatsApp / Teléfono
             </dt>
             <dd className="text-ink text-sm font-medium">
-              {user.phone ?? '—'}
+              {user.phone ? formatPhone(user.phone) : '—'}
             </dd>
           </div>
           <div className="grid gap-0.5">
@@ -328,7 +329,7 @@ export default function UsersPage() {
     sort,
     (user, index) =>
       index === 0
-        ? user.id
+        ? user.numericId
         : index === 3
           ? user.name
           : index === 4
@@ -338,8 +339,8 @@ export default function UsersPage() {
               : user.email,
   )
   const tableRows = sortedUsers.map((user) => [
-    <span key="id" className="text-ink">
-      {user.id ?? '—'}
+    <span key="id" className="text-muted font-mono text-xs">
+      {user.numericId}
     </span>,
     <span key="branches" className="text-muted">
       {user.branches.length
@@ -365,7 +366,7 @@ export default function UsersPage() {
       {user.username ?? '—'}
     </span>,
     <span key="phone" className="text-ink">
-      {user.phone ?? '—'}
+      {user.phone ? formatPhone(user.phone) : '—'}
     </span>,
     <span key="email" className="text-muted">
       {user.email}

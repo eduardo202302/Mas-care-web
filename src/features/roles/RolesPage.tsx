@@ -101,18 +101,31 @@ export default function RolesPage() {
 
   const list = applyColumnSort(roles.data?.data ?? [], sort, (role, index) =>
     index === 0
-      ? role.name
+      ? role.numericId
       : index === 1
-        ? (role.description ?? '')
+        ? (role.isActive ? 1 : 0)
         : index === 2
-          ? role.memberCount
+          ? role.name
           : index === 3
-            ? role.items.filter((item) => item.canView).length
-            : role.isActive
-              ? 1
-              : 0,
+            ? (role.description ?? '')
+            : index === 4
+              ? role.memberCount
+              : role.items.filter((item) => item.canView).length,
   )
   const tableRows = list.map((role) => [
+    <span key="id" className="text-muted font-mono text-xs">
+      {role.numericId}
+    </span>,
+    <span
+      key="state"
+      className={
+        role.isActive
+          ? 'rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800'
+          : 'rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600'
+      }
+    >
+      {role.isActive ? 'Activo' : 'Inactivo'}
+    </span>,
     <span key="name" className="inline-flex items-center gap-2 font-semibold">
       {role.name}
       {role.isSystem && (
@@ -129,16 +142,6 @@ export default function RolesPage() {
     </span>,
     <span key="menus" className="text-muted">
       {role.items.filter((item) => item.canView).length}
-    </span>,
-    <span
-      key="state"
-      className={
-        role.isActive
-          ? 'rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800'
-          : 'rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600'
-      }
-    >
-      {role.isActive ? 'Activo' : 'Inactivo'}
     </span>,
   ])
   const actions = list.map((role) =>
@@ -192,19 +195,20 @@ export default function RolesPage() {
       )}
       <div className="min-h-0 flex-1">
         {roles.isPending ? (
-          <TableSkeleton columns={5} />
+          <TableSkeleton columns={6} />
         ) : (
           <DataTable
             columns={[
+              'ID',
+              'Estado',
               'Nombre',
               'Descripción',
               'Usuarios',
               'Pantallas',
-              'Estado',
             ]}
             rows={tableRows}
             actions={canManage ? actions : undefined}
-            sortableColumns={[0, 1, 2, 3, 4]}
+            sortableColumns={[0, 1, 2, 3, 4, 5]}
             sort={sort}
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {

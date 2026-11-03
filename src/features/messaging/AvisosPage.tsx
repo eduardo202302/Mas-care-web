@@ -338,7 +338,7 @@ function AssignDialog({
         />
         {(patients.data?.data ?? []).length > 0 && (
           <ul
-            className="border-border max-h-48 overflow-y-auto rounded-lg border p-1"
+            className="app-scroll border-border max-h-48 overflow-y-auto rounded-lg border p-1"
             role="listbox"
             aria-label="Resultados"
           >

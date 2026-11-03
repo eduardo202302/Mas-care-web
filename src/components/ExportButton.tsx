@@ -102,7 +102,7 @@ export function ExportButton({
                 <option value="xlsx">XLSX (Excel)</option>
               </select>
             </label>
-            <fieldset className="grid max-h-64 gap-1.5 overflow-y-auto">
+            <fieldset className="app-scroll grid max-h-64 gap-1.5 overflow-y-auto">
               <legend className="mb-1 text-sm font-medium">Columnas</legend>
               {columns.map((column) => (
                 <label key={column.key} className="flex items-center gap-2 text-sm">

@@ -30,6 +30,14 @@ function queryString(query: MedicalCenterQuery) {
   return params.toString()
 }
 
+function addressText(
+  details: components['schemas']['MedicalCenter']['addressDetails'],
+  key: string,
+): string {
+  const value = (details as Record<string, unknown> | null)?.[key]
+  return typeof value === 'string' ? value : ''
+}
+
 export default function MedicalCentersPage() {
   const canWrite = useCan('medical-centers:write')
   const queryClient = useQueryClient()
@@ -61,9 +69,14 @@ export default function MedicalCentersPage() {
         rnc: values.rnc || null,
         phone: values.phone || null,
         email: values.email || null,
-        address: values.address || null,
-        province: values.province || null,
-        municipality: values.municipality || null,
+        addressDetails: {
+          ...(values.address ? { address: values.address } : {}),
+          ...(values.state ? { region: values.state } : {}),
+          ...(values.city ? { city: values.city } : {}),
+          ...(values.sector ? { sector: values.sector } : {}),
+          ...(values.latitude ? { latitude: Number(values.latitude) } : {}),
+          ...(values.longitude ? { longitude: Number(values.longitude) } : {}),
+        },
         notes: values.notes || null,
       }
       if (editing) {
@@ -118,16 +131,27 @@ export default function MedicalCentersPage() {
     sort,
     (item, index) =>
       index === 0
-        ? item.name
+        ? item.numericId
         : index === 1
-          ? medicalCenterTypeLabels[item.centerType]
+          ? (item.isActive ? 1 : 0)
           : index === 2
-            ? [item.province, item.municipality].filter(Boolean).join(', ')
-            : item.isActive
-              ? 1
-              : 0,
+            ? item.name
+            : index === 3
+              ? medicalCenterTypeLabels[item.centerType]
+              : [
+                  addressText(item.addressDetails, 'city'),
+                  addressText(item.addressDetails, 'region'),
+                ]
+                  .filter(Boolean)
+                  .join(', '),
   )
   const tableRows = items.map((item) => [
+    <span key="id" className="text-muted font-mono text-xs">
+      {item.numericId}
+    </span>,
+    <span key="state" className="text-muted">
+      {item.isActive ? 'Activo' : 'Inactivo'}
+    </span>,
     <span key="name" className="text-petroleo font-semibold">
       {item.name}
     </span>,
@@ -135,10 +159,12 @@ export default function MedicalCentersPage() {
       {medicalCenterTypeLabels[item.centerType]}
     </span>,
     <span key="location" className="text-muted">
-      {[item.province, item.municipality].filter(Boolean).join(', ') || '—'}
-    </span>,
-    <span key="state" className="text-muted">
-      {item.isActive ? 'Activo' : 'Inactivo'}
+      {[
+        addressText(item.addressDetails, 'city'),
+        addressText(item.addressDetails, 'region'),
+      ]
+        .filter(Boolean)
+        .join(', ') || '—'}
     </span>,
   ])
   const rowActions = items.map((item) => (
@@ -208,13 +234,13 @@ export default function MedicalCentersPage() {
       )}
       <div className="min-h-0 flex-1">
         {centers.isFetching ? (
-          <TableSkeleton columns={4} />
+          <TableSkeleton columns={5} />
         ) : (
           <DataTable
-            columns={['Nombre', 'Tipo', 'Ubicación', 'Estado']}
+            columns={['ID', 'Estado', 'Nombre', 'Tipo', 'Ubicación']}
             rows={tableRows}
             actions={rowActions}
-            sortableColumns={[0, 1, 2, 3]}
+            sortableColumns={[0, 1, 2, 3, 4]}
             sort={sort}
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {

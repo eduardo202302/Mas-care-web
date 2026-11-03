@@ -130,6 +130,14 @@ export function medicationName(medication: Medication | undefined): string {
   )
 }
 
+/** Nombre asignado al tratamiento en "Nuevo Ciclo"; si no tiene, usa el medicamento. */
+export function treatmentLabel(
+  treatment: Treatment,
+  medication: Medication | undefined,
+): string {
+  return treatment.name || medicationName(medication)
+}
+
 export function daysRemainingLabel(days: number | null): string {
   if (days === null) return '—'
   if (days < 0)

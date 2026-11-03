@@ -220,9 +220,16 @@ export function DoctorForm({
           rnc: values.rnc || null,
           phone: values.phone || null,
           email: values.email || null,
-          address: values.address || null,
-          province: values.province || null,
-          municipality: values.municipality || null,
+          addressDetails: {
+            ...(values.address ? { address: values.address } : {}),
+            ...(values.state ? { region: values.state } : {}),
+            ...(values.city ? { city: values.city } : {}),
+            ...(values.sector ? { sector: values.sector } : {}),
+            ...(values.latitude ? { latitude: Number(values.latitude) } : {}),
+            ...(values.longitude
+              ? { longitude: Number(values.longitude) }
+              : {}),
+          },
           notes: values.notes || null,
         }),
       }),
@@ -378,7 +385,7 @@ export function DoctorForm({
               error={errors.lastName?.message}
             />
             <TextField
-              label="Número de colegiatura"
+              label="Número de colegiatura (Exequátur)"
               {...register('licenseNumber')}
               error={errors.licenseNumber?.message}
             />

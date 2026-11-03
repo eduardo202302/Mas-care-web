@@ -1,0 +1,285 @@
+
+> max-care-web@0.1.0 dev
+> vite --host 0.0.0.0
+
+[2m9:40:06 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because lockfile has changed
+
+  [32m[1mVITE[22m v7.3.7[39m  [2mready in [0m[1m514[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.0.59:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.30.240.1:[1m5173[22m/[39m
+[2m9:42:51 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/treatments/TreatmentList.tsx[22m
+[2m9:45:05 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyDetailPage.tsx[22m
+[2m9:45:46 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:51:50 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:51:53 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:51:56 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:52:00 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:52:03 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:52:09 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:52:14 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:52:20 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:52:25 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:54:49 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:54:55 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:55:52 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:55:55 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:56:03 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m9:59:53 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyForm.tsx[22m
+[2m9:59:57 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyForm.tsx[22m
+[2m10:00:07 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyDetailPage.tsx[22m
+[2m10:00:14 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyDetailPage.tsx[22m
+[2m10:00:19 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyDetailPage.tsx[22m
+[2m10:00:24 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m10:00:27 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m10:47:05 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m10:48:04 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m10:48:16 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyDetailPage.tsx[22m
+[2m11:14:34 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m11:15:49 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:18:41 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyDetailPage.tsx[22m
+[2m11:33:07 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:33:12 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:33:15 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:33:21 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:33:25 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:33:28 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:33:43 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:35:42 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:35:50 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:36:05 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:36:16 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:36:19 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:36:31 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:48:47 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m11:48:47 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m11:48:47 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m11:48:47 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m11:48:47 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDoctorsPanel.tsx[22m
+[2m11:48:47 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/doctors/DoctorsPage.tsx[22m
+[2m11:48:47 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m11:48:47 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m11:48:47 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m11:48:47 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/doctors/DoctorForm.tsx[22m
+[2m11:48:47 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m11:50:43 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:50:57 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:51:06 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:51:09 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:51:16 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:51:21 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m11:51:29 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m12:10:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m12:10:58 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m12:11:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m12:16:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompanyRelationsPanel.tsx[22m
+[2m12:32:03 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m12:32:06 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m12:32:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m12:32:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m12:32:27 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m12:40:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m12:40:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:40:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:40:11 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:40:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:40:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:47:27 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m12:48:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:50:33 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:51:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:52:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:53:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:54:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:54:06 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:55:28 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:58:59 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:59:05 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:59:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:59:24 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:59:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:59:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m12:59:52 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m1:03:11 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m1:03:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m1:03:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m1:06:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m1:06:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m1:06:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m1:09:49 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m1:15:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientCaregiversPanel.tsx[22m
+[2m1:15:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/patients/PatientCaregiversPanel.tsx[22m Could not Fast Refresh (new export)
+[2m1:15:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/patients/PatientDetailPage.tsx[22m
+[2m1:15:49 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientInfoPackPanel.tsx[22m
+[2m1:15:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientInfoPackPanel.tsx[22m
+[2m1:16:11 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientInfoPackPanel.tsx[22m
+[2m1:16:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientInfoPackPanel.tsx[22m
+[2m1:16:24 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientInfoPackPanel.tsx[22m
+[2m1:31:46 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/doctors/DoctorsPage.tsx[22m
+[2m1:31:50 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/doctors/DoctorsPage.tsx[22m
+[2m1:32:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/branches/BranchesPage.tsx[22m
+[2m1:32:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/branches/BranchesPage.tsx[22m
+[2m1:32:14 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/roles/RolesPage.tsx[22m
+[2m1:32:18 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/roles/RolesPage.tsx[22m
+[2m1:32:27 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medications/MedicationsPage.tsx[22m
+[2m1:32:30 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medications/MedicationsPage.tsx[22m
+[2m1:32:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m1:32:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/companies/CompaniesPage.tsx[22m
+[2m1:32:57 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medical-centers/MedicalCentersPage.tsx[22m
+[2m1:33:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medical-centers/MedicalCentersPage.tsx[22m
+[2m1:33:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/health-conditions/HealthConditionsPage.tsx[22m
+[2m1:33:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/health-conditions/HealthConditionsPage.tsx[22m
+[2m1:33:17 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medical-specialties/MedicalSpecialtiesPage.tsx[22m
+[2m1:33:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/medical-specialties/MedicalSpecialtiesPage.tsx[22m
+[2m4:27:22 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientsPage.tsx[22m
+[2m5:09:46 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m5:09:46 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\patients\PatientDetailPage.tsx: Unterminated JSX contents. (1586:10)
+
+[0m [90m 1584 |[31m         [33m/[31m[33m>[31m
+ [90m 1585 |[31m       )}
+[31m[1m>[22m[31m[90m 1586 |[31m     [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m      |[31m           [31m[1m^[22m[31m
+ [90m 1587 |[31m   )
+ [90m 1588 |[31m }
+ [90m 1589 |[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/patients/PatientDetailPage.tsx[39m:1586:10
+[33m  1584 |          />
+  1585 |        )}
+  1586 |      </div>
+       |            ^
+  1587 |    )
+  1588 |  }[39m
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptParserMixin.jsxReadToken (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4466:20)
+      at TypeScriptParserMixin.getTokenFromCode (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4792:12)
+      at TypeScriptParserMixin.getTokenFromCode (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10010:11)
+      at TypeScriptParserMixin.nextToken (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:5805:10)
+      at TypeScriptParserMixin.next (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:5715:10)
+      at TypeScriptParserMixin.eat (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:5719:12)
+      at TypeScriptParserMixin.expect (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6921:15)
+      at TypeScriptParserMixin.jsxParseClosingElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4698:10)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4713:37)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4716:32)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4767:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4777:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:39
+      at TypeScriptParserMixin.tryParse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6930:20)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12460:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12527:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11706:28)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11362:23)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4782:20)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9809:20)
+      at TypeScriptParserMixin.parseExpressionBase (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10810:23)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12455:16)
+      at TypeScriptParserMixin.parseExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:17)
+      at TypeScriptParserMixin.parseReturnStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13176:28)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12832:21)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseStatementListItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12781:17)
+[2m5:09:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m5:09:51 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\src\features\patients\PatientDetailPage.tsx: Unterminated JSX contents. (1588:10)
+
+[0m [90m 1586 |[31m         [33m/[31m[33m>[31m
+ [90m 1587 |[31m       )}
+[31m[1m>[22m[31m[90m 1588 |[31m     [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m      |[31m           [31m[1m^[22m[31m
+ [90m 1589 |[31m   )
+ [90m 1590 |[31m }
+ [90m 1591 |[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/eduar/OneDrive/Documentos/iKompras/mas care/max-care-web/src/features/patients/PatientDetailPage.tsx[39m:1588:10
+[33m  1586 |          />
+  1587 |        )}
+  1588 |      </div>
+       |            ^
+  1589 |    )
+  1590 |  }[39m
+      at constructor (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptParserMixin.jsxReadToken (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4466:20)
+      at TypeScriptParserMixin.getTokenFromCode (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4792:12)
+      at TypeScriptParserMixin.getTokenFromCode (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10010:11)
+      at TypeScriptParserMixin.nextToken (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:5805:10)
+      at TypeScriptParserMixin.next (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:5715:10)
+      at TypeScriptParserMixin.eat (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:5719:12)
+      at TypeScriptParserMixin.expect (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6921:15)
+      at TypeScriptParserMixin.jsxParseClosingElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4698:10)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4713:37)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4716:32)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4767:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4777:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:39
+      at TypeScriptParserMixin.tryParse (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:6930:20)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9798:18)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12460:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10826:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12527:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11706:28)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11362:23)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:4782:20)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11107:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11092:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:11072:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9860:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10925:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10930:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10907:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10857:21)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9809:20)
+      at TypeScriptParserMixin.parseExpressionBase (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10810:23)
+      at C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12455:16)
+      at TypeScriptParserMixin.parseExpression (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:10806:17)
+      at TypeScriptParserMixin.parseReturnStatement (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:13176:28)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12832:21)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseStatementListItem (C:\Users\eduar\OneDrive\Documentos\iKompras\mas care\max-care-web\node_modules\.pnpm\@babel+parser@7.29.9\node_modules\@babel\parser\lib\index.js:12781:17)
+[2m5:09:54 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m5:11:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m5:11:14 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/layout/AppLayout.tsx[22m
+[2m5:11:21 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/DataTable.tsx[22m
+[2m5:11:28 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m5:11:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/patients/PatientDetailPage.tsx[22m
+[2m5:11:47 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/PropertiesDialog.tsx[22m
+[2m5:11:53 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/ui/Dialog.tsx[22m
+[2m5:11:59 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/messaging/ConversationDialog.tsx[22m
+[2m5:12:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/incidents/IncidentFormDialog.tsx[22m
+[2m5:12:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/treatments/TreatmentForm.tsx[22m
+[2m5:12:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m5:12:21 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/features/board/CycleTableControls.tsx[22m
+[2m5:12:26 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css, /src/components/ExportButton.tsx[22m

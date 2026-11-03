@@ -21,7 +21,7 @@ describe('permisos de sucursales', () => {
             name: 'Solo lectura',
             email: 'read@example.test',
           },
-          organization: { id: 'org-1', name: 'Farmacia Demo' },
+          organization: { id: 'org-1', name: 'Farmacia Demo', googleMapsApiKey: null },
           role: 'read_only',
           roleId: null,
           roleName: null,
@@ -32,11 +32,16 @@ describe('permisos de sucursales', () => {
         } satisfies components['schemas']['Me']
         const branch = {
           id: 'branch-1',
+          numericId: '1',
           organizationId: 'org-1',
           name: 'Centro',
           labelColor: '#0e7c86',
           phone: null,
-          address: null,
+          addressDetails: null,
+          description: null,
+          managerName: null,
+          managerPhone: null,
+          managerEmail: null,
           archivedAt: null,
           createdAt: '2026-10-23T00:00:00.000Z',
         } satisfies components['schemas']['Branch']
