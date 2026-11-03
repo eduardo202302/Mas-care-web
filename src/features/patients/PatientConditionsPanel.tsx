@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, HeartPulse, X } from 'lucide-react'
+import { CalendarDays, HeartPulse, Star, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
@@ -40,6 +40,7 @@ export function PatientConditionsPanel({
   const [status, setStatus] = useState<ConditionStatus>('active')
   const [diagnosedOn, setDiagnosedOn] = useState('')
   const [notes, setNotes] = useState('')
+  const [isPrimary, setIsPrimary] = useState(false)
 
   const links = useQuery({
     queryKey: ['patients', patientId, 'conditions'],
@@ -74,6 +75,7 @@ export function PatientConditionsPanel({
             status,
             diagnosedOn: diagnosedOn || null,
             notes: notes.trim() || null,
+            isPrimary: hasPrimary ? false : isPrimary,
           }),
         },
       ),
@@ -81,6 +83,14 @@ export function PatientConditionsPanel({
       await invalidate()
       closeAdd()
     },
+  })
+  const setPrimary = useMutation({
+    mutationFn: (conditionId: string) =>
+      api<ConditionLink>(
+        `/api/v1/patients/${encodeURIComponent(patientId)}/conditions/${encodeURIComponent(conditionId)}`,
+        { method: 'PATCH', body: JSON.stringify({ isPrimary: true }) },
+      ),
+    onSuccess: invalidate,
   })
   const setConditionStatus = useMutation({
     mutationFn: ({
@@ -110,6 +120,7 @@ export function PatientConditionsPanel({
     setStatus('active')
     setDiagnosedOn('')
     setNotes('')
+    setIsPrimary(false)
     onCloseAdd()
   }
 
@@ -120,6 +131,8 @@ export function PatientConditionsPanel({
   const availableConditions = (conditionOptions.data?.data ?? []).filter(
     (condition) => !linkedConditionIds.has(condition.id),
   )
+  const primaryLink = items.find((link) => link.isPrimary)
+  const hasPrimary = Boolean(primaryLink)
 
   return (
     <>
@@ -140,6 +153,11 @@ export function PatientConditionsPanel({
               <div>
                 <p className="text-ink text-sm font-semibold">
                   {link.condition.name}
+                  {link.isPrimary && (
+                    <span className="bg-tealmax/10 text-tealmax ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold">
+                      Principal
+                    </span>
+                  )}
                 </p>
                 <div className="mt-1 flex items-center gap-2">
                   {canWrite ? (
@@ -180,14 +198,26 @@ export function PatientConditionsPanel({
                 )}
               </div>
               {canWrite && (
-                <button
-                  type="button"
-                  title="Quitar"
-                  onClick={() => remove.mutate(link.healthConditionId)}
-                  className="text-muted shrink-0 hover:text-red-600"
-                >
-                  <X className="size-4" />
-                </button>
+                <div className="flex shrink-0 gap-1">
+                  {!link.isPrimary && (
+                    <button
+                      type="button"
+                      title="Marcar como principal"
+                      onClick={() => setPrimary.mutate(link.healthConditionId)}
+                      className="text-muted hover:text-tealmax"
+                    >
+                      <Star className="size-4" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    title="Quitar"
+                    onClick={() => remove.mutate(link.healthConditionId)}
+                    className="text-muted hover:text-red-600"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
               )}
             </li>
           ))}
@@ -294,6 +324,27 @@ export function PatientConditionsPanel({
               title="Detalles"
               tone="sky"
             >
+              <label
+                className={
+                  hasPrimary
+                    ? 'text-muted flex items-center gap-2 text-sm'
+                    : 'text-ink flex items-center gap-2 text-sm'
+                }
+              >
+                <input
+                  type="checkbox"
+                  checked={hasPrimary ? false : isPrimary}
+                  disabled={hasPrimary}
+                  onChange={(event) => setIsPrimary(event.target.checked)}
+                />
+                Condición Principal
+              </label>
+              {hasPrimary && (
+                <p className="text-muted text-xs">
+                  {primaryLink?.condition.name} ya es la condición principal.
+                  Desmárcala desde la lista antes de asignar otra.
+                </p>
+              )}
               <div className="grid gap-1.5">
                 <label
                   htmlFor="condition-diagnosed"

@@ -1,15 +1,37 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
-import { Building2, Palette } from 'lucide-react'
+import { Building2, MapPin, Palette, UserRound } from 'lucide-react'
+import { AddressMapPicker } from '@/components/AddressMapPicker'
 import { FormFields, FormFooter } from '@/components/ui/FormMode'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { Tabs, type TabItem } from '@/components/ui/Tabs'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { TextField } from '@/components/ui/TextField'
 import { branchSchema, type BranchFormValues } from '@/schemas/branch'
 
 /** Mismo control que el resto de la app: alto fijo, borde y anillo de foco. */
 const control =
   'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2'
+
+type BranchTab = 'datos' | 'encargado'
+
+const fieldKeys = [
+  'name',
+  'labelColor',
+  'address',
+  'city',
+  'state',
+  'postalCode',
+  'sector',
+  'latitude',
+  'longitude',
+  'description',
+  'managerName',
+  'managerPhone',
+  'managerEmail',
+] as const
 
 type Props = {
   initialValues?: BranchFormValues
@@ -30,14 +52,31 @@ export function BranchForm({
   onCancel,
   submitting = false,
 }: Props) {
+  const [activeTab, setActiveTab] = useState<BranchTab>('datos')
   const {
     register,
     handleSubmit,
+    setValue,
+    getValues,
     setError,
     formState: { errors },
   } = useForm<BranchFormValues>({
     resolver: zodResolver(branchSchema),
-    defaultValues: initialValues ?? { name: '', labelColor: '#0e7c86' },
+    defaultValues: initialValues ?? {
+      name: '',
+      labelColor: '#0e7c86',
+      address: '',
+      city: '',
+      state: '',
+      postalCode: '',
+      sector: '',
+      latitude: '',
+      longitude: '',
+      description: '',
+      managerName: '',
+      managerPhone: '',
+      managerEmail: '',
+    },
   })
   async function submit(values: BranchFormValues) {
     try {
@@ -54,7 +93,7 @@ export function BranchForm({
       ) {
         for (const [key, message] of Object.entries(error.fields as object)) {
           if (
-            (key === 'name' || key === 'labelColor') &&
+            (fieldKeys as readonly string[]).includes(key) &&
             typeof message === 'string'
           )
             setError(key as FieldPath<BranchFormValues>, {
@@ -73,53 +112,177 @@ export function BranchForm({
       }
     }
   }
+
+  const tabs: TabItem<BranchTab>[] = [
+    { value: 'datos', label: 'Datos', icon: <Building2 className="size-4" /> },
+    {
+      value: 'encargado',
+      label: 'Encargado',
+      icon: <UserRound className="size-4" />,
+    },
+  ]
+
   return (
     <form className="grid gap-5" onSubmit={handleSubmit(submit)}>
+      <Tabs tabs={tabs} value={activeTab} onChange={setActiveTab} />
       <FormFields readOnly={readOnly}>
-        <ModalSection
-          icon={<Building2 className="size-4" />}
-          title="Datos de la Sucursal"
-          tone="mint"
-        >
-          <TextField
-            label="Nombre de Sucursal"
-            {...register('name')}
-            error={errors.name?.message}
-            placeholder="Sucursal Centro"
-          />
-        </ModalSection>
-
-        <ModalSection
-          icon={<Palette className="size-4" />}
-          title="Etiqueta de Color"
-          tone="sky"
-        >
-          <div className="grid gap-1.5">
-            <label
-              htmlFor="labelColor"
-              className="text-ink text-sm font-medium"
+        {activeTab === 'datos' && (
+          <>
+            <ModalSection
+              icon={<Building2 className="size-4" />}
+              title="Datos de la Sucursal"
+              tone="mint"
             >
-              Color de la Etiqueta
-            </label>
-            <div className={`${control} flex items-center gap-3`}>
-              <input
-                type="color"
-                id="labelColor"
-                {...register('labelColor')}
-                aria-invalid={Boolean(errors.labelColor)}
-                className="size-6 cursor-pointer rounded border-0 bg-transparent p-0"
+              <TextField
+                label="Nombre de Sucursal"
+                {...register('name')}
+                error={errors.name?.message}
+                placeholder="Sucursal Centro"
               />
-              <span className="text-muted text-sm">
-                Identifica visualmente esta sucursal.
-              </span>
+              <TextAreaField
+                label="Descripción (Opcional)"
+                className="min-h-8 py-1.5 text-xs"
+                placeholder="Detalles relevantes sobre esta sucursal…"
+                error={errors.description?.message}
+                {...register('description')}
+              />
+            </ModalSection>
+
+            <ModalSection
+              icon={<MapPin className="size-4" />}
+              title="Dirección"
+              tone="sky"
+              action={
+                <AddressMapPicker
+                  getValues={() => ({
+                    address: getValues('address') ?? '',
+                    city: getValues('city') ?? '',
+                    state: getValues('state') ?? '',
+                    sector: getValues('sector') ?? '',
+                    latitude: getValues('latitude') ?? '',
+                    longitude: getValues('longitude') ?? '',
+                  })}
+                  onApply={(next) => {
+                    setValue('address', next.address, { shouldDirty: true })
+                    setValue('city', next.city, { shouldDirty: true })
+                    setValue('state', next.state, { shouldDirty: true })
+                    setValue('sector', next.sector, { shouldDirty: true })
+                    setValue('latitude', next.latitude, {
+                      shouldDirty: true,
+                    })
+                    setValue('longitude', next.longitude, {
+                      shouldDirty: true,
+                    })
+                  }}
+                />
+              }
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <TextField
+                    label="Dirección"
+                    placeholder="G5CJ+2X Santo Domingo Este"
+                    {...register('address')}
+                    error={errors.address?.message}
+                  />
+                </div>
+                <TextField
+                  label="Región"
+                  {...register('state')}
+                  error={errors.state?.message}
+                />
+                <TextField
+                  label="Ciudad"
+                  {...register('city')}
+                  error={errors.city?.message}
+                />
+                <TextField
+                  label="Sector"
+                  {...register('sector')}
+                  error={errors.sector?.message}
+                />
+                <TextField
+                  label="Latitud"
+                  placeholder="14.6349"
+                  {...register('latitude')}
+                  error={errors.latitude?.message}
+                />
+                <TextField
+                  label="Longitud"
+                  placeholder="-90.5069"
+                  {...register('longitude')}
+                  error={errors.longitude?.message}
+                />
+              </div>
+            </ModalSection>
+
+            <ModalSection
+              icon={<Palette className="size-4" />}
+              title="Etiqueta de Color"
+              tone="amber"
+            >
+              <div className="grid gap-1.5">
+                <label
+                  htmlFor="labelColor"
+                  className="text-ink text-sm font-medium"
+                >
+                  Color de la Etiqueta
+                </label>
+                <div className={`${control} flex items-center gap-3`}>
+                  <input
+                    type="color"
+                    id="labelColor"
+                    {...register('labelColor')}
+                    aria-invalid={Boolean(errors.labelColor)}
+                    className="size-6 cursor-pointer rounded border-0 bg-transparent p-0"
+                  />
+                  <span className="text-muted text-sm">
+                    Identifica visualmente esta sucursal.
+                  </span>
+                </div>
+                {errors.labelColor?.message && (
+                  <p className="text-xs text-red-700">
+                    {errors.labelColor.message}
+                  </p>
+                )}
+              </div>
+            </ModalSection>
+          </>
+        )}
+
+        {activeTab === 'encargado' && (
+          <ModalSection
+            icon={<UserRound className="size-4" />}
+            title="Encargado de la Sucursal"
+            tone="mint"
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <TextField
+                  label="Nombre del Encargado"
+                  placeholder="Nombre y apellidos"
+                  {...register('managerName')}
+                  error={errors.managerName?.message}
+                />
+              </div>
+              <TextField
+                label="WhatsApp"
+                type="tel"
+                placeholder="+502 5555 5555"
+                {...register('managerPhone')}
+                error={errors.managerPhone?.message}
+              />
+              <TextField
+                label="Correo Electrónico"
+                type="email"
+                placeholder="encargado@correo.com"
+                {...register('managerEmail')}
+                error={errors.managerEmail?.message}
+              />
             </div>
-            {errors.labelColor?.message && (
-              <p className="text-xs text-red-700">
-                {errors.labelColor.message}
-              </p>
-            )}
-          </div>
-        </ModalSection>
+          </ModalSection>
+        )}
+
         {errors.root?.server?.message && (
           <p
             role="alert"

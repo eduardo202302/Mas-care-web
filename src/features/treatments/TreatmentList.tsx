@@ -16,6 +16,7 @@ import {
   derivedStatusLabel,
   formatDate,
   medicationName,
+  treatmentLabel,
   treatmentPauta,
   treatmentStatusLabel,
   type Medication,
@@ -69,9 +70,10 @@ export function TreatmentList({
                   to={`/pacientes/${treatment.patientId}/tratamientos/${treatment.id}`}
                   className="text-petroleo hover:text-tealmax text-sm font-semibold hover:underline"
                 >
-                  {medicationName(medication)}
+                  {treatmentLabel(treatment, medication)}
                 </Link>
                 <p className="text-muted mt-0.5 text-xs">
+                  {treatment.name ? `${medicationName(medication)} · ` : ''}
                   {treatmentPauta(treatment, medication)}
                 </p>
               </div>
@@ -241,7 +243,7 @@ export function ActiveTreatmentsPanel({
           >
             <div className="flex items-start justify-between gap-2">
               <p className="text-petroleo text-sm font-semibold">
-                {medicationName(medication)}
+                {treatmentLabel(treatment, medication)}
               </p>
               <span className="shrink-0">
                 {derived ? (
@@ -252,7 +254,11 @@ export function ActiveTreatmentsPanel({
               </span>
             </div>
             <p className="text-muted mt-0.5 text-xs">
+              {treatment.name ? `${medicationName(medication)} · ` : ''}
               {treatmentPauta(treatment, medication)}
+            </p>
+            <p className="text-muted mt-0.5 text-xs">
+              Fin de cobertura: {formatDate(treatment.coverageEndOn)}
             </p>
           </li>
         )

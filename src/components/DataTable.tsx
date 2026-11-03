@@ -1,5 +1,12 @@
 import type { ReactNode } from 'react'
-import { ChevronDown, ChevronUp, ChevronsUpDown, Pencil, Trash2 } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronUp,
+  ChevronsUpDown,
+  Pencil,
+  RotateCcw,
+  Trash2,
+} from 'lucide-react'
 import { cn } from '@/lib/cn'
 import type { ColumnSort } from '@/lib/table-sort'
 import { EmptyState } from './EmptyState'
@@ -9,12 +16,16 @@ export function RowActions({
   label,
   onEdit,
   onDelete,
+  onRestore,
   deleteLabel = 'Eliminar',
+  restoreLabel = 'Restaurar',
 }: {
   label: string
   onEdit?: () => void
   onDelete?: () => void
+  onRestore?: () => void
   deleteLabel?: string
+  restoreLabel?: string
 }) {
   return (
     <div className="flex items-center gap-0.5">
@@ -27,6 +38,17 @@ export function RowActions({
           className="text-muted hover:bg-surface hover:text-petroleo grid size-7 place-items-center rounded-md transition"
         >
           <Pencil className="size-4" />
+        </button>
+      )}
+      {onRestore && (
+        <button
+          type="button"
+          aria-label={`${restoreLabel} ${label}`}
+          title={restoreLabel}
+          onClick={onRestore}
+          className="text-muted hover:bg-surface hover:text-petroleo grid size-7 place-items-center rounded-md transition"
+        >
+          <RotateCcw className="size-4" />
         </button>
       )}
       {onDelete && (
@@ -76,7 +98,7 @@ export function DataTable({
   if (!rows.length)
     return (
       <div className="border-border flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-white">
-        <div className="min-h-0 flex-1 overflow-auto">
+        <div className="app-scroll min-h-0 flex-1 overflow-auto">
           <EmptyState title={emptyTitle} description={emptyDescription} />
         </div>
         {footer && <div className="shrink-0">{footer}</div>}
@@ -84,7 +106,7 @@ export function DataTable({
     )
   return (
     <div className="border-border flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-white">
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div className="app-scroll min-h-0 flex-1 overflow-auto">
         <table className="w-full border-collapse text-left text-sm">
           <thead className="bg-surface text-muted sticky top-0 z-10 text-xs tracking-wide uppercase">
             <tr>

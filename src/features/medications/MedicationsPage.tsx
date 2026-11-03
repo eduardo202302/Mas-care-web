@@ -6,6 +6,7 @@ import { Pill, Plus, Search } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Dialog } from '@/components/ui/Dialog'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { FilterBarRow, FilterSegmented } from '@/components/ui/AdvancedFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
@@ -46,6 +47,9 @@ export default function MedicationsPage() {
   >(null)
   const [formOpen, setFormOpen] = useState(false)
   const [viewOnly, setViewOnly] = useState(false)
+  const [archiving, setArchiving] = useState<
+    components['schemas']['Medication'] | null
+  >(null)
 
   const filters = useMemo<MedicationQuery>(
     () => ({
@@ -109,8 +113,18 @@ export default function MedicationsPage() {
         `/api/v1/medications/${encodeURIComponent(id)}/archive`,
         { method: 'POST' },
       ),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['medications'] }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['medications'] })
+      setArchiving(null)
+    },
+  })
+  const restore = useMutation({
+    mutationFn: (id: string) =>
+      api<components['schemas']['Medication']>(
+        `/api/v1/medications/${encodeURIComponent(id)}/restore`,
+        { method: 'POST' },
+      ),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['medications'] }),
   })
 
   function closeForm() {
@@ -139,21 +153,27 @@ export default function MedicationsPage() {
     sort,
     (item, index) =>
       index === 0
-        ? item.brandName ||
-          item.genericName ||
-          item.activeIngredient ||
-          'Medicamento'
+        ? item.numericId
         : index === 1
-          ? item.activeIngredient || item.genericName || ''
+          ? (item.archivedAt ? 1 : 0)
           : index === 2
-            ? item.presentation
+            ? item.brandName ||
+              item.genericName ||
+              item.activeIngredient ||
+              'Medicamento'
             : index === 3
-              ? item.unitsPerPackage
-              : item.archivedAt
-                ? 1
-                : 0,
+              ? item.activeIngredient || item.genericName || ''
+              : index === 4
+                ? item.presentation
+                : item.unitsPerPackage,
   )
   const tableRows = items.map((item) => [
+    <span key="id" className="text-muted font-mono text-xs">
+      {item.numericId}
+    </span>,
+    <span key="state" className="text-muted">
+      {item.archivedAt ? 'Archivado' : 'Activo'}
+    </span>,
     <span key="name" className="text-petroleo font-semibold">
       {item.brandName ||
         item.genericName ||
@@ -167,9 +187,6 @@ export default function MedicationsPage() {
     <span key="units">
       {String(item.unitsPerPackage)} {item.doseUnit} por envase
     </span>,
-    <span key="state" className="text-muted">
-      {item.archivedAt ? 'Archivado' : 'Activo'}
-    </span>,
   ])
   const rowActions = items.map((item) => {
     const label = item.brandName || item.genericName || item.presentation
@@ -182,9 +199,14 @@ export default function MedicationsPage() {
         onDelete={
           canArchive && !item.archivedAt
             ? () => {
-                if (window.confirm(`¿Archivar ${label}?`))
-                  archive.mutate(item.id)
+                archive.reset()
+                setArchiving(item)
               }
+            : undefined
+        }
+        onRestore={
+          canArchive && item.archivedAt
+            ? () => restore.mutate(item.id)
             : undefined
         }
       />
@@ -232,8 +254,8 @@ export default function MedicationsPage() {
           label="Filtrar medicamentos archivados"
           value={archived}
           options={[
-            { value: 'true', label: 'Activos' },
-            { value: 'false', label: 'Archivados' },
+            { value: 'false', label: 'Activos' },
+            { value: 'true', label: 'Archivados' },
           ]}
           onChange={(value) => {
             setArchived(value)
@@ -251,19 +273,20 @@ export default function MedicationsPage() {
       )}
       <div className="min-h-0 flex-1">
         {medications.isFetching ? (
-          <TableSkeleton columns={5} />
+          <TableSkeleton columns={6} />
         ) : (
           <DataTable
             columns={[
+              'ID',
+              'Estado',
               'Medicamento',
               'Principio activo',
               'Presentación',
               'Contenido',
-              'Estado',
             ]}
             rows={tableRows}
             actions={rowActions}
-            sortableColumns={[0, 1, 2, 3, 4]}
+            sortableColumns={[0, 1, 2, 3, 4, 5]}
             sort={sort}
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {
@@ -320,6 +343,31 @@ export default function MedicationsPage() {
             onEdit={() => setViewOnly(false)}
           />
         </Dialog>
+      )}
+      {archiving && (
+        <ConfirmDialog
+          title="Confirmar"
+          description={
+            <>
+              ¿Está seguro que desea archivar el medicamento{' '}
+              <strong>
+                {archiving.brandName ||
+                  archiving.genericName ||
+                  archiving.presentation}
+              </strong>
+              ?
+              {archive.isError && (
+                <p role="alert" className="mt-3 text-sm text-red-800">
+                  {archive.error.message}
+                </p>
+              )}
+            </>
+          }
+          confirmLabel="Archivar"
+          confirming={archive.isPending}
+          onConfirm={() => archive.mutate(archiving.id)}
+          onClose={() => setArchiving(null)}
+        />
       )}
     </div>
   )

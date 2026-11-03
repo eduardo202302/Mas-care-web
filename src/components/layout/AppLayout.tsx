@@ -174,7 +174,7 @@ export function AppLayout() {
             <Menu className="size-5" />
           </Button>
         </header>
-        <main className="mx-auto min-h-0 w-full max-w-[1440px] flex-1 overflow-y-auto px-5 py-8 md:px-8 lg:px-10">
+        <main className="app-scroll mx-auto min-h-0 w-full max-w-[1440px] flex-1 overflow-y-auto px-5 py-8 md:px-8 lg:px-10">
           <Outlet />
         </main>
       </div>

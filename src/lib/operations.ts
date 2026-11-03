@@ -112,6 +112,24 @@ export const taskTypeDefaultTitle: Record<TaskType, string> = {
   other: 'Nueva tarea',
 }
 
+export const taskPriorities = ['low', 'medium', 'high', 'urgent'] as const
+export type TaskPriority = (typeof taskPriorities)[number]
+
+export const taskPriorityLabels: Record<TaskPriority, string> = {
+  low: 'Baja',
+  medium: 'Media',
+  high: 'Alta',
+  urgent: 'Urgente',
+}
+
+export const taskReminderOptions = [
+  { value: '', label: 'Sin recordatorio' },
+  { value: '0', label: 'A la hora de vencimiento' },
+  { value: '15', label: '15 minutos antes' },
+  { value: '60', label: '1 hora antes' },
+  { value: '1440', label: '1 día antes' },
+] as const
+
 export type TaskStatus = 'open' | 'done' | 'cancelled'
 export type Task = {
   id: string
@@ -121,6 +139,8 @@ export type Task = {
   title: string
   description: string | null
   status: TaskStatus
+  priority: TaskPriority
+  reminderMinutesBefore: number | null
   dueAt: string | null
   assignedTo: string | null
   patientId: string | null

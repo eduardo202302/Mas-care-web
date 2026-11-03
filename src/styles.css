@@ -122,6 +122,34 @@ input {
 .sidebar-scroll::-webkit-scrollbar-thumb:active {
   background-color: var(--cuidado);
 }
+/* App scrollbar: slim, rounded, tinted with the brand teal, for content on light backgrounds. */
+.app-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(14 124 134 / 30%) transparent;
+  scrollbar-gutter: stable;
+}
+.app-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.app-scroll::-webkit-scrollbar-track {
+  margin: 4px 0;
+  background: transparent;
+}
+.app-scroll::-webkit-scrollbar-thumb {
+  background-color: rgb(14 124 134 / 25%);
+  background-clip: content-box;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  transition: background-color 150ms ease;
+}
+.app-scroll:hover::-webkit-scrollbar-thumb {
+  background-color: rgb(14 124 134 / 45%);
+}
+.app-scroll::-webkit-scrollbar-thumb:hover,
+.app-scroll::-webkit-scrollbar-thumb:active {
+  background-color: var(--tealmax);
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -124,16 +124,22 @@ export default function DoctorsPage() {
     sort,
     (item, index) =>
       index === 0
-        ? `${item.firstName} ${item.lastName}`
+        ? item.numericId
         : index === 1
-          ? (item.licenseNumber ?? '')
+          ? (item.isActive ? 1 : 0)
           : index === 2
-            ? (item.phone ?? '')
-            : item.isActive
-              ? 1
-              : 0,
+            ? `${item.firstName} ${item.lastName}`
+            : index === 3
+              ? (item.licenseNumber ?? '')
+              : (item.phone ?? ''),
   )
   const tableRows = items.map((item) => [
+    <span key="id" className="text-muted font-mono text-xs">
+      {item.numericId}
+    </span>,
+    <span key="state" className="text-muted">
+      {item.isActive ? 'Activo' : 'Inactivo'}
+    </span>,
     <span key="name" className="text-petroleo font-semibold">
       {item.firstName} {item.lastName}
     </span>,
@@ -157,9 +163,6 @@ export default function DoctorsPage() {
         <span className="text-muted">—</span>
       )}
     </div>,
-    <span key="state" className="text-muted">
-      {item.isActive ? 'Activo' : 'Inactivo'}
-    </span>,
   ])
   const rowActions = items.map((item) => (
     <RowActions
@@ -228,19 +231,20 @@ export default function DoctorsPage() {
       )}
       <div className="min-h-0 flex-1">
         {doctors.isFetching ? (
-          <TableSkeleton columns={5} />
+          <TableSkeleton columns={6} />
         ) : (
           <DataTable
             columns={[
+              'ID',
+              'Estado',
               'Médico',
               'Colegiatura',
               'Teléfono',
               'Especialidades',
-              'Estado',
             ]}
             rows={tableRows}
             actions={rowActions}
-            sortableColumns={[0, 1, 2, 4]}
+            sortableColumns={[0, 1, 2, 3, 4]}
             sort={sort}
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {

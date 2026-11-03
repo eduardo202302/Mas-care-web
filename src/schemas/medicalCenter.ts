@@ -1,5 +1,19 @@
 import { z } from 'zod'
 
+const optionalDecimal = (min: number, max: number) =>
+  z
+    .string()
+    .trim()
+    .max(20, 'Máximo 20 caracteres.')
+    .refine((value) => value === '' || /^-?\d{1,3}(\.\d+)?$/.test(value), {
+      message: 'Ingresa un número decimal válido.',
+    })
+    .refine(
+      (value) => value === '' || (Number(value) >= min && Number(value) <= max),
+      { message: `Debe estar entre ${min} y ${max}.` },
+    )
+    .optional()
+
 export const medicalCenterTypes = [
   'clinic',
   'hospital',
@@ -21,8 +35,11 @@ export const medicalCenterSchema = z.object({
     .optional()
     .or(z.literal('')),
   address: z.string().trim().max(500).optional(),
-  province: z.string().trim().max(120).optional(),
-  municipality: z.string().trim().max(120).optional(),
+  state: z.string().trim().max(120).optional(),
+  city: z.string().trim().max(120).optional(),
+  sector: z.string().trim().max(120).optional(),
+  latitude: optionalDecimal(-90, 90),
+  longitude: optionalDecimal(-180, 180),
   notes: z.string().trim().max(2000).optional(),
 })
 

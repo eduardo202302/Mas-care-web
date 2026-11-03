@@ -35,6 +35,9 @@ const MedicationsPage = lazy(
 const UsersPage = lazy(() => import('@/features/users/UsersPage'))
 const JobsPage = lazy(() => import('@/features/jobs/JobsPage'))
 const CompaniesPage = lazy(() => import('@/features/companies/CompaniesPage'))
+const CompanyDetailPage = lazy(
+  () => import('@/features/companies/CompanyDetailPage'),
+)
 const ThresholdsPage = lazy(() => import('@/features/settings/ThresholdsPage'))
 const TemplatesPage = lazy(() => import('@/features/settings/TemplatesPage'))
 const TasksPage = lazy(() => import('@/features/tasks/TasksPage'))
@@ -100,6 +103,7 @@ export const router = createBrowserRouter([
                   { path: '/perfil', element: <ProfilePage /> },
                   { path: '/tareas', element: <TasksPage /> },
                   { path: '/companias', element: <CompaniesPage /> },
+                  { path: '/companias/:id', element: <CompanyDetailPage /> },
                   { path: '/trabajos', element: <JobsPage /> },
                   { path: '/pacientes', element: <PatientsPage /> },
                   { path: '/pacientes/:id', element: <PatientDetailPage /> },

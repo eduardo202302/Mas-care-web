@@ -311,17 +311,17 @@ export default function BoardPage() {
         droppable: key !== 'closed',
         note:
           key === 'closed'
-            ? 'Los ciclos cerrados no se mueven: la entrega o el no retiro ya quedó registrado. Para continuar el tratamiento usa «Nuevo ciclo» en otra columna.'
+            ? 'Los ciclos cerrados no se mueven: la entrega o el no retiro ya quedó registrado. Para continuar el tratamiento usa «Nuevo tratamiento» en otra columna.'
             : undefined,
         action:
           key !== 'closed' && canCreateCycle ? (
             <button
               type="button"
-              aria-label={`Nuevo ciclo en ${stageOf(key)?.name ?? boardColumnLabels[key]}`}
+              aria-label={`Nuevo tratamiento en ${stageOf(key)?.name ?? boardColumnLabels[key]}`}
               onClick={() => setNewCycleFor(key)}
               className="text-tealmax text-xs font-semibold hover:underline"
             >
-              + Nuevo ciclo
+              + Nuevo tratamiento
             </button>
           ) : undefined,
         emptyText:

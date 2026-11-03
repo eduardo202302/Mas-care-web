@@ -22,7 +22,7 @@ export function Dialog({
   compactHeader?: boolean
   onClose: () => void
   children: ReactNode
-  size?: 'md' | 'lg'
+  size?: 'md' | 'lg' | 'xl'
   bodyClassName?: string
 }) {
   const compact = dense || compactHeader
@@ -48,7 +48,7 @@ export function Dialog({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className={`animate-in border-border flex w-full flex-col overflow-hidden rounded-2xl border bg-white shadow-2xl ${dense ? '' : 'max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)]'} ${size === 'lg' ? 'max-w-3xl' : 'max-w-xl'}`}
+        className={`animate-in border-border flex w-full flex-col overflow-hidden rounded-2xl border bg-white shadow-2xl ${dense ? '' : 'max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)]'} ${size === 'xl' ? 'max-w-5xl' : size === 'lg' ? 'max-w-3xl' : 'max-w-xl'}`}
       >
         <header
           className={`border-border flex shrink-0 items-start justify-between gap-4 border-b ${compact ? 'px-5 py-3' : 'px-6 py-5'}`}
@@ -91,7 +91,7 @@ export function Dialog({
         <div
           className={cn(
             'min-h-0 flex-1',
-            dense ? 'px-5 pt-2 pb-4' : 'overflow-y-auto px-6 py-5',
+            dense ? 'px-5 pt-2 pb-4' : 'app-scroll overflow-y-auto px-6 py-5',
             bodyClassName,
           )}
         >

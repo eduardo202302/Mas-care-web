@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { HeartPulse, Pill, Stethoscope, UserRound } from 'lucide-react'
+import { HeartPulse, Pill, Stethoscope, UserRound, Users } from 'lucide-react'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { api } from '@/lib/http'
 import { useCan } from '@/lib/permissions'
@@ -8,6 +8,7 @@ import { formatPhone } from '@/lib/phone'
 import {
   formatDate,
   medicationName,
+  treatmentLabel,
   treatmentStatusLabel,
   type Medication,
   type Treatment,
@@ -15,6 +16,7 @@ import {
 import type { components } from '@/lib/api-types'
 import { InfoCard } from '@/components/ui/InfoCard'
 import { conditionStatusLabels } from './PatientConditionsPanel'
+import { addressText, type CaregiverList } from './PatientCaregiversPanel'
 
 type DoctorLink = components['schemas']['PatientDoctorLink'] & {
   doctor: {
@@ -97,12 +99,36 @@ export function PatientInfoPackPanel({
       ),
     enabled: Boolean(patientId),
   })
+  const caregivers = useQuery({
+    queryKey: ['patients', patientId, 'caregivers'],
+    queryFn: () =>
+      api<CaregiverList>(
+        `/api/v1/patients/${encodeURIComponent(patientId)}/caregivers`,
+      ),
+    enabled: Boolean(patientId),
+  })
 
   const doctorLinks = doctors.data?.data ?? []
   const primaryDoctor =
     doctorLinks.find((link) => link.isPrimary) ?? doctorLinks[0]
   const otherDoctors = doctorLinks.filter((link) => link !== primaryDoctor)
   const activeConditions = conditions.data?.data ?? []
+  const caregiverList = caregivers.data?.data ?? []
+  const primaryCaregiver =
+    caregiverList.find((item) => item.isPrimary) ?? caregiverList[0]
+  const otherCaregivers = caregiverList.filter(
+    (item) => item !== primaryCaregiver,
+  )
+  const caregiverLocation = primaryCaregiver
+    ? [
+        addressText(primaryCaregiver.addressDetails, 'address'),
+        addressText(primaryCaregiver.addressDetails, 'city'),
+        addressText(primaryCaregiver.addressDetails, 'region'),
+        addressText(primaryCaregiver.addressDetails, 'sector'),
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : ''
   const activeTreatment =
     treatments.find((item) => item.status === 'active') ?? treatments[0]
 
@@ -180,6 +206,61 @@ export function PatientInfoPackPanel({
       </InfoCard>
 
       <InfoCard
+        icon={<Users className="size-4" />}
+        title="Cuidador principal"
+        badge={
+          caregiverList.length > 1 ? `${caregiverList.length} cuidadores` : undefined
+        }
+      >
+        {caregivers.isLoading ? (
+          <Skeleton className="h-16 w-full" />
+        ) : primaryCaregiver ? (
+          <>
+            <div className="flex items-start gap-3">
+              <span className="bg-tealmax/10 text-petroleo grid size-10 shrink-0 place-items-center rounded-full text-sm font-bold">
+                {primaryCaregiver.fullName.slice(0, 1)}
+              </span>
+              <div className="min-w-0">
+                <p className="text-ink text-base font-semibold">
+                  {primaryCaregiver.fullName}
+                </p>
+                <p className="text-muted mt-0.5 text-xs">
+                  {primaryCaregiver.relationship}
+                </p>
+                <p className="text-ink mt-1 text-sm">
+                  {formatPhone(primaryCaregiver.phone)}
+                </p>
+                {caregiverLocation && (
+                  <p className="text-muted mt-0.5 text-xs">
+                    {caregiverLocation}
+                  </p>
+                )}
+              </div>
+            </div>
+            {otherCaregivers.length > 0 && (
+              <div className="border-border border-t pt-2">
+                <p className="text-muted mb-1 text-[11px] font-semibold tracking-wide uppercase">
+                  También cuidan
+                </p>
+                <ul className="flex flex-wrap gap-1.5">
+                  {otherCaregivers.map((item) => (
+                    <li
+                      key={item.id}
+                      className="border-border text-ink rounded-full border bg-white px-2.5 py-1 text-xs font-medium"
+                    >
+                      {item.fullName}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        ) : (
+          <Empty>Sin cuidador registrado.</Empty>
+        )}
+      </InfoCard>
+
+      <InfoCard
         icon={<HeartPulse className="size-4" />}
         title="Condiciones de salud"
         badge={
@@ -224,11 +305,15 @@ export function PatientInfoPackPanel({
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-ink text-base font-semibold">
-                  {medicationName(
+                  {treatmentLabel(
+                    activeTreatment,
                     medicationsById.get(activeTreatment.medicationId),
                   )}
                 </p>
                 <p className="text-muted mt-0.5 text-xs">
+                  {activeTreatment.name
+                    ? `${medicationName(medicationsById.get(activeTreatment.medicationId))} · `
+                    : ''}
                   {treatmentStatusLabel(activeTreatment.status)} · desde{' '}
                   {formatDate(activeTreatment.startDate)}
                 </p>

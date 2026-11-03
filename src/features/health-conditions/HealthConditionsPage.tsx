@@ -110,22 +110,25 @@ export default function HealthConditionsPage() {
     sort,
     (item, index) =>
       index === 0
-        ? item.name
+        ? item.numericId
         : index === 1
-          ? (item.description ?? '')
-          : item.isActive
-            ? 1
-            : 0,
+          ? (item.isActive ? 1 : 0)
+          : index === 2
+            ? item.name
+            : (item.description ?? ''),
   )
   const tableRows = items.map((item) => [
+    <span key="id" className="text-muted font-mono text-xs">
+      {item.numericId}
+    </span>,
+    <span key="state" className="text-muted">
+      {item.isActive ? 'Activa' : 'Inactiva'}
+    </span>,
     <span key="name" className="text-petroleo font-semibold">
       {item.name}
     </span>,
     <span key="description" className="text-muted">
       {item.description || '—'}
-    </span>,
-    <span key="state" className="text-muted">
-      {item.isActive ? 'Activa' : 'Inactiva'}
     </span>,
   ])
   const rowActions = items.map((item) => (
@@ -195,13 +198,13 @@ export default function HealthConditionsPage() {
       )}
       <div className="min-h-0 flex-1">
         {conditions.isFetching ? (
-          <TableSkeleton columns={3} />
+          <TableSkeleton columns={4} />
         ) : (
           <DataTable
-            columns={['Nombre', 'Descripción', 'Estado']}
+            columns={['ID', 'Estado', 'Nombre', 'Descripción']}
             rows={tableRows}
             actions={rowActions}
-            sortableColumns={[0, 1, 2]}
+            sortableColumns={[0, 1, 2, 3]}
             sort={sort}
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {

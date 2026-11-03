@@ -7,15 +7,12 @@ import { Archive, CalendarDays, Plus, Search, UserRound } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { CustomPropertyFilter } from '@/components/CustomFields'
-import { ColumnPicker, SortEditor } from '@/features/board/CycleTableControls'
-import {
-  useColumnPrefs,
-  type ColumnDef,
-  type SortPart,
-} from '@/lib/cycle-table'
+import { SortEditor } from '@/features/board/CycleTableControls'
+import { type ColumnDef, type SortPart } from '@/lib/cycle-table'
 import { Pagination } from '@/components/Pagination'
 import { formatPhone } from '@/lib/phone'
 import { Dialog } from '@/components/ui/Dialog'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import {
   ActiveFilterChips,
   AdvancedFilterButton,
@@ -28,7 +25,6 @@ import {
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
-import { TextField } from '@/components/ui/TextField'
 import { useActiveBranch } from '@/lib/active-branch'
 import { api } from '@/lib/http'
 import { formatCustomValue, useCustomProperties } from '@/lib/custom-properties'
@@ -41,10 +37,9 @@ import { PatientForm } from './PatientForm'
 
 type PatientList =
   paths['/api/v1/patients']['get']['responses'][200]['content']['application/json']
+type PatientRow = PatientList['data'][number]
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
-type SavedViewList =
-  paths['/api/v1/saved-views']['get']['responses'][200]['content']['application/json']
 type PatientCreateResult =
   paths['/api/v1/patients']['post']['responses'][201]['content']['application/json']
 type PatientQuery = NonNullable<
@@ -53,11 +48,13 @@ type PatientQuery = NonNullable<
   Record<string, string | number | boolean | undefined>
 
 const patientColumns: ColumnDef[] = [
+  { key: 'document', label: 'ID' },
+  { key: 'status', label: 'Estado' },
   { key: 'branch', label: 'Sucursal' },
   { key: 'name', label: 'Paciente' },
   { key: 'contact', label: 'WhatsApp' },
-  { key: 'document', label: 'ID' },
-  { key: 'status', label: 'Estado' },
+  { key: 'primaryCondition', label: 'Condición Principal' },
+  { key: 'city', label: 'Ciudad' },
   { key: 'created', label: 'Creado' },
 ]
 
@@ -88,14 +85,6 @@ function queryString(query: PatientQuery) {
     if (value !== undefined && value !== '') params.set(key, String(value))
   }
   return params.toString()
-}
-
-function stringFilter(
-  filters: components['schemas']['SavedView']['filters'],
-  key: string,
-) {
-  const value = filters[key]
-  return typeof value === 'string' ? value : ''
 }
 
 function activeFilterCount(
@@ -131,9 +120,9 @@ export default function PatientsPage() {
   const [editing, setEditing] = useState<
     components['schemas']['Patient'] | null
   >(null)
-  const [viewName, setViewName] = useState('')
-  const [viewDialog, setViewDialog] = useState(false)
-  const [selectedView, setSelectedView] = useState('')
+  const [archiving, setArchiving] = useState<
+    components['schemas']['Patient'] | null
+  >(null)
   const [dates, setDates] = useState<Record<string, string>>({})
   const [sort, setSort] = useState<SortPart[]>([])
   const [clientSort, setClientSort] = useState<{
@@ -180,10 +169,9 @@ export default function PatientsPage() {
     ],
     [properties],
   )
-  const columnPrefs = useColumnPrefs(
-    'patients',
-    allColumns,
-    patientColumns.map((column) => column.key),
+  const columnKeys = useMemo(
+    () => allColumns.map((column) => column.key),
+    [allColumns],
   )
 
   // Only the branch the user is working in is requested.
@@ -192,10 +180,6 @@ export default function PatientsPage() {
   const branchesQuery = useQuery({
     queryKey: ['branches'],
     queryFn: () => api<BranchList>('/api/v1/branches'),
-  })
-  const savedViews = useQuery({
-    queryKey: ['saved-views', 'patients'],
-    queryFn: () => api<SavedViewList>('/api/v1/saved-views?entity=patients'),
   })
   const filters = useMemo<PatientQuery>(
     () => ({
@@ -219,8 +203,18 @@ export default function PatientsPage() {
   })
   const create = useMutation({
     mutationFn: (values: PatientFormValues) => {
+      const { address, state, city, sector, latitude, longitude, ...rest } =
+        values
       const body: components['schemas']['PatientCreate'] = {
-        ...values,
+        ...rest,
+        addressDetails: {
+          ...(address ? { address } : {}),
+          ...(state ? { region: state } : {}),
+          ...(city ? { city } : {}),
+          ...(sector ? { sector } : {}),
+          ...(latitude ? { latitude: Number(latitude) } : {}),
+          ...(longitude ? { longitude: Number(longitude) } : {}),
+        },
         ...(values.documentId
           ? { documentId: values.documentId }
           : { documentId: null }),
@@ -229,8 +223,6 @@ export default function PatientsPage() {
           : { birthDate: null }),
         ...(values.phone ? { phone: values.phone } : { phone: null }),
         ...(values.email ? { email: values.email } : { email: null }),
-        ...(values.address ? { address: values.address } : { address: null }),
-        ...(values.zone ? { zone: values.zone } : { zone: null }),
         ...(values.careNotes
           ? { careNotes: values.careNotes }
           : { careNotes: null }),
@@ -246,20 +238,27 @@ export default function PatientsPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['patients'] })
       setPage(1)
-      closeForm()
     },
   })
   const update = useMutation({
     mutationFn: (values: PatientFormValues) => {
       if (!editing) throw new Error('Selecciona un paciente para editar.')
+      const { address, state, city, sector, latitude, longitude, ...rest } =
+        values
       const body: components['schemas']['PatientPatch'] = {
-        ...values,
+        ...rest,
+        addressDetails: {
+          ...(address ? { address } : {}),
+          ...(state ? { region: state } : {}),
+          ...(city ? { city } : {}),
+          ...(sector ? { sector } : {}),
+          ...(latitude ? { latitude: Number(latitude) } : {}),
+          ...(longitude ? { longitude: Number(longitude) } : {}),
+        },
         documentId: values.documentId || null,
         birthDate: values.birthDate || null,
         phone: values.phone || null,
         email: values.email || null,
-        address: values.address || null,
-        zone: values.zone || null,
         careNotes: values.careNotes || null,
         responsibleUserId: values.responsibleUserId || null,
       }
@@ -270,7 +269,6 @@ export default function PatientsPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['patients'] })
-      closeForm()
     },
   })
   const archivePatient = useMutation({
@@ -279,45 +277,19 @@ export default function PatientsPage() {
         `/api/v1/patients/${encodeURIComponent(id)}/archive`,
         { method: 'POST' },
       ),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['patients'] })
+      setArchiving(null)
+    },
+  })
+  const restorePatient = useMutation({
+    mutationFn: (id: string) =>
+      api<components['schemas']['Patient']>(
+        `/api/v1/patients/${encodeURIComponent(id)}/restore`,
+        { method: 'POST' },
+      ),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['patients'] }),
   })
-  const createView = useMutation({
-    mutationFn: () => {
-      const body: components['schemas']['SavedViewCreate'] = {
-        entity: 'patients',
-        name: viewName.trim(),
-        filters: { q: search.trim(), responsibleUserId, archived, dates },
-        columns: columnPrefs.keys,
-        sort: { parts: sort },
-        isDefault: false,
-      }
-      return api<components['schemas']['SavedView']>('/api/v1/saved-views', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      })
-    },
-    onSuccess: async (view) => {
-      await queryClient.invalidateQueries({
-        queryKey: ['saved-views', 'patients'],
-      })
-      setSelectedView(view.id)
-      setViewDialog(false)
-      setViewName('')
-    },
-  })
-  const deleteView = useMutation({
-    mutationFn: (id: string) =>
-      api(`/api/v1/saved-views/${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-      }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ['saved-views', 'patients'],
-      })
-      setSelectedView('')
-    },
-  })
-
   function openCreate() {
     setEditing(null)
     setFormOpen(true)
@@ -331,37 +303,11 @@ export default function PatientsPage() {
     setEditing(null)
   }
 
-  function applyView(id: string) {
-    setSelectedView(id)
-    const view = savedViews.data?.data.find((item) => item.id === id)
-    if (!view) return
-    const nextFilters = view.filters
-    setSearch(stringFilter(nextFilters, 'q'))
-    setResponsibleUserId(stringFilter(nextFilters, 'responsibleUserId'))
-    setArchived(
-      stringFilter(nextFilters, 'archived') === 'true' ? 'true' : 'false',
-    )
-    const savedDates = nextFilters.dates
-    setDates(
-      savedDates && typeof savedDates === 'object'
-        ? (savedDates as Record<string, string>)
-        : {},
-    )
-    const parts = (view.sort as { parts?: SortPart[] }).parts
-    setSort(Array.isArray(parts) ? parts : [])
-    setClientSort(null)
-    if (view.columns.length) columnPrefs.save(view.columns)
-    setPage(1)
-  }
-
   const branchMap = new Map(
     (branchesQuery.data?.data ?? []).map((branch) => [branch.id, branch]),
   )
   /** Sortable value for columns without a backend field; mirrors the row cells but returns a comparable primitive. */
-  const sortValue = (
-    key: string,
-    patient: components['schemas']['Patient'],
-  ): unknown => {
+  const sortValue = (key: string, patient: PatientRow): unknown => {
     switch (key) {
       case 'branch':
         return branchMap.get(patient.primaryBranchId)?.name ?? ''
@@ -375,6 +321,12 @@ export default function PatientsPage() {
           : ''
       case 'status':
         return patient.archivedAt ? 1 : 0
+      case 'primaryCondition':
+        return patient.primaryConditionName ?? ''
+      case 'city':
+        return (
+          (patient.addressDetails as { city?: string } | null)?.city ?? ''
+        )
       default: {
         const property = properties.find((item) => `custom:${item.key}` === key)
         if (!property) return ''
@@ -411,7 +363,7 @@ export default function PatientsPage() {
       ),
       document: (
         <span key="document" className="text-muted font-mono text-xs">
-          #{patient.numericId}
+          {patient.numericId}
         </span>
       ),
       branch: branch ? (
@@ -430,9 +382,25 @@ export default function PatientsPage() {
           {patient.archivedAt ? 'Archivado' : 'Activo'}
         </span>
       ),
+      primaryCondition: (
+        <span key="primaryCondition" className="text-muted">
+          {patient.primaryConditionName || <span className="text-muted">—</span>}
+        </span>
+      ),
+      city: (
+        <span key="city" className="text-muted">
+          {(patient.addressDetails as { city?: string } | null)?.city || (
+            <span className="text-muted">—</span>
+          )}
+        </span>
+      ),
       created: (
         <span key="created" className="text-muted">
-          {patient.createdAt.slice(0, 10)}
+          {new Date(patient.createdAt).toLocaleString('es', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+            hour12: true,
+          })}
         </span>
       ),
     }
@@ -445,7 +413,7 @@ export default function PatientsPage() {
         </span>
       )
     }
-    return columnPrefs.keys.map((key) => cells[key])
+    return columnKeys.map((key) => cells[key])
   })
   const rowActions = displayPatients.map((patient) => (
     <RowActions
@@ -456,9 +424,14 @@ export default function PatientsPage() {
       onDelete={
         canUpdate && !patient.archivedAt
           ? () => {
-              if (window.confirm(`¿Archivar a ${patient.fullName}?`))
-                archivePatient.mutate(patient.id)
+              archivePatient.reset()
+              setArchiving(patient)
             }
+          : undefined
+      }
+      onRestore={
+        canUpdate && patient.archivedAt
+          ? () => restorePatient.mutate(patient.id)
           : undefined
       }
     />
@@ -575,44 +548,6 @@ export default function PatientsPage() {
             setFilterDraft({ responsibleUserId, archived, dates, sort })
           }
         />
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <ColumnPicker
-            keys={columnPrefs.keys}
-            onChange={columnPrefs.save}
-            saving={columnPrefs.saving}
-            all={allColumns}
-          />
-          <label className="text-muted text-sm" htmlFor="saved-patient-view">
-            Vistas
-          </label>
-          <select
-            id="saved-patient-view"
-            value={selectedView}
-            onChange={(event) => applyView(event.target.value)}
-            className="border-border h-10 w-52 rounded-lg border bg-white px-3 text-sm"
-          >
-            <option value="">Mis pacientes · vista actual</option>
-            {(savedViews.data?.data ?? []).map((view) => (
-              <option key={view.id} value={view.id}>
-                {view.name}
-              </option>
-            ))}
-          </select>
-          {selectedView && (
-            <Button
-              aria-label="Borrar vista seleccionada"
-              variant="ghost"
-              className="h-10 px-2 text-red-700"
-              onClick={() => deleteView.mutate(selectedView)}
-            >
-              <Archive className="size-4" />
-              Borrar vista
-            </Button>
-          )}
-          <Button className="h-10" onClick={() => setViewDialog(true)}>
-            Guardar vista actual
-          </Button>
-        </div>
       </FilterBarRow>
       <ActiveFilterChips
         chips={activeFilterChips}
@@ -751,26 +686,26 @@ export default function PatientsPage() {
       )}
       <div className="min-h-0 flex-1">
       {patients.isFetching || !branchReady ? (
-        <TableSkeleton columns={columnPrefs.keys.length} />
+        <TableSkeleton columns={columnKeys.length} />
       ) : (
         <DataTable
-          columns={columnPrefs.keys.map(
+          columns={columnKeys.map(
             (key) =>
               allColumns.find((column) => column.key === key)?.label ?? key,
           )}
           rows={tableRows}
           actions={rowActions}
-          sortableColumns={columnPrefs.keys.map((_, index) => index)}
+          sortableColumns={columnKeys.map((_, index) => index)}
           sort={
             activeSortKey
               ? {
-                  index: columnPrefs.keys.findIndex((key) => key === activeSortKey),
+                  index: columnKeys.findIndex((key) => key === activeSortKey),
                   dir: activeSortDir ?? 'asc',
                 }
               : null
           }
           onSortChange={(index) => {
-            const key = columnPrefs.keys[index]
+            const key = columnKeys[index]
             if (key) toggleColumnSort(key)
           }}
           onRowDoubleClick={(index) => {
@@ -822,54 +757,34 @@ export default function PatientsPage() {
             patient={editing ?? undefined}
             branches={branchesQuery.data?.data ?? []}
             onSave={(values) =>
-              (editing ? update : create)
-                .mutateAsync(values)
-                .then(() => undefined)
+              editing
+                ? update.mutateAsync(values).then(() => undefined)
+                : create.mutateAsync(values).then((result) => result.patient.id)
             }
             submitting={editing ? update.isPending : create.isPending}
             onCancel={closeForm}
           />
         </Dialog>
       )}
-      {viewDialog && (
-        <Dialog
-          title="Guardar vista"
-          description="Conserva estos filtros para volver a ellos."
-          onClose={() => setViewDialog(false)}
-        >
-          <form
-            className="mt-5 grid gap-4"
-            onSubmit={(event) => {
-              event.preventDefault()
-              createView.mutate()
-            }}
-          >
-            <TextField
-              label="Nombre de la vista"
-              value={viewName}
-              onChange={(event) => setViewName(event.target.value)}
-              required
-              placeholder="Mis pacientes"
-            />
-            {createView.isError && (
-              <p role="alert" className="text-sm text-red-700">
-                {createView.error.message}
-              </p>
-            )}
-            <div className="flex justify-end gap-2">
-              <Button type="button" onClick={() => setViewDialog(false)}>
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={createView.isPending}
-              >
-                Guardar vista
-              </Button>
-            </div>
-          </form>
-        </Dialog>
+      {archiving && (
+        <ConfirmDialog
+          title="Confirmar"
+          description={
+            <>
+              ¿Está seguro que desea archivar a{' '}
+              <strong>{archiving.fullName}</strong>?
+              {archivePatient.isError && (
+                <p role="alert" className="mt-3 text-sm text-red-800">
+                  {archivePatient.error.message}
+                </p>
+              )}
+            </>
+          }
+          confirmLabel="Archivar"
+          confirming={archivePatient.isPending}
+          onConfirm={() => archivePatient.mutate(archiving.id)}
+          onClose={() => setArchiving(null)}
+        />
       )}
     </div>
   )

@@ -69,16 +69,18 @@ export default function TransfersPage() {
     sort,
     (row, index) =>
       index === 0
-        ? row.occurred_at
+        ? row.numeric_id
         : index === 1
-          ? row.patient.full_name
+          ? row.occurred_at
           : index === 2
-            ? row.from_branch.name
+            ? row.patient.full_name
             : index === 3
-              ? row.to_branch.name
+              ? row.from_branch.name
               : index === 4
-                ? row.reason
-                : row.created_by.name,
+                ? row.to_branch.name
+                : index === 5
+                  ? row.reason
+                  : row.created_by.name,
   )
 
   if (mePending) {
@@ -189,10 +191,11 @@ export default function TransfersPage() {
 
       <div className="min-h-0 flex-1">
         {transfers.isLoading ? (
-          <TableSkeleton columns={6} />
+          <TableSkeleton columns={7} />
         ) : (
           <DataTable
             columns={[
+              'ID',
               'Fecha',
               'Paciente',
               'De',
@@ -201,6 +204,9 @@ export default function TransfersPage() {
               'Registrado por',
             ]}
             rows={items.map((row) => [
+              <span key="id" className="text-muted font-mono text-xs">
+                #{row.numeric_id}
+              </span>,
               <span key="date">
                 {new Date(row.occurred_at).toLocaleString('es')}
               </span>,
@@ -215,7 +221,7 @@ export default function TransfersPage() {
               </span>,
               <span key="by">{row.created_by.name}</span>,
             ])}
-            sortableColumns={[0, 1, 2, 3, 4, 5]}
+            sortableColumns={[0, 1, 2, 3, 4, 5, 6]}
             sort={sort}
             onSortChange={toggleSort}
             emptyTitle="Sin traspasos"

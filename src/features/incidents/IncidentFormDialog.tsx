@@ -192,7 +192,7 @@ export function IncidentFormDialog({
                   placeholder="Nombre del paciente"
                 />
                 {patientQuery.trim().length >= 2 && (
-                  <ul className="border-border max-h-40 divide-y overflow-y-auto rounded-lg border bg-white">
+                  <ul className="app-scroll border-border max-h-40 divide-y overflow-y-auto rounded-lg border bg-white">
                     {(patients.data?.data ?? []).map((item) => (
                       <li key={item.id}>
                         <button

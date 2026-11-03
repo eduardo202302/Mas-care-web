@@ -23,7 +23,7 @@ export function PatientTransfersPanel({ patientId }: { patientId: string }) {
 
   const items = transfers.data?.data ?? []
 
-  if (transfers.isLoading) return <TableSkeleton columns={5} />
+  if (transfers.isLoading) return <TableSkeleton columns={6} />
   if (transfers.isError)
     return (
       <p
@@ -36,8 +36,19 @@ export function PatientTransfersPanel({ patientId }: { patientId: string }) {
 
   return (
     <DataTable
-      columns={['Fecha', 'De', 'A', 'Motivo', 'Tratamientos', 'Registrado por']}
+      columns={[
+        'ID',
+        'Fecha',
+        'De',
+        'A',
+        'Motivo',
+        'Tratamientos',
+        'Registrado por',
+      ]}
       rows={items.map((row) => [
+        <span key="id" className="text-muted font-mono text-xs">
+          #{row.numeric_id}
+        </span>,
         <span key="date">
           {new Date(row.occurred_at).toLocaleString('es')}
         </span>,

@@ -2,9 +2,11 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
 import { Building2, ChevronDown, MapPin, Phone } from 'lucide-react'
+import { AddressMapPicker } from '@/components/AddressMapPicker'
 import { FormFields, FormFooter } from '@/components/ui/FormMode'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { ApiError } from '@/lib/http'
 import type { components } from '@/lib/api-types'
 import {
@@ -13,6 +15,14 @@ import {
   medicalCenterTypes,
   type MedicalCenterFormValues,
 } from '@/schemas/medicalCenter'
+
+function addressText(
+  details: components['schemas']['MedicalCenter']['addressDetails'],
+  key: string,
+): string {
+  const value = (details as Record<string, unknown> | null)?.[key]
+  return typeof value === 'string' ? value : ''
+}
 
 export function MedicalCenterForm({
   readOnly = false,
@@ -34,6 +44,8 @@ export function MedicalCenterForm({
   const {
     register,
     handleSubmit,
+    setValue,
+    getValues,
     setError,
     formState: { errors },
   } = useForm<MedicalCenterFormValues>({
@@ -45,9 +57,12 @@ export function MedicalCenterForm({
           rnc: center.rnc ?? '',
           phone: center.phone ?? '',
           email: center.email ?? '',
-          address: center.address ?? '',
-          province: center.province ?? '',
-          municipality: center.municipality ?? '',
+          address: addressText(center.addressDetails, 'address'),
+          state: addressText(center.addressDetails, 'region'),
+          city: addressText(center.addressDetails, 'city'),
+          sector: addressText(center.addressDetails, 'sector'),
+          latitude: addressText(center.addressDetails, 'latitude'),
+          longitude: addressText(center.addressDetails, 'longitude'),
           notes: center.notes ?? '',
         }
       : {
@@ -57,8 +72,11 @@ export function MedicalCenterForm({
           phone: '',
           email: '',
           address: '',
-          province: '',
-          municipality: '',
+          state: '',
+          city: '',
+          sector: '',
+          latitude: '',
+          longitude: '',
           notes: '',
         },
   })
@@ -143,22 +161,13 @@ export function MedicalCenterForm({
               {...register('rnc')}
               error={errors.rnc?.message}
             />
-            <div className="grid gap-1.5 sm:col-span-2">
-              <label
-                htmlFor="center-notes"
-                className="text-ink text-sm font-medium"
-              >
-                Notas
-              </label>
-              <textarea
+            <div className="sm:col-span-2">
+              <TextAreaField
+                label="Notas"
                 id="center-notes"
-                rows={3}
                 {...register('notes')}
-                className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 rounded-lg border bg-white px-3 py-2 text-sm transition outline-none focus:ring-2"
+                error={errors.notes?.message}
               />
-              {errors.notes?.message && (
-                <p className="text-xs text-red-700">{errors.notes.message}</p>
-              )}
             </div>
           </div>
         </ModalSection>
@@ -184,26 +193,66 @@ export function MedicalCenterForm({
         </ModalSection>
         <ModalSection
           icon={<MapPin className="size-4" />}
-          title="Ubicación"
+          title="Dirección"
           tone="amber"
+          action={
+            <AddressMapPicker
+              getValues={() => ({
+                address: getValues('address') ?? '',
+                city: getValues('city') ?? '',
+                state: getValues('state') ?? '',
+                sector: getValues('sector') ?? '',
+                latitude: getValues('latitude') ?? '',
+                longitude: getValues('longitude') ?? '',
+              })}
+              onApply={(next) => {
+                setValue('address', next.address, { shouldDirty: true })
+                setValue('city', next.city, { shouldDirty: true })
+                setValue('state', next.state, { shouldDirty: true })
+                setValue('sector', next.sector, { shouldDirty: true })
+                setValue('latitude', next.latitude, { shouldDirty: true })
+                setValue('longitude', next.longitude, {
+                  shouldDirty: true,
+                })
+              }}
+            />
+          }
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <TextField
                 label="Dirección"
+                placeholder="G5CJ+2X Santo Domingo Este"
                 {...register('address')}
                 error={errors.address?.message}
               />
             </div>
             <TextField
-              label="Provincia"
-              {...register('province')}
-              error={errors.province?.message}
+              label="Región"
+              {...register('state')}
+              error={errors.state?.message}
             />
             <TextField
-              label="Municipio"
-              {...register('municipality')}
-              error={errors.municipality?.message}
+              label="Ciudad"
+              {...register('city')}
+              error={errors.city?.message}
+            />
+            <TextField
+              label="Sector"
+              {...register('sector')}
+              error={errors.sector?.message}
+            />
+            <TextField
+              label="Latitud"
+              placeholder="14.6349"
+              {...register('latitude')}
+              error={errors.latitude?.message}
+            />
+            <TextField
+              label="Longitud"
+              placeholder="-90.5069"
+              {...register('longitude')}
+              error={errors.longitude?.message}
             />
           </div>
         </ModalSection>

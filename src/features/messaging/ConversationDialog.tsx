@@ -106,7 +106,7 @@ export function ConversationDialog({
             Todavía no hay avisos ni respuestas con este paciente.
           </p>
         ) : (
-          <ol className="grid max-h-[55vh] gap-2 overflow-y-auto pr-1">
+          <ol className="app-scroll grid max-h-[55vh] gap-2 overflow-y-auto pr-1">
             {items.map((item) => (
               <li
                 key={`${item.kind}-${item.id}`}

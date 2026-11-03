@@ -398,7 +398,7 @@ export function CycleTable({
             />
           </div>
         ) : (
-          <div className="min-h-0 flex-1 overflow-auto">
+          <div className="app-scroll min-h-0 flex-1 overflow-auto">
             <table className="w-full min-w-[980px] border-collapse text-left text-sm">
               <thead className="bg-surface text-muted sticky top-0 z-10 text-[11px] tracking-wide uppercase">
                 <tr>

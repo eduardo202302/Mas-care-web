@@ -1,20 +1,49 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CompanyForm } from './CompanyForm'
 import type { CompanyFormValues } from '@/schemas/company'
+import type { components } from '@/lib/api-types'
 
 afterEach(() => {
   cleanup()
+  vi.unstubAllGlobals()
 })
 
+function meResponse(): components['schemas']['Me'] {
+  return {
+    user: { id: 'user-1', name: 'Usuario', email: 'user@example.test' },
+    organization: { id: 'org-1', name: 'Farmacia Demo', googleMapsApiKey: null },
+    role: 'admin',
+    roleId: null,
+    roleName: null,
+    isPlatformOwner: true,
+    branches: [],
+    permissions: [],
+    menu: [],
+  }
+}
+
 function renderForm(onSave: (values: CompanyFormValues) => Promise<void>) {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () =>
+      new Response(JSON.stringify(meResponse()), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    ),
+  )
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   render(
-    <CompanyForm
-      linkToken="company-token"
-      onSave={onSave}
-      onCancel={() => undefined}
-    />,
+    <QueryClientProvider client={client}>
+      <CompanyForm
+        linkToken="company-token"
+        onSave={onSave}
+        onCancel={() => undefined}
+      />
+    </QueryClientProvider>,
   )
 }
 
@@ -59,18 +88,20 @@ describe('CompanyForm', () => {
         status: 'inactive',
         pin: screen.getByLabelText<HTMLInputElement>('PIN').value,
         domain: 'https://farmacia.com',
+        address: '',
+        sector: '',
+        latitude: '',
+        longitude: '',
         phone: '',
         ownerName: '',
         industry: '',
         type: '',
         city: '',
         state: '',
-        postalCode: '',
         employeeCount: '',
-        annualRevenue: '',
-        timezone: '',
         description: '',
         linkedinUrl: '',
+        googleMapsApiKey: '',
       }),
     )
   })

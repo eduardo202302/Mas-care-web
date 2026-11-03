@@ -1,11 +1,15 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BranchForm } from './BranchForm'
 import { api } from '@/lib/http'
 import type { BranchFormValues } from '@/schemas/branch'
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 
 describe('BranchForm', () => {
   it('muestra los errores por campo que devuelve la API con 400', async () => {
@@ -35,7 +39,14 @@ describe('BranchForm', () => {
         body: JSON.stringify(values),
       })
     }
-    render(<BranchForm onSave={onSave} onCancel={() => undefined} />)
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+    render(
+      <QueryClientProvider client={client}>
+        <BranchForm onSave={onSave} onCancel={() => undefined} />
+      </QueryClientProvider>,
+    )
     await user.type(screen.getByLabelText('Nombre de Sucursal'), 'Centro')
     await user.click(screen.getByRole('button', { name: 'Crear Sucursal' }))
     expect(
