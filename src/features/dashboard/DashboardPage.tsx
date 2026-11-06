@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/ui/PageHeader'
+import { NewCycleDialog } from '@/features/board/NewCycleDialog'
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -9,6 +10,7 @@ import {
   Clock3,
   FileClock,
   MessageSquareOff,
+  PackageCheck,
   PackageOpen,
   RefreshCw,
 } from 'lucide-react'
@@ -54,6 +56,7 @@ export default function DashboardPage() {
   const [rows, setRows] = useState(PAGE_ROWS)
   const [noticeRow, setNoticeRow] = useState<DashboardRow | null>(null)
   const [deliveryRow, setDeliveryRow] = useState<DashboardRow | null>(null)
+  const [refillOpen, setRefillOpen] = useState(false)
   const [feedback, setFeedback] = useState<string | null>(null)
 
   const dashboard = useQuery({
@@ -119,6 +122,14 @@ export default function DashboardPage() {
           <>
             <div className="flex flex-wrap items-center gap-2">
               <BranchFilter />
+              <Button
+                type="button"
+                variant="primary"
+                onClick={() => setRefillOpen(true)}
+              >
+                <PackageCheck className="size-4" />
+                Registrar Reposición
+              </Button>
               <Button
                 type="button"
                 aria-label="Actualizar panel"
@@ -306,6 +317,15 @@ export default function DashboardPage() {
           onLogged={() =>
             setFeedback(`Aviso registrado para ${noticeRow.patient.full_name}.`)
           }
+        />
+      )}
+      {refillOpen && (
+        <NewCycleDialog
+          onClose={() => {
+            setRefillOpen(false)
+            void dashboard.refetch()
+            void list.refetch()
+          }}
         />
       )}
       {deliveryRow && (

@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, Package, Plus, RefreshCw, User } from 'lucide-react'
+import {
+  CalendarDays,
+  Package,
+  PackageCheck,
+  RefreshCw,
+  User,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
@@ -14,7 +20,7 @@ import {
 } from '@/lib/board'
 import { usePipeline } from '@/lib/pipeline'
 import { useMe } from '@/lib/permissions'
-import { medicationName, type Medication } from '@/lib/treatments'
+import { formatDate, medicationName, type Medication } from '@/lib/treatments'
 import { formatPhone } from '@/lib/phone'
 import type { components } from '@/lib/api-types'
 
@@ -29,7 +35,6 @@ type Eligible = {
 }
 
 type Patient = components['schemas']['Patient']
-
 const stageOptions = boardColumns.filter((key) => key !== 'closed')
 
 const cycleTypeOptions = [
@@ -108,25 +113,32 @@ export function NewCycleDialog({
   })
   const eligibleOptions = eligible.data?.data ?? []
   const selected = eligibleOptions.find((option) => option.id === treatmentId)
+  // El tratamiento siempre se elige entre los del paciente seleccionado.
+  const patientTreatments = eligibleOptions.filter(
+    (option) => option.patient.id === patientId,
+  )
   const stageName = (key: BoardColumnKey) =>
     pipeline?.stages.find((s) => s.system_status === key)?.name ??
     boardColumnLabels[key]
+  // La API nombra el producto como "genérico|marca presentación"; hay que
+  // compararlo así, o el select de Producto nunca se precarga y el formulario
+  // queda deshabilitado.
+  const eligibleMedicationLabel = (medication: Medication) =>
+    `${medication.genericName ?? medication.brandName ?? medication.presentation} ${medication.presentation}`.trim()
   const matchedMedication = medications.data?.data.find(
-    (medication) => medicationName(medication) === selected?.medication,
+    (medication) =>
+      eligibleMedicationLabel(medication) === selected?.medication ||
+      medicationName(medication) === selected?.medication,
   )
   const branchId = branchOverride ?? selected?.branch_id ?? ''
   const medicationId = medicationOverride ?? matchedMedication?.id ?? ''
   const responsibleUserId =
     responsibleOverride ?? selected?.responsible?.id ?? ''
   const treatmentName = treatmentNameOverride ?? selected?.medication ?? ''
-  const formComplete = Boolean(
-    treatmentName &&
-    patientId &&
-    quantity &&
-    coverageEndOn &&
-    branchId &&
-    medicationId,
-  )
+  // Con un tratamiento elegido, producto y sucursal ya vienen de él: el ciclo
+  // se crea solo con treatment_id. Exigirlos aquí bloqueaba el botón cuando el
+  // nombre del producto del catálogo no coincidía con el del tratamiento.
+  const formComplete = Boolean(treatmentId && quantity && coverageEndOn)
 
   function selectTreatment(option: Eligible) {
     setTreatmentId(option.id)
@@ -150,8 +162,9 @@ export function NewCycleDialog({
 
   function selectPatient(id: string) {
     setPatientId(id)
-    const option = eligibleOptions.find((o) => o.patient.id === id)
-    if (option) selectTreatment(option)
+    // Con un solo tratamiento disponible se toma directo; con varios se elige.
+    const options = eligibleOptions.filter((o) => o.patient.id === id)
+    if (options.length === 1) selectTreatment(options[0]!)
     else clearTreatment()
   }
 
@@ -164,7 +177,7 @@ export function NewCycleDialog({
 
   const create = useMutation({
     mutationFn: (variables: { again: boolean }) =>
-      api('/api/v1/cycles', {
+      api<{ cycle_id: string; treatment_id: string }>('/api/v1/cycles', {
         method: 'POST',
         body: JSON.stringify({
           treatment_id: treatmentId || undefined,
@@ -184,7 +197,10 @@ export function NewCycleDialog({
       await queryClient.invalidateQueries({ queryKey: ['board'] })
       await queryClient.invalidateQueries({ queryKey: ['cycles'] })
       await queryClient.invalidateQueries({ queryKey: ['eligible-treatments'] })
-      toast.push('Ciclo creado.', 'success')
+      await queryClient.invalidateQueries({ queryKey: ['treatments'] })
+      await queryClient.invalidateQueries({ queryKey: ['patients'] })
+      await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      toast.push('Reposición registrada.', 'success')
       if (variables.again) {
         resetForm()
       } else {
@@ -199,9 +215,11 @@ export function NewCycleDialog({
 
   return (
     <Dialog
-      title="Nuevo Tratamiento"
-      description="El ciclo se creará a partir de un tratamiento existente sin un ciclo abierto."
-      icon={<Plus className="size-6" />}
+      title="Nueva Reposición"
+      description="La reposición es el ciclo: elige el paciente y su tratamiento, y registra dónde compró el medicamento."
+      icon={<PackageCheck className="size-6" />}
+      compactHeader
+      bodyClassName="pt-3"
       onClose={onClose}
       size="lg"
     >
@@ -213,21 +231,76 @@ export function NewCycleDialog({
         }}
       >
         <ModalSection
-          icon={<RefreshCw className="size-4" />}
-          title="Tratamiento"
+          icon={<User className="size-4" />}
+          title="Paciente"
           tone="mint"
+        >
+          <label className="grid gap-1.5">
+            <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+              Paciente
+            </span>
+            <select
+              value={patientId}
+              onChange={(event) => selectPatient(event.target.value)}
+              className={fieldClass}
+            >
+              <option value="">Seleccione Un Paciente…</option>
+              {(patients.data?.data ?? []).map((patient) => (
+                <option key={patient.id} value={patient.id}>
+                  {patient.fullName}
+                  {patient.phone ? ` - ${formatPhone(patient.phone)}` : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+          {patients.isError && (
+            <p role="alert" className="text-sm text-red-700">
+              No pudimos cargar los pacientes.{' '}
+              {(patients.error as Error).message}
+            </p>
+          )}
+          {!patientId && (
+            <p className="text-muted text-xs">
+              Elige primero al paciente para ver los tratamientos que lleva.
+            </p>
+          )}
+        </ModalSection>
+
+        <ModalSection
+          icon={<RefreshCw className="size-4" />}
+          title="Tratamiento Que Lleva"
+          tone="sky"
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Tratamiento</span>
-              <input
-                value={treatmentName}
-                onChange={(event) =>
-                  setTreatmentNameOverride(event.target.value)
-                }
-                placeholder="Nombre del Tratamiento"
-                className={fieldClass}
-              />
+              <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+                Tratamiento
+              </span>
+              <select
+                value={treatmentId}
+                onChange={(event) => {
+                  const option = patientTreatments.find(
+                    (row) => row.id === event.target.value,
+                  )
+                  if (option) selectTreatment(option)
+                  else clearTreatment()
+                }}
+                disabled={!patientId || !patientTreatments.length}
+                className={`${fieldClass} disabled:cursor-not-allowed disabled:bg-slate-50`}
+              >
+                <option value="">
+                  {!patientId
+                    ? 'Primero elige un paciente'
+                    : patientTreatments.length
+                      ? 'Selecciona el tratamiento'
+                      : 'Sin tratamientos disponibles'}
+                </option>
+                {patientTreatments.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.medication}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium">Etapa</span>
@@ -246,6 +319,45 @@ export function NewCycleDialog({
               </select>
             </label>
           </div>
+          {patientId && !patientTreatments.length && eligible.isSuccess && (
+            <p
+              role="alert"
+              className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"
+            >
+              Este paciente no tiene tratamientos activos sin ciclo abierto.
+              Crea el tratamiento o cierra el ciclo que ya tiene en el tablero.
+            </p>
+          )}
+          {selected && (
+            <dl className="border-border grid grid-cols-2 gap-3 rounded-lg border bg-white p-3 text-sm sm:grid-cols-3">
+              <div>
+                <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+                  Le Toca Reponer
+                </dt>
+                <dd className="text-ink font-medium">
+                  {selected.coverage_end_on
+                    ? formatDate(selected.coverage_end_on)
+                    : '—'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+                  Cantidad Por Ciclo
+                </dt>
+                <dd className="text-ink font-medium">
+                  {selected.quantity_per_cycle}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+                  Responsable
+                </dt>
+                <dd className="text-ink font-medium">
+                  {selected.responsible?.name ?? 'Sin responsable'}
+                </dd>
+              </div>
+            </dl>
+          )}
         </ModalSection>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -347,35 +459,6 @@ export function NewCycleDialog({
         </div>
 
         <ModalSection
-          icon={<User className="size-4" />}
-          title="Acuerdo de Asociado con"
-          tone="mint"
-        >
-          <label className="grid gap-1.5">
-            <span className="text-ink text-sm font-medium">Paciente</span>
-            <select
-              value={patientId}
-              onChange={(event) => selectPatient(event.target.value)}
-              className={fieldClass}
-            >
-              <option value="">Seleccione Un Paciente…</option>
-              {(patients.data?.data ?? []).map((patient) => (
-                <option key={patient.id} value={patient.id}>
-                  {patient.fullName}
-                  {patient.phone ? ` - ${formatPhone(patient.phone)}` : ''}
-                </option>
-              ))}
-            </select>
-          </label>
-          {patients.isError && (
-            <p role="alert" className="text-sm text-red-700">
-              No pudimos cargar los pacientes.{' '}
-              {(patients.error as Error).message}
-            </p>
-          )}
-        </ModalSection>
-
-        <ModalSection
           icon={<Package className="size-4" />}
           title="Producto Y Sucursal"
           tone="sky"
@@ -416,7 +499,7 @@ export function NewCycleDialog({
 
         {create.isError && (
           <p role="alert" className="text-sm text-red-700">
-            No pudimos crear el ciclo. {create.error.message}
+            No pudimos registrar la reposición. {create.error.message}
           </p>
         )}
 
@@ -433,7 +516,7 @@ export function NewCycleDialog({
             disabled={!formComplete || create.isPending}
             onClick={() => create.mutate({ again: true })}
           >
-            {creatingAgain ? 'Creando…' : 'Crear y agregar otro'}
+            {creatingAgain ? 'Registrando…' : 'Registrar y agregar otra'}
           </Button>
           <Button
             type="submit"
@@ -441,7 +524,7 @@ export function NewCycleDialog({
             disabled={!formComplete || create.isPending}
             className="hover:bg-emerald-700"
           >
-            {creatingFinal ? 'Creando…' : 'Crear'}
+            {creatingFinal ? 'Registrando…' : 'Registrar Reposición'}
           </Button>
         </FormActions>
       </form>

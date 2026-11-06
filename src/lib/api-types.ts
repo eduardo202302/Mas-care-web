@@ -1417,9 +1417,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            data: (components["schemas"]["Patient"] & {
-                                primaryConditionName: string | null;
-                            })[];
+                            data: (components["schemas"]["Patient"] & { treatmentsCount: number })[];
                             nextCursor: string | null;
                             total: number;
                             page: number;
@@ -2535,6 +2533,7 @@ export interface paths {
                     branch_id?: string;
                     responsible_user_id?: string;
                     derived_status?: "vencido" | "vence_pronto" | "retiro_pendiente" | "proxima_reposicion" | "al_dia";
+                    prescription_group_id?: string;
                     limit?: number;
                     cursor?: string;
                 };
@@ -3387,7 +3386,7 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
-                /** @description No open cycle or idempotency conflict */
+                /** @description No open cycle, idempotency conflict or expired prescription (PRESCRIPTION_EXPIRED) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -3523,6 +3522,652 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/treatments/{id}/dose-schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List dose schedule versions for a treatment */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Dose schedule versions */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["DoseSchedule"][];
+                        };
+                    };
+                };
+                /** @description Treatment not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Open a new dose schedule version (requires authorization when changing an active one) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "multipart/form-data": components["schemas"]["DoseScheduleCreateInput"];
+                };
+            };
+            responses: {
+                /** @description New dose schedule version */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DoseSchedule"];
+                    };
+                };
+                /** @description Missing authorization for a dose change */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Treatment not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{id}/dose-schedules/{doseScheduleId}/authorization-document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download the authorization document attached to a dose schedule version */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    doseScheduleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The stored file */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No document for this schedule */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{id}/doses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List materialized dose occurrences for a treatment */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Dose occurrences, most recent first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["DoseLog"][];
+                        };
+                    };
+                };
+                /** @description Treatment not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{id}/doses/{doseLogId}/take": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a scheduled dose as taken, consuming inventory */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    doseLogId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DoseTakeInput"];
+                };
+            };
+            responses: {
+                /** @description Updated dose log */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DoseLog"];
+                    };
+                };
+                /** @description Not scheduled, or retroactive */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{id}/doses/{doseLogId}/skip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a scheduled dose as skipped - never consumes inventory */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    doseLogId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DoseSkipInput"];
+                };
+            };
+            responses: {
+                /** @description Updated dose log */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DoseLog"];
+                    };
+                };
+                /** @description Not scheduled, or retroactive */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{id}/doses/{doseLogId}/reschedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close this occurrence and open a new one at a different time */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    doseLogId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DoseRescheduleInput"];
+                };
+            };
+            responses: {
+                /** @description Updated dose log and the new one it opened */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DoseLog"];
+                    };
+                };
+                /** @description Not scheduled, retroactive, or a conflicting occurrence already exists */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{id}/doses/{doseLogId}/correct": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revert a taken/skipped/rescheduled dose back to scheduled, reversing any inventory it consumed */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    doseLogId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DoseCorrectInput"];
+                };
+            };
+            responses: {
+                /** @description Reverted dose log */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DoseLog"];
+                    };
+                };
+                /** @description Nothing to correct */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{id}/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Balance, consumption rate and days remaining for a treatment */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Inventory summary */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InventorySummary"];
+                    };
+                };
+                /** @description Treatment not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{id}/inventory/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Paginated inventory ledger history */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number | null;
+                    cursor?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Ledger entries */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["InventoryEntry"][];
+                            next_cursor: string | null;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{id}/external-purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record a purchase made outside the pharmacy, adding to the balance */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ExternalPurchaseInput"];
+                };
+            };
+            responses: {
+                /** @description Purchase and the inventory entry it created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            purchase: components["schemas"]["ExternalPurchase"];
+                            inventory_entry: components["schemas"]["InventoryEntry"];
+                        };
+                    };
+                };
+                /** @description Treatment not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{id}/inventory/adjust": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Manual inventory adjustment (e.g. expired stock), positive or negative */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["InventoryAdjustInput"];
+                };
+            };
+            responses: {
+                /** @description The adjustment entry */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InventoryEntry"];
+                    };
+                };
+                /** @description Treatment not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{id}/inventory/threshold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set or clear the low-inventory alert threshold */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["InventoryThresholdInput"];
+                };
+            };
+            responses: {
+                /** @description Updated threshold */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            low_inventory_threshold: string | number | unknown;
+                        };
+                    };
+                };
+                /** @description Treatment not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/v1/cycles/{id}/mark-prepared": {
         parameters: {
             query?: never;
@@ -3570,6 +4215,93 @@ export interface paths {
                     };
                 };
                 /** @description Cycle is closed or treatment inactive */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cycles/{id}/close-external": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close a cycle whose medication was bought elsewhere */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        outcome: "delivered" | "not_picked_up";
+                        quantity: number;
+                        /** Format: date */
+                        purchased_on: string;
+                        place?: string | null;
+                        notes?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Cycle closed with an external purchase */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            cycle: {
+                                [key: string]: unknown;
+                            };
+                            purchase: {
+                                [key: string]: unknown;
+                            };
+                            next_cycle: {
+                                [key: string]: unknown;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Cycle not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Cycle already closed */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -9593,6 +10325,7 @@ export interface components {
             createdBy: string;
             createdAt: string;
             archivedAt: string | null;
+            primaryConditionName?: string | null;
         };
         PatientCreate: {
             primaryBranchId: string;
@@ -9942,6 +10675,7 @@ export interface components {
             medicationId: string;
             branchId: string;
             name: string | null;
+            prescriptionGroupId: string | null;
             responsibleUserId: string | null;
             dosePerIntake: string | number;
             intakesPerDay: string | number;
@@ -9949,6 +10683,7 @@ export interface components {
             startDate: string;
             endDate: string | null;
             prescriberName: string | null;
+            prescriberDoctorId: string | null;
             prescriptionExpiresOn: string | null;
             /** @enum {string} */
             status: "active" | "paused" | "finished";
@@ -9965,12 +10700,17 @@ export interface components {
             derived_status: "vencido" | "vence_pronto" | "retiro_pendiente" | "proxima_reposicion" | "al_dia" | null;
             days_remaining: number | null;
             prescription_flag: boolean;
+            inventory_balance: number | null;
+            inventory_balance_real: number | null;
+            next_dose_at: string | null;
+            days_remaining_real: number | null;
         };
         TreatmentCreate: {
             patient_id: string;
             medication_id: string;
             branch_id: string;
             name?: string | null;
+            prescription_group_id?: string | null;
             responsible_user_id?: string | null;
             dose_per_intake: number;
             intakes_per_day: number;
@@ -9980,6 +10720,7 @@ export interface components {
             /** Format: date */
             end_date?: string | null;
             prescriber_name?: string | null;
+            prescriber_id?: string | null;
             /** Format: date */
             prescription_expires_on?: string | null;
             notes?: string | null;
@@ -9992,6 +10733,7 @@ export interface components {
             medication_id?: string;
             branch_id?: string;
             name?: string | null;
+            prescription_group_id?: string | null;
             responsible_user_id?: string | null;
             dose_per_intake?: number;
             intakes_per_day?: number;
@@ -10001,6 +10743,7 @@ export interface components {
             /** Format: date */
             end_date?: string | null;
             prescriber_name?: string | null;
+            prescriber_id?: string | null;
             /** Format: date */
             prescription_expires_on?: string | null;
             notes?: string | null;
@@ -10014,6 +10757,7 @@ export interface components {
             responsible_user_id?: string;
             /** @enum {string} */
             derived_status?: "vencido" | "vence_pronto" | "retiro_pendiente" | "proxima_reposicion" | "al_dia";
+            prescription_group_id?: string;
             /** @default 25 */
             limit: number;
             cursor?: string;
@@ -10626,6 +11370,136 @@ export interface components {
                 id: string;
                 full_name: string;
             };
+        };
+        DoseSchedule: {
+            id: string;
+            treatmentId: string;
+            dosePerIntake: string | number;
+            times: string[];
+            /** @enum {string} */
+            frequencyType: "daily" | "interval" | "weekly";
+            intervalHours: number | null;
+            anchorAt: string | null;
+            weekdays: number[];
+            effectiveFrom: string;
+            effectiveTo: string | null;
+            reason: string | null;
+            authorizedBy: string | null;
+            authorizationNote: string | null;
+            authorizationDocumentPath: string | null;
+            createdBy: string;
+            createdAt: string;
+        };
+        DoseLog: {
+            id: string;
+            treatmentId: string;
+            doseScheduleId: string;
+            scheduledFor: string;
+            /** @enum {string} */
+            status: "scheduled" | "taken" | "skipped" | "rescheduled";
+            nominalQuantity: string | number;
+            actualQuantity: string | number | unknown;
+            /** @enum {string|null} */
+            skipReasonCode: "patient_unavailable" | "side_effects" | "out_of_stock" | "medical_decision" | "other" | null;
+            skipReasonNote: string | null;
+            rescheduledFor: string | null;
+            recordedBy: string | null;
+            recordedAt: string | null;
+            correctedBy: string | null;
+            correctedAt: string | null;
+            correctionNote: string | null;
+        };
+        InventoryEntry: {
+            id: string;
+            treatmentId: string;
+            /** @enum {string} */
+            type: "initial" | "external_purchase" | "pharmacy_delivery" | "manual_adjustment" | "dose_consumption" | "reversal";
+            quantityDelta: string | number;
+            note: string | null;
+            recordedBy: string;
+            createdAt: string;
+        };
+        InventorySummary: {
+            balance: number;
+            balance_real: number;
+            consumed_unlogged: number;
+            rate_per_day: number;
+            /** @enum {string} */
+            rate_source: "actual" | "scheduled";
+            days_remaining_real: number | null;
+            low_inventory_threshold: string | null;
+            is_low: boolean;
+            exhausted_on: string | null;
+            projection: {
+                date: string;
+                units: number;
+                remaining: number;
+            }[];
+        };
+        ExternalPurchase: {
+            id: string;
+            treatmentId: string;
+            quantity: string | number;
+            presentation: string | null;
+            purchasedOn: string;
+            place: string | null;
+            notes: string | null;
+            recordedBy: string;
+            createdAt: string;
+        };
+        DoseScheduleCreateInput: {
+            dose_per_intake: number;
+            /**
+             * @description 'daily' requires times; 'interval' requires interval_hours+anchor_at; 'weekly' requires times+weekdays
+             * @default daily
+             * @enum {string}
+             */
+            frequency_type: "daily" | "interval" | "weekly";
+            /** @description Comma-separated HH:mm values, e.g. "08:00,20:00". Required for daily/weekly. */
+            times?: string;
+            /** @description Required for interval, e.g. 8 (every 8h) or 720 (every 30 days) */
+            interval_hours?: number;
+            /**
+             * Format: date-time
+             * @description ISO instant of the first occurrence. Required for interval.
+             */
+            anchor_at?: string;
+            /** @description Comma-separated 0-6 values (0=Sunday). Required for weekly. */
+            weekdays?: string;
+            effective_from: string;
+            reason?: string | null;
+            authorized_by?: string | null;
+            authorization_note?: string | null;
+            /** Format: binary */
+            authorization_document?: string;
+        };
+        DoseTakeInput: {
+            actual_quantity?: number | null;
+        };
+        DoseSkipInput: {
+            /** @enum {string} */
+            skip_reason_code: "patient_unavailable" | "side_effects" | "out_of_stock" | "medical_decision" | "other";
+            skip_reason_note?: string | null;
+        };
+        DoseRescheduleInput: {
+            rescheduled_for: string;
+        };
+        DoseCorrectInput: {
+            correction_note: string;
+        };
+        ExternalPurchaseInput: {
+            quantity: number;
+            presentation?: string | null;
+            purchased_on: string;
+            place?: string | null;
+            notes?: string | null;
+        };
+        InventoryAdjustInput: {
+            quantity_delta: number;
+            note: string;
+        };
+        InventoryThresholdInput: {
+            low_inventory_threshold: number | null;
         };
         DashboardConsolidatedQuery: {
             date?: string;

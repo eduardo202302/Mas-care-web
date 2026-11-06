@@ -102,10 +102,15 @@ export function StockMarkDialog({
           </p>
         )}
         <FormActions>
-          <Button type="button" onClick={onClose}>
+          <Button type="button" className="w-full sm:w-auto" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" variant="primary" disabled={save.isPending}>
+          <Button
+            type="submit"
+            variant="primary"
+            className="w-full sm:w-auto"
+            disabled={save.isPending}
+          >
             <PackageSearch className="size-4" />
             {save.isPending ? 'Guardando…' : 'Guardar existencias'}
           </Button>

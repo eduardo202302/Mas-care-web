@@ -2,12 +2,19 @@ import { useEffect, useMemo, useState } from 'react'
 import { ExportButton } from '@/components/ExportButton'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { LayoutGrid, List, RefreshCw, TriangleAlert } from 'lucide-react'
+import {
+  LayoutGrid,
+  List,
+  PackageCheck,
+  RefreshCw,
+  TriangleAlert,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { EmptyState } from '@/components/EmptyState'
 import { usePipeline } from '@/lib/pipeline'
 import { NewCycleDialog } from './NewCycleDialog'
+import { CycleCloseDialog, type CycleOutcome } from './CycleCloseDialog'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useToast } from '@/components/ui/Toast'
 import { KanbanBoard, type KanbanMove } from '@/components/kanban/KanbanBoard'
@@ -30,7 +37,6 @@ import {
   appendColumnPage,
   fetchBoard,
   fetchBoardColumn,
-  markNotPickedUp,
   moveCardInBoard,
   moveCycle,
 } from './board-api'
@@ -44,7 +50,6 @@ import { CycleCard } from './CycleCard'
 import { CycleTable } from './CycleTable'
 import { IncidentFormDialog } from '@/features/incidents/IncidentFormDialog'
 import { StockMarkDialog } from '@/features/settings/StockMarkDialog'
-import { DeliveryDialog } from '@/features/dashboard/DeliveryDialog'
 
 export default function BoardPage() {
   const queryClient = useQueryClient()
@@ -121,7 +126,10 @@ export default function BoardPage() {
     null,
   )
   const [noticeCard, setNoticeCard] = useState<BoardCard | null>(null)
-  const [deliveryCard, setDeliveryCard] = useState<BoardCard | null>(null)
+  const [closing, setClosing] = useState<{
+    card: BoardCard
+    outcome: CycleOutcome
+  } | null>(null)
   const [dateCard, setDateCard] = useState<BoardCard | null>(null)
   const [incidentCard, setIncidentCard] = useState<BoardCard | null>(null)
   const [stockCard, setStockCard] = useState<BoardCard | null>(null)
@@ -215,18 +223,6 @@ export default function BoardPage() {
     },
   })
 
-  const notPickedUp = useMutation({
-    mutationFn: (card: BoardCard) => markNotPickedUp(card.cycle_id),
-    onSuccess: async () => {
-      toast.push('Ciclo marcado como no retirado.', 'success')
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['board'] }),
-        queryClient.invalidateQueries({ queryKey: ['cycles'] }),
-      ])
-    },
-    onError: (error) => toast.push(error.message, 'error'),
-  })
-
   function updateFilters(next: BoardFilters) {
     const params = new URLSearchParams(searchParams)
     for (const key of [
@@ -311,19 +307,8 @@ export default function BoardPage() {
         droppable: key !== 'closed',
         note:
           key === 'closed'
-            ? 'Los ciclos cerrados no se mueven: la entrega o el no retiro ya quedó registrado. Para continuar el tratamiento usa «Nuevo tratamiento» en otra columna.'
+            ? 'Los ciclos cerrados no se mueven: la entrega o el no retiro ya quedó registrado. Para continuar el tratamiento usa «Nueva Reposición».'
             : undefined,
-        action:
-          key !== 'closed' && canCreateCycle ? (
-            <button
-              type="button"
-              aria-label={`Nuevo tratamiento en ${stageOf(key)?.name ?? boardColumnLabels[key]}`}
-              onClick={() => setNewCycleFor(key)}
-              className="text-tealmax text-xs font-semibold hover:underline"
-            >
-              + Nuevo tratamiento
-            </button>
-          ) : undefined,
         emptyText:
           key === 'closed'
             ? 'Aún no hay entregas recientes.'
@@ -333,7 +318,7 @@ export default function BoardPage() {
         onLoadMore: () => void loadMore(key),
       }
     })
-  }, [board.data, loadingColumn, pipeline, canCreateCycle])
+  }, [board.data, loadingColumn, pipeline])
 
   if (!me) {
     return (
@@ -414,7 +399,8 @@ export default function BoardPage() {
                 variant="primary"
                 onClick={() => setNewCycleFor('top')}
               >
-                + Crear nuevo
+                <PackageCheck className="size-4" />
+                Nueva Reposición
               </Button>
             )}
             <Button
@@ -511,8 +497,10 @@ export default function BoardPage() {
                 canMarkStock={canMarkStock}
                 dragHandleProps={options.dragHandleProps}
                 onNotice={() => setNoticeCard(card)}
-                onDeliver={() => setDeliveryCard(card)}
-                onNotPickedUp={() => notPickedUp.mutate(card)}
+                onDeliver={() => setClosing({ card, outcome: 'delivered' })}
+                onNotPickedUp={() =>
+                  setClosing({ card, outcome: 'not_picked_up' })
+                }
                 onChangeDate={() => setDateCard(card)}
                 onCreateIncident={() => setIncidentCard(card)}
                 onMoveTo={(to) => moveFromMenu(card, to)}
@@ -536,20 +524,20 @@ export default function BoardPage() {
           onClose={() => setNoticeCard(null)}
         />
       )}
-      {deliveryCard && (
-        <DeliveryDialog
-          treatmentId={deliveryCard.treatment_id}
-          patientName={deliveryCard.patient.nombre}
-          medicationName={deliveryCard.medication.nombre}
-          onClose={() => setDeliveryCard(null)}
-          onCompleted={() => {
-            void queryClient.invalidateQueries({ queryKey: ['board'] })
-            void queryClient.invalidateQueries({ queryKey: ['cycles'] })
-            void queryClient.invalidateQueries({ queryKey: ['patients'] })
-            toast.push(
-              'Entrega registrada. El siguiente ciclo ya está en el tablero.',
-              'success',
-            )
+      {closing && (
+        <CycleCloseDialog
+          card={closing.card}
+          outcome={closing.outcome}
+          onClose={() => setClosing(null)}
+          onCompleted={async () => {
+            await Promise.all([
+              queryClient.invalidateQueries({ queryKey: ['board'] }),
+              queryClient.invalidateQueries({ queryKey: ['cycles'] }),
+              queryClient.invalidateQueries({ queryKey: ['patients'] }),
+              queryClient.invalidateQueries({ queryKey: ['treatments'] }),
+              queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+            ])
+            void board.refetch()
           }}
         />
       )}

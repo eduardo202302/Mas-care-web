@@ -477,46 +477,326 @@ export function taskDueLabel(task: Task): string {
   }).format(date)
 }
 
-export function activityLabelFor(type: string): string {
-  const labels: Record<string, string> = {
-    note: 'Nota',
-    call: 'Llamada',
-    patient_created: 'Paciente registrado',
-    email: 'Correo',
-    meeting: 'Reunión',
-    automation: 'Automatización',
-    patient_updated: 'Datos del paciente actualizados',
-    patient_archived: 'Paciente archivado',
-    patient_restored: 'Paciente restaurado',
-    consent_recorded: 'Consentimiento registrado',
-    treatment_created: 'Tratamiento creado',
-    treatment_updated: 'Tratamiento actualizado',
-    treatment_paused: 'Tratamiento pausado',
-    treatment_finished: 'Tratamiento finalizado',
-    treatment_resumed: 'Tratamiento reanudado',
-    coverage_adjusted: 'Fin de cobertura ajustado',
-    prescription_renewed: 'Receta renovada',
-    delivery: 'Entrega registrada',
-    notice: 'Aviso enviado',
-    task: 'Tarea completada',
-    cycle_moved: 'Ciclo movido',
-    incident: 'Incidencia',
-  }
-  return labels[type] ?? type
+/**
+ * Etiquetas legibles para cada `type` de actividad que emite la API. Las claves
+ * salen del backend (`tx.activity.create`): si aquí falta una, el historial
+ * mostraba el identificador crudo (`external_purchase_recorded`). Al añadir un
+ * tipo nuevo en la API, añádelo también aquí.
+ */
+const activityLabels: Record<string, string> = {
+  // Actividades que registra el equipo a mano (ActivityInput).
+  note: 'Nota',
+  call: 'Llamada',
+  email: 'Correo',
+  meeting: 'Reunión',
+  // Paciente
+  patient_created: 'Paciente Registrado',
+  patient_updated: 'Datos del Paciente Actualizados',
+  patient_archived: 'Paciente Archivado',
+  patient_restored: 'Paciente Restaurado',
+  consent_recorded: 'Consentimiento Registrado',
+  transfer: 'Paciente Trasladado',
+  // Tratamiento
+  treatment_created: 'Tratamiento Creado',
+  treatment_updated: 'Tratamiento Actualizado',
+  treatment_paused: 'Tratamiento Pausado',
+  treatment_finished: 'Tratamiento Finalizado',
+  treatment_resumed: 'Tratamiento Reanudado',
+  coverage_adjusted: 'Fin de Cobertura Ajustado',
+  prescription_renewed: 'Receta Renovada',
+  delivery: 'Entrega Registrada',
+  reversal: 'Movimiento Revertido',
+  // Dosis
+  dose_taken: 'Toma Registrada',
+  dose_skipped: 'Toma Omitida',
+  dose_rescheduled: 'Toma Reprogramada',
+  dose_corrected: 'Registro de Toma Corregido',
+  // Inventario
+  external_purchase_recorded: 'Compra Externa Registrada',
+  inventory_adjusted: 'Inventario Ajustado',
+  low_inventory_alert: 'Alerta de Inventario Bajo',
+  // Otros
+  notice: 'Aviso Enviado',
+  automation: 'Automatización',
+  task: 'Tarea Completada',
+  cycle_moved: 'Ciclo Movido',
+  incident: 'Incidencia',
 }
 
+export function activityLabelFor(type: string): string {
+  return activityLabels[type] ?? humanizeActivityType(type)
+}
+
+/** Título específico por campo cuando un PATCH de tratamiento solo tocó uno. */
+const treatmentFieldUpdateTitles: Record<string, string> = {
+  medication_id: 'Medicamento Actualizado',
+  branch_id: 'Sucursal Actualizada',
+  responsible_user_id: 'Responsable Actualizado',
+  name: 'Nombre Actualizado',
+  prescriber_name: 'Doctor Actualizado',
+  prescriber_id: 'Doctor Actualizado',
+  dose_per_intake: 'Dosis por Toma Actualizada',
+  intakes_per_day: 'Tomas por Día Actualizadas',
+  quantity_per_cycle: 'Cantidad por Ciclo Actualizada',
+  start_date: 'Fecha de Inicio Actualizada',
+  end_date: 'Fecha de Fin Actualizada',
+  prescription_expires_on: 'Vencimiento de Receta Actualizado',
+  notes: 'Notas Actualizadas',
+  custom_values: 'Propiedades Personalizadas Actualizadas',
+  patient_id: 'Paciente Actualizado',
+}
+
+/** Título específico por campo cuando un PATCH de paciente solo tocó uno. */
+const patientFieldUpdateTitles: Record<string, string> = {
+  full_name: 'Nombre Actualizado',
+  document_id: 'Documento Actualizado',
+  birth_date: 'Fecha de Nacimiento Actualizada',
+  phone: 'Teléfono Actualizado',
+  phone_has_whatsapp: 'WhatsApp Actualizado',
+  email: 'Correo Actualizado',
+  preferred_channel: 'Canal Preferido Actualizado',
+  primary_branch_id: 'Sucursal Actualizada',
+  responsible_user_id: 'Responsable Actualizado',
+  care_notes: 'Notas de Cuidado Actualizadas',
+  address_details: 'Dirección Actualizada',
+  custom_values: 'Propiedades Personalizadas Actualizadas',
+}
+
+const singleChangeFieldTitles: Record<string, Record<string, string>> = {
+  treatment_updated: treatmentFieldUpdateTitles,
+  patient_updated: patientFieldUpdateTitles,
+}
+
+/**
+ * Título del historial. Para `treatment_updated`/`patient_updated` con un
+ * único campo tocado dice cuál fue («Fecha de Fin Actualizada») en vez del
+ * genérico «Tratamiento/Datos del Paciente Actualizado(s)»; el detalle
+ * (antes → después) sigue igual, debajo del título.
+ */
+export function activityTitleFor(
+  activity: components['schemas']['Activity'],
+): string {
+  const titles = singleChangeFieldTitles[activity.type]
+  if (titles) {
+    const changes = activity.metadata.changes
+    if (Array.isArray(changes) && changes.length === 1) {
+      const field = String((changes[0] as { field?: unknown }).field ?? '')
+      const title = titles[field]
+      if (title) return title
+    }
+  }
+  return activityLabelFor(activity.type)
+}
+
+/**
+ * Red de seguridad: un tipo que aún no tenga etiqueta se muestra como palabras
+ * («compra externa registrada») en vez del identificador con guiones bajos.
+ */
+function humanizeActivityType(type: string): string {
+  const words = type.replace(/[_-]+/g, ' ').trim()
+  if (!words) return 'Movimiento'
+  return words.charAt(0).toLocaleUpperCase('es') + words.slice(1)
+}
+
+/** Nombres de campo del PATCH de tratamiento, para historial sin detalle. */
+const treatmentFieldLabels: Record<string, string> = {
+  medication_id: 'Medicamento',
+  branch_id: 'Sucursal',
+  responsible_user_id: 'Responsable',
+  name: 'Nombre',
+  prescriber_name: 'Doctor',
+  prescriber_id: 'Doctor',
+  dose_per_intake: 'Dosis por toma',
+  intakes_per_day: 'Tomas por día',
+  quantity_per_cycle: 'Cantidad por ciclo',
+  start_date: 'Fecha de inicio',
+  end_date: 'Fecha de fin',
+  prescription_expires_on: 'Vencimiento de receta',
+  notes: 'Notas',
+  custom_values: 'Propiedades personalizadas',
+  patient_id: 'Paciente',
+}
+
+/** Horario de dosis a partir del metadata que ya guardaban los eventos. */
+function describeScheduleMetadata(
+  metadata: Record<string, unknown>,
+): string | null {
+  const type = metadata.frequency_type
+  if (typeof type !== 'string') return null
+  const dose = metadata.dose_per_intake
+  const prefix =
+    dose === undefined || dose === null ? '' : `Dosis ${String(dose)} · `
+  const times = Array.isArray(metadata.times)
+    ? metadata.times.map(String).filter(Boolean)
+    : []
+  const weekdays = Array.isArray(metadata.weekdays)
+    ? metadata.weekdays.map(Number).sort((a, b) => a - b)
+    : []
+  if (type === 'interval') {
+    const hours = Number(metadata.interval_hours)
+    if (!Number.isFinite(hours) || hours <= 0)
+      return `${prefix}Cada cierto intervalo`
+    if (hours % 24 === 0) {
+      const days = hours / 24
+      return days === 1 ? `${prefix}Cada día` : `${prefix}Cada ${days} días`
+    }
+    return hours === 1 ? `${prefix}Cada hora` : `${prefix}Cada ${hours} horas`
+  }
+  if (type === 'weekly') {
+    const days = weekdays
+      .map((day) => WEEKDAY_NAMES[day] ?? String(day))
+      .join(', ')
+    const at = times.length ? ` a las ${times.join(', ')}` : ''
+    return `${prefix}${days || 'Días específicos'}${at}`
+  }
+  if (type === 'monthly') {
+    const monthdays = Array.isArray(metadata.monthdays)
+      ? metadata.monthdays.map(Number).sort((a, b) => a - b)
+      : []
+    const at = times.length ? ` a las ${times.join(', ')}` : ''
+    return `${prefix}Días ${monthdays.join(', ') || 'específicos'} de cada mes${at}`
+  }
+  if (!times.length) return `${prefix}Diario`
+  return `${prefix}Diario a las ${times.join(', ')}`
+}
+
+const WEEKDAY_NAMES = [
+  'Domingo',
+  'Lunes',
+  'Martes',
+  'Miércoles',
+  'Jueves',
+  'Viernes',
+  'Sábado',
+]
+
+const skipReasonDetailLabels: Record<string, string> = {
+  patient_unavailable: 'Paciente no disponible',
+  side_effects: 'Efectos secundarios',
+  out_of_stock: 'Sin inventario',
+  medical_decision: 'Decisión médica',
+  other: 'Otro',
+}
+
+/** Lista de cambios («Campo antes → después») del metadata de un PATCH. */
+function formatChanges(changes: unknown[]): string | null {
+  if (!changes.length) return null
+  const parts = changes.slice(0, 3).map((raw) => {
+    const change = raw as { label?: string; from?: unknown; to?: unknown }
+    const label = String(change.label ?? '')
+    return change.from === null && change.to === null
+      ? label
+      : `${label} ${String(change.from ?? '—')} → ${String(change.to ?? '—')}`
+  })
+  const more = changes.length > 3 ? `y ${changes.length - 3} más` : null
+  return [...parts, more].filter(Boolean).join(' · ')
+}
+
+/** Texto plano con el detalle de cada evento (cantidades, fechas, motivos). */
 export function activityDetail(
   activity: components['schemas']['Activity'],
 ): string | null {
+  const { metadata } = activity
+
+  // Qué se actualizó de verdad. Antes toda edición decía «Tratamiento
+  // Actualizado» sin explicar el cambio.
+  if (activity.type === 'treatment_updated') {
+    const changes = metadata.changes
+    if (Array.isArray(changes) && changes.length) return formatChanges(changes)
+    // Eventos anteriores al detalle actual: la programación de dosis ya
+    // guardaba dosis y frecuencia en el metadata, así que se describe igual.
+    const schedule = describeScheduleMetadata(metadata)
+    if (schedule) {
+      return activity.body?.includes('creada')
+        ? `Creada · ${schedule}`
+        : `Quedó en ${schedule}`
+    }
+    // `changes` presente pero vacío: el PATCH no modificó nada de verdad (el
+    // formulario reenvía todos los campos aunque no hayan cambiado). No hay
+    // que listar esos campos como si se hubieran tocado; solo los eventos
+    // previos a este detalle (sin `changes` en absoluto) caen al fallback.
+    if (Array.isArray(changes)) return null
+    // Eventos de edición sin detalle: al menos se dice qué campos se tocaron.
+    const fields = metadata.fields
+    if (Array.isArray(fields) && fields.length) {
+      const labels = fields.map((field) => treatmentFieldLabels[String(field)])
+      const known = labels.filter((label): label is string => Boolean(label))
+      if (known.length) {
+        const shown = known.slice(0, 4).join(', ')
+        const more = known.length > 4 ? ` y ${known.length - 4} más` : ''
+        return `Campos actualizados: ${shown}${more}`
+      }
+    }
+    return activity.body || null
+  }
+
+  // Igual que `treatment_updated`: dice qué campo cambió en vez de solo
+  // «Datos del Paciente Actualizados».
+  if (activity.type === 'patient_updated') {
+    const changes = metadata.changes
+    if (Array.isArray(changes) && changes.length) return formatChanges(changes)
+    return activity.body || null
+  }
+
   if (activity.type === 'cycle_moved') {
-    const from = activity.metadata.from
-    const to = activity.metadata.to
+    const from = metadata.from
+    const to = metadata.to
     return from && to ? `De ${String(from)} a ${String(to)}` : null
   }
+
+  if (activity.type === 'external_purchase_recorded') {
+    const quantity = Number(metadata.quantity)
+    const presentation = metadata.presentation
+    if (Number.isNaN(quantity)) return activity.body || null
+    return [
+      `${quantity} ${quantity === 1 ? 'unidad' : 'unidades'}`,
+      presentation ? String(presentation) : null,
+      activity.body || null,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+  }
+
+  if (activity.type === 'inventory_adjusted') {
+    const delta = Number(metadata.quantity_delta)
+    const sign = delta > 0 ? `+${delta}` : String(delta)
+    return Number.isNaN(delta)
+      ? activity.body || null
+      : [`${sign} unidades`, activity.body || null].filter(Boolean).join(' · ')
+  }
+
+  if (activity.type === 'low_inventory_alert') {
+    const balance = Number(metadata.balance)
+    return Number.isNaN(balance)
+      ? activity.body || null
+      : `Saldo: ${balance} unidades`
+  }
+
+  if (activity.type === 'dose_skipped') {
+    const code = metadata.skip_reason_code
+    const reason =
+      typeof code === 'string' ? (skipReasonDetailLabels[code] ?? code) : null
+    return [reason, activity.body || null].filter(Boolean).join(' · ') || null
+  }
+
+  if (activity.type === 'dose_rescheduled') {
+    const when = metadata.rescheduled_for
+    return typeof when === 'string'
+      ? `Nueva hora: ${formatDateTime(when)}`
+      : activity.body || null
+  }
+
+  if (activity.type === 'dose_taken') {
+    const quantity = Number(metadata.quantity)
+    return Number.isNaN(quantity)
+      ? activity.body || null
+      : `${quantity} ${quantity === 1 ? 'unidad' : 'unidades'}`
+  }
+
   if (activity.type !== 'delivery') return activity.body || null
-  const quantity = activity.metadata.quantity
-  const deliveredOn = activity.metadata.delivered_on
-  const pickedUpBy = activity.metadata.picked_up_by
+  const quantity = metadata.quantity
+  const deliveredOn = metadata.delivered_on
+  const pickedUpBy = metadata.picked_up_by
   const quantityNumber = Number(quantity)
   const parts = [
     quantity !== undefined

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
+import { FormActions } from '@/components/ui/FormActions'
+import { TextField } from '@/components/ui/TextField'
 import { api } from '@/lib/http'
 
 /** Sends one approved WhatsApp template to a number you type (for example your own phone) to check it. */
@@ -32,26 +34,23 @@ export function TemplateTestSendDialog({
       onClose={onClose}
     >
       <form
-        className="grid gap-3"
+        className="grid gap-5"
         onSubmit={(event) => {
           event.preventDefault()
           if (phone.trim().length >= 7) send.mutate()
         }}
       >
-        <label className="grid gap-1 text-sm font-medium">
-          Teléfono de prueba
-          <input
-            type="tel"
-            inputMode="tel"
-            placeholder="809 555 0123"
-            value={phone}
-            onChange={(event) => {
-              setPhone(event.target.value)
-              send.reset()
-            }}
-            className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
-          />
-        </label>
+        <TextField
+          label="Teléfono de prueba"
+          type="tel"
+          inputMode="tel"
+          placeholder="809 555 0123"
+          value={phone}
+          onChange={(event) => {
+            setPhone(event.target.value)
+            send.reset()
+          }}
+        />
         {send.isSuccess && (
           <p role="status" className="text-sm text-emerald-800">
             Enviado. Revisa ese teléfono.
@@ -62,18 +61,19 @@ export function TemplateTestSendDialog({
             {send.error.message}
           </p>
         )}
-        <div className="flex justify-end gap-2">
-          <Button type="button" onClick={onClose}>
+        <FormActions>
+          <Button type="button" className="w-full sm:w-auto" onClick={onClose}>
             Cerrar
           </Button>
           <Button
             type="submit"
             variant="primary"
+            className="w-full sm:w-auto"
             disabled={phone.trim().length < 7 || send.isPending}
           >
             {send.isPending ? 'Enviando…' : 'Enviar prueba'}
           </Button>
-        </div>
+        </FormActions>
       </form>
     </Dialog>
   )

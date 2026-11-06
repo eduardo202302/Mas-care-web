@@ -7,6 +7,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
+import { FormActions } from '@/components/ui/FormActions'
 import { Mail } from 'lucide-react'
 import {
   ActiveFilterChips,
@@ -363,20 +364,21 @@ function AssignDialog({
             {assign.error.message}
           </p>
         )}
-        <div className="flex justify-end gap-2">
-          <Button type="button" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            disabled={!patientId || assign.isPending}
-            onClick={() => assign.mutate()}
-          >
-            Asignar
-          </Button>
-        </div>
       </div>
+      <FormActions>
+        <Button type="button" className="w-full sm:w-auto" onClick={onClose}>
+          Cancelar
+        </Button>
+        <Button
+          type="button"
+          variant="primary"
+          className="w-full sm:w-auto"
+          disabled={!patientId || assign.isPending}
+          onClick={() => assign.mutate()}
+        >
+          {assign.isPending ? 'Asignando…' : 'Asignar'}
+        </Button>
+      </FormActions>
     </Dialog>
   )
 }

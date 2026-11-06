@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, FileText, HandCoins, Paperclip, Plus, Trash2, UserRound, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
+import { FormActions } from '@/components/ui/FormActions'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { TextField } from '@/components/ui/TextField'
 import { api } from '@/lib/http'
@@ -298,14 +299,24 @@ function DealCreateForm({
         onChange={setMedicationItems}
       />
 
-      <div className="mt-2 flex justify-end gap-2">
-        <Button type="button" variant="ghost" onClick={onCancel}>
+      <FormActions>
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full sm:w-auto"
+          onClick={onCancel}
+        >
           Cancelar
         </Button>
-        <Button type="submit" variant="primary" disabled={submitting || !name.trim()}>
-          Guardar
+        <Button
+          type="submit"
+          variant="primary"
+          className="w-full sm:w-auto"
+          disabled={submitting || !name.trim()}
+        >
+          {submitting ? 'Guardando…' : 'Guardar'}
         </Button>
-      </div>
+      </FormActions>
     </form>
   )
 }
@@ -341,14 +352,25 @@ function ExistingDealPicker({
           Las ofertas de esta compañía ya están asociadas a su registro.
         </p>
       </div>
-      <div className="mt-2 flex justify-end gap-2">
-        <Button type="button" variant="ghost" onClick={onDone}>
+      <FormActions>
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full sm:w-auto"
+          onClick={onDone}
+        >
           Cancelar
         </Button>
-        <Button type="button" variant="primary" disabled={!dealId} onClick={onDone}>
+        <Button
+          type="button"
+          variant="primary"
+          className="w-full sm:w-auto"
+          disabled={!dealId}
+          onClick={onDone}
+        >
           Agregar
         </Button>
-      </div>
+      </FormActions>
     </div>
   )
 }

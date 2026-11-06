@@ -181,3 +181,100 @@ input {
     box-shadow: none !important;
   }
 }
+
+/*
+ * Impresión de un diálogo (`<Dialog printable>`): se oculta todo lo demás y
+ * el diálogo se expande a la página completa, sin scroll interno.
+ */
+@media print {
+  body.printing-dialog {
+    overflow: visible !important;
+  }
+  body.printing-dialog > *:not([data-print-dialog]) {
+    display: none !important;
+  }
+  body.printing-dialog [data-print-dialog] {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    background: none !important;
+    padding: 0 !important;
+  }
+  html:has(body.printing-dialog),
+  body.printing-dialog {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+  body.printing-dialog [data-print-dialog],
+  body.printing-dialog [data-print-dialog] > section,
+  body.printing-dialog [data-print-dialog] > section > div {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    flex: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  body.printing-dialog [data-print-dialog] > section {
+    max-height: none !important;
+    max-width: none !important;
+    overflow: visible !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  body.printing-dialog [data-print-dialog] > section > div {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  body.printing-dialog [data-print-dialog] .sticky {
+    position: static !important;
+  }
+  /* Campos como texto plano: sin bordes, fondo, flecha ni calendario. */
+  body.printing-dialog [data-print-dialog] input,
+  body.printing-dialog [data-print-dialog] select,
+  body.printing-dialog [data-print-dialog] textarea {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    padding-left: 0 !important;
+    color: #000 !important;
+    resize: none !important;
+  }
+  body.printing-dialog [data-print-dialog] input::-webkit-calendar-picker-indicator,
+  body.printing-dialog [data-print-dialog] input::-webkit-inner-spin-button {
+    display: none !important;
+  }
+  body.printing-dialog [data-print-dialog] input[type='file'] {
+    display: none !important;
+  }
+  /* Controles interactivos que no aportan en papel (los días elegidos sí). */
+  body.printing-dialog [data-print-dialog] button:not([aria-pressed='true']),
+  body.printing-dialog [data-print-dialog] [role='listbox'],
+  body.printing-dialog [data-print-dialog] svg.lucide-search {
+    display: none !important;
+  }
+  body.printing-dialog [data-print-dialog] [aria-pressed='true'] {
+    border: 0 !important;
+    background: none !important;
+    padding: 0 0.5rem 0 0 !important;
+    color: #000 !important;
+  }
+  /* Secciones: sin tarjeta ni color de fondo, solo el título y su línea. */
+  body.printing-dialog [data-print-dialog] .bg-surface,
+  body.printing-dialog [data-print-dialog] [class*='bg-sky-'],
+  body.printing-dialog [data-print-dialog] [class*='bg-amber-'],
+  body.printing-dialog [data-print-dialog] [class*='bg-emerald-'],
+  body.printing-dialog [data-print-dialog] .bg-modulos {
+    background: none !important;
+  }
+  body.printing-dialog [data-print-dialog] .rounded-xl.border {
+    border: 0 !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    border-radius: 0 !important;
+    break-inside: avoid;
+  }
+}

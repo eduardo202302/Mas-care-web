@@ -32,6 +32,9 @@ const PatientDetailPage = lazy(
 const MedicationsPage = lazy(
   () => import('@/features/medications/MedicationsPage'),
 )
+const TreatmentsPage = lazy(
+  () => import('@/features/treatments/TreatmentsPage'),
+)
 const UsersPage = lazy(() => import('@/features/users/UsersPage'))
 const JobsPage = lazy(() => import('@/features/jobs/JobsPage'))
 const CompaniesPage = lazy(() => import('@/features/companies/CompaniesPage'))
@@ -111,6 +114,7 @@ export const router = createBrowserRouter([
                     path: '/pacientes/:patientId/tratamientos/:id',
                     element: <TreatmentDetailPage />,
                   },
+                  { path: '/tratamientos', element: <TreatmentsPage /> },
                   { path: '/medicamentos', element: <MedicationsPage /> },
                   { path: '/medicos', element: <DoctorsPage /> },
                   { path: '/medicos/:id', element: <DoctorDetailPage /> },

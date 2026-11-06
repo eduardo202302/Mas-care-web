@@ -68,12 +68,6 @@ export function changeExpectedOn(
   )
 }
 
-export function markNotPickedUp(cycleId: string) {
-  return api(`/api/v1/cycles/${encodeURIComponent(cycleId)}/mark-not-picked-up`, {
-    method: 'POST',
-  })
-}
-
 export function setStockMark(
   branchId: string,
   medicationId: string,
@@ -126,7 +120,9 @@ export function moveCardInBoard(
   const data = cloneBoard(previous)
   let from: BoardColumnKey | null = null
   for (const key of boardColumns) {
-    if (data.columns[key].cards.some((item) => item.cycle_id === card.cycle_id)) {
+    if (
+      data.columns[key].cards.some((item) => item.cycle_id === card.cycle_id)
+    ) {
       from = key
       break
     }
