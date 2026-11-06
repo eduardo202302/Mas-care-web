@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, Columns3, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
+import { FormActions } from '@/components/ui/FormActions'
+import { TextField } from '@/components/ui/TextField'
 import { api } from '@/lib/http'
 import { CustomPropertyFilter } from '@/components/CustomFields'
 import { usePipeline } from '@/lib/pipeline'
@@ -553,32 +555,34 @@ export function SavedViewsBar({
               )
             }}
           >
-            <label className="grid gap-1 text-sm font-medium">
-              Nombre de la vista
-              <input
-                className={control}
-                value={name}
-                maxLength={100}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </label>
+            <TextField
+              label="Nombre de la vista"
+              value={name}
+              maxLength={100}
+              onChange={(e) => setName(e.target.value)}
+            />
             {create.isError && (
               <p role="alert" className="text-sm text-red-700">
                 {create.error.message}
               </p>
             )}
-            <div className="flex justify-end gap-2">
-              <Button type="button" onClick={() => setSaving(false)}>
+            <FormActions>
+              <Button
+                type="button"
+                className="w-full sm:w-auto"
+                onClick={() => setSaving(false)}
+              >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 variant="primary"
+                className="w-full sm:w-auto"
                 disabled={!name.trim() || create.isPending}
               >
-                Guardar vista
+                {create.isPending ? 'Guardando…' : 'Guardar vista'}
               </Button>
-            </div>
+            </FormActions>
           </form>
         </Dialog>
       )}
@@ -703,10 +707,9 @@ export function BatchBar({
               </select>
             )}
             {action === 'create_tasks' && (
-              <input
-                aria-label="Título de la tarea"
+              <TextField
+                label="Título de la tarea"
                 placeholder="Título de la tarea"
-                className={control}
                 value={title}
                 maxLength={160}
                 onChange={(e) => setTitle(e.target.value)}
@@ -727,32 +730,34 @@ export function BatchBar({
                 {result}
               </p>
             )}
-            <div className="flex justify-end gap-2">
-              <Button type="button" onClick={close}>
-                {result ? 'Cerrar' : 'Cancelar'}
-              </Button>
-              {result && blocked.length > 0 && (
-                <Button
-                  type="button"
-                  variant="danger"
-                  disabled={run.isPending}
-                  onClick={() => run.mutate(true)}
-                >
-                  Mover igualmente {blocked.length} sin existencias
-                </Button>
-              )}
-              {!result && (
-                <Button
-                  type="button"
-                  variant={action === 'archive' ? 'danger' : 'primary'}
-                  disabled={run.isPending || needsTitle}
-                  onClick={() => run.mutate(false)}
-                >
-                  Confirmar y aplicar a {ids.length}
-                </Button>
-              )}
-            </div>
           </div>
+          <FormActions>
+            <Button type="button" className="w-full sm:w-auto" onClick={close}>
+              {result ? 'Cerrar' : 'Cancelar'}
+            </Button>
+            {result && blocked.length > 0 && (
+              <Button
+                type="button"
+                variant="danger"
+                className="w-full sm:w-auto"
+                disabled={run.isPending}
+                onClick={() => run.mutate(true)}
+              >
+                Mover igualmente {blocked.length} sin existencias
+              </Button>
+            )}
+            {!result && (
+              <Button
+                type="button"
+                variant={action === 'archive' ? 'danger' : 'primary'}
+                className="w-full sm:w-auto"
+                disabled={run.isPending || needsTitle}
+                onClick={() => run.mutate(false)}
+              >
+                Confirmar y aplicar a {ids.length}
+              </Button>
+            )}
+          </FormActions>
         </Dialog>
       )}
     </div>

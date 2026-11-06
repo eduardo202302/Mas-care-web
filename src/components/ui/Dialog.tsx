@@ -1,8 +1,86 @@
 import { useEffect, useId, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { X } from 'lucide-react'
+import { Printer, X } from 'lucide-react'
+import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/cn'
 import { Button } from './Button'
+
+/** Encabezado que solo aparece al imprimir: empresa, fecha actual y quién imprime. */
+function PrintHeader({ title }: { title: string }) {
+  const organization = authClient.useActiveOrganization().data
+  const user = authClient.useSession().data?.user
+  const now = new Date()
+  const day = new Intl.DateTimeFormat('es-BO', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(now)
+  const hour12 = now.getHours() % 12 || 12
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  const today = `${day} ${hour12}:${minutes} ${now.getHours() < 12 ? 'AM' : 'PM'}`
+  return (
+    <div className="mb-4 border-b border-slate-300 pb-3">
+      <p className="text-lg font-bold">{organization?.name ?? 'Empresa'}</p>
+      <p className="text-sm">{title}</p>
+      <p className="mt-1 text-xs">
+        Fecha: {today} · Impreso por: {user?.name || user?.email || '—'}
+      </p>
+    </div>
+  )
+}
+
+/**
+ * En pantalla es un contenedor normal; al imprimir es una tabla cuyo `thead`
+ * el navegador repite en cada página. Deben ser etiquetas de tabla reales:
+ * con `div` + `display: table-header-group` Chrome no lo repite.
+ */
+function PrintFrame({
+  title,
+  children,
+}: {
+  title: string
+  children: ReactNode
+}) {
+  return (
+    <table className="block w-full print:table">
+      <thead className="hidden print:table-header-group">
+        <tr className="print:table-row">
+          <td className="print:table-cell print:px-[12mm] print:pt-[12mm]">
+            <PrintHeader title={title} />
+          </td>
+        </tr>
+      </thead>
+      <tbody className="block print:table-row-group">
+        <tr className="block print:table-row">
+          <td className="block print:table-cell print:px-[12mm]">{children}</td>
+        </tr>
+      </tbody>
+      <tfoot className="hidden print:table-footer-group">
+        <tr className="print:table-row">
+          <td className="h-[12mm] print:table-cell" />
+        </tr>
+      </tfoot>
+    </table>
+  )
+}
+
+function printDialog() {
+  // Con margen de página en 0 el navegador no escribe su propia línea
+  // (fecha/título arriba, URL abajo); los márgenes los pone <PrintFrame>.
+  const pageStyle = document.createElement('style')
+  pageStyle.textContent = '@page { margin: 0 }'
+  document.head.appendChild(pageStyle)
+  document.body.classList.add('printing-dialog')
+  window.addEventListener(
+    'afterprint',
+    () => {
+      document.body.classList.remove('printing-dialog')
+      pageStyle.remove()
+    },
+    { once: true },
+  )
+  window.print()
+}
 
 export function Dialog({
   title,
@@ -10,6 +88,7 @@ export function Dialog({
   icon,
   dense = false,
   compactHeader = false,
+  printable = false,
   onClose,
   children,
   size = 'md',
@@ -20,6 +99,8 @@ export function Dialog({
   icon?: ReactNode
   dense?: boolean
   compactHeader?: boolean
+  /** Muestra un botón de imprimir en el encabezado y un encabezado de impresión. */
+  printable?: boolean
   onClose: () => void
   children: ReactNode
   size?: 'md' | 'lg' | 'xl'
@@ -39,6 +120,7 @@ export function Dialog({
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 sm:p-6"
       role="presentation"
+      data-print-dialog={printable ? '' : undefined}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}
@@ -78,15 +160,29 @@ export function Dialog({
               )}
             </div>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            aria-label="Cerrar"
-            className="size-9 shrink-0 px-0"
-            onClick={onClose}
-          >
-            <X className="size-4" />
-          </Button>
+          <div className="flex shrink-0 items-center gap-1">
+            {printable && (
+              <Button
+                type="button"
+                variant="ghost"
+                aria-label="Imprimir formulario"
+                title="Imprimir formulario"
+                className="size-9 shrink-0 px-0"
+                onClick={printDialog}
+              >
+                <Printer className="size-4" />
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              aria-label="Cerrar"
+              className="size-9 shrink-0 px-0"
+              onClick={onClose}
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
         </header>
         <div
           className={cn(
@@ -95,7 +191,11 @@ export function Dialog({
             bodyClassName,
           )}
         >
-          {children}
+          {printable ? (
+            <PrintFrame title={title}>{children}</PrintFrame>
+          ) : (
+            children
+          )}
         </div>
       </section>
     </div>,

@@ -1,20 +1,19 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   Check,
   ClipboardList,
   FileText,
+  CalendarCheck,
   Mail,
   MessageCircle,
   PackageCheck,
   Phone,
+  PhoneCall,
+  Pill,
+  StickyNote,
   Plus,
   ShieldCheck,
   TriangleAlert,
@@ -27,6 +26,7 @@ import {
   CustomValuesView,
   customPropertyGroups,
 } from '@/components/CustomFields'
+import type { CycleTableResponse } from '@/lib/board'
 import { useCustomProperties } from '@/lib/custom-properties'
 import {
   PropertiesDialog,
@@ -48,19 +48,22 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { TextField } from '@/components/ui/TextField'
 import { api } from '@/lib/http'
 import { formatPhone } from '@/lib/phone'
 import { useCan } from '@/lib/permissions'
 import type { components, paths } from '@/lib/api-types'
 import {
+  buildDoseScheduleFields,
+  isDoseFrequencyValid,
   medicationName,
+  uploadPrescriptionDocument,
+  type DoseScheduleFrequency,
   type Medication,
   type Treatment,
 } from '@/lib/treatments'
 import {
-  activityDetail,
-  activityLabelFor,
   noticeChannelFor,
   taskDueLabel,
   taskTypeLabels,
@@ -69,7 +72,7 @@ import {
   type TaskList,
 } from '@/lib/operations'
 import type { PatientFormValues } from '@/schemas/patient'
-import type { TreatmentFormValues } from '@/schemas/treatment'
+import type { TreatmentSaveValues } from '@/schemas/treatment'
 import { PatientDetailSkeleton } from './PatientDetailSkeleton'
 import { PatientForm } from './PatientForm'
 import {
@@ -92,22 +95,26 @@ import { PatientDoctorsPanel } from './PatientDoctorsPanel'
 import { PatientCaregiversPanel } from './PatientCaregiversPanel'
 import { PatientConditionsPanel } from './PatientConditionsPanel'
 import { PatientInfoPackPanel } from './PatientInfoPackPanel'
+import { ActivityHistory } from '@/components/ActivityHistory'
 
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
-type ActivityList =
-  paths['/api/v1/patients/{id}/activities']['get']['responses'][200]['content']['application/json']
 type TreatmentListResponse =
   paths['/api/v1/treatments']['get']['responses'][200]['content']['application/json']
 type MedicationList =
   paths['/api/v1/medications']['get']['responses'][200]['content']['application/json']
 type UserList =
   paths['/api/v1/users']['get']['responses'][200]['content']['application/json']
+type DoctorPickerList = {
+  data: {
+    id: string
+    firstName: string
+    lastName: string
+    licenseNumber?: string | null
+  }[]
+}
 type PatientIncidentList =
   paths['/api/v1/patients/{id}/incidents']['get']['responses'][200]['content']['application/json']
-
-const authorName = (activity: object) =>
-  (activity as { author?: { name?: string } | null }).author?.name
 
 const activityDialogTitle = {
   note: 'Añadir nota',
@@ -188,6 +195,7 @@ export default function PatientDetailPage() {
   const canAddActivity = useCan('patients:write')
   const canRecordConsent = useCan('patients:write')
   const canWriteTreatment = useCan('treatments:write')
+  const canReadDoctors = useCan('doctors:read')
   const canManageTreatment = useCan('treatments:manage')
   const canReadTasks = useCan('tasks:read')
   const canWriteTasks = useCan('tasks:write')
@@ -245,19 +253,22 @@ export default function PatientDetailPage() {
     queryKey: ['branches'],
     queryFn: () => api<BranchList>('/api/v1/branches'),
   })
-  const activities = useInfiniteQuery({
-    queryKey: ['patients', id, 'activities'],
-    queryFn: ({ pageParam }) => {
-      const params = new URLSearchParams({ limit: '25' })
-      if (pageParam) params.set('cursor', pageParam)
-      return api<ActivityList>(
-        `/api/v1/patients/${encodeURIComponent(id)}/activities?${params.toString()}`,
-      )
-    },
-    initialPageParam: '',
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  // Ciclos del paciente: sirve para saber qué tratamientos ya tienen una
+  // reposición abierta y habilitar Entregar / Ajustar / Renovar solo entonces.
+  const patientCycles = useQuery({
+    queryKey: ['cycles', 'patient-open', id],
+    queryFn: () =>
+      api<CycleTableResponse>(
+        `/api/v1/cycles?patient_ids=${encodeURIComponent(id)}&limit=100`,
+      ),
     enabled: Boolean(id),
   })
+  const openCycleTreatmentIds = new Set(
+    (patientCycles.data?.data ?? [])
+      .filter((cycle) => !cycle.closed_at)
+      .map((cycle) => cycle.treatment_id),
+  )
+
   const treatments = useQuery({
     queryKey: ['treatments', { patientId: id }],
     queryFn: () =>
@@ -265,6 +276,35 @@ export default function PatientDetailPage() {
         `/api/v1/treatments?patient_id=${encodeURIComponent(id)}&limit=15`,
       ),
     enabled: Boolean(id),
+  })
+  const treatmentIds = (treatments.data?.data ?? []).map(
+    (treatment) => treatment.id,
+  )
+  // Horario de dosis activo de cada tratamiento, para mostrar la cantidad y
+  // la frecuencia real (p.ej. "Cada 8 horas") en vez de los campos fijos del
+  // tratamiento ("tomas/día").
+  const treatmentSchedules = useQuery({
+    queryKey: ['treatments', 'schedules', treatmentIds],
+    queryFn: async () => {
+      const entries = await Promise.all(
+        treatmentIds.map(async (treatmentId) => {
+          const result = await api<{
+            data: (DoseScheduleFrequency & {
+              dosePerIntake: string | number
+              effectiveTo: string | null
+            })[]
+          }>(
+            `/api/v1/treatments/${encodeURIComponent(treatmentId)}/dose-schedules`,
+          )
+          return [
+            treatmentId,
+            result.data.find((row) => !row.effectiveTo) ?? null,
+          ] as const
+        }),
+      )
+      return new Map(entries)
+    },
+    enabled: treatmentIds.length > 0,
   })
   const patientTasks = useQuery({
     queryKey: ['tasks', 'patient', id],
@@ -290,6 +330,13 @@ export default function PatientDetailPage() {
   const users = useQuery({
     queryKey: ['users', { limit: 15 }],
     queryFn: () => api<UserList>('/api/v1/users?limit=15'),
+  })
+  // Médicos activos para el select de prescriptor del tratamiento.
+  const doctors = useQuery({
+    queryKey: ['doctors', 'picker'],
+    queryFn: () =>
+      api<DoctorPickerList>('/api/v1/doctors?isActive=true&rows=100'),
+    enabled: treatmentFormOpen && canReadDoctors,
   })
   const update = useMutation({
     mutationFn: (values: PatientFormValues) => {
@@ -388,11 +435,11 @@ export default function PatientDetailPage() {
     ])
   }
   const saveTreatment = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       values,
       treatment,
     }: {
-      values: TreatmentFormValues
+      values: TreatmentSaveValues
       treatment?: Treatment
     }) => {
       if (treatment) {
@@ -404,15 +451,19 @@ export default function PatientDetailPage() {
           intakes_per_day: values.intakesPerDay,
           quantity_per_cycle: values.quantityPerCycle,
           start_date: values.startDate,
+          end_date: values.endDate || null,
           prescriber_name: values.prescriberName?.trim() || null,
+          prescriber_id: values.prescriberId?.trim() || null,
           prescription_expires_on: values.prescriptionExpiresOn || null,
           notes: values.notes?.trim() || null,
           custom_values: values.customValues,
         } as components['schemas']['TreatmentPatch']
-        return api<Treatment>(
+        const updated = await api<Treatment>(
           `/api/v1/treatments/${encodeURIComponent(treatment.id)}`,
           { method: 'PATCH', body: JSON.stringify(body) },
         )
+        await uploadPrescriptionDocument(treatment.id, values.prescriptionFile)
+        return updated
       }
       const body: components['schemas']['TreatmentCreate'] = {
         patient_id: id,
@@ -424,14 +475,35 @@ export default function PatientDetailPage() {
         quantity_per_cycle: values.quantityPerCycle,
         start_date: values.startDate,
         prescriber_name: values.prescriberName?.trim() || null,
+        prescriber_id: values.prescriberId?.trim() || null,
         prescription_expires_on: values.prescriptionExpiresOn || null,
         notes: values.notes?.trim() || null,
         custom_values: values.customValues,
       } as components['schemas']['TreatmentCreate']
-      return api<Treatment>('/api/v1/treatments', {
+      const created = await api<Treatment>('/api/v1/treatments', {
         method: 'POST',
         body: JSON.stringify(body),
       })
+      await uploadPrescriptionDocument(created.id, values.prescriptionFile)
+      // Primer horario de dosis: nunca requiere autorización, porque todavía
+      // no existe uno activo que esté cambiando.
+      if (isDoseFrequencyValid(values)) {
+        const form = new FormData()
+        form.set('dose_per_intake', String(values.dosePerIntake))
+        form.set('effective_from', values.startDate)
+        for (const [key, value] of Object.entries(
+          buildDoseScheduleFields(values, values.startDate),
+        ))
+          form.set(key, value)
+        await api(
+          `/api/v1/treatments/${encodeURIComponent(created.id)}/dose-schedules`,
+          {
+            method: 'POST',
+            body: form,
+          },
+        )
+      }
+      return created
     },
     onSuccess: async () => {
       await invalidateTreatments()
@@ -526,7 +598,6 @@ export default function PatientDetailPage() {
   const activeTreatments = treatmentRows.filter(
     (treatment) => treatment.status === 'active',
   )
-  const activityRows = activities.data?.pages.flatMap((page) => page.data) ?? []
   const openTasks = patientTasks.data?.data ?? []
   const openIncidents: Incident[] = (patientIncidents.data?.data ?? []).filter(
     (incident) => incident.status !== 'resolved',
@@ -628,10 +699,6 @@ export default function PatientDetailPage() {
           label: `Tratamiento ${index + 1}`,
           value: `${medicationName(medicationsById.get(treatment.medicationId))} · ${treatment.status}`,
         },
-        {
-          label: `Receta vence (${index + 1})`,
-          value: treatment.prescriptionExpiresOn?.slice(0, 10),
-        },
       ]),
     },
     {
@@ -651,615 +718,555 @@ export default function PatientDetailPage() {
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
       <div className="shrink-0">
-      <Link
-        to="/pacientes"
-        className="text-muted hover:text-petroleo mb-2 inline-flex items-center gap-2 text-sm"
-      >
-        <ArrowLeft className="size-4" />
-        Pacientes
-      </Link>
-      <PageHeader
-        title={record.fullName}
-        meta={record.phone ? formatPhone(record.phone) : undefined}
-        size="large"
-        below={
-          (canAddActivity || canWriteTasks) && (
-            <div className="flex flex-wrap items-center gap-3">
-              {canAddActivity && (
-                <QuickAction
-                  icon={FileText}
-                  label="Nota"
-                  tone="border-amber-200 bg-amber-50 text-amber-700"
-                  onClick={() => setActivityType('note')}
-                />
-              )}
-              {canAddActivity && (
-                <QuickAction
-                  icon={Mail}
-                  label="Correo"
-                  tone="border-sky-200 bg-sky-50 text-sky-700"
-                  onClick={() => setActivityType('email')}
-                />
-              )}
-              {canAddActivity && (
-                <QuickAction
-                  icon={Phone}
-                  label="Llamada"
-                  tone="border-emerald-200 bg-emerald-50 text-emerald-700"
-                  onClick={() => setActivityType('call')}
-                />
-              )}
-              {canWriteTasks && (
-                <QuickAction
-                  icon={ClipboardList}
-                  label="Tarea"
-                  tone="border-violet-200 bg-violet-50 text-violet-700"
-                  onClick={() => setTaskOpen(true)}
-                />
-              )}
-              {canAddActivity && (
-                <QuickAction
-                  icon={Users}
-                  label="Reunión"
-                  tone="border-teal-200 bg-teal-50 text-teal-700"
-                  onClick={() => setActivityType('meeting')}
-                />
-              )}
+        <Link
+          to="/pacientes"
+          className="text-muted hover:text-petroleo mb-2 inline-flex items-center gap-2 text-sm"
+        >
+          <ArrowLeft className="size-4" />
+          Pacientes
+        </Link>
+        <PageHeader
+          title={record.fullName}
+          meta={record.phone ? formatPhone(record.phone) : undefined}
+          size="large"
+          below={
+            (canAddActivity || canWriteTasks) && (
+              <div className="flex flex-wrap items-center gap-3">
+                {canAddActivity && (
+                  <QuickAction
+                    icon={FileText}
+                    label="Nota"
+                    tone="border-amber-200 bg-amber-50 text-amber-700"
+                    onClick={() => setActivityType('note')}
+                  />
+                )}
+                {canAddActivity && (
+                  <QuickAction
+                    icon={Mail}
+                    label="Correo"
+                    tone="border-sky-200 bg-sky-50 text-sky-700"
+                    onClick={() => setActivityType('email')}
+                  />
+                )}
+                {canAddActivity && (
+                  <QuickAction
+                    icon={Phone}
+                    label="Llamada"
+                    tone="border-emerald-200 bg-emerald-50 text-emerald-700"
+                    onClick={() => setActivityType('call')}
+                  />
+                )}
+                {canWriteTasks && (
+                  <QuickAction
+                    icon={ClipboardList}
+                    label="Tarea"
+                    tone="border-violet-200 bg-violet-50 text-violet-700"
+                    onClick={() => setTaskOpen(true)}
+                  />
+                )}
+                {canAddActivity && (
+                  <QuickAction
+                    icon={Users}
+                    label="Reunión"
+                    tone="border-teal-200 bg-teal-50 text-teal-700"
+                    onClick={() => setActivityType('meeting')}
+                  />
+                )}
+              </div>
+            )
+          }
+          actions={
+            <div className="grid justify-items-end gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                {!record.archivedAt && (
+                  <EnrollAutomationButton patientId={record.id} />
+                )}
+                <RecordActionsMenu actions={recordActions} />
+              </div>
+              <div className="flex justify-end">
+                {branch ? (
+                  <BranchTag
+                    name={branch.name}
+                    labelColor={branch.labelColor}
+                    solid
+                  />
+                ) : (
+                  <span className="text-muted text-sm">
+                    Sin sucursal asignada
+                  </span>
+                )}
+              </div>
             </div>
-          )
-        }
-        actions={
-          <div className="grid justify-items-end gap-2">
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              {!record.archivedAt && (
-                <EnrollAutomationButton patientId={record.id} />
-              )}
-              <RecordActionsMenu actions={recordActions} />
-            </div>
-            <div className="flex justify-end">
-              {branch ? (
-                <BranchTag
-                  name={branch.name}
-                  labelColor={branch.labelColor}
-                  solid
-                />
-              ) : (
-                <span className="text-muted text-sm">
-                  Sin sucursal asignada
-                </span>
-              )}
-            </div>
-          </div>
-        }
-      />
-      {record.archivedAt && (
-        <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
-          Este paciente está archivado.
-        </p>
-      )}
+          }
+        />
+        {record.archivedAt && (
+          <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+            Este paciente está archivado.
+          </p>
+        )}
       </div>
       <div className="app-scroll min-h-0 flex-1 overflow-y-auto">
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.35fr)_minmax(230px,0.8fr)]">
-        <div className="grid gap-4">
-          <Panel title="Datos del paciente">
-            <dl className="grid gap-3 text-sm">
-              <div>
-                <dt className="text-muted">WhatsApp</dt>
-                <dd className="mt-0.5">
-                  {record.phone ? formatPhone(record.phone) : 'Sin WhatsApp'}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted">Correo</dt>
-                <dd className="mt-0.5">{record.email || 'Sin correo'}</dd>
-              </div>
-              <div>
-                <dt className="text-muted">Fecha de nacimiento</dt>
-                <dd className="mt-0.5">
-                  {record.birthDate
-                    ? new Date(record.birthDate).toLocaleDateString('es', {
-                        timeZone: 'UTC',
-                      })
-                    : 'Sin registrar'}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted">Dirección</dt>
-                <dd className="mt-0.5">
-                  {[
-                    addressText(record.addressDetails, 'address'),
-                    addressText(record.addressDetails, 'city'),
-                    addressText(record.addressDetails, 'region'),
-                    addressText(record.addressDetails, 'sector'),
-                  ]
-                    .filter(Boolean)
-                    .join(' · ') || 'Sin registrar'}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted">Notas de cuidado</dt>
-                <dd className="mt-0.5 whitespace-pre-wrap">
-                  {record.careNotes || 'Sin notas'}
-                </dd>
-              </div>
-            </dl>
-          </Panel>
-          <CustomValuesView entity="patient" values={patientValues} />
-          <PatientTelegramPanel patientId={record.id} canEdit={canUpdate} />
-          <PatientAutomationPanel
-            patientId={record.id}
-            paused={Boolean(
-              (record as { automationPaused?: boolean }).automationPaused,
-            )}
-            reason={
-              (record as { automationPausedReason?: string | null })
-                .automationPausedReason
-            }
-            canEdit={canUpdate && !record.archivedAt}
-          />
-          <Panel
-            title="Consentimiento"
-            inlineAction
-            action={
-              canRecordConsent && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="size-6 px-0"
-                  aria-expanded={consentOpen}
-                  aria-label="Registrar consentimiento"
-                  onClick={() => setConsentOpen(true)}
-                >
-                  <Plus className="size-4" />
-                </Button>
-              )
-            }
-          >
-            <p className="text-sm">
-              {record.reminderConsent
-                ? 'Consentimiento otorgado'
-                : 'Sin consentimiento vigente'}
-            </p>
-            {record.reminderConsentAt && (
-              <p className="text-muted mt-1 text-xs">
-                Registrado{' '}
-                {new Date(record.reminderConsentAt).toLocaleDateString('es')}
+        <div className="grid items-start gap-4 xl:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.35fr)_minmax(230px,0.8fr)]">
+          <div className="grid gap-4">
+            <Panel title="Datos del paciente">
+              <dl className="grid gap-3 text-sm">
+                <div>
+                  <dt className="text-muted">WhatsApp</dt>
+                  <dd className="mt-0.5">
+                    {record.phone ? formatPhone(record.phone) : 'Sin WhatsApp'}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted">Correo</dt>
+                  <dd className="mt-0.5">{record.email || 'Sin correo'}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted">Fecha de nacimiento</dt>
+                  <dd className="mt-0.5">
+                    {record.birthDate
+                      ? new Date(record.birthDate).toLocaleDateString('es', {
+                          timeZone: 'UTC',
+                        })
+                      : 'Sin registrar'}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted">Dirección</dt>
+                  <dd className="mt-0.5">
+                    {[
+                      addressText(record.addressDetails, 'address'),
+                      addressText(record.addressDetails, 'city'),
+                      addressText(record.addressDetails, 'region'),
+                      addressText(record.addressDetails, 'sector'),
+                    ]
+                      .filter(Boolean)
+                      .join(' · ') || 'Sin registrar'}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted">Notas de cuidado</dt>
+                  <dd className="mt-0.5 whitespace-pre-wrap">
+                    {record.careNotes || 'Sin notas'}
+                  </dd>
+                </div>
+              </dl>
+            </Panel>
+            <CustomValuesView entity="patient" values={patientValues} />
+            <PatientTelegramPanel patientId={record.id} canEdit={canUpdate} />
+            <PatientAutomationPanel
+              patientId={record.id}
+              paused={Boolean(
+                (record as { automationPaused?: boolean }).automationPaused,
+              )}
+              reason={
+                (record as { automationPausedReason?: string | null })
+                  .automationPausedReason
+              }
+              canEdit={canUpdate && !record.archivedAt}
+            />
+            <Panel
+              title="Consentimiento"
+              inlineAction
+              action={
+                canRecordConsent && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="size-6 px-0"
+                    aria-expanded={consentOpen}
+                    aria-label="Registrar consentimiento"
+                    onClick={() => setConsentOpen(true)}
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                )
+              }
+            >
+              <p className="text-sm">
+                {record.reminderConsent
+                  ? 'Consentimiento otorgado'
+                  : 'Sin consentimiento vigente'}
               </p>
-            )}
-          </Panel>
-        </div>
-        <section className="border-border min-h-[480px] rounded-xl border bg-white p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="bg-surface flex rounded-lg p-1">
-              <button
-                className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'history' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
-                onClick={() => setActiveTab('history')}
-              >
-                Historial
-              </button>
-              <button
-                className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'treatments' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
-                onClick={() => setActiveTab('treatments')}
-              >
-                Tratamientos
-              </button>
-              <button
-                className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'infopack' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
-                onClick={() => setActiveTab('infopack')}
-              >
-                InfoPack
-              </button>
-              <button
-                className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'transfers' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
-                onClick={() => setActiveTab('transfers')}
-              >
-                Traspasos
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {activeTab === 'history'
-                ? canWriteTreatment &&
-                  activeTreatments.length === 1 && (
-                    <Button
-                      variant="coral"
-                      onClick={() =>
-                        setNoticeTreatment(activeTreatments[0] ?? null)
-                      }
-                    >
-                      <MessageCircle className="size-4" />
-                      Avisar
-                    </Button>
-                  )
-                : activeTab === 'treatments'
-                  ? canWriteTreatment && (
+              {record.reminderConsentAt && (
+                <p className="text-muted mt-1 text-xs">
+                  Registrado{' '}
+                  {new Date(record.reminderConsentAt).toLocaleDateString('es')}
+                </p>
+              )}
+            </Panel>
+          </div>
+          <section className="border-border min-h-[480px] rounded-xl border bg-white p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="bg-surface flex rounded-lg p-1">
+                <button
+                  className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'history' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
+                  onClick={() => setActiveTab('history')}
+                >
+                  Historial
+                </button>
+                <button
+                  className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'treatments' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
+                  onClick={() => setActiveTab('treatments')}
+                >
+                  Tratamientos
+                </button>
+                <button
+                  className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'infopack' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
+                  onClick={() => setActiveTab('infopack')}
+                >
+                  InfoPack
+                </button>
+                <button
+                  className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'transfers' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
+                  onClick={() => setActiveTab('transfers')}
+                >
+                  Traspasos
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {activeTab === 'history'
+                  ? canWriteTreatment &&
+                    activeTreatments.length === 1 && (
                       <Button
-                        variant="primary"
-                        onClick={() => {
-                          setEditingTreatment(null)
-                          setTreatmentFormOpen(true)
-                        }}
+                        variant="coral"
+                        onClick={() =>
+                          setNoticeTreatment(activeTreatments[0] ?? null)
+                        }
                       >
-                        <Plus className="size-4" />
-                        Nuevo tratamiento
+                        <MessageCircle className="size-4" />
+                        Avisar
                       </Button>
                     )
-                  : null}
-            </div>
-          </div>
-          {activeTab === 'history' ? (
-            <div className="mt-6">
-              {activities.isLoading ? (
-                <div
-                  role="status"
-                  aria-busy="true"
-                  aria-label="Cargando historial…"
-                  className="grid gap-5"
-                >
-                  {Array.from({ length: 3 }).map((_, index) => (
-                    <div key={index} className="grid gap-2">
-                      <div className="flex items-center justify-between gap-4">
-                        <Skeleton className="h-3.5 w-20" />
-                        <Skeleton className="h-3 w-24" />
-                      </div>
-                      <Skeleton className="h-3.5 w-full" />
-                      <Skeleton className="h-3.5 w-3/4" />
-                    </div>
-                  ))}
-                </div>
-              ) : activityRows.length ? (
-                <>
-                  <ol className="border-border relative ml-2 grid gap-5 border-l pl-5">
-                    {activityRows.map((activity) => {
-                      const detail = activityDetail(activity)
-                      return (
-                        <li key={activity.id} className="relative">
-                          <span className="bg-tealmax absolute top-1 -left-[26px] size-2.5 rounded-full ring-4 ring-white" />
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="text-petroleo text-sm font-semibold">
-                              {activityLabelFor(activity.type)}
-                            </p>
-                            <time className="text-muted text-xs">
-                              {new Date(activity.occurredAt).toLocaleString(
-                                'es',
-                              )}
-                            </time>
-                          </div>
-                          {detail && (
-                            <p className="text-ink mt-1 text-sm leading-6 whitespace-pre-wrap">
-                              {detail}
-                            </p>
-                          )}
-                          {authorName(activity) && (
-                            <p className="text-muted mt-1 text-[11px]">
-                              Registrado por {authorName(activity)}
-                            </p>
-                          )}
-                        </li>
+                  : activeTab === 'treatments'
+                    ? canWriteTreatment && (
+                        <Button
+                          variant="primary"
+                          onClick={() => {
+                            setEditingTreatment(null)
+                            setTreatmentFormOpen(true)
+                          }}
+                        >
+                          <Plus className="size-4" />
+                          Nuevo tratamiento
+                        </Button>
                       )
-                    })}
-                  </ol>
-                  {activities.hasNextPage && (
-                    <div className="mt-4 flex justify-center">
-                      <Button
-                        onClick={() => activities.fetchNextPage()}
-                        disabled={activities.isFetchingNextPage}
-                      >
-                        {activities.isFetchingNextPage
-                          ? 'Cargando…'
-                          : 'Cargar más'}
-                      </Button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <EmptyState
-                  title="El historial está vacío"
-                  description="Las notas, llamadas y cambios de tratamiento aparecerán aquí."
-                />
-              )}
+                    : null}
+              </div>
             </div>
-          ) : activeTab === 'treatments' ? (
-            <div className="mt-6">
-              {treatments.isError ? (
-                <p
-                  role="alert"
-                  className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
-                >
-                  No pudimos cargar los tratamientos. {treatments.error.message}
-                </p>
-              ) : treatments.isLoading ? (
+            {activeTab === 'history' ? (
+              <div className="mt-6">
+                <ActivityHistory
+                  patientId={record.id}
+                  emptyTitle="El historial está vacío"
+                  emptyDescription="Las notas, llamadas y cambios de tratamiento aparecerán aquí."
+                />
+              </div>
+            ) : activeTab === 'treatments' ? (
+              <div className="mt-6">
+                {treatments.isError ? (
+                  <p
+                    role="alert"
+                    className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+                  >
+                    No pudimos cargar los tratamientos.{' '}
+                    {treatments.error.message}
+                  </p>
+                ) : treatments.isLoading ? (
+                  <div
+                    role="status"
+                    aria-busy="true"
+                    aria-label="Cargando tratamientos…"
+                    className="grid gap-3"
+                  >
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="border-border grid gap-2 rounded-xl border p-4"
+                      >
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="h-3 w-56" />
+                        <Skeleton className="h-3 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                ) : treatmentRows.length ? (
+                  <TreatmentList
+                    treatments={treatmentRows}
+                    medications={medicationsById}
+                    canWrite={canWriteTreatment}
+                    canManage={canManageTreatment}
+                    schedules={treatmentSchedules.data}
+                    openCycleTreatmentIds={openCycleTreatmentIds}
+                    onEdit={(treatment) => {
+                      setEditingTreatment(treatment)
+                      setTreatmentFormOpen(true)
+                    }}
+                    onAction={handleTreatmentAction}
+                    onNotice={setNoticeTreatment}
+                    onDeliver={setDeliveryTreatment}
+                  />
+                ) : (
+                  <EmptyState
+                    title="Sin tratamientos todavía"
+                    description={
+                      canWriteTreatment
+                        ? 'Registra el primer tratamiento para dar seguimiento a la cobertura y la receta.'
+                        : 'Cuando el paciente tenga tratamientos, aparecerán aquí.'
+                    }
+                  />
+                )}
+                {resumeTreatment.isError && (
+                  <p role="alert" className="mt-3 text-sm text-red-700">
+                    {resumeTreatment.error.message}
+                  </p>
+                )}
+              </div>
+            ) : activeTab === 'infopack' ? (
+              <div className="mt-6">
+                <PatientInfoPackPanel
+                  patientId={record.id}
+                  patient={record}
+                  branchName={branch?.name}
+                  treatments={treatmentRows}
+                  medicationsById={medicationsById}
+                />
+              </div>
+            ) : (
+              <div className="mt-6">
+                <PatientTransfersPanel patientId={record.id} />
+              </div>
+            )}
+          </section>
+          <div className="grid gap-4">
+            <Panel title="Tratamientos activos">
+              {treatments.isLoading ? (
                 <div
                   role="status"
                   aria-busy="true"
-                  aria-label="Cargando tratamientos…"
+                  aria-label="Cargando tratamientos activos…"
                   className="grid gap-3"
                 >
-                  {Array.from({ length: 3 }).map((_, index) => (
-                    <div
-                      key={index}
-                      className="border-border grid gap-2 rounded-xl border p-4"
-                    >
-                      <Skeleton className="h-4 w-40" />
-                      <Skeleton className="h-3 w-56" />
-                      <Skeleton className="h-3 w-full" />
+                  {Array.from({ length: 2 }).map((_, index) => (
+                    <div key={index} className="grid gap-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-40" />
                     </div>
                   ))}
                 </div>
-              ) : treatmentRows.length ? (
-                <TreatmentList
-                  treatments={treatmentRows}
-                  medications={medicationsById}
-                  canWrite={canWriteTreatment}
-                  canManage={canManageTreatment}
-                  onEdit={(treatment) => {
-                    setEditingTreatment(treatment)
-                    setTreatmentFormOpen(true)
-                  }}
-                  onAction={handleTreatmentAction}
-                  onNotice={setNoticeTreatment}
-                  onDeliver={setDeliveryTreatment}
-                />
+              ) : treatments.isError ? (
+                <p className="text-muted text-sm">
+                  No se pudieron cargar los tratamientos.
+                </p>
               ) : (
-                <EmptyState
-                  title="Sin tratamientos todavía"
-                  description={
-                    canWriteTreatment
-                      ? 'Registra el primer tratamiento para dar seguimiento a la cobertura y la receta.'
-                      : 'Cuando el paciente tenga tratamientos, aparecerán aquí.'
-                  }
+                <ActiveTreatmentsPanel
+                  treatments={activeTreatments}
+                  medications={medicationsById}
+                  schedules={treatmentSchedules.data}
                 />
               )}
-              {resumeTreatment.isError && (
-                <p role="alert" className="mt-3 text-sm text-red-700">
-                  {resumeTreatment.error.message}
+            </Panel>
+            <Panel
+              title="Médicos"
+              inlineAction
+              action={
+                canUpdate && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="size-6 px-0"
+                    aria-expanded={doctorAddOpen}
+                    aria-label="Agregar médico"
+                    onClick={() => setDoctorAddOpen(true)}
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                )
+              }
+            >
+              <PatientDoctorsPanel
+                patientId={record.id}
+                addOpen={doctorAddOpen}
+                onCloseAdd={() => setDoctorAddOpen(false)}
+              />
+            </Panel>
+            <Panel
+              title="Cuidadores"
+              inlineAction
+              action={
+                canUpdate && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="size-6 px-0"
+                    aria-expanded={caregiverAddOpen}
+                    aria-label="Agregar cuidador"
+                    onClick={() => setCaregiverAddOpen(true)}
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                )
+              }
+            >
+              <PatientCaregiversPanel
+                patientId={record.id}
+                addOpen={caregiverAddOpen}
+                onCloseAdd={() => setCaregiverAddOpen(false)}
+              />
+            </Panel>
+            <Panel
+              title="Condiciones de salud"
+              inlineAction
+              action={
+                canUpdate && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="size-6 px-0"
+                    aria-expanded={conditionAddOpen}
+                    aria-label="Agregar condición"
+                    onClick={() => setConditionAddOpen(true)}
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                )
+              }
+            >
+              <PatientConditionsPanel
+                patientId={record.id}
+                addOpen={conditionAddOpen}
+                onCloseAdd={() => setConditionAddOpen(false)}
+              />
+            </Panel>
+            <Panel
+              title="Tareas abiertas"
+              inlineAction
+              action={
+                canWriteTasks && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="size-6 px-0"
+                    aria-expanded={taskOpen}
+                    aria-label="Nueva tarea"
+                    onClick={() => setTaskOpen(true)}
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                )
+              }
+            >
+              {taskActionError && (
+                <p role="alert" className="mb-2 text-xs text-red-700">
+                  {taskActionError}
                 </p>
               )}
-            </div>
-          ) : activeTab === 'infopack' ? (
-            <div className="mt-6">
-              <PatientInfoPackPanel
-                patientId={record.id}
-                patient={record}
-                branchName={branch?.name}
-                treatments={treatmentRows}
-                medicationsById={medicationsById}
-              />
-            </div>
-          ) : (
-            <div className="mt-6">
-              <PatientTransfersPanel patientId={record.id} />
-            </div>
-          )}
-        </section>
-        <div className="grid gap-4">
-          <Panel title="Tratamientos activos">
-            {treatments.isLoading ? (
-              <div
-                role="status"
-                aria-busy="true"
-                aria-label="Cargando tratamientos activos…"
-                className="grid gap-3"
-              >
-                {Array.from({ length: 2 }).map((_, index) => (
-                  <div key={index} className="grid gap-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-40" />
-                  </div>
-                ))}
-              </div>
-            ) : treatments.isError ? (
-              <p className="text-muted text-sm">
-                No se pudieron cargar los tratamientos.
-              </p>
-            ) : (
-              <ActiveTreatmentsPanel
-                treatments={activeTreatments}
-                medications={medicationsById}
-              />
-            )}
-          </Panel>
-          <Panel
-            title="Médicos"
-            inlineAction
-            action={
-              canUpdate && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="size-6 px-0"
-                  aria-expanded={doctorAddOpen}
-                  aria-label="Agregar médico"
-                  onClick={() => setDoctorAddOpen(true)}
-                >
-                  <Plus className="size-4" />
-                </Button>
-              )
-            }
-          >
-            <PatientDoctorsPanel
-              patientId={record.id}
-              addOpen={doctorAddOpen}
-              onCloseAdd={() => setDoctorAddOpen(false)}
-            />
-          </Panel>
-          <Panel
-            title="Cuidadores"
-            inlineAction
-            action={
-              canUpdate && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="size-6 px-0"
-                  aria-expanded={caregiverAddOpen}
-                  aria-label="Agregar cuidador"
-                  onClick={() => setCaregiverAddOpen(true)}
-                >
-                  <Plus className="size-4" />
-                </Button>
-              )
-            }
-          >
-            <PatientCaregiversPanel
-              patientId={record.id}
-              addOpen={caregiverAddOpen}
-              onCloseAdd={() => setCaregiverAddOpen(false)}
-            />
-          </Panel>
-          <Panel
-            title="Condiciones de salud"
-            inlineAction
-            action={
-              canUpdate && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="size-6 px-0"
-                  aria-expanded={conditionAddOpen}
-                  aria-label="Agregar condición"
-                  onClick={() => setConditionAddOpen(true)}
-                >
-                  <Plus className="size-4" />
-                </Button>
-              )
-            }
-          >
-            <PatientConditionsPanel
-              patientId={record.id}
-              addOpen={conditionAddOpen}
-              onCloseAdd={() => setConditionAddOpen(false)}
-            />
-          </Panel>
-          <Panel
-            title="Tareas abiertas"
-            inlineAction
-            action={
-              canWriteTasks && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="size-6 px-0"
-                  aria-expanded={taskOpen}
-                  aria-label="Nueva tarea"
-                  onClick={() => setTaskOpen(true)}
-                >
-                  <Plus className="size-4" />
-                </Button>
-              )
-            }
-          >
-            {taskActionError && (
-              <p role="alert" className="mb-2 text-xs text-red-700">
-                {taskActionError}
-              </p>
-            )}
-            {patientTasks.isLoading ? (
-              <div className="grid gap-2" aria-busy="true">
-                <Skeleton className="h-4 w-40" />
-                <Skeleton className="h-3 w-28" />
-              </div>
-            ) : openTasks.length ? (
-              <ul className="grid gap-3">
-                {openTasks.map((task) => (
-                  <li
-                    key={task.id}
-                    className="border-border border-b pb-3 last:border-0 last:pb-0"
-                  >
-                    <p className="text-ink text-sm font-semibold">
-                      {task.title}
-                    </p>
-                    <p className="text-muted mt-0.5 text-xs">
-                      {taskTypeLabels[task.type]} · {taskDueLabel(task)}
-                    </p>
-                    {canWriteTasks && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {task.type === 'prepare_delivery' &&
-                          task.cycleId &&
-                          canWriteTreatment && (
-                            <Button
-                              className="h-7 px-2 text-[11px]"
-                              onClick={() => prepareTask.mutate(task)}
-                              disabled={
-                                prepareTask.isPending &&
-                                prepareTask.variables?.id === task.id
-                              }
-                            >
-                              <PackageCheck className="size-3" />
-                              Preparado
-                            </Button>
-                          )}
-                        <Button
-                          className="h-7 px-2 text-[11px]"
-                          onClick={() => completeTask.mutate(task)}
-                          disabled={
-                            completeTask.isPending &&
-                            completeTask.variables?.id === task.id
-                          }
-                        >
-                          <Check className="size-3" />
-                          Completar
-                        </Button>
-                      </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted text-sm">Sin tareas abiertas.</p>
-            )}
-          </Panel>
-          <Panel
-            title="Incidencias abiertas"
-            inlineAction
-            action={
-              canCreateIncident && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="size-6 px-0"
-                  aria-expanded={incidentOpen}
-                  aria-label="Nueva incidencia"
-                  onClick={() => setIncidentOpen(true)}
-                >
-                  <Plus className="size-4" />
-                </Button>
-              )
-            }
-          >
-            {patientIncidents.isLoading ? (
-              <div className="grid gap-2" aria-busy="true">
-                <Skeleton className="h-4 w-40" />
-                <Skeleton className="h-3 w-28" />
-              </div>
-            ) : openIncidents.length ? (
-              <ul className="grid gap-3">
-                {openIncidents.map((incident) => (
-                  <li
-                    key={incident.id}
-                    className="border-border border-b pb-3 last:border-0 last:pb-0"
-                  >
-                    <Link
-                      to={`/incidencias?incident=${incident.id}`}
-                      className="text-petroleo hover:text-tealmax inline-flex items-start gap-2 text-sm font-semibold hover:underline"
+              {patientTasks.isLoading ? (
+                <div className="grid gap-2" aria-busy="true">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-28" />
+                </div>
+              ) : openTasks.length ? (
+                <ul className="grid gap-3">
+                  {openTasks.map((task) => (
+                    <li
+                      key={task.id}
+                      className="border-border border-b pb-3 last:border-0 last:pb-0"
                     >
-                      <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
-                      {incidentTypeLabels[incident.type]}
-                    </Link>
-                    <p className="text-muted mt-1 line-clamp-2 text-xs">
-                      {incident.description}
-                    </p>
-                    <p className="text-muted mt-1 text-[11px]">
-                      {incident.assignee?.name ?? 'Sin asignar'}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted text-sm">Sin incidencias abiertas.</p>
-            )}
-          </Panel>
+                      <p className="text-ink text-sm font-semibold">
+                        {task.title}
+                      </p>
+                      <p className="text-muted mt-0.5 text-xs">
+                        {taskTypeLabels[task.type]} · {taskDueLabel(task)}
+                      </p>
+                      {canWriteTasks && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {task.type === 'prepare_delivery' &&
+                            task.cycleId &&
+                            canWriteTreatment && (
+                              <Button
+                                className="h-7 px-2 text-[11px]"
+                                onClick={() => prepareTask.mutate(task)}
+                                disabled={
+                                  prepareTask.isPending &&
+                                  prepareTask.variables?.id === task.id
+                                }
+                              >
+                                <PackageCheck className="size-3" />
+                                Preparado
+                              </Button>
+                            )}
+                          <Button
+                            className="h-7 px-2 text-[11px]"
+                            onClick={() => completeTask.mutate(task)}
+                            disabled={
+                              completeTask.isPending &&
+                              completeTask.variables?.id === task.id
+                            }
+                          >
+                            <Check className="size-3" />
+                            Completar
+                          </Button>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-muted text-sm">Sin tareas abiertas.</p>
+              )}
+            </Panel>
+            <Panel
+              title="Incidencias abiertas"
+              inlineAction
+              action={
+                canCreateIncident && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="size-6 px-0"
+                    aria-expanded={incidentOpen}
+                    aria-label="Nueva incidencia"
+                    onClick={() => setIncidentOpen(true)}
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                )
+              }
+            >
+              {patientIncidents.isLoading ? (
+                <div className="grid gap-2" aria-busy="true">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-28" />
+                </div>
+              ) : openIncidents.length ? (
+                <ul className="grid gap-3">
+                  {openIncidents.map((incident) => (
+                    <li
+                      key={incident.id}
+                      className="border-border border-b pb-3 last:border-0 last:pb-0"
+                    >
+                      <Link
+                        to={`/incidencias?incident=${incident.id}`}
+                        className="text-petroleo hover:text-tealmax inline-flex items-start gap-2 text-sm font-semibold hover:underline"
+                      >
+                        <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+                        {incidentTypeLabels[incident.type]}
+                      </Link>
+                      <p className="text-muted mt-1 line-clamp-2 text-xs">
+                        {incident.description}
+                      </p>
+                      <p className="text-muted mt-1 text-[11px]">
+                        {incident.assignee?.name ?? 'Sin asignar'}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-muted text-sm">Sin incidencias abiertas.</p>
+              )}
+            </Panel>
+          </div>
         </div>
-      </div>
       </div>
       {conversationOpen && (
         <ConversationDialog
@@ -1299,10 +1306,23 @@ export default function PatientDetailPage() {
         <Dialog
           title={activityDialogTitle[activityType]}
           description="Este registro quedará en el historial del paciente."
+          icon={
+            activityType === 'note' ? (
+              <StickyNote className="size-5" />
+            ) : activityType === 'call' ? (
+              <PhoneCall className="size-5" />
+            ) : activityType === 'email' ? (
+              <Mail className="size-5" />
+            ) : (
+              <CalendarCheck className="size-5" />
+            )
+          }
+          compactHeader
+          bodyClassName="pt-3"
           onClose={() => setActivityType(null)}
         >
           <form
-            className="mt-5 grid gap-4"
+            className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
               addActivity.mutate({
@@ -1315,50 +1335,63 @@ export default function PatientDetailPage() {
               })
             }}
           >
-            <label
-              htmlFor="activity-body"
-              className="text-ink text-sm font-medium"
+            <ModalSection
+              icon={
+                activityType === 'note' ? (
+                  <StickyNote className="size-4" />
+                ) : activityType === 'call' ? (
+                  <PhoneCall className="size-4" />
+                ) : activityType === 'email' ? (
+                  <Mail className="size-4" />
+                ) : (
+                  <CalendarCheck className="size-4" />
+                )
+              }
+              title={activityDialogTitle[activityType]}
+              tone="mint"
             >
-              {activityType === 'note'
-                ? 'Nota'
-                : activityType === 'call'
-                  ? 'Resumen de la llamada'
-                  : activityType === 'email'
-                    ? 'Resumen del correo'
-                    : 'Resumen de la reunión'}
-            </label>
-            {(activityType === 'email' || activityType === 'meeting') && (
-              <label className="text-ink grid gap-1 text-sm font-medium">
-                Fecha
-                <input
+              {(activityType === 'email' || activityType === 'meeting') && (
+                <TextField
+                  label="Fecha"
                   type="date"
                   required
                   value={activityDate}
                   onChange={(event) => setActivityDate(event.target.value)}
-                  className="border-border h-10 rounded-lg border px-3 text-sm"
                 />
-              </label>
-            )}
-            <textarea
-              id="activity-body"
-              rows={5}
-              required
-              value={activityBody}
-              onChange={(event) => setActivityBody(event.target.value)}
-              className="border-border focus:border-tealmax rounded-lg border px-3 py-2 text-sm outline-none"
-            />
+              )}
+              <TextAreaField
+                label={
+                  activityType === 'note'
+                    ? 'Nota'
+                    : activityType === 'call'
+                      ? 'Resumen de la llamada'
+                      : activityType === 'email'
+                        ? 'Resumen del correo'
+                        : 'Resumen de la reunión'
+                }
+                rows={5}
+                required
+                value={activityBody}
+                onChange={(event) => setActivityBody(event.target.value)}
+              />
+            </ModalSection>
             {addActivity.isError && (
               <p role="alert" className="text-sm text-red-700">
                 {addActivity.error.message}
               </p>
             )}
-            <div className="flex justify-end gap-2">
-              <Button type="button" onClick={() => setActivityType(null)}>
+            <FormActions>
+              <Button
+                type="button"
+                className="w-full sm:w-auto"
+                onClick={() => setActivityType(null)}
+              >
                 Cancelar
               </Button>
               <Button
                 variant="primary"
                 type="submit"
+                className="w-full sm:w-auto"
                 disabled={addActivity.isPending || !activityBody.trim()}
               >
                 {addActivity.isPending
@@ -1371,7 +1404,7 @@ export default function PatientDetailPage() {
                         ? 'Guardar correo'
                         : 'Guardar reunión'}
               </Button>
-            </div>
+            </FormActions>
           </form>
         </Dialog>
       )}
@@ -1465,17 +1498,24 @@ export default function PatientDetailPage() {
       )}
       {treatmentFormOpen && (
         <Dialog
-          title={editingTreatment ? 'Editar tratamiento' : 'Nuevo tratamiento'}
+          title={editingTreatment ? 'Editar Tratamiento' : 'Nuevo Tratamiento'}
           description="Define la pauta, la cobertura y los datos de la receta."
+          icon={<Pill className="size-5" />}
+          compactHeader
+          printable
+          bodyClassName="pt-3"
           onClose={closeTreatmentForm}
           size="lg"
         >
           <TreatmentForm
             key={editingTreatment?.id ?? 'new'}
             treatment={editingTreatment ?? undefined}
+            patientName={record.fullName}
             medications={medications.data?.data ?? []}
             branches={branches.data?.data ?? []}
             users={users.data?.data ?? []}
+            doctors={doctors.data?.data ?? []}
+            doctorsLoading={doctors.isLoading}
             defaultBranchId={record.primaryBranchId}
             defaultResponsibleUserId={record.responsibleUserId}
             onSave={(values) =>

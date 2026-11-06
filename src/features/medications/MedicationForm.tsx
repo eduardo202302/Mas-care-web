@@ -12,6 +12,22 @@ import {
   type MedicationFormValues,
 } from '@/schemas/medication'
 
+/** Sugerencias comunes, no una lista cerrada: el campo sigue siendo texto libre para no romper datos existentes. */
+const DOSE_UNIT_SUGGESTIONS = [
+  'tableta',
+  'cápsula',
+  'ampolla',
+  'gotas',
+  'cucharada',
+  'cucharadita',
+  'ml',
+  'sobre',
+  'parche',
+  'inhalación',
+  'supositorio',
+  'aplicación',
+] as const
+
 export function MedicationForm({
   readOnly = false,
   onEdit,
@@ -128,9 +144,15 @@ export function MedicationForm({
               label="Unidad de Dosis"
               required
               placeholder="tableta, ml…"
+              list="dose-unit-options"
               {...register('doseUnit')}
               error={errors.doseUnit?.message}
             />
+            <datalist id="dose-unit-options">
+              {DOSE_UNIT_SUGGESTIONS.map((unit) => (
+                <option key={unit} value={unit} />
+              ))}
+            </datalist>
             <TextField
               label="Unidades por Envase"
               type="number"

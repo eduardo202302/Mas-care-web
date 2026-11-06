@@ -4,6 +4,7 @@ import { Layers, SlidersHorizontal, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
+import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { api, ApiError } from '@/lib/http'
@@ -224,18 +225,23 @@ function PropertyDialog({
             {save.error.message}
           </p>
         )}
-        <div className="flex justify-end gap-2">
-          <Button type="button" onClick={onClose}>
+        <FormActions>
+          <Button type="button" className="w-full sm:w-auto" onClick={onClose}>
             Cancelar
           </Button>
           <Button
             type="submit"
             variant="primary"
+            className="w-full sm:w-auto"
             disabled={save.isPending || !value.label.trim() || !value.key}
           >
-            {editing ? 'Guardar Cambios' : 'Crear Propiedad'}
+            {save.isPending
+              ? 'Guardando…'
+              : editing
+                ? 'Guardar Cambios'
+                : 'Crear Propiedad'}
           </Button>
-        </div>
+        </FormActions>
       </form>
     </Dialog>
   )

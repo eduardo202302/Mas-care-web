@@ -1431,6 +1431,7 @@ export function PatientForm({
             </div>
             <PatientTreatmentsPanel
               patientId={patient.id}
+              patientName={patient.fullName}
               defaultBranchId={patient.primaryBranchId}
               defaultResponsibleUserId={patient.responsibleUserId}
               addOpen={tratamientosAddOpen}

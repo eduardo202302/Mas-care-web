@@ -140,7 +140,7 @@ export function CycleCard({
           <dd
             className={cn(
               'mt-0.5 font-semibold',
-              card.days_remaining !== null && card.days_remaining < 0
+              card.days_remaining !== null && card.days_remaining <= 0
                 ? 'text-expired-text'
                 : 'text-ink',
             )}

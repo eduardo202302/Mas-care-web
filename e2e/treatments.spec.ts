@@ -72,7 +72,7 @@ test('crear tratamiento, pausar con motivo y ajustar cobertura', async ({
   await dialog.getByLabel('Tomas por día').fill('1')
   await dialog.getByLabel('Cantidad por ciclo').fill('30')
   await dialog.getByLabel('Fecha de inicio').fill(localDate(0))
-  await dialog.getByLabel('Prescriptor').fill('Dra. E2E')
+  await dialog.getByLabel('Doctor').fill('Dra. E2E')
   await dialog.getByLabel('Vencimiento de receta').fill(localDate(60))
   await expect(
     dialog.getByText(/Cubre 30 días, hasta \d{2}\/\d{2}\/\d{4}/),

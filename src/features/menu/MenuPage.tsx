@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, ListTree, Plus } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Button } from '@/components/ui/Button'
+import { FormActions } from '@/components/ui/FormActions'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
@@ -323,16 +324,19 @@ export default function MenuPage() {
               {remove.error.message}
             </p>
           )}
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <Button onClick={() => setDeleting(null)}>Cancelar</Button>
+          <FormActions>
+            <Button className="w-full sm:w-auto" onClick={() => setDeleting(null)}>
+              Cancelar
+            </Button>
             <Button
               variant="danger"
+              className="w-full sm:w-auto"
               disabled={remove.isPending}
               onClick={() => remove.mutate(deleting)}
             >
               {remove.isPending ? 'Eliminando…' : 'Eliminar'}
             </Button>
-          </div>
+          </FormActions>
         </Dialog>
       )}
     </div>

@@ -20,6 +20,7 @@ type DoctorLink = components['schemas']['PatientDoctorLink'] & {
     phone: string | null
     licenseNumber: string | null
     specialties: { specialty: { id: string; name: string } }[]
+    medicalCenters: { medicalCenter: { id: string; name: string } }[]
   }
 }
 type DoctorLinkList = { data: DoctorLink[] }
@@ -160,6 +161,13 @@ export function PatientDoctorsPanel({
                   {link.doctor.phone
                     ? formatPhone(link.doctor.phone)
                     : 'Sin teléfono'}
+                </p>
+                <p className="text-muted mt-0.5 text-xs">
+                  {link.doctor.medicalCenters.length > 0
+                    ? link.doctor.medicalCenters
+                        .map((item) => item.medicalCenter.name)
+                        .join(', ')
+                    : 'Sin centro médico'}
                 </p>
                 {link.notes && (
                   <p className="text-muted mt-1 text-xs whitespace-pre-wrap">

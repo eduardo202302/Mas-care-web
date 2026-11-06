@@ -13,6 +13,7 @@ export function PageHeader({
   title,
   subtitle,
   meta,
+  eyebrow,
   below,
   actions,
   size = 'default',
@@ -22,6 +23,8 @@ export function PageHeader({
   subtitle?: string
   /** Dato corto junto al título (p. ej. la fecha del día). No añade altura. */
   meta?: string
+  /** Etiqueta sobre el título (p. ej. «Tratamiento» + estado). */
+  eyebrow?: ReactNode
   /** Contenido pegado bajo el título (acciones rápidas de la ficha). */
   below?: ReactNode
   actions?: ReactNode
@@ -38,6 +41,11 @@ export function PageHeader({
       )}
     >
       <div className="min-w-0 flex-1">
+        {eyebrow && (
+          <div className="mb-0.5 flex flex-wrap items-center gap-2">
+            {eyebrow}
+          </div>
+        )}
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <h1
             className={cn(

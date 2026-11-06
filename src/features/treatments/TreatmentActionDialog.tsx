@@ -1,6 +1,16 @@
 ﻿import { useState } from 'react'
+import {
+  CalendarClock,
+  CircleCheck,
+  FileCheck2,
+  Pause,
+  type LucideIcon,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
+import { FormActions } from '@/components/ui/FormActions'
+import { ModalSection } from '@/components/ui/ModalSection'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { TextField } from '@/components/ui/TextField'
 import { api } from '@/lib/http'
 import {
@@ -11,33 +21,44 @@ import {
 
 export type TreatmentActionType = 'pause' | 'finish' | 'adjust' | 'renew'
 
+const iconOf: Record<TreatmentActionType, LucideIcon> = {
+  pause: Pause,
+  finish: CircleCheck,
+  adjust: CalendarClock,
+  renew: FileCheck2,
+}
+
 const copy: Record<
   TreatmentActionType,
-  { title: string; description: string; submit: string }
+  { title: string; description: string; submit: string; section: string }
 > = {
   pause: {
-    title: 'Pausar tratamiento',
+    section: 'Motivo de la Pausa',
+    title: 'Pausar Tratamiento',
     description:
-      'Indica el motivo de la pausa. La nota quedarÃ¡ en el historial del paciente.',
-    submit: 'Pausar tratamiento',
+      'Indica el motivo de la pausa. La nota quedará en el historial del paciente.',
+    submit: 'Pausar Tratamiento',
   },
   finish: {
-    title: 'Finalizar tratamiento',
+    section: 'Motivo del Cierre',
+    title: 'Finalizar Tratamiento',
     description:
-      'Indica el motivo del cierre. La nota quedarÃ¡ en el historial del paciente.',
-    submit: 'Finalizar tratamiento',
+      'Indica el motivo del cierre. La nota quedará en el historial del paciente.',
+    submit: 'Finalizar Tratamiento',
   },
   adjust: {
-    title: 'Ajustar fin de cobertura',
+    section: 'Nueva Cobertura',
+    title: 'Ajustar Fin de Cobertura',
     description:
-      'Define la nueva fecha de cobertura y el motivo del ajuste. Ambos quedarÃ¡n registrados.',
-    submit: 'Ajustar cobertura',
+      'Define la nueva fecha de cobertura y el motivo del ajuste. Ambos quedarán registrados.',
+    submit: 'Ajustar Cobertura',
   },
   renew: {
-    title: 'Renovar receta',
+    section: 'Nueva Receta',
+    title: 'Renovar Receta',
     description:
-      'Actualiza el vencimiento de la receta para mantener las alertas al dÃ­a.',
-    submit: 'Renovar receta',
+      'Actualiza el vencimiento de la receta para mantener las alertas al día.',
+    submit: 'Renovar Receta',
   },
 }
 
@@ -103,71 +124,77 @@ export function TreatmentActionDialog({
       setError(
         caught instanceof Error
           ? caught.message
-          : 'No pudimos completar la acciÃ³n.',
+          : 'No pudimos completar la acción.',
       )
     } finally {
       setPending(false)
     }
   }
 
+  const ActionIcon = iconOf[action]
+
   return (
     <Dialog
       title={copy[action].title}
       description={copy[action].description}
+      icon={<ActionIcon className="size-5" />}
+      compactHeader
+      bodyClassName="pt-3"
       onClose={onClose}
     >
-      <form className="mt-5 grid gap-4" onSubmit={submit}>
-        {action === 'adjust' && (
-          <TextField
-            label="Nuevo fin de cobertura"
-            type="date"
-            value={newEndOn}
-            onChange={(event) => setNewEndOn(event.target.value)}
-          />
-        )}
-        {action === 'renew' && (
-          <TextField
-            label="Nuevo vencimiento de receta"
-            type="date"
-            value={newExpiry}
-            onChange={(event) => setNewExpiry(event.target.value)}
-          />
-        )}
-        {needsReason && (
-          <div className="grid gap-1.5">
-            <label
-              htmlFor="treatment-action-reason"
-              className="text-ink text-sm font-medium"
-            >
-              Motivo <span className="text-red-700">*</span>
-            </label>
-            <textarea
-              id="treatment-action-reason"
+      <form className="grid gap-5" onSubmit={submit}>
+        <ModalSection
+          icon={<ActionIcon className="size-4" />}
+          title={copy[action].section}
+          tone={action === 'finish' ? 'amber' : 'mint'}
+        >
+          {action === 'adjust' && (
+            <TextField
+              label="Nuevo fin de cobertura"
+              type="date"
+              required
+              value={newEndOn}
+              onChange={(event) => setNewEndOn(event.target.value)}
+            />
+          )}
+          {action === 'renew' && (
+            <TextField
+              label="Nuevo vencimiento de receta"
+              type="date"
+              required
+              value={newExpiry}
+              onChange={(event) => setNewExpiry(event.target.value)}
+            />
+          )}
+          {needsReason && (
+            <TextAreaField
+              label="Motivo"
+              required
               rows={4}
               value={reason}
               onChange={(event) => setReason(event.target.value)}
-              placeholder="Describe el motivo de esta acciÃ³nâ€¦"
-              className="border-border text-ink placeholder:text-muted/70 focus:border-tealmax focus:ring-tealmax/15 w-full rounded-lg border bg-white px-3 py-2 text-sm transition outline-none focus:ring-2"
+              placeholder="Describe el motivo de esta acción…"
             />
-          </div>
-        )}
+          )}
+        </ModalSection>
         {error && (
           <p role="alert" className="text-sm text-red-700">
             {error}
           </p>
         )}
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button type="button" onClick={onClose}>
+        <FormActions>
+          <Button type="button" className="w-full sm:w-auto" onClick={onClose}>
             Cancelar
           </Button>
           <Button
             type="submit"
             variant={action === 'finish' ? 'danger' : 'primary'}
+            className="w-full sm:w-auto"
             disabled={pending}
           >
-            {pending ? 'Guardandoâ€¦' : copy[action].submit}
+            {pending ? 'Guardando…' : copy[action].submit}
           </Button>
-        </div>
+        </FormActions>
       </form>
     </Dialog>
   )

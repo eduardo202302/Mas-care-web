@@ -3,12 +3,13 @@ import { useQuery } from '@tanstack/react-query'
 import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
+import { FormActions } from '@/components/ui/FormActions'
 import { api } from '@/lib/http'
 import { useCan } from '@/lib/permissions'
 
 const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
-export type ExportEntity = 'patients' | 'medications' | 'cycles'
+export type ExportEntity = 'patients' | 'medications' | 'cycles' | 'treatments'
 export type ExportFilters = { q?: string; branchId?: string; status?: string }
 
 type Format = 'csv' | 'xlsx'
@@ -17,13 +18,17 @@ type Format = 'csv' | 'xlsx'
 export function ExportButton({
   entity,
   filters = {},
+  defaultFormat = 'csv',
+  label = 'Exportar',
 }: {
   entity: ExportEntity
   filters?: ExportFilters
+  defaultFormat?: Format
+  label?: string
 }) {
   const canExport = useCan('export:csv')
   const [open, setOpen] = useState(false)
-  const [format, setFormat] = useState<Format>('csv')
+  const [format, setFormat] = useState<Format>(defaultFormat)
   const [selected, setSelected] = useState<string[] | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -58,9 +63,10 @@ export function ExportButton({
       })
       if (!response.ok) {
         const payload = (await response.json().catch(() => undefined)) as
-          | { error?: { message?: string } }
-          | undefined
-        throw new Error(payload?.error?.message ?? 'No pudimos generar el archivo.')
+          { error?: { message?: string } } | undefined
+        throw new Error(
+          payload?.error?.message ?? 'No pudimos generar el archivo.',
+        )
       }
       const url = URL.createObjectURL(await response.blob())
       const link = document.createElement('a')
@@ -72,7 +78,11 @@ export function ExportButton({
       URL.revokeObjectURL(url)
       setOpen(false)
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'No pudimos generar el archivo.')
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'No pudimos generar el archivo.',
+      )
     } finally {
       setBusy(false)
     }
@@ -82,7 +92,7 @@ export function ExportButton({
     <>
       <Button type="button" onClick={() => setOpen(true)}>
         <Download className="size-4" />
-        Exportar
+        {label}
       </Button>
       {open && (
         <Dialog
@@ -105,7 +115,10 @@ export function ExportButton({
             <fieldset className="app-scroll grid max-h-64 gap-1.5 overflow-y-auto">
               <legend className="mb-1 text-sm font-medium">Columnas</legend>
               {columns.map((column) => (
-                <label key={column.key} className="flex items-center gap-2 text-sm">
+                <label
+                  key={column.key}
+                  className="flex items-center gap-2 text-sm"
+                >
                   <input
                     type="checkbox"
                     checked={chosen.includes(column.key)}
@@ -126,20 +139,25 @@ export function ExportButton({
                 {error}
               </p>
             )}
-            <div className="flex justify-end gap-2">
-              <Button type="button" onClick={() => setOpen(false)}>
-                Cancelar
-              </Button>
-              <Button
-                type="button"
-                variant="primary"
-                disabled={busy || chosen.length === 0}
-                onClick={download}
-              >
-                {busy ? 'Exportando…' : 'Descargar'}
-              </Button>
-            </div>
           </div>
+          <FormActions>
+            <Button
+              type="button"
+              className="w-full sm:w-auto"
+              onClick={() => setOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              className="w-full sm:w-auto"
+              disabled={busy || chosen.length === 0}
+              onClick={download}
+            >
+              {busy ? 'Exportando…' : 'Descargar'}
+            </Button>
+          </FormActions>
         </Dialog>
       )}
     </>

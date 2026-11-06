@@ -77,12 +77,13 @@ export function ChangeExpectedDateDialog({
           </p>
         )}
         <FormActions>
-          <Button type="button" onClick={onClose}>
+          <Button type="button" className="w-full sm:w-auto" onClick={onClose}>
             Cancelar
           </Button>
           <Button
             type="submit"
             variant="primary"
+            className="w-full sm:w-auto"
             disabled={!date || save.isPending}
           >
             <CalendarClock className="size-4" />
@@ -127,12 +128,13 @@ export function StockOutDialog({
           Actualizar existencias
         </Button>
         <FormActions>
-          <Button type="button" onClick={onCancel}>
+          <Button type="button" className="w-full sm:w-auto" onClick={onCancel}>
             Cancelar
           </Button>
           <Button
             type="button"
             variant="primary"
+            className="w-full sm:w-auto"
             onClick={onConfirm}
             disabled={saving}
           >

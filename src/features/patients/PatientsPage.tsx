@@ -48,10 +48,11 @@ type PatientQuery = NonNullable<
   Record<string, string | number | boolean | undefined>
 
 const patientColumns: ColumnDef[] = [
+  { key: 'branch', label: 'Sucursal' },
   { key: 'document', label: 'ID' },
   { key: 'status', label: 'Estado' },
-  { key: 'branch', label: 'Sucursal' },
   { key: 'name', label: 'Paciente' },
+  { key: 'treatmentsCount', label: 'Cat.Tratamiento' },
   { key: 'contact', label: 'WhatsApp' },
   { key: 'primaryCondition', label: 'Condición Principal' },
   { key: 'city', label: 'Ciudad' },
@@ -323,6 +324,8 @@ export default function PatientsPage() {
         return patient.archivedAt ? 1 : 0
       case 'primaryCondition':
         return patient.primaryConditionName ?? ''
+      case 'treatmentsCount':
+        return patient.treatmentsCount
       case 'city':
         return (
           (patient.addressDetails as { city?: string } | null)?.city ?? ''
@@ -359,6 +362,11 @@ export default function PatientsPage() {
       contact: (
         <span key="contact" className="text-muted">
           {patient.phone ? formatPhone(patient.phone) : 'Sin WhatsApp'}
+        </span>
+      ),
+      treatmentsCount: (
+        <span key="treatmentsCount" className="text-muted block text-center">
+          {patient.treatmentsCount || ''}
         </span>
       ),
       document: (

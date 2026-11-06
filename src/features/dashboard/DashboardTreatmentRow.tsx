@@ -57,7 +57,7 @@ export function DashboardTreatmentRow({
         <div className="text-right">
           <p
             className={`text-xs font-semibold ${
-              row.days_remaining !== null && row.days_remaining < 0
+              row.days_remaining !== null && row.days_remaining <= 0
                 ? 'text-expired-text'
                 : 'text-ink'
             }`}

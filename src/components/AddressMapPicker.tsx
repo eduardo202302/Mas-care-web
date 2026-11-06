@@ -3,6 +3,7 @@ import { importLibrary, setOptions } from '@googlemaps/js-api-loader'
 import { Info, MapPin, Search } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
+import { FormActions } from '@/components/ui/FormActions'
 import { TextField } from '@/components/ui/TextField'
 import { useMe } from '@/lib/permissions'
 
@@ -340,19 +341,20 @@ function AddressMapDialog({
         </div>
       </div>
 
-      <div className="border-border mt-5 flex justify-end gap-2 border-t pt-4">
-        <Button type="button" onClick={onClose}>
+      <FormActions>
+        <Button type="button" className="w-full sm:w-auto" onClick={onClose}>
           Cancelar
         </Button>
         <Button
           type="button"
           variant="primary"
+          className="w-full sm:w-auto"
           disabled={loading}
           onClick={() => onApply(draft)}
         >
           Usar esta Ubicación
         </Button>
-      </div>
+      </FormActions>
     </Dialog>
   )
 }

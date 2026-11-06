@@ -19,6 +19,7 @@ import {
   treatmentLabel,
   treatmentPauta,
   treatmentStatusLabel,
+  type DoseScheduleFrequency,
   type Medication,
   type Treatment,
 } from '@/lib/treatments'
@@ -32,6 +33,8 @@ export function TreatmentList({
   medications,
   canWrite,
   canManage,
+  schedules,
+  openCycleTreatmentIds,
   onEdit,
   onAction,
   onNotice,
@@ -41,6 +44,10 @@ export function TreatmentList({
   medications: Map<string, Medication>
   canWrite: boolean
   canManage: boolean
+  /** Horario de dosis activo por tratamiento, para mostrar la frecuencia real (cada X horas/días) en vez del genérico "tomas/día". */
+  schedules?: Map<string, DoseScheduleFrequency | null>
+  /** Tratamientos con un ciclo de reposición abierto (sin cerrar). */
+  openCycleTreatmentIds?: ReadonlySet<string>
   onEdit: (treatment: Treatment) => void
   onAction: (
     action: TreatmentActionType | 'resume',
@@ -56,6 +63,13 @@ export function TreatmentList({
         const derived = derivedStatusLabel(treatment.derived_status)
         const canAdjust =
           treatment.status === 'active' || treatment.status === 'paused'
+        // Entregar / Ajustar cobertura / Renovar receta solo tienen sentido
+        // cuando ya llegó la fecha de reposición y existe un ciclo abierto
+        // para cerrar. Antes aparecían siempre y se pulsaban sin contexto.
+        const atRefillDate =
+          treatment.days_remaining !== null && treatment.days_remaining <= 0
+        const refillReady =
+          atRefillDate && (openCycleTreatmentIds?.has(treatment.id) ?? false)
         const showActions =
           (canWrite && treatment.status !== 'finished') || canManage
         return (
@@ -74,7 +88,11 @@ export function TreatmentList({
                 </Link>
                 <p className="text-muted mt-0.5 text-xs">
                   {treatment.name ? `${medicationName(medication)} · ` : ''}
-                  {treatmentPauta(treatment, medication)}
+                  {treatmentPauta(
+                    treatment,
+                    medication,
+                    schedules?.get(treatment.id),
+                  )}
                 </p>
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -102,7 +120,7 @@ export function TreatmentList({
                 <dd
                   className={`mt-0.5 font-medium ${
                     treatment.days_remaining !== null &&
-                    treatment.days_remaining < 0
+                    treatment.days_remaining <= 0
                       ? 'text-red-700'
                       : 'text-ink'
                   }`}
@@ -111,18 +129,28 @@ export function TreatmentList({
                 </dd>
               </div>
               <div>
-                <dt className="text-muted">Prescriptor</dt>
+                <dt className="text-muted">Doctor</dt>
                 <dd className="text-ink mt-0.5 font-medium">
                   {treatment.prescriberName || '—'}
                 </dd>
               </div>
               <div>
-                <dt className="text-muted">Receta vence</dt>
+                <dt className="text-muted">Fecha de fin</dt>
                 <dd className="text-ink mt-0.5 font-medium">
-                  {formatDate(treatment.prescriptionExpiresOn)}
+                  {treatment.endDate ? formatDate(treatment.endDate) : '—'}
                 </dd>
               </div>
             </dl>
+            {treatment.inventory_balance !== null && (
+              <p className="text-muted mt-2 text-xs">
+                Quedan{' '}
+                {(treatment as { inventory_balance_real?: number | null })
+                  .inventory_balance_real ?? treatment.inventory_balance}{' '}
+                unidades
+                {treatment.next_dose_at &&
+                  ` · próxima toma ${new Date(treatment.next_dose_at).toLocaleString('es', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`}
+              </p>
+            )}
             {treatment.statusReason && (
               <p className="text-muted mt-2 text-xs">
                 <span className="text-ink font-medium">Motivo:</span>{' '}
@@ -151,16 +179,19 @@ export function TreatmentList({
                     Avisar
                   </Button>
                 )}
-                {onDeliver && canWrite && treatment.status === 'active' && (
-                  <Button
-                    variant="ghost"
-                    className="h-8 px-2 text-xs"
-                    onClick={() => onDeliver(treatment)}
-                  >
-                    <PackageCheck className="size-3.5" />
-                    Entregar
-                  </Button>
-                )}
+                {onDeliver &&
+                  canWrite &&
+                  treatment.status === 'active' &&
+                  refillReady && (
+                    <Button
+                      variant="ghost"
+                      className="h-8 px-2 text-xs"
+                      onClick={() => onDeliver(treatment)}
+                    >
+                      <PackageCheck className="size-3.5" />
+                      Entregar
+                    </Button>
+                  )}
                 {canManage && treatment.status === 'active' && (
                   <Button
                     variant="ghost"
@@ -193,7 +224,7 @@ export function TreatmentList({
                     Reanudar
                   </Button>
                 )}
-                {canManage && canAdjust && (
+                {canManage && canAdjust && refillReady && (
                   <Button
                     variant="ghost"
                     className="h-8 px-2 text-xs"
@@ -203,7 +234,7 @@ export function TreatmentList({
                     Ajustar cobertura
                   </Button>
                 )}
-                {canManage && (
+                {canManage && refillReady && (
                   <Button
                     variant="ghost"
                     className="h-8 px-2 text-xs"
@@ -225,9 +256,12 @@ export function TreatmentList({
 export function ActiveTreatmentsPanel({
   treatments,
   medications,
+  schedules,
 }: {
   treatments: Treatment[]
   medications: Map<string, Medication>
+  /** Horario de dosis activo por tratamiento, para mostrar la cantidad y la frecuencia real (cada X horas/días) en vez del genérico "tomas/día". */
+  schedules?: Map<string, DoseScheduleFrequency | null>
 }) {
   if (!treatments.length)
     return <p className="text-muted text-sm">Sin tratamientos activos.</p>
@@ -255,7 +289,11 @@ export function ActiveTreatmentsPanel({
             </div>
             <p className="text-muted mt-0.5 text-xs">
               {treatment.name ? `${medicationName(medication)} · ` : ''}
-              {treatmentPauta(treatment, medication)}
+              {treatmentPauta(
+                treatment,
+                medication,
+                schedules?.get(treatment.id),
+              )}
             </p>
             <p className="text-muted mt-0.5 text-xs">
               Fin de cobertura: {formatDate(treatment.coverageEndOn)}

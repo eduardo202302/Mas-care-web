@@ -16,6 +16,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { FormActions } from '@/components/ui/FormActions'
 import { Dialog } from '@/components/ui/Dialog'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -559,10 +560,11 @@ export default function CompanyDetailPage() {
               </div>
             ))}
           </div>
-          <div className="mt-4 flex justify-end gap-2">
+          <FormActions>
             <Button
               type="button"
               variant="ghost"
+              className="w-full sm:w-auto"
               onClick={() => setCustomizingProperties(false)}
             >
               Cancelar
@@ -570,6 +572,7 @@ export default function CompanyDetailPage() {
             <Button
               type="button"
               variant="primary"
+              className="w-full sm:w-auto"
               onClick={() => {
                 setVisibleProperties(draftProperties)
                 localStorage.setItem(
@@ -581,7 +584,7 @@ export default function CompanyDetailPage() {
             >
               Guardar
             </Button>
-          </div>
+          </FormActions>
         </Dialog>
       )}
     </div>

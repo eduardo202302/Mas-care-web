@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Upload } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
+import { FormActions } from '@/components/ui/FormActions'
 import { api } from '@/lib/http'
 import { useCustomProperties } from '@/lib/custom-properties'
 import { useCan } from '@/lib/permissions'
@@ -227,27 +228,33 @@ export function ImportButton({ entity, label = 'Importar' }: { entity: Entity; l
                 {error}
               </p>
             )}
-            <div className="flex justify-end gap-2">
-              <Button type="button" onClick={close}>
-                {done ? 'Cerrar' : 'Cancelar'}
-              </Button>
-              {!done && (
-                <Button type="button" disabled={busy || !file || missingRequired} onClick={validate}>
-                  Vista previa
-                </Button>
-              )}
-              {!done && (
-                <Button
-                  type="button"
-                  variant="primary"
-                  disabled={busy || !preview?.valid_rows}
-                  onClick={confirm}
-                >
-                  Confirmar importación
-                </Button>
-              )}
-            </div>
           </div>
+          <FormActions>
+            <Button type="button" className="w-full sm:w-auto" onClick={close}>
+              {done ? 'Cerrar' : 'Cancelar'}
+            </Button>
+            {!done && (
+              <Button
+                type="button"
+                className="w-full sm:w-auto"
+                disabled={busy || !file || missingRequired}
+                onClick={validate}
+              >
+                Vista previa
+              </Button>
+            )}
+            {!done && (
+              <Button
+                type="button"
+                variant="primary"
+                className="w-full sm:w-auto"
+                disabled={busy || !preview?.valid_rows}
+                onClick={confirm}
+              >
+                Confirmar importación
+              </Button>
+            )}
+          </FormActions>
         </Dialog>
       )}
     </>

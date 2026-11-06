@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
+import { FormActions } from '@/components/ui/FormActions'
 import { InfoCard } from '@/components/ui/InfoCard'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { TextAreaField } from '@/components/ui/TextAreaField'
@@ -222,14 +223,24 @@ function ActivityCreateForm({
         value={body}
         onChange={(event) => setBody(event.target.value)}
       />
-      <div className="mt-2 flex justify-end gap-2">
-        <Button type="button" variant="ghost" onClick={onCancel}>
+      <FormActions>
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full sm:w-auto"
+          onClick={onCancel}
+        >
           Cancelar
         </Button>
-        <Button type="submit" variant="primary" disabled={submitting}>
-          Guardar
+        <Button
+          type="submit"
+          variant="primary"
+          className="w-full sm:w-auto"
+          disabled={submitting}
+        >
+          {submitting ? 'Guardando…' : 'Guardar'}
         </Button>
-      </div>
+      </FormActions>
     </form>
   )
 }

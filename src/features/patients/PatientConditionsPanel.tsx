@@ -6,6 +6,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextAreaField } from '@/components/ui/TextAreaField'
+import { TextField } from '@/components/ui/TextField'
 import { ApiError, api } from '@/lib/http'
 import { useCan } from '@/lib/permissions'
 import type { components, paths } from '@/lib/api-types'
@@ -345,21 +346,12 @@ export function PatientConditionsPanel({
                   Desmárcala desde la lista antes de asignar otra.
                 </p>
               )}
-              <div className="grid gap-1.5">
-                <label
-                  htmlFor="condition-diagnosed"
-                  className="text-ink text-sm font-medium"
-                >
-                  Fecha de Diagnóstico (Opcional)
-                </label>
-                <input
-                  id="condition-diagnosed"
-                  type="date"
-                  value={diagnosedOn}
-                  onChange={(event) => setDiagnosedOn(event.target.value)}
-                  className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2"
-                />
-              </div>
+              <TextField
+                label="Fecha de Diagnóstico (Opcional)"
+                type="date"
+                value={diagnosedOn}
+                onChange={(event) => setDiagnosedOn(event.target.value)}
+              />
               <div className="grid gap-1.5">
                 <label
                   htmlFor="condition-notes"
