@@ -37,6 +37,7 @@ import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import type { paths } from '@/lib/api-types'
 import {
   createTreatmentFromForm,
+  updateTreatmentFromForm,
   daysRemainingLabel,
   derivedStatusLabel,
   elapsedSinceLabel,
@@ -146,6 +147,7 @@ export default function TreatmentsPage() {
   const [sort, toggleSort] = useColumnSort()
   const [formOpen, setFormOpen] = useState(false)
   const [patient, setPatient] = useState<PickerPatient | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   const filters = useMemo(
     () => ({
@@ -176,19 +178,25 @@ export default function TreatmentsPage() {
     queryKey: ['medications', { archived: 'false', rows: 100 }],
     queryFn: () =>
       api<MedicationList>('/api/v1/medications?archived=false&rows=100'),
-    enabled: formOpen,
+    enabled: formOpen || editingId !== null,
   })
   const users = useQuery({
     queryKey: ['users', { rows: 100 }],
     queryFn: () => api<UserList>('/api/v1/users?rows=100'),
-    enabled: formOpen,
+    enabled: formOpen || editingId !== null,
   })
   const canReadDoctors = useCan('doctors:read')
   const doctors = useQuery({
     queryKey: ['doctors', 'picker'],
     queryFn: () =>
       api<DoctorPickerList>('/api/v1/doctors?isActive=true&rows=100'),
-    enabled: formOpen && canReadDoctors,
+    enabled: (formOpen || editingId !== null) && canReadDoctors,
+  })
+  const editing = useQuery({
+    queryKey: ['treatments', editingId],
+    queryFn: () =>
+      api<Treatment>(`/api/v1/treatments/${encodeURIComponent(editingId!)}`),
+    enabled: editingId !== null,
   })
 
   const create = useMutation({
@@ -202,6 +210,20 @@ export default function TreatmentsPage() {
       closeForm()
     },
   })
+
+  const update = useMutation({
+    mutationFn: (values: TreatmentSaveValues) =>
+      updateTreatmentFromForm(editingId!, values),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['treatments'] })
+      closeEdit()
+    },
+  })
+
+  function closeEdit() {
+    setEditingId(null)
+    update.reset()
+  }
 
   function closeForm() {
     setFormOpen(false)
@@ -271,7 +293,7 @@ export default function TreatmentsPage() {
         {treatmentPauta(item, item.medication, item.active_schedule)}
       </span>,
       <span key="prescriber" className="text-muted">
-        {item.prescriberName || '—'}
+        {item.prescriberName || ''}
       </span>,
       item.last_purchase_at ? (
         <div key="purchase" className="grid gap-0.5">
@@ -280,12 +302,10 @@ export default function TreatmentsPage() {
             {elapsedSinceLabel(item.last_purchase_at)}
           </span>
         </div>
-      ) : (
-        <span key="purchase" className="text-muted">
-          —
-        </span>
-      ),
-      <span key="coverage">{formatDate(item.coverageEndOn)}</span>,
+      ) : null,
+      <span key="coverage">
+        {item.coverageEndOn ? formatDate(item.coverageEndOn) : ''}
+      </span>,
       <span
         key="days"
         className={
@@ -294,15 +314,11 @@ export default function TreatmentsPage() {
             : undefined
         }
       >
-        {daysRemainingLabel(item.days_remaining)}
+        {item.days_remaining === null
+          ? ''
+          : daysRemainingLabel(item.days_remaining)}
       </span>,
-      derivedLabel ? (
-        <StatusChip key="derived" status={derivedLabel} />
-      ) : (
-        <span key="derived" className="text-muted">
-          —
-        </span>
-      ),
+      derivedLabel ? <StatusChip key="derived" status={derivedLabel} /> : null,
     ]
   })
   const openDetail = (item: TreatmentRow) =>
@@ -313,7 +329,7 @@ export default function TreatmentsPage() {
     <RowActions
       key={item.id}
       label={`Tratamiento de ${item.patient_name}`}
-      onEdit={() => openDetail(item)}
+      onEdit={canCreate ? () => setEditingId(item.id) : undefined}
     />
   ))
 
@@ -334,13 +350,15 @@ export default function TreatmentsPage() {
         item.patient_name,
         medicationName(item.medication),
         treatmentPauta(item, item.medication, item.active_schedule),
-        item.prescriberName || '—',
+        item.prescriberName || '',
         item.last_purchase_at
           ? `${formatPurchaseDateTime(item.last_purchase_at)} (${elapsedSinceLabel(item.last_purchase_at)})`
-          : '—',
-        formatDate(item.coverageEndOn),
-        daysRemainingLabel(item.days_remaining),
-        derivedStatusLabel(item.derived_status) ?? '—',
+          : '',
+        item.coverageEndOn ? formatDate(item.coverageEndOn) : '',
+        item.days_remaining === null
+          ? ''
+          : daysRemainingLabel(item.days_remaining),
+        derivedStatusLabel(item.derived_status) ?? '',
       ]),
     })
   }
@@ -378,7 +396,7 @@ export default function TreatmentsPage() {
         }
       />
       <FilterBarRow aria-label="Filtros de tratamientos">
-        <label className="relative w-full sm:w-96">
+        <label className="relative w-full sm:w-[34rem]">
           <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
           <input
             aria-label="Buscar tratamientos"
@@ -538,7 +556,7 @@ export default function TreatmentsPage() {
           icon={<Pill className="size-5" />}
           compactHeader
           printable
-          bodyClassName="pt-3"
+          bodyClassName="pt-0"
           size="lg"
           onClose={closeForm}
         >
@@ -571,6 +589,44 @@ export default function TreatmentsPage() {
               </p>
             )}
           </div>
+        </Dialog>
+      )}
+      {editingId !== null && canCreate && (
+        <Dialog
+          title="Editar Tratamiento"
+          description="Define la pauta, la cobertura y los datos de la receta."
+          icon={<Pill className="size-5" />}
+          compactHeader
+          printable
+          bodyClassName="pt-0"
+          size="lg"
+          onClose={closeEdit}
+        >
+          {editing.data ? (
+            <TreatmentForm
+              key={editing.data.id}
+              treatment={editing.data}
+              patientName={
+                items.find((item) => item.id === editingId)?.patient_name
+              }
+              medications={medications.data?.data ?? []}
+              branches={branches.data?.data ?? []}
+              users={users.data?.data ?? []}
+              doctors={doctors.data?.data ?? []}
+              doctorsLoading={doctors.isLoading}
+              onSave={(values) =>
+                update.mutateAsync(values).then(() => undefined)
+              }
+              onCancel={closeEdit}
+              submitting={update.isPending}
+            />
+          ) : editing.isError ? (
+            <p role="alert" className="text-sm text-red-700">
+              No pudimos cargar el tratamiento. {editing.error.message}
+            </p>
+          ) : (
+            <p className="text-muted text-sm">Cargando tratamiento…</p>
+          )}
         </Dialog>
       )}
     </div>

@@ -1,10 +1,19 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, Plus, Search } from 'lucide-react'
+import { Activity, Building2, Plus, Search } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
+import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { Dialog } from '@/components/ui/Dialog'
-import { FilterBarRow, FilterSegmented } from '@/components/ui/AdvancedFilter'
+import {
+  ActiveFilterChips,
+  AdvancedFilterButton,
+  AdvancedFilterDialog,
+  FilterBarRow,
+  FilterField,
+  filterControlClass,
+  type ActiveFilterChip,
+} from '@/components/ui/AdvancedFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
@@ -43,6 +52,9 @@ export default function MedicalCentersPage() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [isActive, setIsActive] = useState<'true' | 'false'>('true')
+  const [filterDraft, setFilterDraft] = useState<{
+    isActive: 'true' | 'false'
+  } | null>(null)
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
@@ -133,7 +145,9 @@ export default function MedicalCentersPage() {
       index === 0
         ? item.numericId
         : index === 1
-          ? (item.isActive ? 1 : 0)
+          ? item.isActive
+            ? 1
+            : 0
           : index === 2
             ? item.name
             : index === 3
@@ -164,7 +178,7 @@ export default function MedicalCentersPage() {
         addressText(item.addressDetails, 'region'),
       ]
         .filter(Boolean)
-        .join(', ') || '—'}
+        .join(', ') || ''}
     </span>,
   ])
   const rowActions = items.map((item) => (
@@ -181,10 +195,29 @@ export default function MedicalCentersPage() {
     />
   ))
 
+  const columnHeaders = ['ID', 'Estado', 'Nombre', 'Tipo', 'Ubicación']
+  const exportRows = items.map((item) => [
+    String(item.numericId),
+    item.isActive ? 'Activo' : 'Inactivo',
+    item.name,
+    medicalCenterTypeLabels[item.centerType],
+    [
+      addressText(item.addressDetails, 'city'),
+      addressText(item.addressDetails, 'region'),
+    ]
+      .filter(Boolean)
+      .join(', ') || '',
+  ])
+  const filterCount = isActive === 'false' ? 1 : 0
+  const chips: ActiveFilterChip[] =
+    isActive === 'false'
+      ? [{ key: 'isActive', label: 'Estado', value: 'Inactivos' }]
+      : []
+
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
       <PageHeader
-        title="Centros médicos"
+        title="Centros Médicos"
         subtitle="Clínicas, hospitales y consultorios donde atienden los médicos."
         actions={
           <>
@@ -198,8 +231,8 @@ export default function MedicalCentersPage() {
         }
       />
       <FilterBarRow aria-label="Filtros">
-        <label className="relative min-w-[220px] flex-1">
-          <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+        <label className="relative w-full sm:w-[34rem]">
+          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
           <input
             aria-label="Buscar centros médicos"
             value={search}
@@ -208,22 +241,65 @@ export default function MedicalCentersPage() {
               setPage(1)
             }}
             placeholder="Nombre o RNC"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
+            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
           />
         </label>
-        <FilterSegmented<'true' | 'false'>
-          label="Filtrar centros médicos"
-          value={isActive}
-          options={[
-            { value: 'true', label: 'Activos' },
-            { value: 'false', label: 'Inactivos' },
-          ]}
-          onChange={(value) => {
-            setIsActive(value)
-            setPage(1)
-          }}
+        <AdvancedFilterButton
+          open={filterDraft !== null}
+          count={filterCount}
+          onClick={() => setFilterDraft({ isActive })}
+        />
+        <TableToolbarActions
+          title="Centros Médicos"
+          headers={columnHeaders}
+          rows={exportRows}
+          filename="centros-medicos"
         />
       </FilterBarRow>
+      <ActiveFilterChips
+        chips={chips}
+        onRemove={() => {
+          setIsActive('true')
+          setPage(1)
+        }}
+      />
+      {filterDraft && (
+        <AdvancedFilterDialog
+          open
+          description="Combina estos criterios para acotar la lista de centros médicos."
+          onClose={() => setFilterDraft(null)}
+          onClear={() => {
+            setFilterDraft({ isActive: 'true' })
+            setIsActive('true')
+            setPage(1)
+          }}
+          clearDisabled={!filterCount && filterDraft.isActive === 'true'}
+          onApply={() => {
+            setIsActive(filterDraft.isActive)
+            setPage(1)
+            setFilterDraft(null)
+          }}
+        >
+          <FilterField
+            label="Estado del Centro"
+            icon={<Activity className="size-4" />}
+          >
+            <select
+              aria-label="Estado del centro"
+              value={filterDraft.isActive}
+              onChange={(event) =>
+                setFilterDraft({
+                  isActive: event.target.value as 'true' | 'false',
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="true">Activos</option>
+              <option value="false">Inactivos</option>
+            </select>
+          </FilterField>
+        </AdvancedFilterDialog>
+      )}
       {centers.isError && (
         <p
           role="alert"
@@ -237,7 +313,7 @@ export default function MedicalCentersPage() {
           <TableSkeleton columns={5} />
         ) : (
           <DataTable
-            columns={['ID', 'Estado', 'Nombre', 'Tipo', 'Ubicación']}
+            columns={columnHeaders}
             rows={tableRows}
             actions={rowActions}
             sortableColumns={[0, 1, 2, 3, 4]}

@@ -101,12 +101,12 @@ export default function StagesPage() {
   return (
     <div className="animate-in max-w-3xl">
       <PageHeader
-        title="Etapas del tablero"
+        title="Etapas del Tablero"
         subtitle="Las cinco columnas del tablero siguen el flujo de los ciclos y no cambian. Dentro de cada una puedes tener varias etapas: cambia su nombre, color y orden, añade nuevas o borra las que no uses. Mover un ciclo entre etapas de la misma columna no cambia su estado."
       />
       <section className="border-border mb-5 grid gap-3 rounded-xl border bg-white p-5">
         <label className="grid gap-1 text-sm font-medium">
-          Nombre del pipeline
+          Nombre del Pipeline
           <input
             className={input}
             value={draft.name}

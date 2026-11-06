@@ -1,7 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { Info } from 'lucide-react'
 import { api } from '@/lib/http'
-import { reportQueryString, type ReportFilters, type ReportResponse } from '@/lib/reports'
+import {
+  reportQueryString,
+  type ReportFilters,
+  type ReportResponse,
+} from '@/lib/reports'
 import { SimpleMetricCard } from '../components/MetricCard'
 import { ReportChart } from '../components/ReportChart'
 import { ReportErrorState } from '../components/ReportErrorState'
@@ -14,18 +18,28 @@ export function TransfersReport({ filters }: { filters: ReportFilters }) {
   const query = useQuery({
     queryKey: ['reports', 'transfers', filters],
     queryFn: () =>
-      api<ReportResponse['transfers']>(`/api/v1/reports/transfers?${reportQueryString(filters)}`),
+      api<ReportResponse['transfers']>(
+        `/api/v1/reports/transfers?${reportQueryString(filters)}`,
+      ),
   })
 
   if (query.isLoading) return <Skeleton className="h-96 w-full rounded-xl" />
   if (query.isError) {
-    return <ReportErrorState message={query.error.message} onRetry={() => query.refetch()} />
+    return (
+      <ReportErrorState
+        message={query.error.message}
+        onRetry={() => query.refetch()}
+      />
+    )
   }
 
   const data = query.data
   if (!data) return null
 
-  const byMonth = data.by_month.map((row) => ({ month: row.month, traspasos: row.count }))
+  const byMonth = data.by_month.map((row) => ({
+    month: row.month,
+    traspasos: row.count,
+  }))
   const byOrigin = data.by_origin_branch.map((row) => ({
     sucursal: row.name,
     traspasos: row.count,
@@ -47,14 +61,24 @@ export function TransfersReport({ filters }: { filters: ReportFilters }) {
             definitions={data.definitions}
             definitionKey="scope"
           />
-          <SimpleMetricCard label="Tratamientos movidos" value={data.summary.total_treatments_moved} />
-          <SimpleMetricCard label="Ciclos movidos" value={data.summary.total_cycles_moved} />
+          <SimpleMetricCard
+            label="Tratamientos movidos"
+            value={data.summary.total_treatments_moved}
+          />
+          <SimpleMetricCard
+            label="Ciclos movidos"
+            value={data.summary.total_cycles_moved}
+          />
         </div>
         <ExportButton type="transfers" filters={filters} />
       </div>
 
       <div className="flex items-center gap-1.5">
-        <DefinitionHelp definitions={data.definitions} term="by_month" label="Traspasos por mes" />
+        <DefinitionHelp
+          definitions={data.definitions}
+          term="by_month"
+          label="Traspasos por mes"
+        />
       </div>
 
       <ReportChart
@@ -86,7 +110,9 @@ export function TransfersReport({ filters }: { filters: ReportFilters }) {
       </div>
 
       <div className="border-border shadow-card rounded-xl border bg-white p-4">
-        <h3 className="font-display text-petroleo mb-1 text-base font-bold">Motivos</h3>
+        <h3 className="font-display text-petroleo mb-1 text-base font-bold">
+          Motivos
+        </h3>
         {data.notes.reason_limitation && (
           <p className="text-muted mb-3 flex items-start gap-2 text-xs">
             <Info className="mt-0.5 size-3.5 shrink-0" />
@@ -94,14 +120,22 @@ export function TransfersReport({ filters }: { filters: ReportFilters }) {
           </p>
         )}
         {data.by_reason.length === 0 ? (
-          <p className="text-muted text-sm">Sin motivos registrados en este periodo.</p>
+          <p className="text-muted text-sm">
+            Sin motivos registrados en este periodo.
+          </p>
         ) : (
           <table className="w-full border-collapse text-left text-sm">
-            <caption className="sr-only">Traspasos agrupados por motivo de texto libre</caption>
+            <caption className="sr-only">
+              Traspasos agrupados por motivo de texto libre
+            </caption>
             <thead className="bg-surface text-muted text-xs tracking-wide uppercase">
               <tr>
-                <th scope="col" className="px-4 py-2.5 font-semibold">Motivo</th>
-                <th scope="col" className="px-4 py-2.5 font-semibold">Traspasos</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">
+                  Motivo
+                </th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">
+                  Traspasos
+                </th>
               </tr>
             </thead>
             <tbody className="divide-border divide-y">

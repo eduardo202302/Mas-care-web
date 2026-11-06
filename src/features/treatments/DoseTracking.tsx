@@ -217,7 +217,7 @@ export function DoseScheduleCard({
     ? allSchedules.reduce(
         (earliest, row) =>
           row.effectiveFrom < earliest ? row.effectiveFrom : earliest,
-        allSchedules[0].effectiveFrom,
+        allSchedules[0]!.effectiveFrom,
       )
     : null
   // Las versiones son por día (sin hora): la nueva no puede empezar el mismo

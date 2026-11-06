@@ -77,7 +77,7 @@ export default function ThresholdsPage() {
   if (!canRead)
     return (
       <div className="animate-in">
-        <PageHeader title="Parámetros de tiempo" />
+        <PageHeader title="Parámetros de Tiempo" />
         <p
           role="alert"
           className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
@@ -90,7 +90,7 @@ export default function ThresholdsPage() {
   return (
     <div className="animate-in">
       <PageHeader
-        title="Parámetros de tiempo"
+        title="Parámetros de Tiempo"
         subtitle="Define con cuánta anticipación se muestran las alertas de reposición y de receta. Los estados se calculan en la API con estos valores."
       />
       <section className="border-border rounded-xl border bg-white p-5 md:p-6">
@@ -126,7 +126,7 @@ export default function ThresholdsPage() {
           >
             <div className="grid gap-4 sm:grid-cols-3">
               <TextField
-                label="Días para «Vence pronto»"
+                label="Días para «Vence Pronto»"
                 type="number"
                 min="0"
                 max="365"
@@ -137,7 +137,7 @@ export default function ThresholdsPage() {
                 error={errors.dueSoonDays?.message}
               />
               <TextField
-                label="Días para «Próxima reposición»"
+                label="Días para «Próxima Reposición»"
                 type="number"
                 min="0"
                 max="365"
@@ -148,7 +148,7 @@ export default function ThresholdsPage() {
                 error={errors.upcomingDays?.message}
               />
               <TextField
-                label="Días de aviso de receta"
+                label="Días de Aviso de Receta"
                 type="number"
                 min="0"
                 max="365"
@@ -201,7 +201,7 @@ export default function ThresholdsPage() {
                   className="w-full sm:w-auto"
                   disabled={save.isPending}
                 >
-                  {save.isPending ? 'Guardando…' : 'Guardar parámetros'}
+                  {save.isPending ? 'Guardando…' : 'Guardar Parámetros'}
                 </Button>
               </FormActions>
             ) : (

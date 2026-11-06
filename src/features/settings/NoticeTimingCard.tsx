@@ -73,7 +73,7 @@ export function NoticeTimingCard() {
   return (
     <section className="border-border mt-6 rounded-xl border bg-white p-5 md:p-6">
       <h2 className="font-display text-petroleo text-xl font-bold">
-        Tiempos de los avisos
+        Tiempos de los Avisos
       </h2>
       <p className="text-muted mt-1 mb-4 max-w-2xl text-sm leading-6">
         Cuándo se preparan y reenvían los avisos de reposición.
@@ -87,7 +87,7 @@ export function NoticeTimingCard() {
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField
-            label="Días de anticipación del aviso"
+            label="Días de Anticipación del Aviso"
             type="number"
             min="0"
             max="365"
@@ -98,7 +98,7 @@ export function NoticeTimingCard() {
             error={errors.noticeLeadDays?.message}
           />
           <TextField
-            label="Horas para reintentar un aviso"
+            label="Horas para Reintentar un Aviso"
             type="number"
             min="1"
             max="336"
@@ -109,14 +109,14 @@ export function NoticeTimingCard() {
             error={errors.retryAfterHours?.message}
           />
           <TextField
-            label="Ventana horaria: apertura"
+            label="Ventana Horaria: Apertura"
             type="time"
             disabled={save.isPending}
             {...register('noticeWindowStart')}
             error={errors.noticeWindowStart?.message}
           />
           <TextField
-            label="Ventana horaria: cierre"
+            label="Ventana Horaria: Cierre"
             type="time"
             disabled={save.isPending}
             {...register('noticeWindowEnd')}
@@ -144,7 +144,7 @@ export function NoticeTimingCard() {
             className="w-full sm:w-auto"
             disabled={save.isPending}
           >
-            {save.isPending ? 'Guardando…' : 'Guardar tiempos'}
+            {save.isPending ? 'Guardando…' : 'Guardar Tiempos'}
           </Button>
         </FormActions>
       </form>

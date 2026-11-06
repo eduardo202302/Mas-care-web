@@ -1,13 +1,21 @@
 import { useMemo, useState } from 'react'
-import { ExportButton } from '@/components/ExportButton'
 import { ImportButton } from '@/components/ImportButton'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pill, Plus, Search } from 'lucide-react'
+import { Pill, Plus, Search, ToggleRight } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
+import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { Dialog } from '@/components/ui/Dialog'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { FilterBarRow, FilterSegmented } from '@/components/ui/AdvancedFilter'
+import {
+  ActiveFilterChips,
+  AdvancedFilterButton,
+  AdvancedFilterDialog,
+  FilterBarRow,
+  FilterField,
+  filterControlClass,
+  type ActiveFilterChip,
+} from '@/components/ui/AdvancedFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
@@ -17,13 +25,25 @@ import { useCan } from '@/lib/permissions'
 import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import type { components, paths } from '@/lib/api-types'
 import type { MedicationFormValues } from '@/schemas/medication'
+import {
+  setPrimaryMedicationAttachment,
+  uploadMedicationAttachment,
+} from '@/lib/medication-attachments'
 import { MedicationForm } from './MedicationForm'
+import { MedicationImage } from './MedicationImage'
+import type { StagedAttachment } from './MedicationAttachments'
 
 type MedicationList =
   paths['/api/v1/medications']['get']['responses'][200]['content']['application/json']
 type MedicationQuery = NonNullable<
   paths['/api/v1/medications']['get']['parameters']['query']
 >
+
+const DEFAULT_ARCHIVED = 'false' as 'true' | 'false'
+const archivedOptions: { value: 'true' | 'false'; label: string }[] = [
+  { value: 'false', label: 'Activos' },
+  { value: 'true', label: 'Archivados' },
+]
 
 function queryString(query: MedicationQuery) {
   const params = new URLSearchParams()
@@ -38,7 +58,10 @@ export default function MedicationsPage() {
   const canArchive = useCan('medications:write')
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
-  const [archived, setArchived] = useState<'true' | 'false'>('false')
+  const [archived, setArchived] = useState<'true' | 'false'>(DEFAULT_ARCHIVED)
+  const [filterDraft, setFilterDraft] = useState<{
+    archived: 'true' | 'false'
+  } | null>(null)
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
@@ -66,7 +89,13 @@ export default function MedicationsPage() {
       api<MedicationList>(`/api/v1/medications?${queryString(filters)}`),
   })
   const save = useMutation({
-    mutationFn: (values: MedicationFormValues) => {
+    mutationFn: async ({
+      values,
+      staged,
+    }: {
+      values: MedicationFormValues
+      staged: StagedAttachment[]
+    }) => {
       if (editing) {
         const body: components['schemas']['MedicationPatch'] = {
           ...values,
@@ -97,10 +126,37 @@ export default function MedicationsPage() {
           ? { activeIngredient: values.activeIngredient }
           : { activeIngredient: null }),
       }
-      return api<components['schemas']['Medication']>('/api/v1/medications', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      })
+      const created = await api<components['schemas']['Medication']>(
+        '/api/v1/medications',
+        { method: 'POST', body: JSON.stringify(body) },
+      )
+      const failed: string[] = []
+      let primaryId: string | undefined
+      for (const item of staged) {
+        try {
+          const uploaded = await uploadMedicationAttachment(
+            created.id,
+            item.file,
+          )
+          if (item.isPrimary) primaryId = uploaded.id
+        } catch {
+          failed.push(item.file.name)
+        }
+      }
+      if (primaryId)
+        await setPrimaryMedicationAttachment(created.id, primaryId).catch(
+          () => undefined,
+        )
+      if (failed.length) {
+        await queryClient.invalidateQueries({ queryKey: ['medications'] })
+        setEditing(created)
+        throw new Error(
+          'El medicamento se creó, pero no se pudieron subir: ' +
+            failed.join(', ') +
+            '. Vuelve a intentarlo desde Imágenes y Documentos.',
+        )
+      }
+      return created
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['medications'] })
@@ -124,7 +180,8 @@ export default function MedicationsPage() {
         `/api/v1/medications/${encodeURIComponent(id)}/restore`,
         { method: 'POST' },
       ),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['medications'] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['medications'] }),
   })
 
   function closeForm() {
@@ -155,7 +212,9 @@ export default function MedicationsPage() {
       index === 0
         ? item.numericId
         : index === 1
-          ? (item.archivedAt ? 1 : 0)
+          ? item.archivedAt
+            ? 1
+            : 0
           : index === 2
             ? item.brandName ||
               item.genericName ||
@@ -174,20 +233,54 @@ export default function MedicationsPage() {
     <span key="state" className="text-muted">
       {item.archivedAt ? 'Archivado' : 'Activo'}
     </span>,
-    <span key="name" className="text-petroleo font-semibold">
-      {item.brandName ||
-        item.genericName ||
-        item.activeIngredient ||
-        'Medicamento'}
+    <span key="name" className="flex items-center gap-3">
+      <MedicationImage
+        medicationId={item.id}
+        attachmentId={item.primaryImageId}
+        className="size-10 shrink-0 rounded-lg"
+      />
+      <span className="text-petroleo font-semibold">
+        {item.brandName ||
+          item.genericName ||
+          item.activeIngredient ||
+          'Medicamento'}
+      </span>
     </span>,
     <span key="ingredient" className="text-muted">
-      {item.activeIngredient || item.genericName || '—'}
+      {item.activeIngredient || item.genericName || ''}
     </span>,
     <span key="presentation">{item.presentation}</span>,
     <span key="units">
       {String(item.unitsPerPackage)} {item.doseUnit} por envase
     </span>,
   ])
+  const exportHeaders = [
+    'ID',
+    'Estado',
+    'Medicamento',
+    'Principio Activo',
+    'Presentación',
+    'Contenido',
+  ]
+  const exportRows = items.map((item) => [
+    String(item.numericId),
+    item.archivedAt ? 'Archivado' : 'Activo',
+    item.brandName ||
+      item.genericName ||
+      item.activeIngredient ||
+      'Medicamento',
+    item.activeIngredient || item.genericName || '',
+    item.presentation,
+    `${String(item.unitsPerPackage)} ${item.doseUnit} por envase`,
+  ])
+  const filterCount = archived !== DEFAULT_ARCHIVED ? 1 : 0
+  const chips: ActiveFilterChip[] = []
+  if (archived !== DEFAULT_ARCHIVED)
+    chips.push({
+      key: 'archived',
+      label: 'Estado',
+      value: archivedOptions.find((option) => option.value === archived)!.label,
+    })
   const rowActions = items.map((item) => {
     const label = item.brandName || item.genericName || item.presentation
     return (
@@ -222,10 +315,6 @@ export default function MedicationsPage() {
           <>
             <div className="flex flex-wrap gap-2">
               <ImportButton entity="medications" />
-              <ExportButton
-                entity="medications"
-                filters={{ q: search.trim() }}
-              />
               {canCreate && (
                 <Button variant="primary" onClick={openCreate}>
                   <Plus className="size-4" />
@@ -237,8 +326,8 @@ export default function MedicationsPage() {
         }
       />
       <FilterBarRow aria-label="Filtros">
-        <label className="relative min-w-[220px] flex-1">
-          <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+        <label className="relative w-full sm:w-[34rem]">
+          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
           <input
             aria-label="Buscar medicamentos"
             value={search}
@@ -247,22 +336,69 @@ export default function MedicationsPage() {
               setPage(1)
             }}
             placeholder="Nombre, principio activo o presentación"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
+            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
           />
         </label>
-        <FilterSegmented<'true' | 'false'>
-          label="Filtrar medicamentos archivados"
-          value={archived}
-          options={[
-            { value: 'false', label: 'Activos' },
-            { value: 'true', label: 'Archivados' },
-          ]}
-          onChange={(value) => {
-            setArchived(value)
-            setPage(1)
-          }}
+        <AdvancedFilterButton
+          open={filterDraft !== null}
+          count={filterCount}
+          onClick={() => setFilterDraft({ archived })}
+        />
+        <TableToolbarActions
+          title="Medicamentos"
+          headers={exportHeaders}
+          rows={exportRows}
+          filename="medicamentos"
+          exportEntity="medications"
+          exportFilters={{ q: search.trim() }}
         />
       </FilterBarRow>
+      <ActiveFilterChips
+        chips={chips}
+        onRemove={() => {
+          setArchived(DEFAULT_ARCHIVED)
+          setPage(1)
+        }}
+      />
+      {filterDraft && (
+        <AdvancedFilterDialog
+          open
+          description="Combina estos criterios para acotar la lista de medicamentos."
+          onClose={() => setFilterDraft(null)}
+          onClear={() => {
+            setFilterDraft({ archived: DEFAULT_ARCHIVED })
+            setArchived(DEFAULT_ARCHIVED)
+            setPage(1)
+          }}
+          clearDisabled={
+            !filterCount && filterDraft.archived === DEFAULT_ARCHIVED
+          }
+          onApply={() => {
+            setArchived(filterDraft.archived)
+            setPage(1)
+            setFilterDraft(null)
+          }}
+        >
+          <FilterField label="Estado" icon={<ToggleRight className="size-4" />}>
+            <select
+              aria-label="Estado"
+              value={filterDraft.archived}
+              onChange={(event) =>
+                setFilterDraft({
+                  archived: event.target.value as 'true' | 'false',
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              {archivedOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+        </AdvancedFilterDialog>
+      )}
       {medications.isError && (
         <p
           role="alert"
@@ -336,7 +472,9 @@ export default function MedicationsPage() {
           <MedicationForm
             key={editing?.id ?? 'new'}
             medication={editing ?? undefined}
-            onSave={(values) => save.mutateAsync(values).then(() => undefined)}
+            onSave={(values, staged) =>
+              save.mutateAsync({ values, staged }).then(() => undefined)
+            }
             onCancel={closeForm}
             submitting={save.isPending}
             readOnly={viewOnly}

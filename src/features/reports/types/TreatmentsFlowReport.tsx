@@ -10,7 +10,11 @@ import {
   YAxis,
 } from 'recharts'
 import { api } from '@/lib/http'
-import { reportQueryString, type ReportFilters, type ReportResponse } from '@/lib/reports'
+import {
+  reportQueryString,
+  type ReportFilters,
+  type ReportResponse,
+} from '@/lib/reports'
 import { EmptyState } from '@/components/EmptyState'
 import { SimpleMetricCard } from '../components/MetricCard'
 import { DefinitionHelp } from '../components/DefinitionHelp'
@@ -48,13 +52,22 @@ export function TreatmentsFlowReport({ filters }: { filters: ReportFilters }) {
 
   if (query.isLoading) return <Skeleton className="h-96 w-full rounded-xl" />
   if (query.isError) {
-    return <ReportErrorState message={query.error.message} onRetry={() => query.refetch()} />
+    return (
+      <ReportErrorState
+        message={query.error.message}
+        onRetry={() => query.refetch()}
+      />
+    )
   }
 
   const data = query.data
   if (!data) return null
 
-  const netBalance = data.totals.altas + data.totals.reanudaciones - data.totals.pausas - data.totals.finalizaciones
+  const netBalance =
+    data.totals.altas +
+    data.totals.reanudaciones -
+    data.totals.pausas -
+    data.totals.finalizaciones
   const includedCategories = data.categories_included
 
   return (
@@ -62,7 +75,11 @@ export function TreatmentsFlowReport({ filters }: { filters: ReportFilters }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="grid flex-1 gap-3 sm:grid-cols-5">
           {includedCategories.map((category) => (
-            <SimpleMetricCard key={category} label={categoryLabels[category]} value={data.totals[category]} />
+            <SimpleMetricCard
+              key={category}
+              label={categoryLabels[category]}
+              value={data.totals[category]}
+            />
           ))}
           <SimpleMetricCard label="Balance neto" value={netBalance} />
         </div>
@@ -75,17 +92,34 @@ export function TreatmentsFlowReport({ filters }: { filters: ReportFilters }) {
 
       <div className="border-border shadow-card rounded-xl border bg-white p-4">
         <div className="mb-3 flex items-center gap-1.5">
-          <h3 className="font-display text-petroleo text-base font-bold">Altas y bajas por mes</h3>
-          <DefinitionHelp definitions={data.definitions} term="month" label="Mes" />
+          <h3 className="font-display text-petroleo text-base font-bold">
+            Altas y bajas por mes
+          </h3>
+          <DefinitionHelp
+            definitions={data.definitions}
+            term="month"
+            label="Mes"
+          />
         </div>
         {data.by_month.length === 0 ? (
-          <EmptyState title="No hay datos en este periodo" description="Ajusta los filtros o elige otro rango de fechas." />
+          <EmptyState
+            title="No hay datos en este periodo"
+            description="Ajusta los filtros o elige otro rango de fechas."
+          />
         ) : (
-          <div role="img" aria-label="Altas, pausas, reanudaciones y finalizaciones por mes" className="h-80 w-full print:hidden">
+          <div
+            role="img"
+            aria-label="Altas, pausas, reanudaciones y finalizaciones por mes"
+            className="h-80 w-full print:hidden"
+          >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.by_month}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e3eef0" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#71878c" />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 12 }}
+                  stroke="#71878c"
+                />
                 <YAxis tick={{ fontSize: 12 }} stroke="#71878c" />
                 <Tooltip />
                 <Legend />
@@ -105,12 +139,20 @@ export function TreatmentsFlowReport({ filters }: { filters: ReportFilters }) {
 
         <div className="mt-4 overflow-x-auto">
           <table className="w-full border-collapse text-left text-sm">
-            <caption className="sr-only">Altas, pausas, reanudaciones y finalizaciones por mes</caption>
+            <caption className="sr-only">
+              Altas, pausas, reanudaciones y finalizaciones por mes
+            </caption>
             <thead className="bg-surface text-muted text-xs tracking-wide uppercase">
               <tr>
-                <th scope="col" className="px-4 py-2.5 font-semibold">Mes</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">
+                  Mes
+                </th>
                 {includedCategories.map((category) => (
-                  <th key={category} scope="col" className="px-4 py-2.5 font-semibold">
+                  <th
+                    key={category}
+                    scope="col"
+                    className="px-4 py-2.5 font-semibold"
+                  >
                     {categoryLabels[category]}
                   </th>
                 ))}

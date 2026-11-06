@@ -1,5 +1,4 @@
 import { PageHeader } from '@/components/ui/PageHeader'
-import { NewCycleDialog } from '@/features/board/NewCycleDialog'
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -10,7 +9,6 @@ import {
   Clock3,
   FileClock,
   MessageSquareOff,
-  PackageCheck,
   PackageOpen,
   RefreshCw,
 } from 'lucide-react'
@@ -56,7 +54,6 @@ export default function DashboardPage() {
   const [rows, setRows] = useState(PAGE_ROWS)
   const [noticeRow, setNoticeRow] = useState<DashboardRow | null>(null)
   const [deliveryRow, setDeliveryRow] = useState<DashboardRow | null>(null)
-  const [refillOpen, setRefillOpen] = useState(false)
   const [feedback, setFeedback] = useState<string | null>(null)
 
   const dashboard = useQuery({
@@ -115,21 +112,13 @@ export default function DashboardPage() {
   return (
     <div className="animate-in">
       <PageHeader
-        title="Panel del día"
+        title="Panel del Día"
         subtitle="Prioriza los avisos, entregas y recetas que necesitan atención hoy."
         meta={today}
         actions={
           <>
             <div className="flex flex-wrap items-center gap-2">
               <BranchFilter />
-              <Button
-                type="button"
-                variant="primary"
-                onClick={() => setRefillOpen(true)}
-              >
-                <PackageCheck className="size-4" />
-                Registrar Reposición
-              </Button>
               <Button
                 type="button"
                 aria-label="Actualizar panel"
@@ -172,7 +161,7 @@ export default function DashboardPage() {
       )}
 
       <section
-        aria-label="Indicadores del día"
+        aria-label="Indicadores del Día"
         className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6"
       >
         {dashboardCardKeys.map((key) => {
@@ -237,7 +226,7 @@ export default function DashboardPage() {
         })}
       </section>
 
-      <section className="border-border shadow-card mt-6 rounded-xl border bg-white">
+      <section className="border-border mt-6 rounded-xl border bg-white">
         <header className="border-border flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
           <div>
             <h2 className="text-petroleo font-display text-lg font-bold">
@@ -253,7 +242,7 @@ export default function DashboardPage() {
             onClick={() => setListOpen(true)}
             disabled={!dashboard.isSuccess}
           >
-            Ver lista completa
+            Ver Lista Completa
             <ChevronRight className="size-4" />
           </Button>
         </header>
@@ -317,15 +306,6 @@ export default function DashboardPage() {
           onLogged={() =>
             setFeedback(`Aviso registrado para ${noticeRow.patient.full_name}.`)
           }
-        />
-      )}
-      {refillOpen && (
-        <NewCycleDialog
-          onClose={() => {
-            setRefillOpen(false)
-            void dashboard.refetch()
-            void list.refetch()
-          }}
         />
       )}
       {deliveryRow && (

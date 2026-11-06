@@ -10526,6 +10526,7 @@ export interface components {
             doseUnit: string;
             unitsPerPackage: string | number | unknown;
             archivedAt: string | null;
+            primaryImageId?: string | null;
         };
         MedicationCreate: {
             brandName?: string | null;

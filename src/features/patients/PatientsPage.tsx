@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react'
-import { ExportButton } from '@/components/ExportButton'
+import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { ImportButton } from '@/components/ImportButton'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -63,7 +63,7 @@ const patientSortFields = [
   { value: 'full_name', label: 'Nombre' },
   { value: 'created_at', label: 'Fecha de creación' },
   { value: 'document_id', label: 'Documento' },
-  { value: 'birth_date', label: 'Fecha de nacimiento' },
+  { value: 'birth_date', label: 'Fecha de Nacimiento' },
 ]
 
 /** Column keys that map to a backend-sortable field; columns without an entry sort client-side (current page only). */
@@ -327,9 +327,7 @@ export default function PatientsPage() {
       case 'treatmentsCount':
         return patient.treatmentsCount
       case 'city':
-        return (
-          (patient.addressDetails as { city?: string } | null)?.city ?? ''
-        )
+        return (patient.addressDetails as { city?: string } | null)?.city ?? ''
       default: {
         const property = properties.find((item) => `custom:${item.key}` === key)
         if (!property) return ''
@@ -392,14 +390,12 @@ export default function PatientsPage() {
       ),
       primaryCondition: (
         <span key="primaryCondition" className="text-muted">
-          {patient.primaryConditionName || <span className="text-muted">—</span>}
+          {patient.primaryConditionName || ''}
         </span>
       ),
       city: (
         <span key="city" className="text-muted">
-          {(patient.addressDetails as { city?: string } | null)?.city || (
-            <span className="text-muted">—</span>
-          )}
+          {(patient.addressDetails as { city?: string } | null)?.city || ''}
         </span>
       ),
       created: (
@@ -422,6 +418,32 @@ export default function PatientsPage() {
       )
     }
     return columnKeys.map((key) => cells[key])
+  })
+  const printRows = displayPatients.map((patient) => {
+    const custom =
+      (patient as { customValues?: Record<string, unknown> }).customValues ?? {}
+    const cells: Record<string, string> = {
+      branch: branchMap.get(patient.primaryBranchId)?.name ?? '',
+      document: String(patient.numericId),
+      status: patient.archivedAt ? 'Archivado' : 'Activo',
+      name: patient.fullName,
+      treatmentsCount: patient.treatmentsCount
+        ? String(patient.treatmentsCount)
+        : '',
+      contact: patient.phone ? formatPhone(patient.phone) : 'Sin WhatsApp',
+      primaryCondition: patient.primaryConditionName || '',
+      city: (patient.addressDetails as { city?: string } | null)?.city || '',
+      created: new Date(patient.createdAt).toLocaleString('es', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+        hour12: true,
+      }),
+    }
+    for (const property of properties)
+      cells[`custom:${property.key}`] = String(
+        formatCustomValue(property, custom[property.key]) ?? '',
+      )
+    return columnKeys.map((key) => cells[key] ?? '')
   })
   const rowActions = displayPatients.map((patient) => (
     <RowActions
@@ -521,10 +543,6 @@ export default function PatientsPage() {
                   label="Importar tratamientos"
                 />
               )}
-              <ExportButton
-                entity="patients"
-                filters={{ q: search.trim(), branchId }}
-              />
               {canCreate && (
                 <Button variant="primary" onClick={openCreate}>
                   <Plus className="size-4" />
@@ -536,7 +554,7 @@ export default function PatientsPage() {
         }
       />
       <FilterBarRow aria-label="Filtros de pacientes">
-        <label className="relative min-w-[220px] flex-1">
+        <label className="relative w-full sm:w-[34rem]">
           <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
           <input
             aria-label="Buscar pacientes"
@@ -555,6 +573,18 @@ export default function PatientsPage() {
           onClick={() =>
             setFilterDraft({ responsibleUserId, archived, dates, sort })
           }
+        />
+        <TableToolbarActions
+          title="Pacientes"
+          filename="pacientes"
+          branchScoped
+          exportEntity="patients"
+          exportFilters={{ q: search.trim(), branchId }}
+          headers={columnKeys.map(
+            (key) =>
+              allColumns.find((column) => column.key === key)?.label ?? key,
+          )}
+          rows={printRows}
         />
       </FilterBarRow>
       <ActiveFilterChips
@@ -693,58 +723,58 @@ export default function PatientsPage() {
         </p>
       )}
       <div className="min-h-0 flex-1">
-      {patients.isFetching || !branchReady ? (
-        <TableSkeleton columns={columnKeys.length} />
-      ) : (
-        <DataTable
-          columns={columnKeys.map(
-            (key) =>
-              allColumns.find((column) => column.key === key)?.label ?? key,
-          )}
-          rows={tableRows}
-          actions={rowActions}
-          sortableColumns={columnKeys.map((_, index) => index)}
-          sort={
-            activeSortKey
-              ? {
-                  index: columnKeys.findIndex((key) => key === activeSortKey),
-                  dir: activeSortDir ?? 'asc',
-                }
-              : null
-          }
-          onSortChange={(index) => {
-            const key = columnKeys[index]
-            if (key) toggleColumnSort(key)
-          }}
-          onRowDoubleClick={(index) => {
-            const patient = displayPatients[index]
-            if (patient)
-              navigate(`/pacientes/${encodeURIComponent(patient.id)}`)
-          }}
-          emptyTitle={
-            archived === 'true'
-              ? 'No hay pacientes archivados'
-              : 'Todavía no hay pacientes'
-          }
-          emptyDescription={
-            canCreate
-              ? 'Crea una ficha para comenzar el seguimiento de tus pacientes.'
-              : 'Cuando haya pacientes en tu organización, aparecerán aquí.'
-          }
-          footer={
-            <Pagination
-              page={page}
-              rows={rows}
-              total={patients.data?.total ?? 0}
-              onChange={setPage}
-              onRowsChange={(next) => {
-                setRows(next)
-                setPage(1)
-              }}
-            />
-          }
-        />
-      )}
+        {patients.isFetching || !branchReady ? (
+          <TableSkeleton columns={columnKeys.length} />
+        ) : (
+          <DataTable
+            columns={columnKeys.map(
+              (key) =>
+                allColumns.find((column) => column.key === key)?.label ?? key,
+            )}
+            rows={tableRows}
+            actions={rowActions}
+            sortableColumns={columnKeys.map((_, index) => index)}
+            sort={
+              activeSortKey
+                ? {
+                    index: columnKeys.findIndex((key) => key === activeSortKey),
+                    dir: activeSortDir ?? 'asc',
+                  }
+                : null
+            }
+            onSortChange={(index) => {
+              const key = columnKeys[index]
+              if (key) toggleColumnSort(key)
+            }}
+            onRowDoubleClick={(index) => {
+              const patient = displayPatients[index]
+              if (patient)
+                navigate(`/pacientes/${encodeURIComponent(patient.id)}`)
+            }}
+            emptyTitle={
+              archived === 'true'
+                ? 'No hay pacientes archivados'
+                : 'Todavía no hay pacientes'
+            }
+            emptyDescription={
+              canCreate
+                ? 'Crea una ficha para comenzar el seguimiento de tus pacientes.'
+                : 'Cuando haya pacientes en tu organización, aparecerán aquí.'
+            }
+            footer={
+              <Pagination
+                page={page}
+                rows={rows}
+                total={patients.data?.total ?? 0}
+                onChange={setPage}
+                onRowsChange={(next) => {
+                  setRows(next)
+                  setPage(1)
+                }}
+              />
+            }
+          />
+        )}
       </div>
       {formOpen && (editing ? canUpdate : canCreate) && (
         <Dialog

@@ -150,10 +150,10 @@ export function EnrollAutomationButton({
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>Inscribir en automatización</Button>
+      <Button onClick={() => setOpen(true)}>Inscribir en Automatización</Button>
       {open && (
         <Dialog
-          title="Inscribir en automatización"
+          title="Inscribir en Automatización"
           onClose={() => setOpen(false)}
         >
           <div className="grid gap-3">

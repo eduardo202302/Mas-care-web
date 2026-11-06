@@ -1,8 +1,18 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { ArrowRightLeft } from 'lucide-react'
+import { ArrowRightLeft, Building2, CalendarDays, Search } from 'lucide-react'
 import { NotFoundPage } from '@/app/NotFoundPage'
+import { TableToolbarActions } from '@/components/TableToolbarActions'
+import {
+  ActiveFilterChips,
+  AdvancedFilterButton,
+  AdvancedFilterDialog,
+  FilterBarRow,
+  FilterField,
+  filterControlClass,
+  type ActiveFilterChip,
+} from '@/components/ui/AdvancedFilter'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { DataTable } from '@/components/DataTable'
@@ -23,8 +33,15 @@ import {
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
 
-const controlClass =
-  'border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none'
+const transferColumns = [
+  'ID',
+  'Fecha',
+  'Paciente',
+  'De',
+  'A',
+  'Motivo',
+  'Registrado por',
+]
 
 export default function TransfersPage() {
   const { data: me, isPending: mePending } = useMe()
@@ -32,6 +49,10 @@ export default function TransfersPage() {
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
+  const [search, setSearch] = useState('')
+  const [filterDraft, setFilterDraft] = useState<ReturnType<
+    typeof transferFiltersFromSearch
+  > | null>(null)
   const filters = useMemo(
     () => transferFiltersFromSearch(searchParams),
     [searchParams],
@@ -64,24 +85,55 @@ export default function TransfersPage() {
     setSearchParams(transferFiltersToSearch(next))
   }
 
-  const items = applyColumnSort(
-    transfers.data?.data ?? [],
-    sort,
-    (row, index) =>
-      index === 0
-        ? row.numeric_id
-        : index === 1
-          ? row.occurred_at
-          : index === 2
-            ? row.patient.full_name
-            : index === 3
-              ? row.from_branch.name
-              : index === 4
-                ? row.to_branch.name
-                : index === 5
-                  ? row.reason
-                  : row.created_by.name,
+  // La API no tiene `q`: la búsqueda se aplica a las filas cargadas.
+  const needle = search.trim().toLowerCase()
+  const visibleTransfers = (transfers.data?.data ?? []).filter(
+    (row) =>
+      !needle ||
+      [
+        row.numeric_id,
+        row.patient.full_name,
+        row.from_branch.name,
+        row.to_branch.name,
+        row.reason,
+        row.created_by.name,
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(needle),
   )
+  const items = applyColumnSort(visibleTransfers, sort, (row, index) =>
+    index === 0
+      ? row.numeric_id
+      : index === 1
+        ? row.occurred_at
+        : index === 2
+          ? row.patient.full_name
+          : index === 3
+            ? row.from_branch.name
+            : index === 4
+              ? row.to_branch.name
+              : index === 5
+                ? row.reason
+                : row.created_by.name,
+  )
+
+  const filterCount = Object.values(filters).filter(Boolean).length
+  const draftCount = filterDraft
+    ? Object.values(filterDraft).filter(Boolean).length
+    : 0
+  const chips: ActiveFilterChip[] = []
+  if (filters.branch_id)
+    chips.push({
+      key: 'branch_id',
+      label: 'Sucursal',
+      value:
+        (branches.data?.data ?? []).find((b) => b.id === filters.branch_id)
+          ?.name ?? filters.branch_id,
+    })
+  if (filters.from)
+    chips.push({ key: 'from', label: 'Desde', value: filters.from })
+  if (filters.to) chips.push({ key: 'to', label: 'Hasta', value: filters.to })
 
   if (mePending) {
     return (
@@ -103,73 +155,108 @@ export default function TransfersPage() {
         subtitle="Historial de traslados de pacientes entre sucursales."
       />
 
-      <section
-        aria-label="Filtros de traspasos"
-        className="border-border shadow-card mb-5 grid shrink-0 gap-3 rounded-xl border bg-white p-3 sm:grid-cols-3"
-      >
-        <label className="grid gap-1.5">
-          <span className="text-muted text-xs font-semibold tracking-wide uppercase">
-            Sucursal
-          </span>
-          <select
-            value={filters.branch_id ?? ''}
-            onChange={(event) =>
-              updateFilters({
-                ...filters,
-                branch_id: event.target.value || undefined,
-              })
-            }
-            className={controlClass}
-          >
-            <option value="">Todas las sucursales</option>
-            {(branches.data?.data ?? []).map((branch) => (
-              <option key={branch.id} value={branch.id}>
-                {branch.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="grid gap-1.5">
-          <span className="text-muted text-xs font-semibold tracking-wide uppercase">
-            Desde
-          </span>
+      <FilterBarRow aria-label="Filtros de traspasos">
+        <label className="relative w-full sm:w-[34rem]">
+          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
           <input
-            type="date"
-            value={filters.from ?? ''}
-            onChange={(event) =>
-              updateFilters({
-                ...filters,
-                from: event.target.value || undefined,
-              })
-            }
-            className={controlClass}
+            aria-label="Buscar traspasos"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Paciente, sucursal, motivo o responsable"
+            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
           />
         </label>
-        <label className="grid gap-1.5">
-          <span className="text-muted text-xs font-semibold tracking-wide uppercase">
-            Hasta
-          </span>
-          <input
-            type="date"
-            value={filters.to ?? ''}
-            onChange={(event) =>
-              updateFilters({ ...filters, to: event.target.value || undefined })
-            }
-            className={controlClass}
-          />
-        </label>
-        {(filters.branch_id || filters.from || filters.to) && (
-          <div className="sm:col-span-3">
-            <Button
-              type="button"
-              className="h-9"
-              onClick={() => updateFilters({})}
+        <AdvancedFilterButton
+          open={filterDraft !== null}
+          count={filterCount}
+          onClick={() => setFilterDraft({ ...filters })}
+        />
+        <TableToolbarActions
+          title="Traspasos"
+          filename="traspasos"
+          branchScoped
+          headers={transferColumns}
+          rows={items.map((row) => [
+            `#${row.numeric_id}`,
+            new Date(row.occurred_at).toLocaleString('es'),
+            row.patient.full_name,
+            row.from_branch.name,
+            row.to_branch.name,
+            row.reason,
+            row.created_by.name,
+          ])}
+        />
+      </FilterBarRow>
+      <ActiveFilterChips
+        chips={chips}
+        onRemove={(key) => updateFilters({ ...filters, [key]: undefined })}
+      />
+      {filterDraft && (
+        <AdvancedFilterDialog
+          open
+          description="Combina estos criterios para acotar el historial de traspasos."
+          onClose={() => setFilterDraft(null)}
+          onClear={() => {
+            setFilterDraft({})
+            updateFilters({})
+          }}
+          clearDisabled={!filterCount && !draftCount}
+          onApply={() => {
+            updateFilters(filterDraft)
+            setFilterDraft(null)
+          }}
+        >
+          <FilterField label="Sucursal" icon={<Building2 className="size-4" />}>
+            <select
+              aria-label="Sucursal"
+              value={filterDraft.branch_id ?? ''}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  branch_id: event.target.value || undefined,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
             >
-              Limpiar filtros
-            </Button>
-          </div>
-        )}
-      </section>
+              <option value="">Todas las Sucursales</option>
+              {(branches.data?.data ?? []).map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <div className="hidden sm:block" />
+          <FilterField label="Desde" icon={<CalendarDays className="size-4" />}>
+            <input
+              type="date"
+              aria-label="Desde"
+              value={filterDraft.from ?? ''}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  from: event.target.value || undefined,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
+          </FilterField>
+          <FilterField label="Hasta" icon={<CalendarDays className="size-4" />}>
+            <input
+              type="date"
+              aria-label="Hasta"
+              value={filterDraft.to ?? ''}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  to: event.target.value || undefined,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
+          </FilterField>
+        </AdvancedFilterDialog>
+      )}
 
       {transfers.isError && (
         <div
@@ -194,15 +281,7 @@ export default function TransfersPage() {
           <TableSkeleton columns={7} />
         ) : (
           <DataTable
-            columns={[
-              'ID',
-              'Fecha',
-              'Paciente',
-              'De',
-              'A',
-              'Motivo',
-              'Registrado por',
-            ]}
+            columns={transferColumns}
             rows={items.map((row) => [
               <span key="id" className="text-muted font-mono text-xs">
                 #{row.numeric_id}

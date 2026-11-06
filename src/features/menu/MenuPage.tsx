@@ -1,18 +1,20 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowDown, ArrowUp, ListTree, Plus } from 'lucide-react'
-import { DataTable, RowActions } from '@/components/DataTable'
+import { ListTree, Plus } from 'lucide-react'
+import { RowActions } from '@/components/DataTable'
+import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { api } from '@/lib/http'
-import { buildMenuTree, menuIcon, type MenuItemDto } from '@/lib/menu'
+import { buildMenuTree, type MenuItemDto } from '@/lib/menu'
 import { cn } from '@/lib/cn'
 import { useMe } from '@/lib/permissions'
 import type { MenuItemFormValues } from '@/schemas/menu'
 import { MenuItemForm } from './MenuItemForm'
+import { MenuOrderTable } from './MenuOrderTable'
 
 type MenuList = { data: MenuItemDto[] }
 
@@ -78,7 +80,25 @@ export default function MenuPage() {
         method: 'PATCH',
         body: JSON.stringify({ items }),
       }),
-    onSuccess: refresh,
+    // Se aplica el nuevo orden de inmediato para que la fila no regrese a su lugar al soltarla.
+    onMutate: async (next) => {
+      await queryClient.cancelQueries({ queryKey: ['menu', 'all'] })
+      const previous = queryClient.getQueryData<MenuList>(['menu', 'all'])
+      const orderById = new Map(next.map(({ id, order }) => [id, order]))
+      if (previous)
+        queryClient.setQueryData<MenuList>(['menu', 'all'], {
+          data: previous.data.map((item) => ({
+            ...item,
+            order: orderById.get(item.id) ?? item.order,
+          })),
+        })
+      return { previous }
+    },
+    onError: (_error, _next, context) => {
+      if (context?.previous)
+        queryClient.setQueryData(['menu', 'all'], context.previous)
+    },
+    onSettled: refresh,
   })
   const remove = useMutation({
     mutationFn: (item: MenuItemDto) =>
@@ -91,124 +111,47 @@ export default function MenuPage() {
 
   const items = menu.data?.data ?? []
   const tree = buildMenuTree(items)
-  const ordered = tree.flatMap((node) => [
-    { item: node as MenuItemDto, depth: 0 },
-    ...node.children.map((child) => ({ item: child, depth: 1 })),
-  ])
 
   function closeForm() {
     setFormOpen(false)
     setEditing(null)
     save.reset()
   }
-  /** Items sharing a parent, in display order. */
-  const siblingsOf = (item: MenuItemDto) =>
-    ordered
-      .map((entry) => entry.item)
-      .filter((candidate) => candidate.parentId === item.parentId)
-  function move(item: MenuItemDto, direction: -1 | 1) {
-    const siblings = siblingsOf(item)
-    const index = siblings.findIndex((candidate) => candidate.id === item.id)
-    const target = index + direction
-    if (index < 0 || target < 0 || target >= siblings.length) return
-    const next = [...siblings]
-    ;[next[index], next[target]] = [next[target]!, next[index]!]
+  function reorderSiblings(orderedIds: string[]) {
     reorder.mutate(
-      next.map((sibling, position) => ({
-        id: sibling.id,
-        order: (position + 1) * 10,
-      })),
+      orderedIds.map((id, position) => ({ id, order: (position + 1) * 10 })),
     )
   }
-  const positionOf = (item: MenuItemDto) => {
-    const siblings = siblingsOf(item)
-    return {
-      index: siblings.findIndex((candidate) => candidate.id === item.id),
-      count: siblings.length,
-    }
-  }
-
-  const rows = ordered.map(({ item, depth }) => {
-    const Icon = menuIcon(item.icon)
-    return [
-      <span
-        key="label"
-        className={cn(
-          'inline-flex items-center gap-2 font-semibold',
-          depth === 1 && 'pl-6',
-        )}
-      >
-        <Icon className="text-tealmax size-4" aria-hidden="true" />
-        {item.label}
-        {!item.path && (
-          <span className="bg-surface text-muted rounded-full px-2 py-0.5 text-xs font-medium">
-            Grupo
-          </span>
-        )}
-      </span>,
-      <span key="path" className="text-muted font-mono text-xs">
-        {item.path ?? '—'}
-      </span>,
-      <span key="key" className="text-muted font-mono text-xs">
-        {item.key}
-      </span>,
-      <span key="order" className="text-muted">
-        {item.order}
-      </span>,
-      <button
-        key="state"
-        type="button"
-        aria-pressed={item.isActive}
-        aria-label={`${item.isActive ? 'Desactivar' : 'Activar'} ${item.label}`}
-        disabled={toggleActive.isPending}
-        onClick={() => toggleActive.mutate(item)}
-        className={cn(
-          'rounded-full px-3 py-1 text-xs font-semibold transition',
-          item.isActive
-            ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-            : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
-        )}
-      >
-        {item.isActive ? 'Activo' : 'Inactivo'}
-      </button>,
-    ]
-  })
-  const actions = ordered.map(({ item }) => {
-    const { index, count } = positionOf(item)
-    return (
-      <div key={item.id} className="flex items-center gap-1">
-        <RowActions
-          label={item.label}
-          onEdit={() => {
-            setEditing(item)
-            setFormOpen(true)
-          }}
-          onDelete={() => {
-            remove.reset()
-            setDeleting(item)
-          }}
-        />
-        <button
-          type="button"
-          aria-label={`Subir ${item.label}`}
-          disabled={index <= 0 || reorder.isPending}
-          onClick={() => move(item, -1)}
-          className="text-muted hover:bg-surface hover:text-petroleo grid size-7 place-items-center rounded-md transition disabled:opacity-30"
-        >
-          <ArrowUp className="size-4" />
-        </button>
-        <button
-          type="button"
-          aria-label={`Bajar ${item.label}`}
-          disabled={index < 0 || index >= count - 1 || reorder.isPending}
-          onClick={() => move(item, 1)}
-          className="text-muted hover:bg-surface hover:text-petroleo grid size-7 place-items-center rounded-md transition disabled:opacity-30"
-        >
-          <ArrowDown className="size-4" />
-        </button>
-      </div>
-    )
-  })
+  const renderActions = (item: MenuItemDto) => (
+    <RowActions
+      label={item.label}
+      onEdit={() => {
+        setEditing(item)
+        setFormOpen(true)
+      }}
+      onDelete={() => {
+        remove.reset()
+        setDeleting(item)
+      }}
+    />
+  )
+  const renderState = (item: MenuItemDto) => (
+    <button
+      type="button"
+      aria-pressed={item.isActive}
+      aria-label={`${item.isActive ? 'Desactivar' : 'Activar'} ${item.label}`}
+      disabled={toggleActive.isPending}
+      onClick={() => toggleActive.mutate(item)}
+      className={cn(
+        'rounded-full px-3 py-1 text-xs font-semibold transition',
+        item.isActive
+          ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+          : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+      )}
+    >
+      {item.isActive ? 'Activo' : 'Inactivo'}
+    </button>
+  )
 
   const hasChildren = (item: MenuItemDto | null) =>
     item ? items.some((candidate) => candidate.parentId === item.id) : false
@@ -266,13 +209,18 @@ export default function MenuPage() {
       {isOwner &&
         (menu.isPending ? (
           <TableSkeleton columns={5} />
+        ) : tree.length ? (
+          <MenuOrderTable
+            tree={tree}
+            disabled={reorder.isPending}
+            renderActions={renderActions}
+            renderState={renderState}
+            onReorder={reorderSiblings}
+          />
         ) : (
-          <DataTable
-            columns={['Pantalla', 'Ruta', 'Clave', 'Orden', 'Estado']}
-            rows={rows}
-            actions={actions}
-            emptyTitle="El menú está vacío"
-            emptyDescription="Crea el primer ítem para que aparezca en el menú lateral."
+          <EmptyState
+            title="El menú está vacío"
+            description="Crea el primer ítem para que aparezca en el menú lateral."
           />
         ))}
       {formOpen && (
@@ -325,7 +273,10 @@ export default function MenuPage() {
             </p>
           )}
           <FormActions>
-            <Button className="w-full sm:w-auto" onClick={() => setDeleting(null)}>
+            <Button
+              className="w-full sm:w-auto"
+              onClick={() => setDeleting(null)}
+            >
               Cancelar
             </Button>
             <Button

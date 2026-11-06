@@ -1,11 +1,20 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, Plus, Search } from 'lucide-react'
+import { Activity, Building2, Plus, Search } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
+import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { Button } from '@/components/ui/Button'
-import { FilterBarRow } from '@/components/ui/AdvancedFilter'
+import {
+  ActiveFilterChips,
+  AdvancedFilterButton,
+  AdvancedFilterDialog,
+  FilterBarRow,
+  FilterField,
+  filterControlClass,
+  type ActiveFilterChip,
+} from '@/components/ui/AdvancedFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
@@ -33,6 +42,21 @@ function queryString(query: CompanyQuery) {
   return params.toString()
 }
 
+type CompanyStatusFilter = '' | 'active' | 'inactive'
+const statusOptions: { value: CompanyStatusFilter; label: string }[] = [
+  { value: '', label: 'Todas' },
+  { value: 'active', label: 'Activas' },
+  { value: 'inactive', label: 'Inactivas' },
+]
+const columnHeaders = [
+  'ID',
+  'Estado',
+  'Compañía',
+  'Teléfono',
+  'Ciudad',
+  'Links',
+]
+
 function statusBadge(status: Company['status']) {
   return status === 'active' ? (
     <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
@@ -50,6 +74,11 @@ export default function CompaniesPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
+  // El servidor no filtra por estado: se aplica sobre la página cargada.
+  const [status, setStatus] = useState<CompanyStatusFilter>('')
+  const [filterDraft, setFilterDraft] = useState<{
+    status: CompanyStatusFilter
+  } | null>(null)
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [editing, setEditing] = useState<Company | null>(null)
@@ -131,8 +160,12 @@ export default function CompaniesPage() {
     }
   }
 
+  const visibleCompanies = (companies.data?.data ?? []).filter(
+    (company) =>
+      !status || (status === 'active') === (company.status === 'active'),
+  )
   const sortedCompanies = applyColumnSort(
-    companies.data?.data ?? [],
+    visibleCompanies,
     sort,
     (company, index) =>
       index === 0
@@ -171,10 +204,10 @@ export default function CompaniesPage() {
       </span>
     </span>,
     <span key="phone" className="text-ink text-sm">
-      {company.phone || <span className="text-muted">—</span>}
+      {company.phone || ''}
     </span>,
     <span key="city" className="text-ink text-sm">
-      {company.city || <span className="text-muted">—</span>}
+      {company.city || ''}
     </span>,
     <div key="links" className="flex flex-wrap gap-1">
       <CopyLinkButton value={company.registrationLink} label="Registro" />
@@ -188,6 +221,25 @@ export default function CompaniesPage() {
       onEdit={canManage ? () => openEdit(company) : undefined}
     />
   ))
+
+  const exportRows = sortedCompanies.map((company) => [
+    String(company.numericId),
+    company.status === 'active' ? 'Activa' : 'Inactiva',
+    company.name,
+    company.phone || '',
+    company.city || '',
+    `Registro: ${company.registrationLink} | Login: ${company.loginLink}`,
+  ])
+  const filterCount = status ? 1 : 0
+  const chips: ActiveFilterChip[] = status
+    ? [
+        {
+          key: 'status',
+          label: 'Estado',
+          value: statusOptions.find((option) => option.value === status)!.label,
+        },
+      ]
+    : []
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
@@ -207,7 +259,7 @@ export default function CompaniesPage() {
       />
 
       <FilterBarRow aria-label="Filtros">
-        <label className="relative min-w-[220px] flex-1">
+        <label className="relative w-full sm:w-[34rem]">
           <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
           <input
             aria-label="Buscar compañías"
@@ -217,10 +269,68 @@ export default function CompaniesPage() {
               setPage(1)
             }}
             placeholder="Buscar por nombre, correo, dominio o PIN"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
+            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
           />
         </label>
+        <AdvancedFilterButton
+          open={filterDraft !== null}
+          count={filterCount}
+          onClick={() => setFilterDraft({ status })}
+        />
+        <TableToolbarActions
+          title="Compañías"
+          headers={columnHeaders}
+          rows={exportRows}
+          filename="companias"
+        />
       </FilterBarRow>
+      <ActiveFilterChips
+        chips={chips}
+        onRemove={() => {
+          setStatus('')
+          setPage(1)
+        }}
+      />
+      {filterDraft && (
+        <AdvancedFilterDialog
+          open
+          description="Combina estos criterios para acotar la lista de compañías."
+          onClose={() => setFilterDraft(null)}
+          onClear={() => {
+            setFilterDraft({ status: '' })
+            setStatus('')
+            setPage(1)
+          }}
+          clearDisabled={!filterCount && !filterDraft.status}
+          onApply={() => {
+            setStatus(filterDraft.status)
+            setPage(1)
+            setFilterDraft(null)
+          }}
+        >
+          <FilterField
+            label="Estado de la Compañía"
+            icon={<Activity className="size-4" />}
+          >
+            <select
+              aria-label="Estado de la compañía"
+              value={filterDraft.status}
+              onChange={(event) =>
+                setFilterDraft({
+                  status: event.target.value as CompanyStatusFilter,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+        </AdvancedFilterDialog>
+      )}
 
       {companies.isError && (
         <p
@@ -236,14 +346,7 @@ export default function CompaniesPage() {
           <TableSkeleton columns={6} avatar />
         ) : (
           <DataTable
-            columns={[
-              'ID',
-              'Estado',
-              'Compañía',
-              'Teléfono',
-              'Ciudad',
-              'Links',
-            ]}
+            columns={columnHeaders}
             rows={tableRows}
             actions={rowActions}
             sortableColumns={[0, 1, 2, 3, 4]}
@@ -251,7 +354,8 @@ export default function CompaniesPage() {
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {
               const company = sortedCompanies[index]
-              if (company) navigate(`/companias/${encodeURIComponent(company.id)}`)
+              if (company)
+                navigate(`/companias/${encodeURIComponent(company.id)}`)
             }}
             emptyTitle="Todavía no hay compañías"
             emptyDescription={

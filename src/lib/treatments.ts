@@ -711,3 +711,33 @@ export async function createTreatmentFromForm(
   }
   return created
 }
+
+/** Guarda los cambios de `TreatmentForm` sobre un tratamiento existente y sube la receta adjunta. */
+export async function updateTreatmentFromForm(
+  treatmentId: string,
+  values: TreatmentSaveValues,
+): Promise<Treatment> {
+  const updated = await api<Treatment>(
+    `/api/v1/treatments/${encodeURIComponent(treatmentId)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({
+        medication_id: values.medicationId,
+        branch_id: values.branchId,
+        responsible_user_id: values.responsibleUserId || null,
+        dose_per_intake: values.dosePerIntake,
+        intakes_per_day: values.intakesPerDay,
+        quantity_per_cycle: values.quantityPerCycle,
+        start_date: values.startDate,
+        end_date: values.endDate || null,
+        prescriber_name: values.prescriberName?.trim() || null,
+        prescriber_id: values.prescriberId?.trim() || null,
+        prescription_expires_on: values.prescriptionExpiresOn || null,
+        notes: values.notes?.trim() || null,
+        custom_values: values.customValues,
+      }),
+    },
+  )
+  await uploadPrescriptionDocument(treatmentId, values.prescriptionFile)
+  return updated
+}

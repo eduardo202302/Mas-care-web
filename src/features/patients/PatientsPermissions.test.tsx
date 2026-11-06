@@ -19,7 +19,11 @@ function mockReadOnlyApi() {
       name: 'Solo lectura',
       email: 'read@example.test',
     },
-    organization: { id: 'org-1', name: 'Farmacia Demo', googleMapsApiKey: null },
+    organization: {
+      id: 'org-1',
+      name: 'Farmacia Demo',
+      googleMapsApiKey: null,
+    },
     role: 'read_only',
     roleId: null,
     roleName: null,

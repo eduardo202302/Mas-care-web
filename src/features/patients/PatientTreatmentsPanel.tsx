@@ -185,7 +185,7 @@ export function PatientTreatmentsPanel({
           icon={<Pill className="size-5" />}
           compactHeader
           printable
-          bodyClassName="pt-3"
+          bodyClassName="pt-0"
           size="lg"
           onClose={onCloseAdd}
         >

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Building2,
   KeyRound,
+  ShieldCheck,
   Plus,
   RefreshCw,
   Search,
@@ -12,7 +13,16 @@ import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Dialog } from '@/components/ui/Dialog'
 import { ModalSection } from '@/components/ui/ModalSection'
-import { FilterBarRow } from '@/components/ui/AdvancedFilter'
+import { TableToolbarActions } from '@/components/TableToolbarActions'
+import {
+  ActiveFilterChips,
+  AdvancedFilterButton,
+  AdvancedFilterDialog,
+  FilterBarRow,
+  FilterField,
+  filterControlClass,
+  type ActiveFilterChip,
+} from '@/components/ui/AdvancedFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -89,7 +99,7 @@ function UserDetail({
               Usuario
             </dt>
             <dd className="text-ink text-sm font-medium">
-              {user.username ?? '—'}
+              {user.username ?? ''}
             </dd>
           </div>
           <div className="grid gap-0.5">
@@ -97,7 +107,7 @@ function UserDetail({
               WhatsApp / Teléfono
             </dt>
             <dd className="text-ink text-sm font-medium">
-              {user.phone ? formatPhone(user.phone) : '—'}
+              {user.phone ? formatPhone(user.phone) : ''}
             </dd>
           </div>
           <div className="grid gap-0.5">
@@ -226,6 +236,9 @@ export default function UsersPage() {
   const canManage = useCan('users:write')
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
+  // El servidor no filtra por rol: se aplica sobre la página cargada.
+  const [role, setRole] = useState('')
+  const [filterDraft, setFilterDraft] = useState<{ role: string } | null>(null)
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [selectedId, setSelectedId] = useState('')
@@ -324,8 +337,14 @@ export default function UsersPage() {
     },
   })
 
+  const userRole = (user: components['schemas']['OrganizationUser']) =>
+    user.roleName ?? roleLabel(user.role)
+  const loadedUsers = users.data?.data ?? []
+  const roleOptions = Array.from(
+    new Set([...loadedUsers.map(userRole), ...(role ? [role] : [])]),
+  ).sort((a, b) => a.localeCompare(b, 'es'))
   const sortedUsers = applyColumnSort(
-    users.data?.data ?? [],
+    loadedUsers.filter((user) => !role || userRole(user) === role),
     sort,
     (user, index) =>
       index === 0
@@ -363,10 +382,10 @@ export default function UsersPage() {
       {user.name}
     </span>,
     <span key="username" className="text-ink">
-      {user.username ?? '—'}
+      {user.username ?? ''}
     </span>,
     <span key="phone" className="text-ink">
-      {user.phone ? formatPhone(user.phone) : '—'}
+      {user.phone ? formatPhone(user.phone) : ''}
     </span>,
     <span key="email" className="text-muted">
       {user.email}
@@ -379,6 +398,31 @@ export default function UsersPage() {
       onEdit={canManage ? () => openEdit(user) : undefined}
     />
   ))
+
+  const columnHeaders = [
+    'ID',
+    'Sucursales',
+    'Rol',
+    'Nombre',
+    'Usuario',
+    'WhatsApp',
+    'Correo',
+  ]
+  const exportRows = sortedUsers.map((user) => [
+    String(user.numericId),
+    user.branches.length
+      ? user.branches.map((branch) => branch.name).join(', ')
+      : 'Sin asignación',
+    userRole(user),
+    user.name,
+    user.username ?? '',
+    user.phone ? formatPhone(user.phone) : '',
+    user.email,
+  ])
+  const filterCount = role ? 1 : 0
+  const chips: ActiveFilterChip[] = role
+    ? [{ key: 'role', label: 'Rol', value: role }]
+    : []
 
   function updateSearch(value: string) {
     setSearch(value)
@@ -414,17 +458,72 @@ export default function UsersPage() {
         }
       />
       <FilterBarRow aria-label="Filtros">
-        <label className="relative min-w-[220px] flex-1">
+        <label className="relative w-full sm:w-[34rem]">
           <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
           <input
             aria-label="Buscar usuarios"
             value={search}
             onChange={(event) => updateSearch(event.target.value)}
             placeholder="Buscar por nombre, usuario o correo"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
+            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
           />
         </label>
+        <AdvancedFilterButton
+          open={filterDraft !== null}
+          count={filterCount}
+          onClick={() => setFilterDraft({ role })}
+        />
+        <TableToolbarActions
+          title="Usuarios"
+          headers={columnHeaders}
+          rows={exportRows}
+          filename="usuarios"
+        />
       </FilterBarRow>
+      <ActiveFilterChips
+        chips={chips}
+        onRemove={() => {
+          setRole('')
+          setPage(1)
+        }}
+      />
+      {filterDraft && (
+        <AdvancedFilterDialog
+          open
+          description="Combina estos criterios para acotar la lista de usuarios."
+          onClose={() => setFilterDraft(null)}
+          onClear={() => {
+            setFilterDraft({ role: '' })
+            setRole('')
+            setPage(1)
+          }}
+          clearDisabled={!filterCount && !filterDraft.role}
+          onApply={() => {
+            setRole(filterDraft.role)
+            setPage(1)
+            setFilterDraft(null)
+          }}
+        >
+          <FilterField
+            label="Rol del Usuario"
+            icon={<ShieldCheck className="size-4" />}
+          >
+            <select
+              aria-label="Rol del usuario"
+              value={filterDraft.role}
+              onChange={(event) => setFilterDraft({ role: event.target.value })}
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {roleOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+        </AdvancedFilterDialog>
+      )}
       {users.isError && (
         <p
           role="alert"
@@ -438,15 +537,7 @@ export default function UsersPage() {
           <TableSkeleton columns={5} avatar />
         ) : (
           <DataTable
-            columns={[
-              'ID',
-              'Sucursales',
-              'Rol',
-              'Nombre',
-              'Usuario',
-              'WhatsApp',
-              'Correo',
-            ]}
+            columns={columnHeaders}
             rows={tableRows}
             actions={rowActions}
             sortableColumns={[0, 3, 4, 5, 6]}

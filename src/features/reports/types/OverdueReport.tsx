@@ -2,7 +2,11 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
-import { reportQueryString, type ReportFilters, type ReportResponse } from '@/lib/reports'
+import {
+  reportQueryString,
+  type ReportFilters,
+  type ReportResponse,
+} from '@/lib/reports'
 import { SimpleMetricCard } from '../components/MetricCard'
 import { ReportChart } from '../components/ReportChart'
 import { ReportTable } from '../components/ReportTable'
@@ -32,7 +36,12 @@ export function OverdueReport({ filters }: { filters: ReportFilters }) {
   }
 
   if (query.isError) {
-    return <ReportErrorState message={query.error.message} onRetry={() => query.refetch()} />
+    return (
+      <ReportErrorState
+        message={query.error.message}
+        onRetry={() => query.refetch()}
+      />
+    )
   }
 
   const data = query.data
@@ -54,8 +63,14 @@ export function OverdueReport({ filters }: { filters: ReportFilters }) {
             definitions={data.definitions}
             definitionKey="overdue"
           />
-          <SimpleMetricCard label="Entregados tarde" value={data.summary.delivered_late} />
-          <SimpleMetricCard label="Aún pendientes" value={data.summary.still_pending} />
+          <SimpleMetricCard
+            label="Entregados tarde"
+            value={data.summary.delivered_late}
+          />
+          <SimpleMetricCard
+            label="Aún pendientes"
+            value={data.summary.still_pending}
+          />
           <SimpleMetricCard
             label="Retraso promedio"
             value={data.avg_delay_days}
@@ -77,15 +92,28 @@ export function OverdueReport({ filters }: { filters: ReportFilters }) {
       />
 
       <div>
-        <h3 className="font-display text-petroleo mb-2 text-base font-bold">Detalle</h3>
+        <h3 className="font-display text-petroleo mb-2 text-base font-bold">
+          Detalle
+        </h3>
         <ReportTable
-          columns={['Paciente', 'Medicamento', 'Sucursal', 'Previsto', 'Retraso', 'Estado']}
+          columns={[
+            'Paciente',
+            'Medicamento',
+            'Sucursal',
+            'Previsto',
+            'Retraso',
+            'Estado',
+          ]}
           rows={data.detail.map((row) => [
             <span key="patient">{row.patient.full_name}</span>,
             <span key="medication">{row.medication}</span>,
             <span key="branch">{row.branch.name}</span>,
-            <span key="expected">{new Date(row.expected_on).toLocaleDateString('es')}</span>,
-            <span key="delay">{row.delay_days === null ? '—' : `${row.delay_days} días`}</span>,
+            <span key="expected">
+              {new Date(row.expected_on).toLocaleDateString('es')}
+            </span>,
+            <span key="delay">
+              {row.delay_days === null ? '' : `${row.delay_days} días`}
+            </span>,
             <span
               key="status"
               className={

@@ -112,7 +112,9 @@ export function TreatmentList({
               <div>
                 <dt className="text-muted">Fin de cobertura</dt>
                 <dd className="text-ink mt-0.5 font-medium">
-                  {formatDate(treatment.coverageEndOn)}
+                  {treatment.coverageEndOn
+                    ? formatDate(treatment.coverageEndOn)
+                    : ''}
                 </dd>
               </div>
               <div>
@@ -125,19 +127,21 @@ export function TreatmentList({
                       : 'text-ink'
                   }`}
                 >
-                  {daysRemainingLabel(treatment.days_remaining)}
+                  {treatment.days_remaining === null
+                    ? ''
+                    : daysRemainingLabel(treatment.days_remaining)}
                 </dd>
               </div>
               <div>
                 <dt className="text-muted">Doctor</dt>
                 <dd className="text-ink mt-0.5 font-medium">
-                  {treatment.prescriberName || '—'}
+                  {treatment.prescriberName || ''}
                 </dd>
               </div>
               <div>
                 <dt className="text-muted">Fecha de fin</dt>
                 <dd className="text-ink mt-0.5 font-medium">
-                  {treatment.endDate ? formatDate(treatment.endDate) : '—'}
+                  {treatment.endDate ? formatDate(treatment.endDate) : ''}
                 </dd>
               </div>
             </dl>

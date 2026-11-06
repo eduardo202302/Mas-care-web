@@ -392,241 +392,242 @@ export function TreatmentForm({
 
   return (
     <form onSubmit={handleSubmit(submit)} className="grid gap-5">
-      <ModalSection
-        icon={<Pill className="size-4" />}
-        title={patientName || 'Medicamento'}
-        tone="mint"
-        className="sticky top-0 z-10 -mb-5 bg-white pb-5"
-      >
-        <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-start">
-          <div className="grid min-w-0 flex-1 gap-1.5">
-            <label
-              htmlFor="treatment-medication"
-              className="text-ink text-sm font-medium"
-            >
-              Medicamento <span className="text-red-700">*</span>
-            </label>
-            {selectedMedication ? (
-              <div className="border-border flex items-center justify-between gap-3 rounded-lg border bg-white px-3 py-2">
-                <div className="min-w-0">
-                  <p className="text-ink truncate text-sm font-semibold">
-                    {medicationName(selectedMedication)}
-                  </p>
-                  <p className="text-muted truncate text-xs">
-                    <span className="font-semibold">
-                      {selectedMedication.presentation}
-                    </span>{' '}
-                    · Contenido:{' '}
-                    <span className="font-semibold">
-                      {String(selectedMedication.unitsPerPackage)}
-                    </span>{' '}
-                    · Ud.:{' '}
-                    <span className="font-semibold">
-                      {selectedMedication.doseUnit}
-                    </span>
-                  </p>
+      <div className="sticky top-0 z-10 -mb-5 bg-white pt-3 pb-5">
+        <ModalSection
+          icon={<Pill className="size-4" />}
+          title={patientName || 'Medicamento'}
+          tone="mint"
+        >
+          <div className="flex min-w-0 flex-col gap-3 sm:col-span-2 sm:flex-row sm:flex-wrap sm:items-start">
+            <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)] content-start gap-1.5 sm:min-w-64">
+              <label
+                htmlFor="treatment-medication"
+                className="text-ink text-sm font-medium"
+              >
+                Medicamento <span className="text-red-700">*</span>
+              </label>
+              {selectedMedication ? (
+                <div className="border-border flex items-center justify-between gap-3 rounded-lg border bg-white px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="text-ink truncate text-sm font-semibold">
+                      {medicationName(selectedMedication)}
+                    </p>
+                    <p className="text-muted truncate text-xs">
+                      <span className="font-semibold">
+                        {selectedMedication.presentation}
+                      </span>{' '}
+                      · Contenido:{' '}
+                      <span className="font-semibold">
+                        {String(selectedMedication.unitsPerPackage)}
+                      </span>{' '}
+                      · Ud.:{' '}
+                      <span className="font-semibold">
+                        {selectedMedication.doseUnit}
+                      </span>
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-8 shrink-0 px-2 text-xs"
+                    onClick={clearMedication}
+                  >
+                    Cambiar
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-8 shrink-0 px-2 text-xs"
-                  onClick={clearMedication}
+              ) : (
+                <>
+                  <div className="relative">
+                    <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                    <input
+                      id="treatment-medication"
+                      ref={searchRef}
+                      value={search}
+                      onChange={(event) => {
+                        setSearch(event.target.value)
+                        setValue('medicationId', '')
+                        setListOpen(true)
+                      }}
+                      onFocus={() => setListOpen(true)}
+                      onBlur={() =>
+                        window.setTimeout(() => setListOpen(false), 120)
+                      }
+                      placeholder="Buscar por nombre o presentación…"
+                      autoComplete="off"
+                      role="combobox"
+                      aria-expanded={listOpen}
+                      aria-controls="treatment-medication-options"
+                      aria-autocomplete="list"
+                      aria-invalid={Boolean(errors.medicationId)}
+                      className={`${fieldClass} pr-9 pl-9`}
+                    />
+                    {search && (
+                      <button
+                        type="button"
+                        aria-label="Limpiar búsqueda"
+                        onClick={() => {
+                          setSearch('')
+                          searchRef.current?.focus()
+                        }}
+                        className="text-muted hover:text-ink absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    )}
+                  </div>
+                  {listOpen && (
+                    <div
+                      id="treatment-medication-options"
+                      role="listbox"
+                      aria-label="Medicamentos"
+                      className="app-scroll border-border mt-1 max-h-56 overflow-y-auto rounded-lg border bg-white p-1 shadow-lg"
+                    >
+                      {filteredMedications.length ? (
+                        filteredMedications.map((medication) => (
+                          <button
+                            key={medication.id}
+                            type="button"
+                            role="option"
+                            aria-selected={false}
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => chooseMedication(medication)}
+                            className="hover:bg-surface flex w-full flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left"
+                          >
+                            <span className="text-ink text-sm font-medium">
+                              {medicationName(medication)}
+                            </span>
+                            <span className="text-muted text-xs">
+                              {medication.presentation}
+                            </span>
+                          </button>
+                        ))
+                      ) : (
+                        <p className="text-muted px-3 py-2 text-sm">
+                          No encontramos medicamentos con esa búsqueda.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+              {errors.medicationId && (
+                <p className="text-xs text-red-700">
+                  {errors.medicationId.message}
+                </p>
+              )}
+              {!medications.length && (
+                <p className="text-muted text-xs">
+                  Primero registra un medicamento en el catálogo.
+                </p>
+              )}
+            </div>
+            <div className="flex shrink-0 items-start gap-4 sm:ml-auto">
+              <div className="grid gap-1.5">
+                <label
+                  htmlFor="treatment-prescription-expires"
+                  className={`text-sm font-medium ${prescriptionDue ? 'text-red-700' : 'text-ink'}`}
                 >
-                  Cambiar
-                </Button>
+                  Vigencia
+                </label>
+                <input
+                  id="treatment-prescription-expires"
+                  type="date"
+                  min={minPrescriptionDate}
+                  {...register('prescriptionExpiresOn')}
+                  aria-invalid={Boolean(errors.prescriptionExpiresOn)}
+                  className={`${fieldClass} w-40 ${
+                    prescriptionDue
+                      ? 'border-red-500 bg-red-50 text-red-700 focus:border-red-500 focus:ring-red-200'
+                      : ''
+                  }`}
+                />
+                {errors.prescriptionExpiresOn?.message && (
+                  <p className="max-w-40 text-xs text-red-700">
+                    {errors.prescriptionExpiresOn.message}
+                  </p>
+                )}
+                {prescriptionDue && !errors.prescriptionExpiresOn && (
+                  <p className="max-w-40 text-xs text-red-700">
+                    La receta ya llegó a su fecha de vigencia.
+                  </p>
+                )}
               </div>
-            ) : (
-              <>
-                <div className="relative">
-                  <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                  <input
-                    id="treatment-medication"
-                    ref={searchRef}
-                    value={search}
-                    onChange={(event) => {
-                      setSearch(event.target.value)
-                      setValue('medicationId', '')
-                      setListOpen(true)
-                    }}
-                    onFocus={() => setListOpen(true)}
-                    onBlur={() =>
-                      window.setTimeout(() => setListOpen(false), 120)
-                    }
-                    placeholder="Buscar por nombre o presentación…"
-                    autoComplete="off"
-                    role="combobox"
-                    aria-expanded={listOpen}
-                    aria-controls="treatment-medication-options"
-                    aria-autocomplete="list"
-                    aria-invalid={Boolean(errors.medicationId)}
-                    className={`${fieldClass} pr-9 pl-9`}
-                  />
-                  {search && (
+              <div className="grid gap-1.5">
+                <span className="text-ink text-sm font-medium">
+                  Adjuntar Receta
+                </span>
+                <input
+                  ref={prescriptionInputRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="sr-only"
+                  aria-label="Adjuntar Receta"
+                  onChange={(event) =>
+                    setPrescriptionFile(event.target.files?.[0] ?? null)
+                  }
+                />
+                {prescriptionFile ? (
+                  <div className="border-border flex h-10 max-w-44 items-center gap-1 rounded-lg border bg-white pr-1 pl-3 text-sm">
+                    <Paperclip className="text-tealmax size-4 shrink-0" />
+                    <span
+                      className="text-ink min-w-0 flex-1 truncate"
+                      title={prescriptionFile.name}
+                    >
+                      {prescriptionFile.name}
+                    </span>
                     <button
                       type="button"
-                      aria-label="Limpiar búsqueda"
+                      aria-label="Quitar receta"
+                      className="text-muted rounded p-1 hover:text-red-700"
                       onClick={() => {
-                        setSearch('')
-                        searchRef.current?.focus()
+                        setPrescriptionFile(null)
+                        if (prescriptionInputRef.current)
+                          prescriptionInputRef.current.value = ''
                       }}
-                      className="text-muted hover:text-ink absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
                     >
                       <X className="size-4" />
                     </button>
-                  )}
-                </div>
-                {listOpen && (
-                  <div
-                    id="treatment-medication-options"
-                    role="listbox"
-                    aria-label="Medicamentos"
-                    className="app-scroll border-border mt-1 max-h-56 overflow-y-auto rounded-lg border bg-white p-1 shadow-lg"
-                  >
-                    {filteredMedications.length ? (
-                      filteredMedications.map((medication) => (
-                        <button
-                          key={medication.id}
-                          type="button"
-                          role="option"
-                          aria-selected={false}
-                          onMouseDown={(event) => event.preventDefault()}
-                          onClick={() => chooseMedication(medication)}
-                          className="hover:bg-surface flex w-full flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left"
-                        >
-                          <span className="text-ink text-sm font-medium">
-                            {medicationName(medication)}
-                          </span>
-                          <span className="text-muted text-xs">
-                            {medication.presentation}
-                          </span>
-                        </button>
-                      ))
-                    ) : (
-                      <p className="text-muted px-3 py-2 text-sm">
-                        No encontramos medicamentos con esa búsqueda.
-                      </p>
-                    )}
                   </div>
-                )}
-              </>
-            )}
-            {errors.medicationId && (
-              <p className="text-xs text-red-700">
-                {errors.medicationId.message}
-              </p>
-            )}
-            {!medications.length && (
-              <p className="text-muted text-xs">
-                Primero registra un medicamento en el catálogo.
-              </p>
-            )}
-          </div>
-          <div className="flex items-start gap-4 sm:mr-6 sm:ml-auto">
-            <div className="grid gap-1.5">
-              <label
-                htmlFor="treatment-prescription-expires"
-                className={`text-sm font-medium ${prescriptionDue ? 'text-red-700' : 'text-ink'}`}
-              >
-                Vigencia
-              </label>
-              <input
-                id="treatment-prescription-expires"
-                type="date"
-                min={minPrescriptionDate}
-                {...register('prescriptionExpiresOn')}
-                aria-invalid={Boolean(errors.prescriptionExpiresOn)}
-                className={`${fieldClass} w-40 ${
-                  prescriptionDue
-                    ? 'border-red-500 bg-red-50 text-red-700 focus:border-red-500 focus:ring-red-200'
-                    : ''
-                }`}
-              />
-              {errors.prescriptionExpiresOn?.message && (
-                <p className="max-w-40 text-xs text-red-700">
-                  {errors.prescriptionExpiresOn.message}
-                </p>
-              )}
-              {prescriptionDue && !errors.prescriptionExpiresOn && (
-                <p className="max-w-40 text-xs text-red-700">
-                  La receta ya llegó a su fecha de vigencia.
-                </p>
-              )}
-            </div>
-            <div className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">
-                Adjuntar Receta
-              </span>
-              <input
-                ref={prescriptionInputRef}
-                type="file"
-                accept="image/*,application/pdf"
-                className="sr-only"
-                aria-label="Adjuntar Receta"
-                onChange={(event) =>
-                  setPrescriptionFile(event.target.files?.[0] ?? null)
-                }
-              />
-              {prescriptionFile ? (
-                <div className="border-border flex h-10 max-w-44 items-center gap-1 rounded-lg border bg-white pr-1 pl-3 text-sm">
-                  <Paperclip className="text-tealmax size-4 shrink-0" />
-                  <span
-                    className="text-ink min-w-0 flex-1 truncate"
-                    title={prescriptionFile.name}
+                ) : (
+                  <Button
+                    type="button"
+                    className="h-10"
+                    onClick={() => prescriptionInputRef.current?.click()}
                   >
-                    {prescriptionFile.name}
-                  </span>
+                    <Paperclip className="size-4" />
+                    {hasSavedPrescription ? 'Reemplazar' : 'Adjuntar'}
+                  </Button>
+                )}
+                {hasSavedPrescription && !prescriptionFile && treatment && (
                   <button
                     type="button"
-                    aria-label="Quitar receta"
-                    className="text-muted rounded p-1 hover:text-red-700"
-                    onClick={() => {
-                      setPrescriptionFile(null)
-                      if (prescriptionInputRef.current)
-                        prescriptionInputRef.current.value = ''
-                    }}
+                    className="text-tealmax w-fit text-xs hover:underline"
+                    onClick={() =>
+                      downloadFile(
+                        `${API_URL}/api/v1/treatments/${encodeURIComponent(treatment.id)}/prescription-document`,
+                        `receta-${treatment.id}`,
+                      ).catch((error: unknown) =>
+                        setError(
+                          'root.server' as FieldPath<TreatmentFormValues>,
+                          {
+                            type: 'server',
+                            message:
+                              error instanceof Error
+                                ? error.message
+                                : 'No se pudo descargar la receta',
+                          },
+                        ),
+                      )
+                    }
                   >
-                    <X className="size-4" />
+                    Ver receta
                   </button>
-                </div>
-              ) : (
-                <Button
-                  type="button"
-                  className="h-10"
-                  onClick={() => prescriptionInputRef.current?.click()}
-                >
-                  <Paperclip className="size-4" />
-                  {hasSavedPrescription ? 'Reemplazar' : 'Adjuntar'}
-                </Button>
-              )}
-              {hasSavedPrescription && !prescriptionFile && treatment && (
-                <button
-                  type="button"
-                  className="text-tealmax w-fit text-xs hover:underline"
-                  onClick={() =>
-                    downloadFile(
-                      `${API_URL}/api/v1/treatments/${encodeURIComponent(treatment.id)}/prescription-document`,
-                      `receta-${treatment.id}`,
-                    ).catch((error: unknown) =>
-                      setError(
-                        'root.server' as FieldPath<TreatmentFormValues>,
-                        {
-                          type: 'server',
-                          message:
-                            error instanceof Error
-                              ? error.message
-                              : 'No se pudo descargar la receta',
-                        },
-                      ),
-                    )
-                  }
-                >
-                  Ver receta
-                </button>
-              )}
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </ModalSection>
+        </ModalSection>
+      </div>
 
       <ModalSection
         icon={<CalendarDays className="size-4" />}
@@ -714,32 +715,15 @@ export function TreatmentForm({
             >
               Sucursal <span className="text-red-700">*</span>
             </label>
-            {treatment ? (
-              <select
-                id="treatment-branch"
-                {...register('branchId')}
-                aria-invalid={Boolean(errors.branchId)}
-                className={`${fieldClass} appearance-none`}
-              >
-                {branches.map((branch) => (
-                  <option key={branch.id} value={branch.id}>
-                    {branch.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <>
-                {/* Alta de tratamiento: la sucursal es la del paciente, fija. */}
-                <input type="hidden" {...register('branchId')} />
-                <p
-                  id="treatment-branch"
-                  className="border-border text-muted bg-surface h-10 w-full rounded-lg border px-3 text-sm leading-10"
-                >
-                  {branches.find((branch) => branch.id === watch('branchId'))
-                    ?.name ?? 'Sin sucursal asignada'}
-                </p>
-              </>
-            )}
+            {/* La sucursal es la del paciente y no se edita. */}
+            <input type="hidden" {...register('branchId')} />
+            <p
+              id="treatment-branch"
+              className="border-border text-muted bg-surface h-10 w-full rounded-lg border px-3 text-sm leading-10"
+            >
+              {branches.find((branch) => branch.id === watch('branchId'))
+                ?.name ?? 'Sin sucursal asignada'}
+            </p>
             {errors.branchId?.message && (
               <p className="text-xs text-red-700">{errors.branchId.message}</p>
             )}

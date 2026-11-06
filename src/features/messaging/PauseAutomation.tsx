@@ -124,7 +124,7 @@ export function PatientAutomationPanel({
   ])
   return (
     <section className="border-border rounded-xl border bg-white p-5">
-      <h2 className="text-petroleo mb-3 font-semibold">Avisos automáticos</h2>
+      <h2 className="text-petroleo mb-3 font-semibold">Avisos Automáticos</h2>
       <p className="text-sm">
         {paused
           ? 'Pausados para este paciente.'

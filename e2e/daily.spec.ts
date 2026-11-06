@@ -94,7 +94,7 @@ test('panel del día, aviso, entrega idempotente, tareas y plantillas', async ({
 
   await page.goto('/inicio')
   await expect(
-    page.getByRole('heading', { name: 'Panel del día' }),
+    page.getByRole('heading', { name: 'Panel del Día' }),
   ).toBeVisible()
   await expect(
     page.locator('section').getByText(patient, { exact: true }),
