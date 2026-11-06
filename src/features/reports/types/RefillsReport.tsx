@@ -2,7 +2,11 @@ import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Info } from 'lucide-react'
 import { api } from '@/lib/http'
-import { reportQueryString, type ReportFilters, type ReportResponse } from '@/lib/reports'
+import {
+  reportQueryString,
+  type ReportFilters,
+  type ReportResponse,
+} from '@/lib/reports'
 import { ReportTable } from '../components/ReportTable'
 import { ReportErrorState } from '../components/ReportErrorState'
 import { ExportButton } from '../components/ExportButton'
@@ -26,7 +30,9 @@ export function RefillsReport({ filters }: { filters: ReportFilters }) {
   const query = useQuery({
     queryKey: ['reports', 'refills', filters],
     queryFn: () =>
-      api<ReportResponse['refills']>(`/api/v1/reports/refills?${reportQueryString(filters)}`),
+      api<ReportResponse['refills']>(
+        `/api/v1/reports/refills?${reportQueryString(filters)}`,
+      ),
   })
 
   const data = query.data
@@ -39,7 +45,12 @@ export function RefillsReport({ filters }: { filters: ReportFilters }) {
 
   if (query.isLoading) return <Skeleton className="h-96 w-full rounded-xl" />
   if (query.isError) {
-    return <ReportErrorState message={query.error.message} onRetry={() => query.refetch()} />
+    return (
+      <ReportErrorState
+        message={query.error.message}
+        onRetry={() => query.refetch()}
+      />
+    )
   }
   if (!data) return null
 
@@ -80,10 +91,16 @@ export function RefillsReport({ filters }: { filters: ReportFilters }) {
           'Estado de stock',
         ]}
         rows={data.data.map((row) => {
-          const bucket = activeHorizon ? row.forecast[String(activeHorizon)] : undefined
+          const bucket = activeHorizon
+            ? row.forecast[String(activeHorizon)]
+            : undefined
           return [
             <span key="medication">{row.medication}</span>,
-            <BranchTag key="branch" name={row.branch} labelColor={row.label_color} />,
+            <BranchTag
+              key="branch"
+              name={row.branch}
+              labelColor={row.label_color}
+            />,
             <span key="delivered">{row.delivered_units}</span>,
             <span key="forecast">
               {bucket
@@ -100,7 +117,9 @@ export function RefillsReport({ filters }: { filters: ReportFilters }) {
                     : 'text-ink'
               }
             >
-              {row.stock_status ? stockStatusLabels[row.stock_status] ?? row.stock_status : 'Sin datos'}
+              {row.stock_status
+                ? (stockStatusLabels[row.stock_status] ?? row.stock_status)
+                : 'Sin datos'}
             </span>,
           ]
         })}
@@ -110,7 +129,11 @@ export function RefillsReport({ filters }: { filters: ReportFilters }) {
         loading={false}
         fetching={query.isFetching}
       />
-      <DefinitionHelp definitions={data.definitions} term="stock_status" label="Estado de stock" />
+      <DefinitionHelp
+        definitions={data.definitions}
+        term="stock_status"
+        label="Estado de stock"
+      />
     </div>
   )
 }

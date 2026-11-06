@@ -118,7 +118,7 @@ export function MedicalCenterForm({
       <FormFields readOnly={readOnly}>
         <ModalSection
           icon={<Building2 className="size-4" />}
-          title="Datos generales"
+          title="Datos Generales"
           tone="mint"
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

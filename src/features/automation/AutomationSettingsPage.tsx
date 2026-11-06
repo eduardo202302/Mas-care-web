@@ -211,7 +211,7 @@ export default function AutomationSettingsPage() {
               checked={automationEnabled}
               onChange={(value) => setValue('automationEnabled', value)}
               disabled={save.isPending}
-              label="Avisos automáticos"
+              label="Avisos Automáticos"
               description="Apagado por defecto. Al activarlo, el sistema empieza a planificar y enviar avisos según las reglas de abajo."
             />
             <Toggle
@@ -264,14 +264,14 @@ export default function AutomationSettingsPage() {
                 error={errors.retryAfterHours?.message}
               />
               <TextField
-                label="Ventana horaria: apertura"
+                label="Ventana Horaria: Apertura"
                 type="time"
                 disabled={save.isPending}
                 {...register('noticeWindowStart')}
                 error={errors.noticeWindowStart?.message}
               />
               <TextField
-                label="Ventana horaria: cierre"
+                label="Ventana Horaria: Cierre"
                 type="time"
                 disabled={save.isPending}
                 {...register('noticeWindowEnd')}

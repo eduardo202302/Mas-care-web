@@ -1,11 +1,20 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, MapPin, Plus } from 'lucide-react'
+import { Activity, Building2, MapPin, Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { FilterBarRow, FilterSegmented } from '@/components/ui/AdvancedFilter'
+import {
+  ActiveFilterChips,
+  AdvancedFilterButton,
+  AdvancedFilterDialog,
+  FilterBarRow,
+  FilterField,
+  filterControlClass,
+  type ActiveFilterChip,
+} from '@/components/ui/AdvancedFilter'
+import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { BranchTag } from '@/components/BranchTag'
 import { DataTable, RowActions } from '@/components/DataTable'
@@ -69,6 +78,10 @@ export default function BranchesPage() {
     components['schemas']['Branch'] | null
   >(null)
   const [archived, setArchived] = useState<'true' | 'false'>('false')
+  const [search, setSearch] = useState('')
+  const [filterDraft, setFilterDraft] = useState<{
+    archived: 'true' | 'false'
+  } | null>(null)
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
@@ -82,7 +95,16 @@ export default function BranchesPage() {
   })
   const save = useMutation({
     mutationFn: (values: BranchFormValues) => {
-      const { address, city, state, postalCode, sector, latitude, longitude, ...rest } = values
+      const {
+        address,
+        city,
+        state,
+        postalCode,
+        sector,
+        latitude,
+        longitude,
+        ...rest
+      } = values
       const payload = { ...rest, addressDetails: toAddressDetails(values) }
       if (editing) {
         const body: components['schemas']['BranchPatch'] = payload
@@ -141,23 +163,34 @@ export default function BranchesPage() {
   async function submit(values: BranchFormValues) {
     await save.mutateAsync(values)
   }
-  const data = applyColumnSort(
-    branches.data?.data ?? [],
-    sort,
-    (branch, index) =>
-      index === 0
-        ? branch.numericId
-        : index === 1
-          ? (branch.archivedAt ? 1 : 0)
-          : index === 2
-            ? branch.name
-            : index === 3
-              ? addressText(branch.addressDetails, 'address')
-              : index === 4
-                ? addressText(branch.addressDetails, 'sector')
-                : index === 5
-                  ? (branch.managerName ?? '')
-                  : (branch.managerPhone ?? ''),
+  const needle = search.trim().toLocaleLowerCase('es')
+  const visibleBranches = (branches.data?.data ?? []).filter(
+    (branch) =>
+      !needle ||
+      [
+        branch.name,
+        addressText(branch.addressDetails, 'address'),
+        addressText(branch.addressDetails, 'sector'),
+        branch.managerName ?? '',
+        branch.managerPhone ?? '',
+      ].some((value) => value.toLocaleLowerCase('es').includes(needle)),
+  )
+  const data = applyColumnSort(visibleBranches, sort, (branch, index) =>
+    index === 0
+      ? branch.numericId
+      : index === 1
+        ? branch.archivedAt
+          ? 1
+          : 0
+        : index === 2
+          ? branch.name
+          : index === 3
+            ? addressText(branch.addressDetails, 'address')
+            : index === 4
+              ? addressText(branch.addressDetails, 'sector')
+              : index === 5
+                ? (branch.managerName ?? '')
+                : (branch.managerPhone ?? ''),
   )
   const tableRows = data.map((branch) => {
     const name = branch.name
@@ -184,7 +217,9 @@ export default function BranchesPage() {
         {branch.managerName ?? 'Sin encargado'}
       </span>,
       <span key="whatsapp" className="text-muted">
-        {branch.managerPhone ? formatPhone(branch.managerPhone) : 'Sin WhatsApp'}
+        {branch.managerPhone
+          ? formatPhone(branch.managerPhone)
+          : 'Sin WhatsApp'}
       </span>,
     ]
   })
@@ -210,6 +245,31 @@ export default function BranchesPage() {
     />
   ))
 
+  const columnHeaders = [
+    'ID',
+    'Estado',
+    'Sucursal',
+    'Dirección',
+    'Sector',
+    'Nombre del Encargado',
+    'WhatsApp',
+  ]
+  const exportRows = data.map((branch) => [
+    String(branch.numericId),
+    branch.archivedAt ? 'Archivado' : 'Activo',
+    branch.name,
+    addressText(branch.addressDetails, 'address') || 'Sin dirección',
+    addressText(branch.addressDetails, 'sector') || 'Sin sector',
+    branch.managerName ?? 'Sin encargado',
+    branch.managerPhone ? formatPhone(branch.managerPhone) : 'Sin WhatsApp',
+  ])
+  const filterCount = archived === 'true' ? 1 : 0
+  const draftCount = filterDraft?.archived === 'true' ? 1 : 0
+  const chips: ActiveFilterChip[] =
+    archived === 'true'
+      ? [{ key: 'archived', label: 'Estado', value: 'Archivadas' }]
+      : []
+
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
       <PageHeader
@@ -227,19 +287,72 @@ export default function BranchesPage() {
         }
       />
       <FilterBarRow aria-label="Filtros">
-        <FilterSegmented<'true' | 'false'>
-          label="Filtrar sucursales archivadas"
-          value={archived}
-          options={[
-            { value: 'false', label: 'Activas' },
-            { value: 'true', label: 'Archivadas' },
-          ]}
-          onChange={(value) => {
-            setArchived(value)
-            setPage(1)
-          }}
+        <label className="relative w-full sm:w-[34rem]">
+          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
+          <input
+            aria-label="Buscar sucursales"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Nombre, dirección, sector o encargado"
+            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
+          />
+        </label>
+        <AdvancedFilterButton
+          open={filterDraft !== null}
+          count={filterCount}
+          onClick={() => setFilterDraft({ archived })}
+        />
+        <TableToolbarActions
+          title="Sucursales"
+          headers={columnHeaders}
+          rows={exportRows}
+          filename="sucursales"
         />
       </FilterBarRow>
+      <ActiveFilterChips
+        chips={chips}
+        onRemove={() => {
+          setArchived('false')
+          setPage(1)
+        }}
+      />
+      {filterDraft && (
+        <AdvancedFilterDialog
+          open
+          description="Combina estos criterios para acotar la lista de sucursales."
+          onClose={() => setFilterDraft(null)}
+          onClear={() => {
+            setFilterDraft({ archived: 'false' })
+            setArchived('false')
+            setPage(1)
+          }}
+          clearDisabled={!filterCount && !draftCount}
+          onApply={() => {
+            setArchived(filterDraft.archived)
+            setPage(1)
+            setFilterDraft(null)
+          }}
+        >
+          <FilterField
+            label="Estado de la Sucursal"
+            icon={<Activity className="size-4" />}
+          >
+            <select
+              aria-label="Estado de la sucursal"
+              value={filterDraft.archived}
+              onChange={(event) =>
+                setFilterDraft({
+                  archived: event.target.value as 'true' | 'false',
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="false">Activas</option>
+              <option value="true">Archivadas</option>
+            </select>
+          </FilterField>
+        </AdvancedFilterDialog>
+      )}
       {branches.isError && (
         <p
           role="alert"
@@ -253,15 +366,7 @@ export default function BranchesPage() {
           <TableSkeleton columns={7} />
         ) : (
           <DataTable
-            columns={[
-              'ID',
-              'Estado',
-              'Sucursal',
-              'Dirección',
-              'Sector',
-              'Nombre del Encargado',
-              'WhatsApp',
-            ]}
+            columns={columnHeaders}
             rows={tableRows}
             actions={tableActions}
             sortableColumns={[0, 1, 2, 3, 4, 5, 6]}

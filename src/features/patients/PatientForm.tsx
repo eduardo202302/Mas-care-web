@@ -33,7 +33,11 @@ import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError, api } from '@/lib/http'
-import { boardColumnLabels, boardColumns, type BoardColumnKey } from '@/lib/board'
+import {
+  boardColumnLabels,
+  boardColumns,
+  type BoardColumnKey,
+} from '@/lib/board'
 import { usePipeline } from '@/lib/pipeline'
 import { useCan } from '@/lib/permissions'
 import type { components, paths } from '@/lib/api-types'
@@ -785,9 +789,7 @@ function PendingTreatmentsEditor({
                     <input
                       type="date"
                       value={coverageEndOn}
-                      onChange={(event) =>
-                        setCoverageEndOn(event.target.value)
-                      }
+                      onChange={(event) => setCoverageEndOn(event.target.value)}
                       className={controlClass}
                     />
                   </label>
@@ -821,9 +823,7 @@ function PendingTreatmentsEditor({
             >
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="grid gap-1.5">
-                  <span className="text-ink text-sm font-medium">
-                    Sucursal
-                  </span>
+                  <span className="text-ink text-sm font-medium">Sucursal</span>
                   <select
                     value={branchId}
                     onChange={(event) => setBranchId(event.target.value)}
@@ -838,9 +838,7 @@ function PendingTreatmentsEditor({
                   </select>
                 </label>
                 <label className="grid gap-1.5">
-                  <span className="text-ink text-sm font-medium">
-                    Producto
-                  </span>
+                  <span className="text-ink text-sm font-medium">Producto</span>
                   <select
                     value={medicationId}
                     onChange={(event) => setMedicationId(event.target.value)}
@@ -902,9 +900,7 @@ export function PatientForm({
   const [pendingTreatments, setPendingTreatments] = useState<
     PendingTreatment[]
   >([])
-  const [createdPatientId, setCreatedPatientId] = useState<string | null>(
-    null,
-  )
+  const [createdPatientId, setCreatedPatientId] = useState<string | null>(null)
 
   const {
     register,
@@ -1039,9 +1035,7 @@ export function PatientForm({
         },
       )
       setPendingConditions((current) =>
-        current.filter(
-          (c) => c.healthConditionId !== item.healthConditionId,
-        ),
+        current.filter((c) => c.healthConditionId !== item.healthConditionId),
       )
     }
     const treatmentsToSend = [...pendingTreatments]
@@ -1341,10 +1335,7 @@ export function PatientForm({
                   />
                 </div>
                 {errors.primaryBranchId?.message && (
-                  <p
-                    id="patient-branch-error"
-                    className="text-xs text-red-700"
-                  >
+                  <p id="patient-branch-error" className="text-xs text-red-700">
                     {errors.primaryBranchId.message}
                   </p>
                 )}

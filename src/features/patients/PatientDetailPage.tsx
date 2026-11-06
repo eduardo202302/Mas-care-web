@@ -667,8 +667,8 @@ export default function PatientDetailPage() {
       items: [
         { label: 'Nombre completo', value: record.fullName },
         { label: 'Documento', value: record.documentId },
-        { label: 'Fecha de nacimiento', value: record.birthDate?.slice(0, 10) },
-        { label: 'Notas de cuidado', value: record.careNotes },
+        { label: 'Fecha de Nacimiento', value: record.birthDate?.slice(0, 10) },
+        { label: 'Notas de Cuidado', value: record.careNotes },
         { label: 'Estado', value: record.archivedAt ? 'Archivado' : 'Activo' },
       ],
     },
@@ -821,7 +821,7 @@ export default function PatientDetailPage() {
                   <dd className="mt-0.5">{record.email || 'Sin correo'}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted">Fecha de nacimiento</dt>
+                  <dt className="text-muted">Fecha de Nacimiento</dt>
                   <dd className="mt-0.5">
                     {record.birthDate
                       ? new Date(record.birthDate).toLocaleDateString('es', {
@@ -844,7 +844,7 @@ export default function PatientDetailPage() {
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-muted">Notas de cuidado</dt>
+                  <dt className="text-muted">Notas de Cuidado</dt>
                   <dd className="mt-0.5 whitespace-pre-wrap">
                     {record.careNotes || 'Sin notas'}
                   </dd>
@@ -947,7 +947,7 @@ export default function PatientDetailPage() {
                           }}
                         >
                           <Plus className="size-4" />
-                          Nuevo tratamiento
+                          Nuevo Tratamiento
                         </Button>
                       )
                     : null}
@@ -1038,7 +1038,7 @@ export default function PatientDetailPage() {
             )}
           </section>
           <div className="grid gap-4">
-            <Panel title="Tratamientos activos">
+            <Panel title="Tratamientos Activos">
               {treatments.isLoading ? (
                 <div
                   role="status"
@@ -1114,7 +1114,7 @@ export default function PatientDetailPage() {
               />
             </Panel>
             <Panel
-              title="Condiciones de salud"
+              title="Condiciones de Salud"
               inlineAction
               action={
                 canUpdate && (
@@ -1138,7 +1138,7 @@ export default function PatientDetailPage() {
               />
             </Panel>
             <Panel
-              title="Tareas abiertas"
+              title="Tareas Abiertas"
               inlineAction
               action={
                 canWriteTasks && (
@@ -1216,7 +1216,7 @@ export default function PatientDetailPage() {
               )}
             </Panel>
             <Panel
-              title="Incidencias abiertas"
+              title="Incidencias Abiertas"
               inlineAction
               action={
                 canCreateIncident && (
@@ -1503,7 +1503,7 @@ export default function PatientDetailPage() {
           icon={<Pill className="size-5" />}
           compactHeader
           printable
-          bodyClassName="pt-3"
+          bodyClassName="pt-0"
           onClose={closeTreatmentForm}
           size="lg"
         >

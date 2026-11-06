@@ -36,7 +36,8 @@ type CompanyDetail = components['schemas']['CompanyDetail']
 
 type PropertyKey = keyof CompanyDetail
 
-type PropertyGroup = 'General' | 'Negocio' | 'Dirección' | 'Contacto' | 'Métricas'
+type PropertyGroup =
+  'General' | 'Negocio' | 'Dirección' | 'Contacto' | 'Métricas'
 
 type PropertyDef = {
   key: PropertyKey
@@ -54,35 +55,123 @@ const PROPERTY_GROUP_ORDER: PropertyGroup[] = [
 ]
 
 const PROPERTY_CATALOG: PropertyDef[] = [
-  { key: 'status', label: 'Estado', group: 'General', value: (r) => (r.status === 'active' ? 'Activo' : 'Inactivo') },
-  { key: 'description', label: 'Descripción', group: 'General', value: (r) => r.description || '--' },
+  {
+    key: 'status',
+    label: 'Estado',
+    group: 'General',
+    value: (r) => (r.status === 'active' ? 'Activo' : 'Inactivo'),
+  },
+  {
+    key: 'description',
+    label: 'Descripción',
+    group: 'General',
+    value: (r) => r.description || '--',
+  },
   { key: 'pin', label: 'PIN', group: 'General', value: (r) => r.pin || '--' },
   {
     key: 'createdAt',
     label: 'Fecha de creación',
     group: 'General',
     value: (r) =>
-      new Date(r.createdAt).toLocaleString('es', { dateStyle: 'short', timeStyle: 'short' }),
+      new Date(r.createdAt).toLocaleString('es', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+      }),
   },
 
-  { key: 'ownerName', label: 'Propietario de la empresa', group: 'Negocio', value: (r) => r.ownerName || 'Sin propietario' },
-  { key: 'type', label: 'Tipo de negocio', group: 'Negocio', value: (r) => r.type || '--' },
-  { key: 'industry', label: 'Industria', group: 'Negocio', value: (r) => r.industry || '--' },
-  { key: 'employeeCount', label: 'Número de empleados', group: 'Negocio', value: (r) => r.employeeCount?.toString() || '--' },
+  {
+    key: 'ownerName',
+    label: 'Propietario de la empresa',
+    group: 'Negocio',
+    value: (r) => r.ownerName || 'Sin propietario',
+  },
+  {
+    key: 'type',
+    label: 'Tipo de negocio',
+    group: 'Negocio',
+    value: (r) => r.type || '--',
+  },
+  {
+    key: 'industry',
+    label: 'Industria',
+    group: 'Negocio',
+    value: (r) => r.industry || '--',
+  },
+  {
+    key: 'employeeCount',
+    label: 'Número de empleados',
+    group: 'Negocio',
+    value: (r) => r.employeeCount?.toString() || '--',
+  },
 
-  { key: 'city', label: 'Ciudad', group: 'Dirección', value: (r) => r.city || '--' },
-  { key: 'state', label: 'Región', group: 'Dirección', value: (r) => r.state || '--' },
+  {
+    key: 'city',
+    label: 'Ciudad',
+    group: 'Dirección',
+    value: (r) => r.city || '--',
+  },
+  {
+    key: 'state',
+    label: 'Región',
+    group: 'Dirección',
+    value: (r) => r.state || '--',
+  },
 
-  { key: 'email', label: 'Correo electrónico', group: 'Contacto', value: (r) => r.email || '--' },
-  { key: 'phone', label: 'Teléfono', group: 'Contacto', value: (r) => formatPhone(r.phone) || '--' },
-  { key: 'domain', label: 'Dominio', group: 'Contacto', value: (r) => r.domain || '--' },
-  { key: 'linkedinUrl', label: 'LinkedIn', group: 'Contacto', value: (r) => r.linkedinUrl || '--' },
+  {
+    key: 'email',
+    label: 'Correo electrónico',
+    group: 'Contacto',
+    value: (r) => r.email || '--',
+  },
+  {
+    key: 'phone',
+    label: 'Teléfono',
+    group: 'Contacto',
+    value: (r) => formatPhone(r.phone) || '--',
+  },
+  {
+    key: 'domain',
+    label: 'Dominio',
+    group: 'Contacto',
+    value: (r) => r.domain || '--',
+  },
+  {
+    key: 'linkedinUrl',
+    label: 'LinkedIn',
+    group: 'Contacto',
+    value: (r) => r.linkedinUrl || '--',
+  },
 
-  { key: 'memberCount', label: 'Usuarios', group: 'Métricas', value: (r) => r.memberCount.toString() },
-  { key: 'branchCount', label: 'Sucursales', group: 'Métricas', value: (r) => r.branchCount.toString() },
-  { key: 'patientCount', label: 'Pacientes', group: 'Métricas', value: (r) => r.patientCount.toString() },
-  { key: 'openCycleCount', label: 'Ciclos abiertos', group: 'Métricas', value: (r) => r.openCycleCount.toString() },
-  { key: 'openIncidentCount', label: 'Incidencias abiertas', group: 'Métricas', value: (r) => r.openIncidentCount.toString() },
+  {
+    key: 'memberCount',
+    label: 'Usuarios',
+    group: 'Métricas',
+    value: (r) => r.memberCount.toString(),
+  },
+  {
+    key: 'branchCount',
+    label: 'Sucursales',
+    group: 'Métricas',
+    value: (r) => r.branchCount.toString(),
+  },
+  {
+    key: 'patientCount',
+    label: 'Pacientes',
+    group: 'Métricas',
+    value: (r) => r.patientCount.toString(),
+  },
+  {
+    key: 'openCycleCount',
+    label: 'Ciclos abiertos',
+    group: 'Métricas',
+    value: (r) => r.openCycleCount.toString(),
+  },
+  {
+    key: 'openIncidentCount',
+    label: 'Incidencias abiertas',
+    group: 'Métricas',
+    value: (r) => r.openIncidentCount.toString(),
+  },
 ]
 
 const DEFAULT_PROPERTY_KEYS: PropertyKey[] = [
@@ -221,10 +310,11 @@ export default function CompanyDetailPage() {
   const [switching, setSwitching] = useState(false)
   const [viewingProperties, setViewingProperties] = useState(false)
   const [customizingProperties, setCustomizingProperties] = useState(false)
-  const [visibleProperties, setVisibleProperties] = useState<PropertyKey[]>(() =>
-    loadVisibleProperties(),
+  const [visibleProperties, setVisibleProperties] = useState<PropertyKey[]>(
+    () => loadVisibleProperties(),
   )
-  const [draftProperties, setDraftProperties] = useState<PropertyKey[]>(visibleProperties)
+  const [draftProperties, setDraftProperties] =
+    useState<PropertyKey[]>(visibleProperties)
 
   const company = useQuery({
     queryKey: ['companies', id],
@@ -413,7 +503,7 @@ export default function CompanyDetailPage() {
             <header className="border-border flex items-center gap-2 border-b px-4 py-2.5">
               <ChevronDown className="text-muted size-4 shrink-0" />
               <h3 className="text-petroleo flex-1 text-sm font-semibold">
-                Información clave
+                Información Clave
               </h3>
               <BehaviorMenu
                 onCustomizeProperties={() => {
@@ -490,7 +580,9 @@ export default function CompanyDetailPage() {
             onLogoChange={async (logo) => {
               await updateLogo.mutateAsync(logo)
             }}
-            onSave={(values) => update.mutateAsync(values).then(() => undefined)}
+            onSave={(values) =>
+              update.mutateAsync(values).then(() => undefined)
+            }
             onCancel={() => setEditing(false)}
             submitting={update.isPending}
           />
@@ -521,7 +613,7 @@ export default function CompanyDetailPage() {
       {customizingProperties && (
         <Dialog
           title="Personalizar propiedades"
-          description="Elige qué propiedades mostrar en Información clave."
+          description="Elige qué propiedades mostrar en Información Clave."
           icon={<ClipboardList className="size-5" />}
           compactHeader
           bodyClassName="pt-3"
@@ -529,33 +621,38 @@ export default function CompanyDetailPage() {
         >
           <div className="grid gap-3">
             {PROPERTY_GROUP_ORDER.map((group) => (
-              <div key={group} className="border-border overflow-hidden rounded-xl border">
+              <div
+                key={group}
+                className="border-border overflow-hidden rounded-xl border"
+              >
                 <header className="bg-surface border-border border-b px-3 py-2">
-                  <h4 className="text-petroleo text-xs font-semibold">{group}</h4>
+                  <h4 className="text-petroleo text-xs font-semibold">
+                    {group}
+                  </h4>
                 </header>
                 <div className="grid gap-1 p-1.5">
-                  {PROPERTY_CATALOG.filter((property) => property.group === group).map(
-                    (property) => (
-                      <label
-                        key={property.key}
-                        className="hover:bg-surface flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={draftProperties.includes(property.key)}
-                          onChange={(event) =>
-                            setDraftProperties((current) =>
-                              event.target.checked
-                                ? [...current, property.key]
-                                : current.filter((key) => key !== property.key),
-                            )
-                          }
-                          className="accent-tealmax size-4"
-                        />
-                        <span className="text-ink">{property.label}</span>
-                      </label>
-                    ),
-                  )}
+                  {PROPERTY_CATALOG.filter(
+                    (property) => property.group === group,
+                  ).map((property) => (
+                    <label
+                      key={property.key}
+                      className="hover:bg-surface flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={draftProperties.includes(property.key)}
+                        onChange={(event) =>
+                          setDraftProperties((current) =>
+                            event.target.checked
+                              ? [...current, property.key]
+                              : current.filter((key) => key !== property.key),
+                          )
+                        }
+                        className="accent-tealmax size-4"
+                      />
+                      <span className="text-ink">{property.label}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
             ))}

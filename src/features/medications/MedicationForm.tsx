@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
@@ -6,11 +8,17 @@ import { FormFields, FormFooter } from '@/components/ui/FormMode'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
+import { listMedicationAttachments } from '@/lib/medication-attachments'
 import type { components } from '@/lib/api-types'
 import {
   medicationSchema,
   type MedicationFormValues,
 } from '@/schemas/medication'
+import {
+  MedicationAttachments,
+  type StagedAttachment,
+} from './MedicationAttachments'
+import { MedicationImage } from './MedicationImage'
 
 /** Sugerencias comunes, no una lista cerrada: el campo sigue siendo texto libre para no romper datos existentes. */
 const DOSE_UNIT_SUGGESTIONS = [
@@ -37,7 +45,10 @@ export function MedicationForm({
   submitting = false,
 }: {
   medication?: components['schemas']['Medication']
-  onSave: (values: MedicationFormValues) => Promise<void>
+  onSave: (
+    values: MedicationFormValues,
+    staged: StagedAttachment[],
+  ) => Promise<void>
   onCancel: () => void
   submitting?: boolean
   /** Muestra el formulario bloqueado, como visor de la ficha. */
@@ -45,6 +56,15 @@ export function MedicationForm({
   /** Desbloquea los campos desde el botón Editar del modo ver. */
   onEdit?: () => void
 }) {
+  const [staged, setStaged] = useState<StagedAttachment[]>([])
+  const attachments = useQuery({
+    queryKey: ['medication-attachments', medication?.id],
+    queryFn: () => listMedicationAttachments(medication!.id),
+    enabled: Boolean(medication),
+  })
+  const primaryImageId =
+    attachments.data?.find((item) => item.isPrimary)?.id ??
+    medication?.primaryImageId
   const {
     register,
     handleSubmit,
@@ -73,7 +93,7 @@ export function MedicationForm({
 
   async function submit(values: MedicationFormValues) {
     try {
-      await onSave(values)
+      await onSave(values, staged)
     } catch (error) {
       if (
         error instanceof ApiError &&
@@ -108,6 +128,14 @@ export function MedicationForm({
           title="Identificación"
           tone="mint"
         >
+          {medication && primaryImageId && (
+            <MedicationImage
+              medicationId={medication.id}
+              attachmentId={primaryImageId}
+              alt="Imagen principal"
+              className="size-24 rounded-lg"
+            />
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField
               label="Nombre Comercial"
@@ -174,6 +202,12 @@ export function MedicationForm({
           </p>
         )}
       </FormFields>
+      <MedicationAttachments
+        medicationId={medication?.id}
+        readOnly={readOnly}
+        staged={staged}
+        onStagedChange={setStaged}
+      />
       <FormFooter
         readOnly={readOnly}
         onEdit={onEdit}

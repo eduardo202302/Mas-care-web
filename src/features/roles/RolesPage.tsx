@@ -1,8 +1,18 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, ShieldCheck } from 'lucide-react'
+import { Activity, Plus, Search, ShieldCheck } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
+import { TableToolbarActions } from '@/components/TableToolbarActions'
+import {
+  ActiveFilterChips,
+  AdvancedFilterButton,
+  AdvancedFilterDialog,
+  FilterBarRow,
+  FilterField,
+  filterControlClass,
+  type ActiveFilterChip,
+} from '@/components/ui/AdvancedFilter'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -17,6 +27,27 @@ import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import { RoleForm, type RoleSavePayload } from './RoleForm'
 
 type RoleDto = components['schemas']['Role']
+type RoleStateFilter = '' | 'active' | 'inactive'
+type RoleKindFilter = '' | 'system' | 'custom'
+
+const stateOptions: { value: RoleStateFilter; label: string }[] = [
+  { value: '', label: 'Todos' },
+  { value: 'active', label: 'Activos' },
+  { value: 'inactive', label: 'Inactivos' },
+]
+const kindOptions: { value: RoleKindFilter; label: string }[] = [
+  { value: '', label: 'Todos' },
+  { value: 'system', label: 'Sistema' },
+  { value: 'custom', label: 'Personalizados' },
+]
+const roleColumns = [
+  'ID',
+  'Estado',
+  'Nombre',
+  'Descripción',
+  'Usuarios',
+  'Pantallas',
+]
 
 export default function RolesPage() {
   const canManage = useCan('roles:write')
@@ -28,6 +59,13 @@ export default function RolesPage() {
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
+  const [search, setSearch] = useState('')
+  const [state, setState] = useState<RoleStateFilter>('')
+  const [kind, setKind] = useState<RoleKindFilter>('')
+  const [filterDraft, setFilterDraft] = useState<{
+    state: RoleStateFilter
+    kind: RoleKindFilter
+  } | null>(null)
 
   // Distinct key from the full list ['roles'] used by the user form.
   const roles = useQuery({
@@ -100,11 +138,24 @@ export default function RolesPage() {
     setFormOpen(true)
   }
 
-  const list = applyColumnSort(roles.data?.data ?? [], sort, (role, index) =>
+  // La API no filtra roles: búsqueda y filtros se aplican a la página cargada.
+  const needle = search.trim().toLowerCase()
+  const visibleRoles = (roles.data?.data ?? []).filter(
+    (role) =>
+      (!needle ||
+        `${role.numericId} ${role.name} ${role.description ?? ''}`
+          .toLowerCase()
+          .includes(needle)) &&
+      (!state || role.isActive === (state === 'active')) &&
+      (!kind || role.isSystem === (kind === 'system')),
+  )
+  const list = applyColumnSort(visibleRoles, sort, (role, index) =>
     index === 0
       ? role.numericId
       : index === 1
-        ? (role.isActive ? 1 : 0)
+        ? role.isActive
+          ? 1
+          : 0
         : index === 2
           ? role.name
           : index === 3
@@ -136,7 +187,7 @@ export default function RolesPage() {
       )}
     </span>,
     <span key="description" className="text-muted">
-      {role.description ?? '—'}
+      {role.description ?? ''}
     </span>,
     <span key="users" className="text-muted">
       {role.memberCount}
@@ -145,6 +196,31 @@ export default function RolesPage() {
       {role.items.filter((item) => item.canView).length}
     </span>,
   ])
+  const printRows = list.map((role) => [
+    String(role.numericId),
+    role.isActive ? 'Activo' : 'Inactivo',
+    role.isSystem ? `${role.name} (Sistema)` : role.name,
+    role.description ?? '',
+    String(role.memberCount),
+    String(role.items.filter((item) => item.canView).length),
+  ])
+  const filterCount = (state ? 1 : 0) + (kind ? 1 : 0)
+  const draftCount = filterDraft
+    ? (filterDraft.state ? 1 : 0) + (filterDraft.kind ? 1 : 0)
+    : 0
+  const chips: ActiveFilterChip[] = []
+  if (state)
+    chips.push({
+      key: 'state',
+      label: 'Estado',
+      value: stateOptions.find((option) => option.value === state)!.label,
+    })
+  if (kind)
+    chips.push({
+      key: 'kind',
+      label: 'Tipo',
+      value: kindOptions.find((option) => option.value === kind)!.label,
+    })
   const actions = list.map((role) =>
     canManage ? (
       <RowActions
@@ -186,6 +262,93 @@ export default function RolesPage() {
           </>
         }
       />
+      <FilterBarRow aria-label="Filtros de roles">
+        <label className="relative w-full sm:w-[34rem]">
+          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
+          <input
+            aria-label="Buscar roles"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Nombre o descripción del rol"
+            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
+          />
+        </label>
+        <AdvancedFilterButton
+          open={filterDraft !== null}
+          count={filterCount}
+          onClick={() => setFilterDraft({ state, kind })}
+        />
+        <TableToolbarActions
+          title="Roles"
+          filename="roles"
+          headers={roleColumns}
+          rows={printRows}
+        />
+      </FilterBarRow>
+      <ActiveFilterChips
+        chips={chips}
+        onRemove={(key) => {
+          if (key === 'state') setState('')
+          else setKind('')
+        }}
+      />
+      {filterDraft && (
+        <AdvancedFilterDialog
+          open
+          description="Combina estos criterios para acotar la lista de roles."
+          onClose={() => setFilterDraft(null)}
+          onClear={() => {
+            setFilterDraft({ state: '', kind: '' })
+            setState('')
+            setKind('')
+          }}
+          clearDisabled={!filterCount && !draftCount}
+          onApply={() => {
+            setState(filterDraft.state)
+            setKind(filterDraft.kind)
+            setFilterDraft(null)
+          }}
+        >
+          <FilterField label="Estado" icon={<Activity className="size-4" />}>
+            <select
+              aria-label="Estado del rol"
+              value={filterDraft.state}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  state: event.target.value as RoleStateFilter,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              {stateOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="Tipo" icon={<ShieldCheck className="size-4" />}>
+            <select
+              aria-label="Tipo de rol"
+              value={filterDraft.kind}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  kind: event.target.value as RoleKindFilter,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              {kindOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+        </AdvancedFilterDialog>
+      )}
       {roles.isError && (
         <p
           role="alert"
@@ -199,14 +362,7 @@ export default function RolesPage() {
           <TableSkeleton columns={6} />
         ) : (
           <DataTable
-            columns={[
-              'ID',
-              'Estado',
-              'Nombre',
-              'Descripción',
-              'Usuarios',
-              'Pantallas',
-            ]}
+            columns={roleColumns}
             rows={tableRows}
             actions={canManage ? actions : undefined}
             sortableColumns={[0, 1, 2, 3, 4, 5]}
@@ -290,7 +446,10 @@ export default function RolesPage() {
             </p>
           )}
           <FormActions>
-            <Button className="w-full sm:w-auto" onClick={() => setDeleting(null)}>
+            <Button
+              className="w-full sm:w-auto"
+              onClick={() => setDeleting(null)}
+            >
               Cancelar
             </Button>
             <Button

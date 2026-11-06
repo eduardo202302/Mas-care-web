@@ -6,7 +6,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { Building2, Plus, TriangleAlert, User } from 'lucide-react'
+import { Building2, Plus, Search, TriangleAlert, User } from 'lucide-react'
+import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -29,6 +30,7 @@ import {
   incidentFiltersFromSearch,
   incidentFiltersToSearch,
   incidentQueryKey,
+  incidentTypeLabels,
   incidentTypeOptions,
   type Incident,
   type IncidentFilters,
@@ -140,6 +142,7 @@ export default function IncidentsPage() {
     enabled: branchReady,
   })
 
+  const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [filterDraft, setFilterDraft] = useState<IncidentFilters | null>(null)
   const [resolveTarget, setResolveTarget] = useState<Incident | null>(null)
@@ -211,24 +214,47 @@ export default function IncidentsPage() {
     })
   }
 
+  // La API no tiene `q`: la búsqueda se aplica a las tarjetas ya cargadas.
+  const needle = search.trim().toLowerCase()
+  const matchSearch = (cards: Incident[]) =>
+    needle
+      ? cards.filter((incident) =>
+          [
+            incident.description,
+            incident.patient?.fullName,
+            incident.branch?.name,
+            incident.assignee?.name,
+            incidentTypeLabels[incident.type],
+          ]
+            .join(' ')
+            .toLowerCase()
+            .includes(needle),
+        )
+      : cards
   const datasets: Record<
     IncidentStatus,
     { cards: Incident[]; hasMore: boolean; loading: boolean; more: () => void }
   > = {
     new: {
-      cards: newIncidents.data?.pages.flatMap((page) => page.data) ?? [],
+      cards: matchSearch(
+        newIncidents.data?.pages.flatMap((page) => page.data) ?? [],
+      ),
       hasMore: Boolean(newIncidents.hasNextPage),
       loading: newIncidents.isFetchingNextPage,
       more: () => void newIncidents.fetchNextPage(),
     },
     in_progress: {
-      cards: inProgressIncidents.data?.pages.flatMap((page) => page.data) ?? [],
+      cards: matchSearch(
+        inProgressIncidents.data?.pages.flatMap((page) => page.data) ?? [],
+      ),
       hasMore: Boolean(inProgressIncidents.hasNextPage),
       loading: inProgressIncidents.isFetchingNextPage,
       more: () => void inProgressIncidents.fetchNextPage(),
     },
     resolved: {
-      cards: resolvedIncidents.data?.pages.flatMap((page) => page.data) ?? [],
+      cards: matchSearch(
+        resolvedIncidents.data?.pages.flatMap((page) => page.data) ?? [],
+      ),
       hasMore: Boolean(resolvedIncidents.hasNextPage),
       loading: resolvedIncidents.isFetchingNextPage,
       more: () => void resolvedIncidents.fetchNextPage(),
@@ -299,10 +325,45 @@ export default function IncidentsPage() {
       />
 
       <FilterBarRow aria-label="Filtros de incidencias">
+        <label className="relative w-full sm:w-[34rem]">
+          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
+          <input
+            aria-label="Buscar incidencias"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Descripción, paciente, sucursal o responsable"
+            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
+          />
+        </label>
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
           onClick={() => setFilterDraft({ ...filters })}
+        />
+        <TableToolbarActions
+          title="Incidencias"
+          filename="incidencias"
+          branchScoped
+          headers={[
+            'Estado',
+            'Tipo',
+            'Descripción',
+            'Paciente',
+            'Sucursal',
+            'Responsable',
+            'Creada',
+          ]}
+          rows={incidentColumns.flatMap((status) =>
+            datasets[status].cards.map((incident) => [
+              incidentColumnLabels[status],
+              incidentTypeLabels[incident.type],
+              incident.description,
+              incident.patient?.fullName ?? '',
+              incident.branch?.name ?? '',
+              incident.assignee?.name ?? '',
+              new Date(incident.createdAt).toLocaleString('es'),
+            ]),
+          )}
         />
       </FilterBarRow>
       <ActiveFilterChips

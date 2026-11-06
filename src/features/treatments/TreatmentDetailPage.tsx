@@ -44,10 +44,10 @@ import {
   frequencyColumns,
   medicationName,
   treatmentStatusLabel,
-  uploadPrescriptionDocument,
   type DoseScheduleFrequency,
   type Medication,
   type Treatment,
+  updateTreatmentFromForm,
 } from '@/lib/treatments'
 import { taskDueLabel, taskTypeLabels, type TaskList } from '@/lib/operations'
 import { incidentTypeLabels, type Incident } from '@/lib/incidents'
@@ -251,31 +251,8 @@ export default function TreatmentDetailPage() {
     },
   })
   const save = useMutation({
-    mutationFn: async (values: TreatmentSaveValues) => {
-      const updated = await api<Treatment>(
-        `/api/v1/treatments/${encodeURIComponent(id)}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify({
-            medication_id: values.medicationId,
-            branch_id: values.branchId,
-            responsible_user_id: values.responsibleUserId || null,
-            dose_per_intake: values.dosePerIntake,
-            intakes_per_day: values.intakesPerDay,
-            quantity_per_cycle: values.quantityPerCycle,
-            start_date: values.startDate,
-            end_date: values.endDate || null,
-            prescriber_name: values.prescriberName?.trim() || null,
-            prescriber_id: values.prescriberId?.trim() || null,
-            prescription_expires_on: values.prescriptionExpiresOn || null,
-            notes: values.notes?.trim() || null,
-            custom_values: values.customValues,
-          }),
-        },
-      )
-      await uploadPrescriptionDocument(id, values.prescriptionFile)
-      return updated
-    },
+    mutationFn: (values: TreatmentSaveValues) =>
+      updateTreatmentFromForm(id, values),
     onSuccess: async () => {
       await invalidate()
       setEditing(false)
@@ -370,7 +347,7 @@ export default function TreatmentDetailPage() {
       items: [
         { label: 'Paciente', value: patient.data?.fullName },
         { label: 'Medicamento', value: medicationName(medication) },
-        { label: 'Cantidad por ciclo', value: String(record.quantityPerCycle) },
+        { label: 'Cantidad por Ciclo', value: String(record.quantityPerCycle) },
         { label: 'Inicio', value: formatDate(record.startDate) },
         { label: 'Notas', value: record.notes },
       ],
@@ -463,10 +440,10 @@ export default function TreatmentDetailPage() {
       <div className="animate-in">
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.35fr)_minmax(230px,0.8fr)]">
           <div className="grid min-w-0 gap-4">
-            <Panel title="Datos del tratamiento">
+            <Panel title="Datos del Tratamiento">
               <dl className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <dt className="text-muted">Cantidad por ciclo</dt>
+                  <dt className="text-muted">Cantidad por Ciclo</dt>
                   <dd className="mt-0.5">{String(record.quantityPerCycle)}</dd>
                 </div>
                 <div>
@@ -500,7 +477,7 @@ export default function TreatmentDetailPage() {
                   </dd>
                 </div>
                 <div className="col-span-2">
-                  <dt className="text-muted">Avisos automáticos</dt>
+                  <dt className="text-muted">Avisos Automáticos</dt>
                   <dd className="mt-0.5">
                     {(record as { automationPaused?: boolean }).automationPaused
                       ? 'Pausados'
@@ -678,7 +655,7 @@ export default function TreatmentDetailPage() {
                 onCloseAdd={() => setDoctorAddOpen(false)}
               />
             </Panel>
-            <Panel title="Tareas abiertas">
+            <Panel title="Tareas Abiertas">
               {tasks.data?.data.length ? (
                 <ul className="grid gap-3">
                   {tasks.data.data.map((task) => (
@@ -699,7 +676,7 @@ export default function TreatmentDetailPage() {
                 <p className="text-muted text-sm">Sin tareas abiertas.</p>
               )}
             </Panel>
-            <Panel title="Incidencias abiertas">
+            <Panel title="Incidencias Abiertas">
               {openIncidents.length ? (
                 <ul className="grid gap-3">
                   {openIncidents.map((incident) => (
@@ -837,7 +814,7 @@ export default function TreatmentDetailPage() {
             icon={<Pill className="size-5" />}
             compactHeader
             printable
-            bodyClassName="pt-3"
+            bodyClassName="pt-0"
             onClose={() => setEditing(false)}
             size="lg"
           >

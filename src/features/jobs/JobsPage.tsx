@@ -43,7 +43,7 @@ export default function JobsPage() {
   return (
     <div className="animate-in">
       <PageHeader
-        title="Trabajos en segundo plano"
+        title="Trabajos en Segundo Plano"
         subtitle="Si un trabajo aparece atrasado, revisa que el proceso del worker esté corriendo. Los fallos se reintentan solos; aquí ves los que ocurrieron."
       />
       {jobs.isError && (

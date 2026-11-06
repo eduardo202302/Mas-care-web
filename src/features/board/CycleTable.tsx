@@ -264,23 +264,19 @@ export function CycleTable({
             />
             {stage.name}
           </span>
-        ) : (
-          <span className="text-muted">—</span>
-        )
+        ) : null
       }
       case 'expected_on':
         return (
-          <span className="font-medium">{formatDate(card.expected_on)}</span>
+          <span className="font-medium">
+            {card.expected_on ? formatDate(card.expected_on) : ''}
+          </span>
         )
       case 'derived':
-        return derived ? (
-          <StatusChip status={derived} />
-        ) : (
-          <span className="text-muted">—</span>
-        )
+        return derived ? <StatusChip status={derived} /> : null
       case 'days':
         return card.days_remaining === null
-          ? '—'
+          ? ''
           : card.days_remaining < 0
             ? `${Math.abs(card.days_remaining)} d. vencido`
             : card.days_remaining === 0
@@ -294,13 +290,13 @@ export function CycleTable({
           />
         )
       case 'responsible':
-        return card.responsible?.name ?? '—'
+        return card.responsible?.name ?? ''
       case 'next_action':
         return card.status === 'to_notify'
           ? 'Avisar'
           : open
             ? 'Marcar entregado'
-            : '—'
+            : ''
       case 'stock':
         return (
           <span className="inline-flex items-center gap-1.5 text-xs">
@@ -326,7 +322,7 @@ export function CycleTable({
             .treatment_custom_values ?? {}
         return (
           <span className="text-muted">
-            {formatCustomValue(property, values[property.key]) || '—'}
+            {formatCustomValue(property, values[property.key]) || ''}
           </span>
         )
       }

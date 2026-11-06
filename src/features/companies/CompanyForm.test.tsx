@@ -14,7 +14,11 @@ afterEach(() => {
 function meResponse(): components['schemas']['Me'] {
   return {
     user: { id: 'user-1', name: 'Usuario', email: 'user@example.test' },
-    organization: { id: 'org-1', name: 'Farmacia Demo', googleMapsApiKey: null },
+    organization: {
+      id: 'org-1',
+      name: 'Farmacia Demo',
+      googleMapsApiKey: null,
+    },
     role: 'admin',
     roleId: null,
     roleName: null,
@@ -28,14 +32,17 @@ function meResponse(): components['schemas']['Me'] {
 function renderForm(onSave: (values: CompanyFormValues) => Promise<void>) {
   vi.stubGlobal(
     'fetch',
-    vi.fn(async () =>
-      new Response(JSON.stringify(meResponse()), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      }),
+    vi.fn(
+      async () =>
+        new Response(JSON.stringify(meResponse()), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
     ),
   )
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
   render(
     <QueryClientProvider client={client}>
       <CompanyForm

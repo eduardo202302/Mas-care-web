@@ -1,6 +1,15 @@
 import { useRef, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronDown, FileText, HandCoins, Paperclip, Plus, Trash2, UserRound, X } from 'lucide-react'
+import {
+  ChevronDown,
+  FileText,
+  HandCoins,
+  Paperclip,
+  Plus,
+  Trash2,
+  UserRound,
+  X,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
@@ -78,7 +87,9 @@ function CollapsibleSection({
           </button>
         )}
       </header>
-      {open && <div className="border-border border-t px-4 py-3">{children}</div>}
+      {open && (
+        <div className="border-border border-t px-4 py-3">{children}</div>
+      )}
     </section>
   )
 }
@@ -104,8 +115,12 @@ function ContactCard({ contact }: { contact: CompanyContact }) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-ink text-sm font-semibold">{contact.fullName}</p>
-          {contact.email && <p className="text-muted truncate text-xs">{contact.email}</p>}
-          {contact.phone && <p className="text-muted text-xs">{contact.phone}</p>}
+          {contact.email && (
+            <p className="text-muted truncate text-xs">{contact.email}</p>
+          )}
+          {contact.phone && (
+            <p className="text-muted text-xs">{contact.phone}</p>
+          )}
         </div>
       </div>
     </div>
@@ -155,7 +170,9 @@ function MedicationItemsEditor({
   onChange: (items: MedicationItemDraft[]) => void
 }) {
   function update(index: number, patch: Partial<MedicationItemDraft>) {
-    onChange(items.map((item, i) => (i === index ? { ...item, ...patch } : item)))
+    onChange(
+      items.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+    )
   }
   function remove(index: number) {
     onChange(items.filter((_, i) => i !== index))
@@ -164,7 +181,10 @@ function MedicationItemsEditor({
     <div className="grid gap-2">
       <span className="text-ink text-sm font-medium">Medicamentos</span>
       {items.map((item, index) => (
-        <div key={index} className="border-border grid grid-cols-[1fr_5rem_auto] gap-2 rounded-lg border p-2">
+        <div
+          key={index}
+          className="border-border grid grid-cols-[1fr_5rem_auto] gap-2 rounded-lg border p-2"
+        >
           <select
             aria-label="Medicamento"
             value={item.name}
@@ -185,7 +205,9 @@ function MedicationItemsEditor({
             step="0.01"
             placeholder="Cant."
             value={item.quantity}
-            onChange={(event) => update(index, { quantity: event.target.value })}
+            onChange={(event) =>
+              update(index, { quantity: event.target.value })
+            }
             className="border-border focus:border-tealmax h-9 rounded-md border bg-white px-2 text-sm outline-none"
           />
           <button
@@ -200,7 +222,9 @@ function MedicationItemsEditor({
       ))}
       <button
         type="button"
-        onClick={() => onChange([...items, { name: '', quantity: '1', unitPrice: '0' }])}
+        onClick={() =>
+          onChange([...items, { name: '', quantity: '1', unitPrice: '0' }])
+        }
         className="text-tealmax flex items-center gap-1 text-xs font-semibold hover:underline"
       >
         <Plus className="size-3.5" />
@@ -227,7 +251,9 @@ function DealCreateForm({
   const [dealType, setDealType] = useState<DealType>('new_business')
   const [amount, setAmount] = useState('')
   const [closeDate, setCloseDate] = useState('')
-  const [medicationItems, setMedicationItems] = useState<MedicationItemDraft[]>([])
+  const [medicationItems, setMedicationItems] = useState<MedicationItemDraft[]>(
+    [],
+  )
 
   return (
     <form
@@ -405,7 +431,9 @@ export function CompanyRelationsPanel({
   const medications = useQuery({
     queryKey: ['companies', companyId, 'medications'],
     queryFn: () =>
-      api<MedicationList>(`/api/v1/companies/${encodeURIComponent(companyId)}/medications`),
+      api<MedicationList>(
+        `/api/v1/companies/${encodeURIComponent(companyId)}/medications`,
+      ),
     enabled: creatingDeal,
   })
 
@@ -416,7 +444,9 @@ export function CompanyRelationsPanel({
         body: JSON.stringify(body),
       }),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['companies', companyId, 'deals'] })
+      await queryClient.invalidateQueries({
+        queryKey: ['companies', companyId, 'deals'],
+      })
       setCreatingDeal(false)
     },
   })
@@ -449,7 +479,10 @@ export function CompanyRelationsPanel({
             </button>
           </div>
         ) : (
-          <EmptyRelation icon={<UserRound className="size-4" />} text="Sin pacientes asociados." />
+          <EmptyRelation
+            icon={<UserRound className="size-4" />}
+            text="Sin pacientes asociados."
+          />
         )}
       </CollapsibleSection>
 
@@ -476,7 +509,7 @@ export function CompanyRelationsPanel({
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Archivos adjuntos"
+        title="Archivos Adjuntos"
         count={attachments.length}
         onAdd={() => fileInputRef.current?.click()}
       >
@@ -487,7 +520,8 @@ export function CompanyRelationsPanel({
           className="hidden"
           onChange={(event) => {
             const files = Array.from(event.target.files ?? [])
-            if (files.length) setAttachments((current) => [...current, ...files])
+            if (files.length)
+              setAttachments((current) => [...current, ...files])
             event.target.value = ''
           }}
         />
@@ -502,14 +536,20 @@ export function CompanyRelationsPanel({
                   <FileText className="size-4" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-ink truncate text-sm font-semibold">{file.name}</p>
-                  <p className="text-muted text-xs">{(file.size / 1024).toFixed(1)} KB</p>
+                  <p className="text-ink truncate text-sm font-semibold">
+                    {file.name}
+                  </p>
+                  <p className="text-muted text-xs">
+                    {(file.size / 1024).toFixed(1)} KB
+                  </p>
                 </div>
                 <button
                   type="button"
                   aria-label="Quitar archivo"
                   onClick={() =>
-                    setAttachments((current) => current.filter((_, i) => i !== index))
+                    setAttachments((current) =>
+                      current.filter((_, i) => i !== index),
+                    )
                   }
                   className="text-muted hover:text-red-600"
                 >
@@ -535,17 +575,27 @@ export function CompanyRelationsPanel({
           size="lg"
           onClose={() => setCreatingDeal(false)}
         >
-          <Tabs tabs={dealTabs} value={dealTab} onChange={setDealTab} className="mb-3" />
+          <Tabs
+            tabs={dealTabs}
+            value={dealTab}
+            onChange={setDealTab}
+            className="mb-3"
+          />
           {dealTab === 'new' ? (
             <DealCreateForm
               companyName={companyName}
               medications={medications.data?.data ?? []}
               submitting={createDeal.isPending}
               onCancel={() => setCreatingDeal(false)}
-              onSave={(body) => createDeal.mutateAsync(body).then(() => undefined)}
+              onSave={(body) =>
+                createDeal.mutateAsync(body).then(() => undefined)
+              }
             />
           ) : (
-            <ExistingDealPicker deals={dealItems} onDone={() => setCreatingDeal(false)} />
+            <ExistingDealPicker
+              deals={dealItems}
+              onDone={() => setCreatingDeal(false)}
+            />
           )}
         </Dialog>
       )}

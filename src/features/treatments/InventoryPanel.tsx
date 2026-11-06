@@ -54,7 +54,7 @@ type InventoryEntry = {
 
 const entryTypeLabels: Record<InventoryEntry['type'], string> = {
   initial: 'Saldo inicial',
-  external_purchase: 'Compra externa',
+  external_purchase: 'Compra Externa',
   pharmacy_delivery: 'Entrega de farmacia',
   manual_adjustment: 'Ajuste manual',
   dose_consumption: 'Toma registrada',
@@ -168,7 +168,7 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
         <div className="flex flex-wrap gap-2">
           {canPurchase && (
             <Button onClick={() => setPurchaseOpen(true)}>
-              Compra externa
+              Compra Externa
             </Button>
           )}
           {canAdjust && (
@@ -190,7 +190,7 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
       {summary.data && (
         <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
           <div>
-            <dt className="text-muted">Saldo real</dt>
+            <dt className="text-muted">Saldo Real</dt>
             <dd className="text-ink mt-0.5 font-medium">
               {summary.data.balance_real ?? summary.data.balance} unidades
               {summary.data.consumed_unlogged ? (
@@ -202,7 +202,7 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
             </dd>
           </div>
           <div className="col-span-2">
-            <dt className="text-muted">Umbral de alerta</dt>
+            <dt className="text-muted">Umbral de Alerta</dt>
             <dd className="mt-0.5">
               {summary.data.low_inventory_threshold ?? 'Sin definir'}{' '}
               {summary.data.is_low && (

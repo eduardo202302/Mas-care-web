@@ -3,7 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { Check, X } from 'lucide-react'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
-import { reportQueryString, type ReportFilters, type ReportResponse } from '@/lib/reports'
+import {
+  reportQueryString,
+  type ReportFilters,
+  type ReportResponse,
+} from '@/lib/reports'
 import { ReportTable } from '../components/ReportTable'
 import { ReportErrorState } from '../components/ReportErrorState'
 import { ExportButton } from '../components/ExportButton'
@@ -29,7 +33,12 @@ export function NoResponseReport({ filters }: { filters: ReportFilters }) {
 
   if (query.isLoading) return <Skeleton className="h-96 w-full rounded-xl" />
   if (query.isError) {
-    return <ReportErrorState message={query.error.message} onRetry={() => query.refetch()} />
+    return (
+      <ReportErrorState
+        message={query.error.message}
+        onRetry={() => query.refetch()}
+      />
+    )
   }
 
   const data = query.data
@@ -40,18 +49,31 @@ export function NoResponseReport({ filters }: { filters: ReportFilters }) {
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-display text-petroleo flex items-center gap-1.5 text-base font-bold">
           Pacientes sin respuesta
-          <DefinitionHelp definitions={data.definitions} term="no_response" label="Sin respuesta" />
+          <DefinitionHelp
+            definitions={data.definitions}
+            term="no_response"
+            label="Sin respuesta"
+          />
         </h3>
         <ExportButton type="no-response" filters={filters} />
       </div>
 
       <ReportTable
-        columns={['Paciente', 'Sucursal', 'Intentos', 'Último aviso', 'Antigüedad', 'Tarea abierta']}
+        columns={[
+          'Paciente',
+          'Sucursal',
+          'Intentos',
+          'Último aviso',
+          'Antigüedad',
+          'Tarea abierta',
+        ]}
         rows={data.data.map((row) => [
           <span key="patient">{row.patient.full_name ?? 'Sin nombre'}</span>,
-          <span key="branch">{row.branch?.name ?? '—'}</span>,
+          <span key="branch">{row.branch?.name ?? ''}</span>,
           <span key="attempts">{row.attempts_count}</span>,
-          <span key="last">{new Date(row.last_notice_at).toLocaleDateString('es')}</span>,
+          <span key="last">
+            {new Date(row.last_notice_at).toLocaleDateString('es')}
+          </span>,
           <span key="age">{row.age_days} días</span>,
           <span key="task" className="inline-flex items-center gap-1">
             {row.has_open_task ? (

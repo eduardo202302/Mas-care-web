@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/http'
-import { reportQueryString, type ReportFilters, type ReportResponse } from '@/lib/reports'
+import {
+  reportQueryString,
+  type ReportFilters,
+  type ReportResponse,
+} from '@/lib/reports'
 import { MetricCard, SimpleMetricCard } from '../components/MetricCard'
 import { ReportChart } from '../components/ReportChart'
 import { ReportErrorState } from '../components/ReportErrorState'
@@ -27,13 +31,21 @@ export function AdherenceReport({ filters }: { filters: ReportFilters }) {
   }
 
   if (query.isError) {
-    return <ReportErrorState message={query.error.message} onRetry={() => query.refetch()} />
+    return (
+      <ReportErrorState
+        message={query.error.message}
+        onRetry={() => query.refetch()}
+      />
+    )
   }
 
   const data = query.data
   if (!data) return null
 
-  const byMonth = data.by_month.map((row) => ({ month: row.month, adherencia: row.percentage ?? 0 }))
+  const byMonth = data.by_month.map((row) => ({
+    month: row.month,
+    adherencia: row.percentage ?? 0,
+  }))
   const byBranch = data.by_branch.map((row) => ({
     sucursal: row.name,
     adherencia: row.percentage ?? 0,

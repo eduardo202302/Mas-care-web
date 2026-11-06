@@ -209,7 +209,9 @@ export function PatientInfoPackPanel({
         icon={<Users className="size-4" />}
         title="Cuidador principal"
         badge={
-          caregiverList.length > 1 ? `${caregiverList.length} cuidadores` : undefined
+          caregiverList.length > 1
+            ? `${caregiverList.length} cuidadores`
+            : undefined
         }
       >
         {caregivers.isLoading ? (
@@ -262,7 +264,7 @@ export function PatientInfoPackPanel({
 
       <InfoCard
         icon={<HeartPulse className="size-4" />}
-        title="Condiciones de salud"
+        title="Condiciones de Salud"
         badge={
           activeConditions.length ? String(activeConditions.length) : undefined
         }

@@ -8,7 +8,8 @@ import {
 } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
-import { Mail } from 'lucide-react'
+import { Mail, Search } from 'lucide-react'
+import { TableToolbarActions } from '@/components/TableToolbarActions'
 import {
   ActiveFilterChips,
   AdvancedFilterButton,
@@ -91,13 +92,14 @@ const errorLabels: Record<string, string> = {
 const explainError = (code: string | null) =>
   code ? (errorLabels[code] ?? code) : ''
 const when = (value: string | null) =>
-  value ? new Date(value).toLocaleString('es') : '—'
+  value ? new Date(value).toLocaleString('es') : ''
 
 function Queue() {
   const queryClient = useQueryClient()
   const canAct = useCan('outbox:retry')
   const [status, setStatus] = useState<OutboxStatus | ''>('')
   const [filterOpen, setFilterOpen] = useState(false)
+  const [search, setSearch] = useState('')
   const list = useInfiniteQuery({
     queryKey: ['outbox', status],
     queryFn: ({ pageParam }) => {
@@ -115,20 +117,61 @@ function Queue() {
       api(`/api/v1/outbox/${id}/${action}`, { method: 'POST' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['outbox'] }),
   })
-  const rows = list.data?.pages.flatMap((page) => page.data) ?? []
+  // La API no tiene `q`: la búsqueda se aplica a los envíos cargados.
+  const needle = search.trim().toLowerCase()
+  const rows = (list.data?.pages.flatMap((page) => page.data) ?? []).filter(
+    (row) =>
+      !needle ||
+      [
+        row.patient.name,
+        channelLabels[row.channel] ?? row.channel,
+        row.template.name,
+        statusLabels[row.status],
+        explainError(row.last_error),
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(needle),
+  )
 
   return (
     <section aria-label="Cola de envíos">
       <FilterBarRow aria-label="Filtros de avisos">
+        <label className="relative w-full sm:w-[34rem]">
+          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
+          <input
+            aria-label="Buscar avisos"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Paciente, canal, plantilla o estado"
+            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
+          />
+        </label>
         <AdvancedFilterButton
           open={filterOpen}
           count={status ? 1 : 0}
           onClick={() => setFilterOpen(true)}
         />
-        <p className="text-muted ml-auto text-xs">
-          Se actualiza solo cada 30 segundos.
-        </p>
+        <TableToolbarActions
+          title="Avisos"
+          filename="avisos"
+          branchScoped
+          headers={['Paciente', 'Canal', 'Aviso', 'Estado', 'Fecha', 'Detalle']}
+          rows={rows.map((row) => [
+            row.patient.name,
+            channelLabels[row.channel] ?? row.channel,
+            row.attempt_number === 1
+              ? 'Primer aviso'
+              : `Recordatorio ${row.attempt_number - 1}`,
+            statusLabels[row.status],
+            when(row.sent_at ?? row.scheduled_for),
+            explainError(row.last_error),
+          ])}
+        />
       </FilterBarRow>
+      <p className="text-muted -mt-2 mb-3 text-xs">
+        Se actualiza solo cada 30 segundos.
+      </p>
       <ActiveFilterChips
         chips={
           status

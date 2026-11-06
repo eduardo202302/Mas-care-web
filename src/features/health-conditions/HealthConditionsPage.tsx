@@ -1,10 +1,19 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { HeartPulse, Plus, Search } from 'lucide-react'
+import { HeartPulse, Plus, Search, ToggleRight } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
+import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { Dialog } from '@/components/ui/Dialog'
-import { FilterBarRow, FilterSegmented } from '@/components/ui/AdvancedFilter'
+import {
+  ActiveFilterChips,
+  AdvancedFilterButton,
+  AdvancedFilterDialog,
+  FilterBarRow,
+  FilterField,
+  filterControlClass,
+  type ActiveFilterChip,
+} from '@/components/ui/AdvancedFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
@@ -22,6 +31,12 @@ type ConditionQuery = NonNullable<
   paths['/api/v1/health-conditions']['get']['parameters']['query']
 >
 
+const DEFAULT_ACTIVE = 'true' as 'true' | 'false'
+const activeOptions: { value: 'true' | 'false'; label: string }[] = [
+  { value: 'true', label: 'Activas' },
+  { value: 'false', label: 'Inactivas' },
+]
+
 function queryString(query: ConditionQuery) {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query))
@@ -33,7 +48,10 @@ export default function HealthConditionsPage() {
   const canWrite = useCan('health-conditions:write')
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
-  const [isActive, setIsActive] = useState<'true' | 'false'>('true')
+  const [isActive, setIsActive] = useState<'true' | 'false'>(DEFAULT_ACTIVE)
+  const [filterDraft, setFilterDraft] = useState<{
+    isActive: 'true' | 'false'
+  } | null>(null)
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
@@ -112,7 +130,9 @@ export default function HealthConditionsPage() {
       index === 0
         ? item.numericId
         : index === 1
-          ? (item.isActive ? 1 : 0)
+          ? item.isActive
+            ? 1
+            : 0
           : index === 2
             ? item.name
             : (item.description ?? ''),
@@ -128,9 +148,24 @@ export default function HealthConditionsPage() {
       {item.name}
     </span>,
     <span key="description" className="text-muted">
-      {item.description || '—'}
+      {item.description || ''}
     </span>,
   ])
+  const exportHeaders = ['ID', 'Estado', 'Nombre', 'Descripción']
+  const exportRows = items.map((item) => [
+    String(item.numericId),
+    item.isActive ? 'Activa' : 'Inactiva',
+    item.name,
+    item.description || '',
+  ])
+  const filterCount = isActive !== DEFAULT_ACTIVE ? 1 : 0
+  const chips: ActiveFilterChip[] = []
+  if (isActive !== DEFAULT_ACTIVE)
+    chips.push({
+      key: 'isActive',
+      label: 'Estado',
+      value: activeOptions.find((option) => option.value === isActive)!.label,
+    })
   const rowActions = items.map((item) => (
     <RowActions
       key={item.id}
@@ -148,7 +183,7 @@ export default function HealthConditionsPage() {
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
       <PageHeader
-        title="Condiciones de salud"
+        title="Condiciones de Salud"
         subtitle="Condiciones disponibles para registrar en la ficha de los pacientes."
         actions={
           <>
@@ -162,8 +197,8 @@ export default function HealthConditionsPage() {
         }
       />
       <FilterBarRow aria-label="Filtros">
-        <label className="relative min-w-[220px] flex-1">
-          <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+        <label className="relative w-full sm:w-[34rem]">
+          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
           <input
             aria-label="Buscar condiciones de salud"
             value={search}
@@ -172,22 +207,67 @@ export default function HealthConditionsPage() {
               setPage(1)
             }}
             placeholder="Nombre de la condición"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none"
+            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
           />
         </label>
-        <FilterSegmented<'true' | 'false'>
-          label="Filtrar condiciones de salud"
-          value={isActive}
-          options={[
-            { value: 'true', label: 'Activas' },
-            { value: 'false', label: 'Inactivas' },
-          ]}
-          onChange={(value) => {
-            setIsActive(value)
-            setPage(1)
-          }}
+        <AdvancedFilterButton
+          open={filterDraft !== null}
+          count={filterCount}
+          onClick={() => setFilterDraft({ isActive })}
+        />
+        <TableToolbarActions
+          title="Condiciones de Salud"
+          headers={exportHeaders}
+          rows={exportRows}
+          filename="condiciones-de-salud"
         />
       </FilterBarRow>
+      <ActiveFilterChips
+        chips={chips}
+        onRemove={() => {
+          setIsActive(DEFAULT_ACTIVE)
+          setPage(1)
+        }}
+      />
+      {filterDraft && (
+        <AdvancedFilterDialog
+          open
+          description="Combina estos criterios para acotar la lista de condiciones de salud."
+          onClose={() => setFilterDraft(null)}
+          onClear={() => {
+            setFilterDraft({ isActive: DEFAULT_ACTIVE })
+            setIsActive(DEFAULT_ACTIVE)
+            setPage(1)
+          }}
+          clearDisabled={
+            !filterCount && filterDraft.isActive === DEFAULT_ACTIVE
+          }
+          onApply={() => {
+            setIsActive(filterDraft.isActive)
+            setPage(1)
+            setFilterDraft(null)
+          }}
+        >
+          <FilterField label="Estado" icon={<ToggleRight className="size-4" />}>
+            <select
+              aria-label="Estado"
+              value={filterDraft.isActive}
+              onChange={(event) =>
+                setFilterDraft({
+                  isActive: event.target.value as 'true' | 'false',
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              {activeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+        </AdvancedFilterDialog>
+      )}
       {conditions.isError && (
         <p
           role="alert"
@@ -245,7 +325,7 @@ export default function HealthConditionsPage() {
                 ? 'Editar Condición'
                 : 'Nueva Condición'
           }
-          description="Condiciones de salud disponibles para la organización."
+          description="Condiciones de Salud disponibles para la organización."
           icon={<HeartPulse className="size-5" />}
           compactHeader
           bodyClassName="pt-3"

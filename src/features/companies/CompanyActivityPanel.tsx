@@ -249,9 +249,10 @@ export function CompanyActivityPanel({ companyId }: { companyId: string }) {
   const queryClient = useQueryClient()
   const [mainTab, setMainTab] = useState<MainTab>('catchup')
   const [subTab, setSubTab] = useState<SubTab>('all')
-  const [creating, setCreating] = useState<{ type: CompanyActivityType; label: string } | null>(
-    null,
-  )
+  const [creating, setCreating] = useState<{
+    type: CompanyActivityType
+    label: string
+  } | null>(null)
 
   const list = useQuery({
     queryKey: ['companies', companyId, 'activities', subTab],
@@ -319,7 +320,10 @@ export function CompanyActivityPanel({ companyId }: { companyId: string }) {
               <button
                 type="button"
                 onClick={() =>
-                  setCreating({ type: 'meeting', label: typeMeta.meeting.createLabel })
+                  setCreating({
+                    type: 'meeting',
+                    label: typeMeta.meeting.createLabel,
+                  })
                 }
                 className="text-tealmax text-xs font-semibold hover:underline"
               >
@@ -369,7 +373,10 @@ export function CompanyActivityPanel({ companyId }: { companyId: string }) {
                   variant="primary"
                   className="h-9 px-3 text-xs"
                   onClick={() =>
-                    setCreating({ type: subTab, label: typeMeta[subTab].createLabel })
+                    setCreating({
+                      type: subTab,
+                      label: typeMeta[subTab].createLabel,
+                    })
                   }
                 >
                   <Plus className="size-4" />
@@ -398,7 +405,11 @@ export function CompanyActivityPanel({ companyId }: { companyId: string }) {
           ) : (
             <EmptyState
               icon={<SearchX className="size-4" />}
-              text={subTab === 'all' ? 'Sin actividad registrada.' : typeMeta[subTab].emptyText}
+              text={
+                subTab === 'all'
+                  ? 'Sin actividad registrada.'
+                  : typeMeta[subTab].emptyText
+              }
             />
           )}
         </div>
