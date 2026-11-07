@@ -369,7 +369,6 @@ export function DoctorForm({
         <ModalSection
           icon={<User className="size-4" />}
           title="Datos del Médico"
-          tone="mint"
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <TextField
@@ -422,7 +421,6 @@ export function DoctorForm({
         <ModalSection
           icon={<Stethoscope className="size-4" />}
           title="Especialidades"
-          tone="sky"
           action={
             <Button
               type="button"
@@ -483,7 +481,6 @@ export function DoctorForm({
         <ModalSection
           icon={<Building2 className="size-4" />}
           title="Centros Médicos"
-          tone="amber"
           action={
             <Button
               type="button"

@@ -83,7 +83,6 @@ function UserDetail({
       <ModalSection
         icon={<UserRound className="size-4" />}
         title="Acceso y Rol"
-        tone="mint"
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="grid gap-0.5">
@@ -132,7 +131,6 @@ function UserDetail({
       <ModalSection
         icon={<Building2 className="size-4" />}
         title={branchLabel}
-        tone="sky"
         action={
           user.branches.length ? (
             <span className="bg-surface text-muted rounded-full px-2 py-0.5 text-xs font-semibold">
@@ -161,7 +159,6 @@ function UserDetail({
         <ModalSection
           icon={<KeyRound className="size-4" />}
           title="PIN de Recuperación"
-          tone="amber"
           action={
             canManage ? (
               <Button

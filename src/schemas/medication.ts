@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const medicationSchema = z.object({
-  brandName: z.string().trim().max(160).optional(),
+  brandName: z.string().trim().min(1, 'Ingresa el nombre comercial.').max(160),
   genericName: z.string().trim().max(160).optional(),
   activeIngredient: z.string().trim().max(160).optional(),
   presentation: z.string().trim().min(1, 'Ingresa una presentación.').max(160),

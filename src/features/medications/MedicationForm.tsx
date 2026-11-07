@@ -18,7 +18,7 @@ import {
   MedicationAttachments,
   type StagedAttachment,
 } from './MedicationAttachments'
-import { MedicationImage } from './MedicationImage'
+import { MedicationPhotoViewer } from './MedicationPhotoViewer'
 
 /** Sugerencias comunes, no una lista cerrada: el campo sigue siendo texto libre para no romper datos existentes. */
 const DOSE_UNIT_SUGGESTIONS = [
@@ -123,22 +123,11 @@ export function MedicationForm({
   return (
     <form onSubmit={handleSubmit(submit)} className="grid gap-5">
       <FormFields readOnly={readOnly}>
-        <ModalSection
-          icon={<Pill className="size-4" />}
-          title="Identificación"
-          tone="mint"
-        >
-          {medication && primaryImageId && (
-            <MedicationImage
-              medicationId={medication.id}
-              attachmentId={primaryImageId}
-              alt="Imagen principal"
-              className="size-24 rounded-lg"
-            />
-          )}
+        <ModalSection icon={<Pill className="size-4" />} title="Identificación">
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField
               label="Nombre Comercial"
+              required
               {...register('brandName')}
               error={errors.brandName?.message}
             />
@@ -152,13 +141,23 @@ export function MedicationForm({
               {...register('activeIngredient')}
               error={errors.activeIngredient?.message}
             />
+            {medication && primaryImageId && (
+              <MedicationPhotoViewer
+                medicationId={medication.id}
+                attachmentId={primaryImageId}
+                fileName={
+                  attachments.data?.find((item) => item.id === primaryImageId)
+                    ?.originalName
+                }
+                title={medication.genericName || medication.brandName || ''}
+              />
+            )}
           </div>
         </ModalSection>
 
         <ModalSection
           icon={<Pill className="size-4" />}
           title="Presentación y Dosis"
-          tone="sky"
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField

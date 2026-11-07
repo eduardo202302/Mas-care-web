@@ -97,7 +97,7 @@ function encode(value: DoseFrequencyFormValue): string {
 function decode(
   code: string,
   current: DoseFrequencyFormValue,
-  requireTomaTime: boolean,
+  keepTomaTime: boolean,
 ): DoseFrequencyFormValue {
   if (code === 'weekday') return { ...current, frequencyMode: 'weekday' }
   if (code === 'monthday') return { ...current, frequencyMode: 'monthday' }
@@ -112,7 +112,7 @@ function decode(
     ...current,
     frequencyMode: 'hours',
     hoursPreset: preset,
-    ...(requireTomaTime ? null : { startTime: '00:00' }),
+    ...(keepTomaTime ? null : { startTime: '00:00' }),
   }
 }
 
@@ -129,6 +129,7 @@ export function DoseFrequencyRow({
   value,
   onChange,
   requireTomaTime = false,
+  alwaysShowToma = false,
 }: {
   quantity: number | string
   onQuantityChange: (value: string) => void
@@ -137,14 +138,17 @@ export function DoseFrequencyRow({
   onChange: (value: DoseFrequencyFormValue) => void
   /** Modal de Nuevo Tratamiento: "Toma" siempre pide una hora concreta, incluso en intervalo de horas. */
   requireTomaTime?: boolean
+  /** Muestra siempre el selector de hora en "Toma", sin cambiar las etiquetas del resto de campos. */
+  alwaysShowToma?: boolean
 }) {
+  const keepTomaTime = requireTomaTime || alwaysShowToma
   const code = encode(value)
   const needsCustomHours = code === 'hours:custom'
   const needsCustomDays = code === 'days:custom'
   const customDaysCount = Math.floor(Number(value.customDays))
   // Fuera de Nuevo Tratamiento, un intervalo de horas siempre es "Según
   // inicio" (sin pedir hora); en Nuevo Tratamiento (requireTomaTime) sí se pide.
-  const showToma = requireTomaTime || value.frequencyMode !== 'hours'
+  const showToma = keepTomaTime || value.frequencyMode !== 'hours'
   const isMultiTime =
     value.frequencyMode === 'weekday' || value.frequencyMode === 'monthday'
 
@@ -190,7 +194,7 @@ export function DoseFrequencyRow({
           id="dose-frequency-select"
           value={code}
           onChange={(event) =>
-            onChange(decode(event.target.value, value, requireTomaTime))
+            onChange(decode(event.target.value, value, keepTomaTime))
           }
           className={selectClass}
         >

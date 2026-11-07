@@ -164,7 +164,6 @@ export function DeliveryDialog({
         <ModalSection
           icon={<PackageCheck className="size-4" />}
           title="Datos de la Entrega"
-          tone="mint"
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <TextField

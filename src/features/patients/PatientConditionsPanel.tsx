@@ -245,7 +245,6 @@ export function PatientConditionsPanel({
             <ModalSection
               icon={<HeartPulse className="size-4" />}
               title="Condición de Salud"
-              tone="mint"
             >
               <div className="grid gap-1.5">
                 <label
@@ -323,7 +322,6 @@ export function PatientConditionsPanel({
             <ModalSection
               icon={<CalendarDays className="size-4" />}
               title="Detalles"
-              tone="sky"
             >
               <label
                 className={

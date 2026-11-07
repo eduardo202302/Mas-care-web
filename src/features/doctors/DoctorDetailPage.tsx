@@ -488,7 +488,6 @@ export default function DoctorDetailPage() {
             <ModalSection
               icon={<Stethoscope className="size-4" />}
               title="Especialidad"
-              tone="mint"
             >
               <div className="grid gap-1.5">
                 <label
@@ -562,7 +561,6 @@ export default function DoctorDetailPage() {
             <ModalSection
               icon={<Building2 className="size-4" />}
               title="Centro médico"
-              tone="mint"
             >
               <div className="grid gap-1.5">
                 <label

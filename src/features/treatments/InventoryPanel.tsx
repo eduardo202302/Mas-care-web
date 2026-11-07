@@ -281,7 +281,6 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
             <ModalSection
               icon={<ShoppingCart className="size-4" />}
               title="Datos de la Compra"
-              tone="mint"
             >
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <TextField
@@ -353,7 +352,6 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
             <ModalSection
               icon={<SlidersHorizontal className="size-4" />}
               title="Ajuste de Saldo"
-              tone="sky"
             >
               <TextField
                 label="Cantidad (+/-)"
@@ -417,7 +415,6 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
             <ModalSection
               icon={<TriangleAlert className="size-4" />}
               title="Alerta de Stock"
-              tone="amber"
             >
               <TextField
                 label="Umbral (unidades)"

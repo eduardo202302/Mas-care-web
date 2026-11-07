@@ -81,7 +81,6 @@ export function MedicalSpecialtyForm({
         <ModalSection
           icon={<Stethoscope className="size-4" />}
           title="Datos de la Especialidad"
-          tone="mint"
         >
           <TextField
             label="Nombre"

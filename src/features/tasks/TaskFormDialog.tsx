@@ -145,7 +145,6 @@ export function TaskFormDialog({
         <ModalSection
           icon={<ClipboardList className="size-4" />}
           title="Detalles de la Tarea"
-          tone="mint"
         >
           <TextField
             label="Título"
@@ -246,7 +245,6 @@ export function TaskFormDialog({
         <ModalSection
           icon={<UserCheck className="size-4" />}
           title="Asignación"
-          tone="sky"
         >
           {!presetPatientId && (
             <label className="grid gap-1.5">

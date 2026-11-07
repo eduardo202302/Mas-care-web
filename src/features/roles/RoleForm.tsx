@@ -109,7 +109,6 @@ export function RoleForm({
         <ModalSection
           icon={<ShieldCheck className="size-4" />}
           title="Datos del Rol"
-          tone="mint"
         >
           {system ? (
             <p className="bg-surface text-muted rounded-lg px-3 py-2 text-sm">
@@ -168,7 +167,6 @@ export function RoleForm({
         <ModalSection
           icon={<LayoutList className="size-4" />}
           title="Pantallas Permitidas"
-          tone="sky"
         >
           <MenuPermissionTree
             catalog={catalog}

@@ -119,7 +119,6 @@ export function MedicalCenterForm({
         <ModalSection
           icon={<Building2 className="size-4" />}
           title="Datos Generales"
-          tone="mint"
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
@@ -171,11 +170,7 @@ export function MedicalCenterForm({
             </div>
           </div>
         </ModalSection>
-        <ModalSection
-          icon={<Phone className="size-4" />}
-          title="Contacto"
-          tone="sky"
-        >
+        <ModalSection icon={<Phone className="size-4" />} title="Contacto">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <TextField
               label="Teléfono"
@@ -194,7 +189,6 @@ export function MedicalCenterForm({
         <ModalSection
           icon={<MapPin className="size-4" />}
           title="Dirección"
-          tone="amber"
           action={
             <AddressMapPicker
               getValues={() => ({

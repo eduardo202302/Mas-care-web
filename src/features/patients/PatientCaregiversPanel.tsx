@@ -238,7 +238,6 @@ export function PatientCaregiversPanel({
             <ModalSection
               icon={<Users className="size-4" />}
               title="Datos del Cuidador"
-              tone="mint"
             >
               <div className="grid items-start gap-3 sm:grid-cols-3">
                 <div className="grid gap-1.5">
@@ -279,7 +278,6 @@ export function PatientCaregiversPanel({
             <ModalSection
               icon={<MapPin className="size-4" />}
               title="Dirección"
-              tone="amber"
               action={
                 <AddressMapPicker
                   getValues={() => ({

@@ -84,6 +84,7 @@ function printDialog() {
 
 export function Dialog({
   title,
+  titleAside,
   description,
   icon,
   dense = false,
@@ -95,6 +96,8 @@ export function Dialog({
   bodyClassName,
 }: {
   title: string
+  /** Texto destacado a la derecha del título. */
+  titleAside?: string
   description?: string
   icon?: ReactNode
   dense?: boolean
@@ -149,6 +152,11 @@ export function Dialog({
                 className={`font-display text-petroleo font-bold ${compact ? 'text-lg' : 'text-xl'}`}
               >
                 {title}
+                {titleAside && (
+                  <span className="text-cuidado ml-2 font-semibold">
+                    · {titleAside}
+                  </span>
+                )}
               </h2>
               {description && (
                 <p

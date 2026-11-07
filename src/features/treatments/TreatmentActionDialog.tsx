@@ -146,7 +146,6 @@ export function TreatmentActionDialog({
         <ModalSection
           icon={<ActionIcon className="size-4" />}
           title={copy[action].section}
-          tone={action === 'finish' ? 'amber' : 'mint'}
         >
           {action === 'adjust' && (
             <TextField

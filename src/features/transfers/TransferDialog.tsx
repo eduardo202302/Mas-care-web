@@ -144,7 +144,6 @@ export function TransferDialog({
         <ModalSection
           icon={<ArrowRightLeft className="size-4" />}
           title="Destino y Motivo"
-          tone="mint"
         >
           <label className="grid gap-1.5">
             <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
@@ -194,7 +193,6 @@ export function TransferDialog({
         <ModalSection
           icon={<PackageCheck className="size-4" />}
           title="Tratamientos a Trasladar"
-          tone="sky"
         >
           {activeTreatments.length === 0 ? (
             <p className="text-muted text-sm">

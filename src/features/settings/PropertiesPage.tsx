@@ -112,11 +112,7 @@ function PropertyDialog({
           save.mutate()
         }}
       >
-        <ModalSection
-          icon={<Tag className="size-4" />}
-          title="Definición"
-          tone="mint"
-        >
+        <ModalSection icon={<Tag className="size-4" />} title="Definición">
           <label className="grid gap-1.5">
             <span className="text-ink text-sm font-medium">Etiqueta</span>
             <input
@@ -167,11 +163,7 @@ function PropertyDialog({
           </label>
         </ModalSection>
 
-        <ModalSection
-          icon={<Layers className="size-4" />}
-          title="Presentación"
-          tone="amber"
-        >
+        <ModalSection icon={<Layers className="size-4" />} title="Presentación">
           {typeNeedsOptions(value.type) && (
             <div className="grid gap-1.5">
               <label

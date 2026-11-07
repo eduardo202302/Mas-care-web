@@ -49,11 +49,7 @@ export function PatientPicker({
   const items = patients.data?.data ?? []
 
   return (
-    <ModalSection
-      icon={<UserRound className="size-4" />}
-      title="Paciente"
-      tone="sky"
-    >
+    <ModalSection icon={<UserRound className="size-4" />} title="Paciente">
       <div className="grid gap-1.5">
         <label
           htmlFor="treatment-patient"

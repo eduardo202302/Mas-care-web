@@ -84,7 +84,6 @@ export function ConversationDialog({
       <ModalSection
         icon={<MessageCircle className="size-4" />}
         title="Mensajes"
-        tone="mint"
         action={
           items.length ? (
             <span className="bg-surface text-muted rounded-full px-2 py-0.5 text-xs font-semibold">

@@ -1,4 +1,5 @@
-import { api } from './http'
+import type { components } from './api-types'
+import { api, ApiError } from './http'
 
 const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -29,12 +30,55 @@ export const listMedicationAttachments = (medicationId: string) =>
     (result) => result.data,
   )
 
-export function uploadMedicationAttachment(medicationId: string, file: File) {
+export function uploadMedicationAttachment(
+  medicationId: string,
+  file: File,
+  onProgress?: (percent: number) => void,
+) {
   const form = new FormData()
   form.set('file', file)
-  return api<MedicationAttachment>(base(medicationId), {
-    method: 'POST',
-    body: form,
+  if (!onProgress)
+    return api<MedicationAttachment>(base(medicationId), {
+      method: 'POST',
+      body: form,
+    })
+  // fetch no reporta el avance de subida; XHR sí.
+  return new Promise<MedicationAttachment>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `${API_URL}${base(medicationId)}`)
+    xhr.withCredentials = true
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable)
+        // Enviar todos los bytes no es terminar: el 100 % lo marca quien llama.
+        onProgress(Math.min(99, Math.round((event.loaded / event.total) * 100)))
+    }
+    xhr.onerror = () =>
+      reject(new ApiError('No pudimos conectar con el servidor.', 0))
+    xhr.onload = () => {
+      if (xhr.status === 401 && !window.location.pathname.startsWith('/acceso'))
+        window.location.assign('/acceso')
+      let data: unknown
+      try {
+        data = JSON.parse(xhr.responseText)
+      } catch {
+        data = undefined
+      }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(data as MedicationAttachment)
+        return
+      }
+      const payload = data as components['schemas']['ErrorResponse'] | undefined
+      reject(
+        new ApiError(
+          payload?.error.message ?? `Error de solicitud (${xhr.status})`,
+          xhr.status,
+          payload?.error.fields,
+          payload?.error.code,
+          payload?.error.details,
+        ),
+      )
+    }
+    xhr.send(form)
   })
 }
 

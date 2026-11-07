@@ -148,7 +148,6 @@ export function TemplateFormDialog({
         <ModalSection
           icon={<MessageSquareText className="size-4" />}
           title="Mensaje"
-          tone="mint"
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5">
@@ -234,7 +233,6 @@ export function TemplateFormDialog({
         <ModalSection
           icon={<Send className="size-4" />}
           title="Envío Automático"
-          tone="sky"
         >
           {channel !== 'call' && (
             <label className="grid gap-1.5">
@@ -270,7 +268,6 @@ export function TemplateFormDialog({
           <ModalSection
             icon={<BadgeCheck className="size-4" />}
             title="Plantilla de WhatsApp en Meta"
-            tone="amber"
           >
             <p className="text-muted text-xs">
               Solo las plantillas <strong>aprobadas</strong> se envían de forma
