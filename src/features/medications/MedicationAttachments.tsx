@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FileText, Paperclip, Star, Trash2, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { GaugeProgress } from '@/components/ui/GaugeProgress'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { cn } from '@/lib/cn'
 import {
   ATTACHMENT_ACCEPT,
   deleteMedicationAttachment,
+  fetchAttachmentBlob,
   formatFileSize,
   listMedicationAttachments,
   openAttachment,
@@ -31,6 +33,63 @@ type Item = {
   onOpen: () => void
   onPrimary: () => void
   onRemove: () => void
+}
+
+type Uploading = { key: string; file: File; percent: number; done?: boolean }
+
+/** Avanza poco a poco hacia el progreso real; avisa al llegar a 100 %. */
+function UploadGauge({
+  target,
+  name,
+  onDone,
+}: {
+  target: number
+  name: string
+  onDone: () => void
+}) {
+  const [shown, setShown] = useState(0)
+  useEffect(() => {
+    if (shown >= 100) {
+      onDone()
+      return
+    }
+    if (shown >= target) return
+    const timer = setTimeout(
+      () =>
+        setShown((current) =>
+          Math.min(target, current + Math.max(0.6, (target - current) * 0.05)),
+        ),
+      30,
+    )
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shown, target])
+  return (
+    <GaugeProgress percent={Math.round(shown)} label={`Subiendo ${name}`} />
+  )
+}
+
+function CardOverlay({ children }: { children: ReactNode }) {
+  return (
+    <div className="absolute inset-0 z-10 grid place-items-center rounded-lg bg-white/85">
+      {children}
+    </div>
+  )
+}
+
+/** El borrado no reporta avance: el porcentaje se aproxima a 95 % mientras dura la petición. */
+function RemovingGauge({ name }: { name: string }) {
+  const [percent, setPercent] = useState(0)
+  useEffect(() => {
+    const timer = setInterval(
+      () => setPercent((current) => current + (95 - current) * 0.12),
+      100,
+    )
+    return () => clearInterval(timer)
+  }, [])
+  return (
+    <GaugeProgress percent={Math.round(percent)} label={`Eliminando ${name}`} />
+  )
 }
 
 function Thumb({ file }: { file: File }) {
@@ -72,14 +131,55 @@ export function MedicationAttachments({
   }
   const fail = (e: unknown) =>
     setError(e instanceof Error ? e.message : 'No pudimos completar la acción.')
+  const [uploading, setUploading] = useState<Uploading[]>([])
   const upload = useMutation({
-    mutationFn: async (files: File[]) => {
-      for (const file of files)
-        await uploadMedicationAttachment(medicationId!, file)
+    mutationFn: async (entries: Uploading[]) => {
+      const setPercent = (key: string, percent: number) =>
+        setUploading((current) =>
+          current.map((item) =>
+            item.key === key ? { ...item, percent } : item,
+          ),
+        )
+      for (const entry of entries) {
+        const created = await uploadMedicationAttachment(
+          medicationId!,
+          entry.file,
+          (percent) => setPercent(entry.key, percent),
+        )
+        // Precarga la imagen guardada para que la tarjeta final no aparezca vacía.
+        if (created.kind === 'image')
+          await queryClient
+            .fetchQuery({
+              queryKey: ['medication-image', medicationId, created.id],
+              queryFn: () => fetchAttachmentBlob(medicationId!, created.id),
+              staleTime: Infinity,
+            })
+            .catch(() => undefined)
+        setPercent(entry.key, 100)
+      }
     },
-    onSuccess: refresh,
-    onError: fail,
+    onError: (e) => {
+      fail(e)
+      setUploading([])
+      void refresh()
+    },
   })
+  const markDone = (key: string) =>
+    setUploading((current) =>
+      current.map((item) =>
+        item.key === key ? { ...item, done: true } : item,
+      ),
+    )
+  useEffect(() => {
+    if (
+      upload.isPending ||
+      uploading.length === 0 ||
+      !uploading.every((item) => item.done)
+    )
+      return
+    void refresh().finally(() => setUploading([]))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [upload.isPending, uploading])
   const makePrimary = useMutation({
     mutationFn: (id: string) =>
       setPrimaryMedicationAttachment(medicationId!, id),
@@ -91,7 +191,12 @@ export function MedicationAttachments({
     onSuccess: refresh,
     onError: fail,
   })
-  const busy = upload.isPending || makePrimary.isPending || remove.isPending
+  const busy =
+    upload.isPending ||
+    uploading.length > 0 ||
+    makePrimary.isPending ||
+    remove.isPending
+  const removingId = remove.isPending ? remove.variables : undefined
 
   function addFiles(list: FileList | null) {
     const files = Array.from(list ?? [])
@@ -103,7 +208,13 @@ export function MedicationAttachments({
     }
     setError(null)
     if (medicationId) {
-      upload.mutate(files)
+      const entries = files.map((file) => ({
+        key: crypto.randomUUID(),
+        file,
+        percent: 0,
+      }))
+      setUploading(entries)
+      upload.mutate(entries)
       return
     }
     let hasPrimary = staged.some((item) => item.isPrimary)
@@ -166,7 +277,6 @@ export function MedicationAttachments({
     <ModalSection
       icon={<Paperclip className="size-4" />}
       title="Imágenes y Documentos"
-      tone="amber"
       action={
         !readOnly && (
           <>
@@ -194,7 +304,7 @@ export function MedicationAttachments({
         )
       }
     >
-      {items.length === 0 ? (
+      {items.length === 0 && uploading.length === 0 ? (
         <p className="text-muted text-sm">
           {saved.isPending && medicationId
             ? 'Cargando…'
@@ -208,10 +318,15 @@ export function MedicationAttachments({
             <li
               key={item.key}
               className={cn(
-                'border-border flex items-center gap-3 rounded-lg border bg-white p-2',
+                'border-border relative flex items-center gap-3 rounded-lg border bg-white p-2',
                 item.isPrimary && 'border-tealmax ring-tealmax/30 ring-1',
               )}
             >
+              {item.key === removingId && (
+                <CardOverlay>
+                  <RemovingGauge name={item.name} />
+                </CardOverlay>
+              )}
               <button
                 type="button"
                 title="Ver"
@@ -261,6 +376,39 @@ export function MedicationAttachments({
                   </button>
                 </div>
               )}
+            </li>
+          ))}
+          {uploading.map((entry) => (
+            <li
+              key={entry.key}
+              className="border-border relative flex items-center gap-3 rounded-lg border bg-white p-2"
+            >
+              <CardOverlay>
+                <UploadGauge
+                  target={entry.percent}
+                  name={entry.file.name}
+                  onDone={() => markDone(entry.key)}
+                />
+              </CardOverlay>
+              <div className="bg-surface text-muted grid size-14 shrink-0 place-items-center overflow-hidden rounded-md">
+                {isImage(entry.file) ? (
+                  <Thumb file={entry.file} />
+                ) : (
+                  <FileText className="size-6" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p
+                  className="truncate text-sm font-medium"
+                  title={entry.file.name}
+                >
+                  {entry.file.name}
+                </p>
+                <p className="text-muted text-xs">
+                  {isImage(entry.file) ? 'Imagen' : 'Documento'} ·{' '}
+                  {formatFileSize(entry.file.size)}
+                </p>
+              </div>
             </li>
           ))}
         </ul>

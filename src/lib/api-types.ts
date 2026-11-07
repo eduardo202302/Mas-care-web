@@ -1417,7 +1417,9 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            data: (components["schemas"]["Patient"] & { treatmentsCount: number })[];
+                            data: (components["schemas"]["Patient"] & {
+                                treatmentsCount: number;
+                            })[];
                             nextCursor: string | null;
                             total: number;
                             page: number;
@@ -2333,6 +2335,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/medications/{id}/patients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List patients with an ongoing (active or paused) treatment using this medication */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Patients with an ongoing treatment */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["MedicationPatient"][];
+                        };
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Medication not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/medications/{id}": {
         parameters: {
             query?: never;
@@ -2534,6 +2594,10 @@ export interface paths {
                     responsible_user_id?: string;
                     derived_status?: "vencido" | "vence_pronto" | "retiro_pendiente" | "proxima_reposicion" | "al_dia";
                     prescription_group_id?: string;
+                    status?: "active" | "paused" | "finished";
+                    q?: string;
+                    page?: number;
+                    rows?: number;
                     limit?: number;
                     cursor?: string;
                 };
@@ -9638,6 +9702,12 @@ export interface paths {
                                             name: string;
                                         };
                                     }[];
+                                    medicalCenters: {
+                                        medicalCenter: {
+                                            id: string;
+                                            name: string;
+                                        };
+                                    }[];
                                 };
                             })[];
                         };
@@ -10527,6 +10597,19 @@ export interface components {
             unitsPerPackage: string | number | unknown;
             archivedAt: string | null;
             primaryImageId?: string | null;
+            treatmentCount?: number;
+        };
+        MedicationPatient: {
+            treatmentId: string;
+            startDate: string;
+            /** @enum {string} */
+            status: "active" | "paused";
+            patientId: string;
+            patientNumericId: string;
+            fullName: string;
+            phone: string | null;
+            phoneHasWhatsapp: boolean;
+            city: string | null;
         };
         MedicationCreate: {
             brandName?: string | null;
@@ -10759,6 +10842,11 @@ export interface components {
             /** @enum {string} */
             derived_status?: "vencido" | "vence_pronto" | "retiro_pendiente" | "proxima_reposicion" | "al_dia";
             prescription_group_id?: string;
+            /** @enum {string} */
+            status?: "active" | "paused" | "finished";
+            q?: string;
+            page?: number;
+            rows?: number;
             /** @default 25 */
             limit: number;
             cursor?: string;
@@ -11378,10 +11466,11 @@ export interface components {
             dosePerIntake: string | number;
             times: string[];
             /** @enum {string} */
-            frequencyType: "daily" | "interval" | "weekly";
+            frequencyType: "daily" | "interval" | "weekly" | "monthly";
             intervalHours: number | null;
             anchorAt: string | null;
             weekdays: number[];
+            monthdays: number[];
             effectiveFrom: string;
             effectiveTo: string | null;
             reason: string | null;
@@ -11451,12 +11540,12 @@ export interface components {
         DoseScheduleCreateInput: {
             dose_per_intake: number;
             /**
-             * @description 'daily' requires times; 'interval' requires interval_hours+anchor_at; 'weekly' requires times+weekdays
+             * @description 'daily' requires times; 'interval' requires interval_hours+anchor_at; 'weekly' requires times+weekdays; 'monthly' requires times+monthdays
              * @default daily
              * @enum {string}
              */
-            frequency_type: "daily" | "interval" | "weekly";
-            /** @description Comma-separated HH:mm values, e.g. "08:00,20:00". Required for daily/weekly. */
+            frequency_type: "daily" | "interval" | "weekly" | "monthly";
+            /** @description Comma-separated HH:mm values, e.g. "08:00,20:00". Required for daily/weekly/monthly. */
             times?: string;
             /** @description Required for interval, e.g. 8 (every 8h) or 720 (every 30 days) */
             interval_hours?: number;
@@ -11467,6 +11556,8 @@ export interface components {
             anchor_at?: string;
             /** @description Comma-separated 0-6 values (0=Sunday). Required for weekly. */
             weekdays?: string;
+            /** @description Comma-separated 1-31 values (days of the month, e.g. "5,10,20"). Required for monthly. */
+            monthdays?: string;
             effective_from: string;
             reason?: string | null;
             authorized_by?: string | null;

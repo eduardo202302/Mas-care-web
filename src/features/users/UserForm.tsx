@@ -143,7 +143,6 @@ export function UserForm({
       <ModalSection
         icon={<UserRound className="size-4" />}
         title="Datos del Usuario"
-        tone="mint"
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <TextField
@@ -182,7 +181,6 @@ export function UserForm({
         <ModalSection
           icon={<KeyRound className="size-4" />}
           title="Acceso y Credenciales"
-          tone="sky"
         >
           <div className="grid gap-1.5">
             <label
@@ -274,7 +272,6 @@ export function UserForm({
       <ModalSection
         icon={<ShieldCheck className="size-4" />}
         title="Rol y Sucursales"
-        tone="amber"
       >
         <div className="grid gap-1.5">
           <label htmlFor="user-role" className="text-ink text-sm font-medium">

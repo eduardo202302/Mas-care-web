@@ -688,7 +688,6 @@ function PendingTreatmentsEditor({
             <ModalSection
               icon={<RefreshCw className="size-4" />}
               title="Tratamiento"
-              tone="mint"
             >
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="grid gap-1.5">
@@ -725,7 +724,6 @@ function PendingTreatmentsEditor({
               <ModalSection
                 icon={<RefreshCw className="size-4" />}
                 title="Ciclo"
-                tone="sky"
               >
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <label className="grid gap-1.5">
@@ -768,7 +766,6 @@ function PendingTreatmentsEditor({
               <ModalSection
                 icon={<CalendarDays className="size-4" />}
                 title="Información del Ciclo"
-                tone="amber"
               >
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <label className="grid gap-1.5">
@@ -819,7 +816,6 @@ function PendingTreatmentsEditor({
             <ModalSection
               icon={<Package className="size-4" />}
               title="Producto Y Sucursal"
-              tone="sky"
             >
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="grid gap-1.5">
@@ -1182,7 +1178,6 @@ export function PatientForm({
           <ModalSection
             icon={<UserRound className="size-4" />}
             title="Identificación"
-            tone="mint"
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
@@ -1209,11 +1204,7 @@ export function PatientForm({
             </div>
           </ModalSection>
 
-          <ModalSection
-            icon={<Phone className="size-4" />}
-            title="Contacto"
-            tone="sky"
-          >
+          <ModalSection icon={<Phone className="size-4" />} title="Contacto">
             <div className="grid gap-3 sm:grid-cols-2">
               <TextField
                 label="WhatsApp"
@@ -1235,7 +1226,6 @@ export function PatientForm({
           <ModalSection
             icon={<MapPin className="size-4" />}
             title="Dirección"
-            tone="amber"
             action={
               <AddressMapPicker
                 getValues={() => ({
@@ -1301,7 +1291,6 @@ export function PatientForm({
           <ModalSection
             icon={<Stethoscope className="size-4" />}
             title="Atención"
-            tone="amber"
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="grid gap-1.5">

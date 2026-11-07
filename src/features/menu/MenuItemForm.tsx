@@ -135,7 +135,6 @@ export function MenuItemForm({
       <ModalSection
         icon={<TextCursorInput className="size-4" />}
         title="Datos del Ítem"
-        tone="mint"
       >
         <TextField
           label="Nombre"
@@ -184,7 +183,6 @@ export function MenuItemForm({
       <ModalSection
         icon={<ListTree className="size-4" />}
         title="Ubicación y Visibilidad"
-        tone="sky"
       >
         <SelectField
           id="menu-parent"

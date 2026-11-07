@@ -222,7 +222,6 @@ export function PatientDoctorsPanel({
             <ModalSection
               icon={<Stethoscope className="size-4" />}
               title="Médico Asociado"
-              tone="mint"
             >
               <div className="grid gap-1.5">
                 <label
@@ -273,11 +272,7 @@ export function PatientDoctorsPanel({
                   )}
               </div>
             </ModalSection>
-            <ModalSection
-              icon={<Star className="size-4" />}
-              title="Detalles"
-              tone="sky"
-            >
+            <ModalSection icon={<Star className="size-4" />} title="Detalles">
               <label
                 className={
                   hasPrimary

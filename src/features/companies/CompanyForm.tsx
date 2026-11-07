@@ -216,7 +216,6 @@ export function CompanyForm({
       <ModalSection
         icon={<Building2 className="size-4" />}
         title="Información básica"
-        tone="mint"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
           <div className="border-border bg-surface grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl border">
@@ -375,7 +374,6 @@ export function CompanyForm({
       <ModalSection
         icon={<Briefcase className="size-4" />}
         title="Perfil de la empresa"
-        tone="sky"
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <TextField
@@ -462,7 +460,6 @@ export function CompanyForm({
       <ModalSection
         icon={<MapPin className="size-4" />}
         title="Ubicación"
-        tone="amber"
         action={
           <AddressMapPicker
             getValues={() => ({
@@ -526,7 +523,6 @@ export function CompanyForm({
       <ModalSection
         icon={<KeyRound className="size-4" />}
         title="Integraciones"
-        tone="sky"
       >
         <TextField
           label="Google Maps API Key"
@@ -540,11 +536,7 @@ export function CompanyForm({
         </p>
       </ModalSection>
 
-      <ModalSection
-        icon={<LinkIcon className="size-4" />}
-        title="Links"
-        tone="mint"
-      >
+      <ModalSection icon={<LinkIcon className="size-4" />} title="Links">
         <div className="grid gap-1.5">
           <TextField
             label="Dominio"

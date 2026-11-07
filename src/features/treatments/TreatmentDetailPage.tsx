@@ -742,7 +742,6 @@ export default function TreatmentDetailPage() {
                   )
                 }
                 title={kindTitle[kind]}
-                tone="mint"
               >
                 {(kind === 'email' || kind === 'meeting') && (
                   <TextField

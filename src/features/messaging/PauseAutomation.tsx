@@ -69,7 +69,6 @@ export function PauseDialog({
         <ModalSection
           icon={<BellOff className="size-4" />}
           title="Motivo de la Pausa"
-          tone="mint"
         >
           <div className="grid gap-1.5">
             <label

@@ -131,7 +131,6 @@ export function BranchForm({
             <ModalSection
               icon={<Building2 className="size-4" />}
               title="Datos de la Sucursal"
-              tone="mint"
             >
               <TextField
                 label="Nombre de Sucursal"
@@ -151,7 +150,6 @@ export function BranchForm({
             <ModalSection
               icon={<MapPin className="size-4" />}
               title="Dirección"
-              tone="sky"
               action={
                 <AddressMapPicker
                   getValues={() => ({
@@ -219,7 +217,6 @@ export function BranchForm({
             <ModalSection
               icon={<Palette className="size-4" />}
               title="Etiqueta de Color"
-              tone="amber"
             >
               <div className="grid gap-1.5">
                 <label
@@ -254,7 +251,6 @@ export function BranchForm({
           <ModalSection
             icon={<UserRound className="size-4" />}
             title="Encargado de la Sucursal"
-            tone="mint"
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">

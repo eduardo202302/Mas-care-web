@@ -441,9 +441,9 @@ export function DoseScheduleCard({
             <ModalSection
               icon={<Clock className="size-4" />}
               title={medicationLabel || 'Medicamento'}
-              tone="mint"
             >
               <DoseFrequencyRow
+                alwaysShowToma
                 quantity={dosePerIntake}
                 onQuantityChange={setDosePerIntake}
                 unit={doseUnit ?? ''}
@@ -496,7 +496,6 @@ export function DoseScheduleCard({
               <ModalSection
                 icon={<ShieldCheck className="size-4" />}
                 title="Autorización Médica"
-                tone="amber"
               >
                 <div className="grid gap-1.5">
                   <label
@@ -798,7 +797,6 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
             <ModalSection
               icon={<CircleSlash className="size-4" />}
               title="Motivo de la Omisión"
-              tone="amber"
             >
               <label className="text-ink grid gap-1.5 text-sm font-medium">
                 Motivo
@@ -865,7 +863,6 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
             <ModalSection
               icon={<CalendarClock className="size-4" />}
               title="Nuevo Horario"
-              tone="sky"
             >
               <TextField
                 label="Nueva fecha y hora"
@@ -920,7 +917,6 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
             <ModalSection
               icon={<RotateCcw className="size-4" />}
               title="Detalle de la Corrección"
-              tone="amber"
             >
               <TextAreaField
                 label="Explica la corrección"

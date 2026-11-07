@@ -396,7 +396,6 @@ export function TreatmentForm({
         <ModalSection
           icon={<Pill className="size-4" />}
           title={patientName || 'Medicamento'}
-          tone="mint"
         >
           <div className="flex min-w-0 flex-col gap-3 sm:col-span-2 sm:flex-row sm:flex-wrap sm:items-start">
             <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)] content-start gap-1.5 sm:min-w-64">
@@ -629,11 +628,7 @@ export function TreatmentForm({
         </ModalSection>
       </div>
 
-      <ModalSection
-        icon={<CalendarDays className="size-4" />}
-        title="Vigencia"
-        tone="amber"
-      >
+      <ModalSection icon={<CalendarDays className="size-4" />} title="Vigencia">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <TextField
             label="Fecha de inicio"
@@ -743,7 +738,6 @@ export function TreatmentForm({
         <ModalSection
           icon={<Timer className="size-4" />}
           title="Dosis del Tratamiento"
-          tone="sky"
         >
           <DoseFrequencyRow
             quantity={doseInput}
@@ -777,7 +771,6 @@ export function TreatmentForm({
       <ModalSection
         icon={<CalendarClock className="size-4" />}
         title="Cantidad y Cobertura"
-        tone="sky"
       >
         <div className="flex max-w-xs items-center justify-between gap-3">
           <label
@@ -826,11 +819,7 @@ export function TreatmentForm({
         </div>
       </ModalSection>
 
-      <ModalSection
-        icon={<FileText className="size-4" />}
-        title="Notas"
-        tone="mint"
-      >
+      <ModalSection icon={<FileText className="size-4" />} title="Notas">
         <TextAreaField
           label="Notas"
           rows={3}

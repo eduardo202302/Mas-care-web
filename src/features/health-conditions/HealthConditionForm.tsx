@@ -79,7 +79,6 @@ export function HealthConditionForm({
         <ModalSection
           icon={<HeartPulse className="size-4" />}
           title="Datos de la Condición"
-          tone="mint"
         >
           <TextField
             label="Nombre"

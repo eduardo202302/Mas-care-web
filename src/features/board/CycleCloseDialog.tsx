@@ -162,7 +162,6 @@ export function CycleCloseDialog({
         <ModalSection
           icon={<ShoppingCart className="size-4" />}
           title="¿Dónde la Compró?"
-          tone="mint"
         >
           <div
             role="radiogroup"
@@ -220,7 +219,6 @@ export function CycleCloseDialog({
           <ModalSection
             icon={<ShoppingCart className="size-4" />}
             title="Datos de la Compra"
-            tone="amber"
           >
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <TextField

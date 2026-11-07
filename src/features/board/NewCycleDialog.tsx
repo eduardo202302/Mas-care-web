@@ -230,11 +230,7 @@ export function NewCycleDialog({
           if (formComplete && !create.isPending) create.mutate({ again: false })
         }}
       >
-        <ModalSection
-          icon={<User className="size-4" />}
-          title="Paciente"
-          tone="mint"
-        >
+        <ModalSection icon={<User className="size-4" />} title="Paciente">
           <label className="grid gap-1.5">
             <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
               Paciente
@@ -269,7 +265,6 @@ export function NewCycleDialog({
         <ModalSection
           icon={<RefreshCw className="size-4" />}
           title="Tratamiento Que Lleva"
-          tone="sky"
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5">
@@ -361,11 +356,7 @@ export function NewCycleDialog({
         </ModalSection>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <ModalSection
-            icon={<RefreshCw className="size-4" />}
-            title="Ciclo"
-            tone="sky"
-          >
+          <ModalSection icon={<RefreshCw className="size-4" />} title="Ciclo">
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium">Embudo</span>
               <input
@@ -414,7 +405,6 @@ export function NewCycleDialog({
           <ModalSection
             icon={<CalendarDays className="size-4" />}
             title="Información del Ciclo"
-            tone="amber"
           >
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="grid gap-1.5">
@@ -461,7 +451,6 @@ export function NewCycleDialog({
         <ModalSection
           icon={<Package className="size-4" />}
           title="Producto Y Sucursal"
-          tone="sky"
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5">

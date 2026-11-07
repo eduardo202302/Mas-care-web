@@ -31,6 +31,7 @@ import {
 } from '@/lib/medication-attachments'
 import { MedicationForm } from './MedicationForm'
 import { MedicationImage } from './MedicationImage'
+import { MedicationPatientsDialog } from './MedicationPatientsDialog'
 import type { StagedAttachment } from './MedicationAttachments'
 
 type MedicationList =
@@ -56,7 +57,13 @@ export default function MedicationsPage() {
   const canCreate = useCan('medications:write')
   const canUpdate = useCan('medications:write')
   const canArchive = useCan('medications:write')
+  const canReadPatients = useCan('patients:read')
+  const canReadTreatments = useCan('treatments:read')
+  const canViewPatients = canReadPatients && canReadTreatments
   const queryClient = useQueryClient()
+  const [patientsOf, setPatientsOf] = useState<
+    components['schemas']['Medication'] | null
+  >(null)
   const [search, setSearch] = useState('')
   const [archived, setArchived] = useState<'true' | 'false'>(DEFAULT_ARCHIVED)
   const [filterDraft, setFilterDraft] = useState<{
@@ -224,7 +231,9 @@ export default function MedicationsPage() {
               ? item.activeIngredient || item.genericName || ''
               : index === 4
                 ? item.presentation
-                : item.unitsPerPackage,
+                : index === 5
+                  ? item.unitsPerPackage
+                  : (item.treatmentCount ?? 0),
   )
   const tableRows = items.map((item) => [
     <span key="id" className="text-muted font-mono text-xs">
@@ -253,6 +262,21 @@ export default function MedicationsPage() {
     <span key="units">
       {String(item.unitsPerPackage)} {item.doseUnit} por envase
     </span>,
+    canViewPatients && (item.treatmentCount ?? 0) > 0 ? (
+      <button
+        key="treatments"
+        type="button"
+        title="Ver clientes en tratamiento"
+        onClick={() => setPatientsOf(item)}
+        className="text-tealmax font-semibold underline-offset-2 hover:underline"
+      >
+        {item.treatmentCount}
+      </button>
+    ) : (
+      <span key="treatments" className="text-muted">
+        {item.treatmentCount ?? 0}
+      </span>
+    ),
   ])
   const exportHeaders = [
     'ID',
@@ -261,6 +285,7 @@ export default function MedicationsPage() {
     'Principio Activo',
     'Presentación',
     'Contenido',
+    'Tratamientos',
   ]
   const exportRows = items.map((item) => [
     String(item.numericId),
@@ -272,6 +297,7 @@ export default function MedicationsPage() {
     item.activeIngredient || item.genericName || '',
     item.presentation,
     `${String(item.unitsPerPackage)} ${item.doseUnit} por envase`,
+    String(item.treatmentCount ?? 0),
   ])
   const filterCount = archived !== DEFAULT_ARCHIVED ? 1 : 0
   const chips: ActiveFilterChip[] = []
@@ -409,7 +435,7 @@ export default function MedicationsPage() {
       )}
       <div className="min-h-0 flex-1">
         {medications.isFetching ? (
-          <TableSkeleton columns={6} />
+          <TableSkeleton columns={7} />
         ) : (
           <DataTable
             columns={[
@@ -419,10 +445,11 @@ export default function MedicationsPage() {
               'Principio activo',
               'Presentación',
               'Contenido',
+              'Tratamientos',
             ]}
             rows={tableRows}
             actions={rowActions}
-            sortableColumns={[0, 1, 2, 3, 4, 5]}
+            sortableColumns={[0, 1, 2, 3, 4, 5, 6]}
             sort={sort}
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {
@@ -454,6 +481,18 @@ export default function MedicationsPage() {
           />
         )}
       </div>
+      {patientsOf && (
+        <MedicationPatientsDialog
+          medication={patientsOf}
+          name={
+            patientsOf.brandName ||
+            patientsOf.genericName ||
+            patientsOf.activeIngredient ||
+            'Medicamento'
+          }
+          onClose={() => setPatientsOf(null)}
+        />
+      )}
       {formOpen && (
         <Dialog
           title={
@@ -463,6 +502,7 @@ export default function MedicationsPage() {
                 ? 'Editar Medicamento'
                 : 'Nuevo Medicamento'
           }
+          titleAside={editing?.brandName || undefined}
           description="Registra los datos de presentación del producto."
           icon={<Pill className="size-5" />}
           compactHeader

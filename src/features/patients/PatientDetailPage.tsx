@@ -1348,7 +1348,6 @@ export default function PatientDetailPage() {
                 )
               }
               title={activityDialogTitle[activityType]}
-              tone="mint"
             >
               {(activityType === 'email' || activityType === 'meeting') && (
                 <TextField
@@ -1431,7 +1430,6 @@ export default function PatientDetailPage() {
             <ModalSection
               icon={<ShieldCheck className="size-4" />}
               title="Consentimiento"
-              tone="mint"
             >
               <label className="text-ink flex items-center gap-2 text-sm">
                 <input
@@ -1445,7 +1443,6 @@ export default function PatientDetailPage() {
             <ModalSection
               icon={<ShieldCheck className="size-4" />}
               title="Canal y Evidencia"
-              tone="sky"
             >
               <div className="grid gap-1.5">
                 <label

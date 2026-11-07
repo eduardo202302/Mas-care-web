@@ -121,7 +121,6 @@ export function IncidentFormDialog({
         <ModalSection
           icon={<TriangleAlert className="size-4" />}
           title="Datos de la Incidencia"
-          tone="mint"
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5">
@@ -162,7 +161,6 @@ export function IncidentFormDialog({
         <ModalSection
           icon={<TriangleAlert className="size-4" />}
           title="Paciente y Responsable"
-          tone="sky"
         >
           <div className="grid gap-1.5">
             <span className="text-ink text-sm font-medium">
@@ -244,7 +242,6 @@ export function IncidentFormDialog({
         <ModalSection
           icon={<TriangleAlert className="size-4" />}
           title="Descripción"
-          tone="amber"
         >
           <div className="grid gap-1.5">
             <label
