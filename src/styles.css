@@ -278,3 +278,21 @@ input {
     break-inside: avoid;
   }
 }
+
+/*
+ * Impresión de una etiqueta física (`<LabelPrintDialog>`): el tamaño de
+ * página real lo fija un `<style>` con `@page` inyectado junto a la
+ * etiqueta (depende del ancho/alto configurado), así que aquí solo se oculta
+ * todo lo demás para que no quede nada más que la hoja de la etiqueta.
+ */
+.label-print-portal {
+  display: none;
+}
+@media print {
+  body:has(.label-print-portal) > *:not(.label-print-portal) {
+    display: none !important;
+  }
+  .label-print-portal {
+    display: block !important;
+  }
+}

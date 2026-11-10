@@ -246,6 +246,77 @@ export type TemplateList = {
   rows: number
 }
 
+export type LabelVariableKey =
+  | 'farmacia_nombre'
+  | 'farmacia_telefono'
+  | 'farmacia_direccion'
+  | 'paciente_nombre'
+  | 'paciente_documento'
+  | 'paciente_edad'
+  | 'medicamento_nombre'
+  | 'medicamento_presentacion'
+  | 'dosis'
+  | 'via_administracion'
+  | 'frecuencia'
+  | 'duracion'
+  | 'cantidad'
+  | 'instrucciones'
+  | 'fecha_inicio'
+  | 'fecha_fin'
+  | 'prescriptor'
+  | 'codigo_tratamiento'
+
+type LabelElementBase = {
+  id: number
+  x: number
+  y: number
+  w: number
+  h: number
+  fontSize: number
+  bold: boolean
+  italic: boolean
+  underline: boolean
+  align: 'left' | 'center' | 'right'
+  color: string
+  rotation: number
+}
+
+export type LabelElement =
+  | (LabelElementBase & {
+      type: 'variable'
+      key: LabelVariableKey
+      showLabel: boolean
+    })
+  | (LabelElementBase & { type: 'text'; text: string })
+  | (LabelElementBase & {
+      type: 'line'
+      orientation: 'horizontal' | 'vertical'
+    })
+
+export type LabelTemplate = {
+  id: string
+  organizationId: string
+  branchId: string | null
+  name: string
+  description: string | null
+  widthMm: string | number
+  heightMm: string | number
+  orientation: 'landscape' | 'portrait'
+  elements: LabelElement[]
+  isDefault: boolean
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type LabelTemplateList = { data: LabelTemplate[] }
+
+export type LabelPreviewValues = {
+  template_id: string
+  treatment_id: string
+  values: Record<LabelVariableKey, string>
+}
+
 export type NoticeTarget = {
   treatmentId: string
   patientId: string

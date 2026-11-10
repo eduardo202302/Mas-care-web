@@ -56,6 +56,7 @@ import {
   PauseDialog,
   useSetAutomationPaused,
 } from '@/features/messaging/PauseAutomation'
+import { LabelPrintDialog } from '@/features/settings/LabelPrintDialog'
 import { TreatmentForm } from './TreatmentForm'
 import {
   TreatmentActionDialog,
@@ -120,6 +121,7 @@ export default function TreatmentDetailPage() {
   const canWriteActivity = useCan('patients:write')
   const canReadTasks = useCan('tasks:read')
   const canReadDoctors = useCan('doctors:read')
+  const canReadTemplates = useCan('templates:read')
   const [tab, setTab] = useState<'history' | 'doses'>('history')
   const [kind, setKind] = useState<ActivityKind | null>(null)
   const [body, setBody] = useState('')
@@ -130,6 +132,7 @@ export default function TreatmentDetailPage() {
   const [doctorAddOpen, setDoctorAddOpen] = useState(false)
   const [action, setAction] = useState<TreatmentActionType | null>(null)
   const [askingPause, setAskingPause] = useState(false)
+  const [printingLabel, setPrintingLabel] = useState(false)
   const automation = useSetAutomationPaused('treatments', id, [
     ['treatments', id],
     ['outbox'],
@@ -332,6 +335,9 @@ export default function TreatmentDetailPage() {
                 onClick: () => setAskingPause(true),
               },
         ]
+      : []),
+    ...(canReadTemplates
+      ? [{ label: 'Imprimir etiqueta', onClick: () => setPrintingLabel(true) }]
       : []),
     { label: 'Ver historial completo', onClick: () => void viewFullHistory() },
     {
@@ -804,6 +810,13 @@ export default function TreatmentDetailPage() {
             title="Todas las Propiedades"
             groups={groups}
             onClose={() => setPropertiesOpen(false)}
+          />
+        )}
+        {printingLabel && (
+          <LabelPrintDialog
+            treatmentId={id}
+            branchId={record.branchId}
+            onClose={() => setPrintingLabel(false)}
           />
         )}
         {editing && (

@@ -2,18 +2,21 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  Bell,
   MessageCircle,
   MessageSquareText,
   Pencil,
   Phone,
   Plus,
   Send,
+  Tag,
 } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
 import { EmptyState } from '@/components/EmptyState'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { Tabs } from '@/components/ui/Tabs'
 import { useActiveBranch } from '@/lib/active-branch'
 import { api } from '@/lib/http'
 import { PAGE_ROWS, pageQuery } from '@/lib/paging'
@@ -26,6 +29,7 @@ import type {
 } from '@/lib/operations'
 import { TemplateTestSendDialog } from './TemplateTestSendDialog'
 import { TemplateFormDialog } from './TemplateFormDialog'
+import { LabelTemplatesTab } from './LabelTemplatesTab'
 
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
@@ -52,7 +56,7 @@ const channelMeta: Record<
   telegram: { title: 'Telegram', icon: Send },
 }
 
-export default function TemplatesPage() {
+function AlertTemplatesTab() {
   const queryClient = useQueryClient()
   const canWrite = useCan('templates:write')
   const canTest = useCan('automation:manage')
@@ -111,27 +115,24 @@ export default function TemplatesPage() {
     )
 
   return (
-    <div className="animate-in">
-      <PageHeader
-        title="Plantillas de aviso"
-        subtitle="Mensajes base para avisar reposiciones por WhatsApp o llamada."
-        actions={
-          <>
-            {canWrite && (
-              <Button
-                variant="primary"
-                onClick={() => {
-                  setEditing(null)
-                  setFormOpen(true)
-                }}
-              >
-                <Plus className="size-4" />
-                Nueva plantilla
-              </Button>
-            )}
-          </>
-        }
-      />
+    <div>
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-muted text-sm">
+          Mensajes base para avisar reposiciones por WhatsApp o llamada.
+        </p>
+        {canWrite && (
+          <Button
+            variant="primary"
+            onClick={() => {
+              setEditing(null)
+              setFormOpen(true)
+            }}
+          >
+            <Plus className="size-4" />
+            Nueva plantilla
+          </Button>
+        )}
+      </div>
 
       {feedback && (
         <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
@@ -143,7 +144,14 @@ export default function TemplatesPage() {
           role="alert"
           className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
         >
-          No pudimos cargar las plantillas. {templates.error.message}
+          No pudimos cargar las plantillas. {templates.error.message}{' '}
+          <button
+            type="button"
+            className="font-semibold underline"
+            onClick={() => void templates.refetch()}
+          >
+            Reintentar
+          </button>
         </p>
       )}
       {toggle.isError && (
@@ -358,6 +366,33 @@ export default function TemplatesPage() {
           onSaved={setFeedback}
         />
       )}
+    </div>
+  )
+}
+
+type TemplatesTabKey = 'alerts' | 'labels'
+
+export default function TemplatesPage() {
+  const [tab, setTab] = useState<TemplatesTabKey>('alerts')
+
+  return (
+    <div className="animate-in">
+      <PageHeader
+        title="Plantillas de aviso"
+        subtitle="Mensajes de aviso y etiquetas de impresión para los tratamientos."
+      />
+
+      <Tabs
+        value={tab}
+        onChange={setTab}
+        className="mb-5"
+        tabs={[
+          { value: 'alerts', label: 'Alertas', icon: <Bell className="size-4" /> },
+          { value: 'labels', label: 'Etiquetas', icon: <Tag className="size-4" /> },
+        ]}
+      />
+
+      {tab === 'alerts' ? <AlertTemplatesTab /> : <LabelTemplatesTab />}
     </div>
   )
 }

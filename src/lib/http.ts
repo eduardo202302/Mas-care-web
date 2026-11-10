@@ -15,6 +15,9 @@ export class ApiError extends Error {
   }
 }
 
+const SERVER_ERROR_MESSAGE =
+  'Ocurrió un error inesperado en el servidor. Intenta de nuevo en unos segundos.'
+
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
@@ -25,6 +28,11 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
         : {}),
       ...init.headers,
     },
+  }).catch(() => {
+    throw new ApiError(
+      'No pudimos conectar con el servidor. Revisa tu conexión.',
+      0,
+    )
   })
   if (
     response.status === 401 &&
@@ -38,8 +46,12 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       : await response.json().catch(() => undefined)
   if (!response.ok) {
     const payload = data as components['schemas']['ErrorResponse'] | undefined
+    const isServerError =
+      payload?.error.code === 'INTERNAL_ERROR' || response.status >= 500
     throw new ApiError(
-      payload?.error.message ?? `Error de solicitud (${response.status})`,
+      isServerError
+        ? SERVER_ERROR_MESSAGE
+        : (payload?.error.message ?? `Error de solicitud (${response.status})`),
       response.status,
       payload?.error.fields,
       payload?.error.code,
