@@ -61,9 +61,9 @@ type DoctorOption = {
 
 const doctorFullName = (doctor: DoctorOption) =>
   `${doctor.firstName} ${doctor.lastName}`.trim()
-type UserOption = Pick<components['schemas']['OrganizationUser'], 'id' | 'name'>
 
 const serverFields: Record<string, FieldPath<TreatmentFormValues>> = {
+  name: 'name',
   medication_id: 'medicationId',
   dose_per_intake: 'dosePerIntake',
   intakes_per_day: 'intakesPerDay',
@@ -85,7 +85,6 @@ export function TreatmentForm({
   patientName,
   medications,
   branches,
-  users,
   doctors = [],
   doctorsLoading = false,
   defaultBranchId,
@@ -99,7 +98,6 @@ export function TreatmentForm({
   patientName?: string
   medications: Medication[]
   branches: BranchOption[]
-  users: UserOption[]
   /** Médicos activos, para elegir el prescriptor con un select. */
   doctors?: DoctorOption[]
   doctorsLoading?: boolean
@@ -131,6 +129,7 @@ export function TreatmentForm({
     resolver: zodResolver(treatmentSchema),
     defaultValues: treatment
       ? {
+          name: treatment.name ?? '',
           medicationId: treatment.medicationId,
           dosePerIntake: Number(treatment.dosePerIntake),
           intakesPerDay: Number(treatment.intakesPerDay),
@@ -150,6 +149,7 @@ export function TreatmentForm({
           ...defaultDoseFrequencyValue(),
         }
       : {
+          name: '',
           medicationId: '',
           dosePerIntake: NaN,
           intakesPerDay: 1,
@@ -397,6 +397,17 @@ export function TreatmentForm({
           icon={<Pill className="size-4" />}
           title={patientName || 'Medicamento'}
         >
+          <div className="sm:col-span-2">
+            <TextField
+              label="Nombre del tratamiento"
+              required
+              placeholder="Ej. Control de hipertensión"
+              maxLength={160}
+              autoComplete="off"
+              {...register('name')}
+              error={errors.name?.message}
+            />
+          </div>
           <div className="flex min-w-0 flex-col gap-3 sm:col-span-2 sm:flex-row sm:flex-wrap sm:items-start">
             <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)] content-start gap-1.5 sm:min-w-64">
               <label

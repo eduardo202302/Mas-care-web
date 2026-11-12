@@ -31,7 +31,6 @@ import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { formatPhone } from '@/lib/phone'
 import { useCan } from '@/lib/permissions'
-import { roleLabel } from '@/lib/role-labels'
 import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import type { UserCreateValues } from '@/schemas/user'
 import { UserForm } from './UserForm'
@@ -90,7 +89,7 @@ function UserDetail({
               Rol en la Organización
             </dt>
             <dd className="text-ink text-sm font-medium">
-              {user.roleName ?? roleLabel(user.role)}
+              {user.roleName ?? 'Sin rol'}
             </dd>
           </div>
           <div className="grid gap-0.5">
@@ -278,7 +277,11 @@ export default function UsersPage() {
   )
   const createUser = useMutation({
     mutationFn: (values: UserCreateValues) => {
-      const body: components['schemas']['UserCreate'] = values
+      const { roleId, ...rest } = values
+      const body: components['schemas']['UserCreate'] = {
+        ...rest,
+        roleId: roleId ?? '',
+      }
       return api<components['schemas']['OrganizationUser']>('/api/v1/users', {
         method: 'POST',
         body: JSON.stringify(body),
@@ -291,15 +294,7 @@ export default function UsersPage() {
     },
   })
   const updateUser = useMutation({
-    mutationFn: ({
-      id,
-      values,
-      keepRole,
-    }: {
-      id: string
-      values: UserCreateValues
-      keepRole: boolean
-    }) =>
+    mutationFn: ({ id, values }: { id: string; values: UserCreateValues }) =>
       api<components['schemas']['OrganizationUser']>(
         `/api/v1/users/${encodeURIComponent(id)}`,
         {
@@ -309,9 +304,7 @@ export default function UsersPage() {
             username: values.username,
             email: values.email,
             phone: values.phone || null,
-            ...(keepRole
-              ? {}
-              : { role: values.role, roleId: values.roleId ?? null }),
+            ...(values.roleId ? { roleId: values.roleId } : {}),
             branchIds: values.branchIds,
           }),
         },
@@ -335,7 +328,7 @@ export default function UsersPage() {
   })
 
   const userRole = (user: components['schemas']['OrganizationUser']) =>
-    user.roleName ?? roleLabel(user.role)
+    user.roleName ?? 'Sin rol'
   const loadedUsers = users.data?.data ?? []
   const roleOptions = Array.from(
     new Set([...loadedUsers.map(userRole), ...(role ? [role] : [])]),
@@ -367,7 +360,7 @@ export default function UsersPage() {
       key="role"
       className="bg-surface text-petroleo inline-flex rounded-full px-2.5 py-1 text-xs font-semibold"
     >
-      {user.roleName ?? roleLabel(user.role)}
+      {user.roleName ?? 'Sin rol'}
     </span>,
     <span
       key="name"
@@ -632,13 +625,11 @@ export default function UsersPage() {
                     username: editing.username ?? '',
                     email: editing.email,
                     phone: editing.phone ?? '',
-                    role: editing.role as UserCreateValues['role'],
                     ...(editing.roleId ? { roleId: editing.roleId } : {}),
                     branchIds: editing.branches.map((branch) => branch.id),
                   }
                 : undefined
             }
-            roleLocked={editing?.role === 'owner'}
             roles={activeRoles}
             rolesLoading={roles.isLoading}
             branches={branches.data?.data ?? []}
@@ -648,7 +639,6 @@ export default function UsersPage() {
                 await updateUser.mutateAsync({
                   id: editing.id,
                   values,
-                  keepRole: editing.role === 'owner',
                 })
               } else {
                 await createUser.mutateAsync(values)

@@ -77,7 +77,7 @@ export default function BoardPage() {
     () => boardFiltersFromSearch(searchParams),
     [searchParams],
   )
-  const privileged = me?.role === 'owner' || me?.role === 'admin'
+  const privileged = me?.allBranches === true
   const branches = me?.branches ?? []
   const lockedBranch =
     !privileged && branches.length === 1 ? branches[0]?.id : undefined

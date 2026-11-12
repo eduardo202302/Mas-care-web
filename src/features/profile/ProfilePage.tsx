@@ -15,7 +15,6 @@ type Profile = {
   emailVerified?: boolean
   phone: string | null
   roleName: string | null
-  role: string
   branches: { id: string; name: string }[]
   pin?: string | null
   pinUpdatedAt?: string | null
@@ -178,13 +177,15 @@ export default function ProfilePage() {
     ['Correo', data?.email ?? me.user.email],
     ['Usuario', data?.username],
     ['Teléfono', data?.phone],
-    ['Rol', data?.roleName ?? me.roleName ?? me.role],
+    ['Rol', data?.roleName ?? me.roleName ?? 'Sin rol'],
     ['Organización', me.organization.name],
     [
       'Sucursales',
       data?.branches.length
         ? data.branches.map((b) => b.name).join(', ')
-        : 'Todas',
+        : me.allBranches
+          ? 'Todas'
+          : 'Sin sucursales',
     ],
   ]
 

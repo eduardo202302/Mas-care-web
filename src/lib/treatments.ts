@@ -674,6 +674,7 @@ export async function createTreatmentFromForm(
 ): Promise<Treatment> {
   const body = {
     patient_id: patientId,
+    name: values.name?.trim() || null,
     medication_id: values.medicationId,
     branch_id: values.branchId,
     responsible_user_id: values.responsibleUserId || null,
@@ -722,6 +723,7 @@ export async function updateTreatmentFromForm(
     {
       method: 'PATCH',
       body: JSON.stringify({
+        name: values.name?.trim() || null,
         medication_id: values.medicationId,
         branch_id: values.branchId,
         responsible_user_id: values.responsibleUserId || null,

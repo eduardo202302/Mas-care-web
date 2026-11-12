@@ -835,7 +835,6 @@ export default function TreatmentDetailPage() {
               patientName={patient.data?.fullName}
               medications={medications.data?.data ?? []}
               branches={branches.data?.data ?? []}
-              users={users.data?.data ?? []}
               doctors={doctorPicker.data?.data ?? []}
               doctorsLoading={doctorPicker.isLoading}
               onSave={(values) =>

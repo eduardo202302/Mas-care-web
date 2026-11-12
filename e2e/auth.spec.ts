@@ -91,7 +91,7 @@ test('registro, pacientes, vistas guardadas y logout', async ({ page }) => {
     .click()
   await expect(
     page.getByRole('dialog', { name: 'Ficha de usuario' }),
-  ).toContainText('Propietario')
+  ).toContainText('Master')
 
   await page.goto('/inicio')
   await page.getByRole('button', { name: 'Cerrar sesión' }).click()

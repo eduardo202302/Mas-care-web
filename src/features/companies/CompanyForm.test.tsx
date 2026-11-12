@@ -19,7 +19,7 @@ function meResponse(): components['schemas']['Me'] {
       name: 'Farmacia Demo',
       googleMapsApiKey: null,
     },
-    role: 'admin',
+    allBranches: true,
     roleId: null,
     roleName: null,
     isPlatformOwner: true,

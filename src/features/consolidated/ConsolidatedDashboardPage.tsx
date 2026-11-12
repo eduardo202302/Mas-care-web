@@ -165,7 +165,7 @@ export default function ConsolidatedDashboardPage() {
   // `privileged` only decides the caption telling the viewer whether that
   // set is the whole organization or just their assigned branches, the same
   // role check BoardPage/IncidentsPage/StockPage use for privileged-only UI.
-  const privileged = me?.role === 'owner' || me?.role === 'admin'
+  const privileged = me?.allBranches === true
   const [date, setDate] = useState(todayInputValue())
 
   const consolidated = useQuery({

@@ -14,7 +14,6 @@ import { ModalSection } from '@/components/ui/ModalSection'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
-import { roleLabel } from '@/lib/role-labels'
 import {
   userCreateSchema,
   userEditSchema,
@@ -22,16 +21,14 @@ import {
 } from '@/schemas/user'
 
 type BranchOption = { id: string; name: string }
-type RoleOption = { id: string; name: string; baseRole: string }
+type RoleOption = { id: string; name: string; allBranches: boolean }
 
 type Props = {
   mode?: 'create' | 'edit'
   initialValues?: Pick<
     UserCreateValues,
-    'name' | 'username' | 'email' | 'phone' | 'role' | 'branchIds'
+    'name' | 'username' | 'email' | 'phone' | 'branchIds'
   > & { roleId?: string }
-  /** The owner's role cannot be changed. */
-  roleLocked?: boolean
   /** Roles created in the Roles screen; the only ones that can be assigned. */
   roles?: RoleOption[]
   rolesLoading?: boolean
@@ -54,7 +51,6 @@ function generatePin() {
 export function UserForm({
   mode = 'create',
   initialValues,
-  roleLocked = false,
   roles = [],
   rolesLoading = false,
   branches,
@@ -81,24 +77,22 @@ export function UserForm({
       phone: initialValues?.phone ?? '',
       password: '',
       pin: mode === 'edit' ? '' : generatePin(),
-      role: initialValues?.role ?? 'operator',
       roleId: initialValues?.roleId ?? '',
       branchIds: initialValues?.branchIds ?? [],
     },
   })
   const editing = mode === 'edit'
-  const role = watch('role')
+  const selectedRoleId = watch('roleId')
+  const allBranches = Boolean(
+    roles.find((candidate) => candidate.id === selectedRoleId)?.allBranches,
+  )
   const branchIds = watch('branchIds') ?? []
   const control =
     'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2'
   const fieldClass = `${control} placeholder:text-muted/70 transition aria-[invalid=true]:border-red-400`
 
   async function submit(values: UserCreateValues) {
-    if (
-      !roleLocked &&
-      values.role !== 'admin' &&
-      values.branchIds.length === 0
-    ) {
+    if (!allBranches && values.branchIds.length === 0) {
       setError('branchIds', {
         type: 'manual',
         message: 'Asigna al menos una sucursal.',
@@ -277,49 +271,33 @@ export function UserForm({
           <label htmlFor="user-role" className="text-ink text-sm font-medium">
             Rol
           </label>
-          {roleLocked ? (
-            <p
+          <div className="relative">
+            <select
               id="user-role"
-              className={`${fieldClass} bg-surface text-muted flex items-center`}
+              {...register('roleId')}
+              aria-invalid={Boolean(errors.roleId)}
+              disabled={rolesLoading}
+              className={`${fieldClass} appearance-none pr-9`}
             >
-              {roleLabel('owner')}
-            </p>
-          ) : (
-            <div className="relative">
-              <select
-                id="user-role"
-                {...register('roleId', {
-                  onChange: (event: { target: { value: string } }) => {
-                    const chosen = roles.find(
-                      (candidate) => candidate.id === event.target.value,
-                    )
-                    if (chosen) setValue('role', chosen.baseRole as typeof role)
-                  },
-                })}
-                aria-invalid={Boolean(errors.roleId)}
-                disabled={rolesLoading}
-                className={`${fieldClass} appearance-none pr-9`}
-              >
-                <option value="">
-                  {rolesLoading ? 'Cargando roles…' : 'Selecciona un rol'}
+              <option value="">
+                {rolesLoading ? 'Cargando roles…' : 'Selecciona un rol'}
+              </option>
+              {roles.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
                 </option>
-                {roles.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
-                aria-hidden="true"
-              />
-            </div>
-          )}
+              ))}
+            </select>
+            <ChevronDown
+              className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
+              aria-hidden="true"
+            />
+          </div>
           {errors.roleId?.message && (
             <p className="text-xs text-red-700">{errors.roleId.message}</p>
           )}
           <p className="text-muted text-xs">
-            {role === 'admin'
+            {allBranches
               ? 'Este rol ve todas las sucursales de la organización.'
               : 'El usuario verá solo las sucursales que le asignes.'}
           </p>
@@ -366,7 +344,7 @@ export function UserForm({
           {errors.branchIds?.message && (
             <p className="text-xs text-red-700">{errors.branchIds.message}</p>
           )}
-          {role === 'admin' && branchIds.length === 0 && (
+          {allBranches && branchIds.length === 0 && (
             <p className="text-muted text-xs">
               La asignación es opcional para este rol.
             </p>

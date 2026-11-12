@@ -81,7 +81,7 @@ function setup(permissions: string[], batch = true) {
   const me = {
     user: { id: 'u1', name: 'Dueña', email: 'owner@example.test' },
     organization: { id: 'org-1', name: 'Farmacia Demo' },
-    role: 'owner',
+    allBranches: true,
     roleId: null,
     roleName: null,
     isPlatformOwner: false,

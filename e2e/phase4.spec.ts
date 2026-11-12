@@ -1,6 +1,7 @@
 import { expect, test, type Browser, type Page } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { mkdirSync } from 'node:fs'
+import { ensureLimitedRole, type LimitedRole } from './helpers/roles'
 
 const API = 'http://localhost:3000'
 const suffix = randomUUID().replace(/-/g, '').slice(0, 10)
@@ -66,7 +67,7 @@ async function loginAs(browser: Browser, loginEmail: string, loginPassword: stri
 
 async function createUser(
   p: Page,
-  role: 'owner' | 'admin' | 'pharmacist' | 'operator' | 'read_only',
+  role: LimitedRole,
   branchIds: string[],
 ) {
   const userEmail = `${role}-${randomUUID().slice(0, 8)}-${suffix}@example.test`
@@ -77,7 +78,7 @@ async function createUser(
       username: `${role}_${randomUUID().slice(0, 6)}_${suffix}`,
       email: userEmail,
       password: userPassword,
-      role,
+      roleId: await ensureLimitedRole(p, API, role),
       branchIds,
     },
   })

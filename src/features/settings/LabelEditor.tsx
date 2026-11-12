@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type DragEvent as ReactDragEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
 import {
@@ -22,164 +23,53 @@ import {
   Undo2,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { toTitleCase } from '@/lib/titleCase'
 import type { LabelElement, LabelVariableKey } from '@/lib/operations'
+import {
+  EMPTY_VALUE_TEXT,
+  LABEL_VARIABLE_GROUPS,
+  LABEL_VARIABLE_LABELS,
+  createElement,
+  isLabelVariableKey,
+  labelDims,
+  labelElementStyle,
+  labelElementText,
+  nextElementId,
+  type LabelValues,
+  type NewElementInput,
+} from './labelConfig'
 
-export type LabelVariableGroup = {
-  title: string
-  keys: LabelVariableKey[]
-}
-
-export const LABEL_VARIABLE_GROUPS: LabelVariableGroup[] = [
-  {
-    title: 'Farmacia',
-    keys: ['farmacia_nombre', 'farmacia_telefono', 'farmacia_direccion'],
-  },
-  {
-    title: 'Paciente',
-    keys: ['paciente_nombre', 'paciente_documento', 'paciente_edad'],
-  },
-  {
-    title: 'Tratamiento y medicamento',
-    keys: [
-      'medicamento_nombre',
-      'medicamento_presentacion',
-      'dosis',
-      'via_administracion',
-      'frecuencia',
-      'duracion',
-      'cantidad',
-      'instrucciones',
-      'fecha_inicio',
-      'fecha_fin',
-      'prescriptor',
-      'codigo_tratamiento',
-    ],
-  },
-]
-
-export const LABEL_VARIABLE_LABELS: Record<LabelVariableKey, string> = {
-  farmacia_nombre: 'Nombre de farmacia',
-  farmacia_telefono: 'Teléfono',
-  farmacia_direccion: 'Dirección',
-  paciente_nombre: 'Nombre del paciente',
-  paciente_documento: 'Cédula / identificación',
-  paciente_edad: 'Edad',
-  medicamento_nombre: 'Nombre del medicamento',
-  medicamento_presentacion: 'Presentación',
-  dosis: 'Dosis',
-  via_administracion: 'Vía de administración',
-  frecuencia: 'Frecuencia',
-  duracion: 'Duración',
-  cantidad: 'Cantidad',
-  instrucciones: 'Instrucciones',
-  fecha_inicio: 'Fecha de inicio',
-  fecha_fin: 'Fecha de finalización',
-  prescriptor: 'Médico / prescriptor',
-  codigo_tratamiento: 'Código de tratamiento',
-}
-
-const SAMPLES: Record<LabelVariableKey, string> = {
-  farmacia_nombre: 'FARMACIA SALUD',
-  farmacia_telefono: '809-555-0101',
-  farmacia_direccion: 'Calle Principal, Jarabacoa',
-  paciente_nombre: 'María Rodríguez',
-  paciente_documento: '001-0000000-0',
-  paciente_edad: '45 años',
-  medicamento_nombre: 'Amoxicilina',
-  medicamento_presentacion: 'Tabletas',
-  dosis: '1 cápsula',
-  via_administracion: 'Vía oral',
-  frecuencia: 'Cada 8 horas',
-  duracion: '7 días',
-  cantidad: '21',
-  instrucciones: 'Tomar después de los alimentos',
-  fecha_inicio: '07/11/2026',
-  fecha_fin: '14/11/2026',
-  prescriptor: 'Dr. Juan Pérez',
-  codigo_tratamiento: 'TR-000125',
-}
-
-const MM_TO_PX = 3.78
-let nextLocalId = 1
-
-export type NewElementInput =
-  | (Partial<LabelElement> & { type: 'variable'; key: LabelVariableKey })
-  | (Partial<LabelElement> & { type: 'text' })
-  | (Partial<LabelElement> & { type: 'line' })
-
-function createElement(partial: NewElementInput, x = 6, y = 8): LabelElement {
-  const id = nextLocalId++
-  const base = {
-    id,
-    x,
-    y,
-    w: 90,
-    h: 18,
-    fontSize: 12,
-    bold: false,
-    italic: false,
-    underline: false,
-    align: 'left' as const,
-    color: '#243247',
-    rotation: 0,
-  }
-  if (partial.type === 'variable') {
-    return { ...base, ...partial, type: 'variable', showLabel: partial.showLabel ?? true }
-  }
-  if (partial.type === 'text') {
-    return { ...base, ...partial, type: 'text', text: partial.text ?? 'Texto fijo' }
-  }
-  return { ...base, h: 2, ...partial, type: 'line', orientation: partial.orientation ?? 'horizontal' }
-}
-
-function elementText(
-  element: LabelElement,
-  values: Partial<Record<LabelVariableKey, string>>,
-): string {
-  if (element.type === 'text') return element.text
-  if (element.type === 'line') return ''
-  const value = values[element.key] ?? SAMPLES[element.key] ?? ''
-  if (!element.showLabel) return value
-  return `${LABEL_VARIABLE_LABELS[element.key]}: ${value}`
-}
-
-function dims(
-  widthMm: number,
-  heightMm: number,
-  orientation: 'landscape' | 'portrait',
-): [number, number] {
-  let w = widthMm
-  let h = heightMm
-  if (orientation === 'portrait' && w > h) [w, h] = [h, w]
-  if (orientation === 'landscape' && h > w) [w, h] = [h, w]
-  return [w, h]
-}
+/** 1 pulgada = 96 px CSS: el editor dibuja el papel con las mismas unidades que la impresión. */
+const IN_TO_PX = 96
+const ZOOM_AUTO = ''
 
 type HistoryState = LabelElement[]
 
 /**
  * WYSIWYG label editor. Controlled component: the parent owns
- * widthMm/heightMm/orientation/elements and persists them; this only handles
+ * widthIn/heightIn/orientation/elements and persists them; this only handles
  * on-canvas interaction (drag, resize via properties, selection, undo/redo).
+ * `previewValues` is null until a patient is chosen: variables then show as
+ * placeholders instead of invented sample data.
  */
 export function LabelEditor({
-  widthMm,
-  heightMm,
+  widthIn,
+  heightIn,
   orientation,
   elements,
   onChange,
   previewValues,
 }: {
-  widthMm: number
-  heightMm: number
+  widthIn: number
+  heightIn: number
   orientation: 'landscape' | 'portrait'
   elements: LabelElement[]
   onChange: (elements: LabelElement[]) => void
-  previewValues?: Partial<Record<LabelVariableKey, string>>
+  previewValues: LabelValues | null
 }) {
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [showGrid, setShowGrid] = useState(true)
-  const [zoom, setZoom] = useState(1)
+  const [zoomChoice, setZoomChoice] = useState<string>(ZOOM_AUTO)
   const paperRef = useRef<HTMLDivElement>(null)
   const undoStack = useRef<HistoryState[]>([])
   const redoStack = useRef<HistoryState[]>([])
@@ -210,14 +100,41 @@ export function LabelEditor({
     onChange(next)
   }
 
-  const [w, h] = dims(widthMm, heightMm, orientation)
-  const paperWidth = w * MM_TO_PX * zoom
-  const paperHeight = h * MM_TO_PX * zoom
+  const [w, h] = labelDims(widthIn, heightIn, orientation)
+  // Auto: acerca las etiquetas chicas para poder trabajar cómodamente.
+  const zoom = zoomChoice === ZOOM_AUTO ? (w <= 3 ? 1.75 : w <= 4 ? 1.4 : 1.1) : Number(zoomChoice)
+  const paperWidth = w * IN_TO_PX * zoom
+  const paperHeight = h * IN_TO_PX * zoom
 
   function addElement(partial: NewElementInput, x?: number, y?: number) {
-    const created = createElement(partial, x, y)
+    const created = createElement(partial, {
+      ...(x === undefined ? {} : { x }),
+      ...(y === undefined ? {} : { y }),
+      elements,
+      widthIn: w,
+    })
     pushHistory([...elements, created])
     setSelectedIds([created.id])
+  }
+
+  /** Cuánto del alto del papel ocupa un elemento, en %, para mantenerlo dentro de la etiqueta. */
+  const heightPct = (element: LabelElement) =>
+    ((element.h * zoom) / paperHeight) * 100
+  const clampX = (element: LabelElement, value: number) =>
+    Math.max(0, Math.min(100 - element.w, value))
+  const clampY = (element: LabelElement, value: number) =>
+    Math.max(0, Math.min(Math.max(0, 100 - heightPct(element)), value))
+
+  function onPaperDrop(event: ReactDragEvent<HTMLDivElement>) {
+    const key = event.dataTransfer.getData('text/plain')
+    if (!isLabelVariableKey(key)) return
+    event.preventDefault()
+    const rect = paperRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const probe = createElement({ type: 'variable', key }, { elements, widthIn: w })
+    const x = clampX(probe, ((event.clientX - rect.left) / rect.width) * 100)
+    const y = clampY(probe, ((event.clientY - rect.top) / rect.height) * 100)
+    addElement({ type: 'variable', key }, x, y)
   }
 
   function updateElement(id: number, patch: Partial<LabelElement>) {
@@ -245,7 +162,12 @@ export function LabelEditor({
     if (selectedIds.length === 0) return
     const copies = elements
       .filter((element) => selectedIds.includes(element.id))
-      .map((element) => ({ ...element, id: nextLocalId++, x: Math.min(95, element.x + 2), y: Math.min(95, element.y + 2) }))
+      .map((element, index) => ({
+        ...element,
+        id: nextElementId(elements) + index,
+        x: clampX(element, element.x + 2),
+        y: clampY(element, element.y + 2),
+      }))
     pushHistory([...elements, ...copies])
     setSelectedIds(copies.map((copy) => copy.id))
   }
@@ -257,7 +179,7 @@ export function LabelEditor({
       edge === 'left' ? Math.min(...selected.map((element) => element.x))
       : edge === 'right' ? Math.max(...selected.map((element) => element.x + element.w))
       : edge === 'top' ? Math.min(...selected.map((element) => element.y))
-      : edge === 'bottom' ? Math.max(...selected.map((element) => element.y))
+      : edge === 'bottom' ? Math.max(...selected.map((element) => element.y + heightPct(element)))
       : null
     pushHistory(
       elements.map((element) => {
@@ -265,7 +187,7 @@ export function LabelEditor({
         if (edge === 'left') return { ...element, x: target as number }
         if (edge === 'right') return { ...element, x: (target as number) - element.w }
         if (edge === 'top') return { ...element, y: target as number }
-        if (edge === 'bottom') return { ...element, y: (target as number) - element.h / (h * MM_TO_PX / 100) }
+        if (edge === 'bottom') return { ...element, y: clampY(element, (target as number) - heightPct(element)) }
         const avgX = selected.reduce((sum, item) => sum + item.x + item.w / 2, 0) / selected.length
         return { ...element, x: avgX - element.w / 2 }
       }),
@@ -294,27 +216,44 @@ export function LabelEditor({
     dragState.current = { ids: nextSelection, startX: event.clientX, startY: event.clientY, origin }
     const target = event.currentTarget
     target.setPointerCapture(event.pointerId)
+    const initial = elements
+    let moved: LabelElement[] | null = null
     const move = (moveEvent: PointerEvent) => {
       const drag = dragState.current
       if (!drag || !rect) return
       const dxPct = ((moveEvent.clientX - drag.startX) / rect.width) * 100
       const dyPct = ((moveEvent.clientY - drag.startY) / rect.height) * 100
-      onChange(
-        elements.map((item) => {
-          const start = drag.origin.get(item.id)
-          if (!start) return item
-          return {
-            ...item,
-            x: Math.max(0, Math.min(98, start.x + dxPct)),
-            y: Math.max(0, Math.min(98, start.y + dyPct)),
-          }
-        }),
-      )
+      // Se limita el desplazamiento del grupo completo para que ningún elemento
+      // salga de la etiqueta y todos conserven su posición relativa.
+      let minDx = -Infinity
+      let maxDx = Infinity
+      let minDy = -Infinity
+      let maxDy = Infinity
+      for (const item of initial) {
+        const start = drag.origin.get(item.id)
+        if (!start) continue
+        minDx = Math.max(minDx, -start.x)
+        maxDx = Math.min(maxDx, 100 - item.w - start.x)
+        minDy = Math.max(minDy, -start.y)
+        maxDy = Math.min(maxDy, 100 - heightPct(item) - start.y)
+      }
+      const dx = Math.max(minDx, Math.min(Math.max(minDx, maxDx), dxPct))
+      const dy = Math.max(minDy, Math.min(Math.max(minDy, maxDy), dyPct))
+      moved = initial.map((item) => {
+        const start = drag.origin.get(item.id)
+        if (!start) return item
+        return { ...item, x: start.x + dx, y: start.y + dy }
+      })
+      onChange(moved)
     }
     const up = () => {
       target.removeEventListener('pointermove', move)
       target.removeEventListener('pointerup', up)
-      if (dragState.current) pushHistory(elements)
+      if (moved) {
+        undoStack.current.push(initial)
+        if (undoStack.current.length > 50) undoStack.current.shift()
+        redoStack.current = []
+      }
       dragState.current = null
     }
     target.addEventListener('pointermove', move)
@@ -332,18 +271,25 @@ export function LabelEditor({
     const startH = element.h
     const target = event.currentTarget
     target.setPointerCapture(event.pointerId)
+    const initial = elements
+    let resized = false
     const move = (moveEvent: PointerEvent) => {
       const dwPct = ((moveEvent.clientX - startX) / rect.width) * 100
       const dhPx = moveEvent.clientY - startY
+      resized = true
       updateElement(element.id, {
         w: Math.max(2, Math.min(100 - element.x, startW + dwPct)),
-        h: Math.max(4, startH + dhPx / zoom),
+        h: Math.max(4, Math.min(startH + dhPx / zoom, ((100 - element.y) / 100) * (paperHeight / zoom))),
       })
     }
     const up = () => {
       target.removeEventListener('pointermove', move)
       target.removeEventListener('pointerup', up)
-      commitElement(element.id, {})
+      if (resized) {
+        undoStack.current.push(initial)
+        if (undoStack.current.length > 50) undoStack.current.shift()
+        redoStack.current = []
+      }
     }
     target.addEventListener('pointermove', move)
     target.addEventListener('pointerup', up)
@@ -374,7 +320,7 @@ export function LabelEditor({
       onChange(
         elements.map((item) =>
           selectedIds.includes(item.id)
-            ? { ...item, x: Math.max(0, Math.min(100, item.x + dx)), y: Math.max(0, Math.min(100, item.y + dy)) }
+            ? { ...item, x: clampX(item, item.x + dx), y: clampY(item, item.y + dy) }
             : item,
         ),
       )
@@ -390,7 +336,7 @@ export function LabelEditor({
   )
 
   return (
-    <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
+    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_280px]">
       <div className="flex flex-col gap-3">
         <div className="border-border flex flex-wrap items-center gap-2 rounded-lg border bg-white px-3 py-2">
           <button
@@ -431,13 +377,13 @@ export function LabelEditor({
             <Trash2 className="size-4" />
           </button>
           <span className="bg-border mx-1 h-5 w-px" />
-          <button type="button" onClick={() => alignSelected('left')} disabled={selectedIds.length < 2} className="text-muted hover:text-ink disabled:opacity-40" title="Alinear a la izquierda">
+          <button type="button" onClick={() => alignSelected('left')} disabled={selectedIds.length < 2} className="text-muted hover:text-ink disabled:opacity-40" title="Alinear A la Izquierda">
             <AlignLeft className="size-4" />
           </button>
           <button type="button" onClick={() => alignSelected('center')} disabled={selectedIds.length < 2} className="text-muted hover:text-ink disabled:opacity-40" title="Centrar">
             <AlignCenter className="size-4" />
           </button>
-          <button type="button" onClick={() => alignSelected('right')} disabled={selectedIds.length < 2} className="text-muted hover:text-ink disabled:opacity-40" title="Alinear a la derecha">
+          <button type="button" onClick={() => alignSelected('right')} disabled={selectedIds.length < 2} className="text-muted hover:text-ink disabled:opacity-40" title="Alinear A la Derecha">
             <AlignRight className="size-4" />
           </button>
           <span className="bg-border mx-1 h-5 w-px" />
@@ -450,18 +396,20 @@ export function LabelEditor({
             <Grid3x3 className="size-4" />
           </button>
           <select
-            value={zoom}
-            onChange={(event) => setZoom(Number(event.target.value))}
+            value={zoomChoice}
+            onChange={(event) => setZoomChoice(event.target.value)}
+            aria-label="Zoom"
             className="border-border ml-auto h-8 rounded-md border bg-white px-2 text-xs"
           >
-            <option value={0.75}>75%</option>
-            <option value={1}>100%</option>
-            <option value={1.25}>125%</option>
-            <option value={1.5}>150%</option>
+            <option value={ZOOM_AUTO}>Ajuste Automático</option>
+            <option value="0.75">75%</option>
+            <option value="1">100%</option>
+            <option value="1.5">150%</option>
+            <option value="2">200%</option>
           </select>
         </div>
 
-        <div className="bg-surface border-border flex min-h-[420px] items-center justify-center overflow-auto rounded-xl border p-8">
+        <div className="bg-surface border-border flex min-h-[360px] items-center justify-center overflow-auto rounded-xl border p-4">
           <div
             ref={paperRef}
             className="relative flex-none border border-slate-300 bg-white shadow-lg"
@@ -471,43 +419,35 @@ export function LabelEditor({
               backgroundImage: showGrid
                 ? 'linear-gradient(#e9eef055 1px,transparent 1px),linear-gradient(90deg,#e9eef055 1px,transparent 1px)'
                 : 'none',
-              backgroundSize: `${5 * MM_TO_PX * zoom}px ${5 * MM_TO_PX * zoom}px`,
+              backgroundSize: `${(IN_TO_PX / 8) * zoom}px ${(IN_TO_PX / 8) * zoom}px`,
             }}
             onPointerDown={(event) => {
               if (event.target === paperRef.current) setSelectedIds([])
             }}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={onPaperDrop}
           >
             {elements.length === 0 && (
               <p className="pointer-events-none absolute inset-0 flex items-center justify-center p-6 text-center text-xs text-slate-400">
-                Arrastra o agrega variables para comenzar a diseñar tu etiqueta
+                Arrastra O Agrega Variables para Comenzar A Diseñar Tu Etiqueta
               </p>
             )}
             {elements.map((element) => {
               const selected = selectedIds.includes(element.id)
+              const { text, missing } = labelElementText(element, previewValues, 'editor')
               return (
                 <div
                   key={element.id}
                   onPointerDown={(event) => onElementPointerDown(event, element)}
                   className={cn(
-                    'absolute cursor-move touch-none border border-transparent px-1 py-0.5 leading-tight whitespace-pre-wrap select-none',
+                    'absolute cursor-move touch-none border border-transparent leading-tight whitespace-pre-wrap select-none',
                     selected && 'border-tealmax border-dashed bg-emerald-50/40 outline outline-white',
+                    missing && 'opacity-60',
                   )}
-                  style={{
-                    left: `${element.x}%`,
-                    top: `${element.y}%`,
-                    width: `${element.w}%`,
-                    minHeight: element.h,
-                    fontSize: element.fontSize,
-                    fontWeight: element.bold ? 700 : 400,
-                    fontStyle: element.italic ? 'italic' : 'normal',
-                    textAlign: element.align,
-                    color: element.color,
-                    textDecoration: element.underline ? 'underline' : 'none',
-                    borderBottom: element.type === 'line' ? `1px solid ${element.color}` : undefined,
-                    transform: element.rotation ? `rotate(${element.rotation}deg)` : undefined,
-                  }}
+                  title={missing ? EMPTY_VALUE_TEXT : undefined}
+                  style={labelElementStyle(element, zoom)}
                 >
-                  {elementText(element, previewValues ?? {})}
+                  {text}
                   {selected && (
                     <div
                       data-handle="resize"
@@ -536,12 +476,12 @@ export function LabelEditor({
           ) : (
             <div className="grid gap-3">
               {selectedElement.type === 'text' && (
-                <label className="grid gap-1 text-xs">
+                <label className="grid min-w-0 gap-1.5 text-xs">
                   <span className="font-medium text-slate-600">Texto</span>
                   <input
                     value={selectedElement.text}
                     onChange={(event) => commitElement(selectedElement.id, { text: event.target.value })}
-                    className="border-border h-8 rounded-md border px-2"
+                    className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-9 w-full min-w-0 rounded-md border bg-white px-2 text-sm outline-none focus:ring-2"
                   />
                 </label>
               )}
@@ -553,66 +493,66 @@ export function LabelEditor({
                     onChange={(event) => commitElement(selectedElement.id, { showLabel: event.target.checked })}
                     className="border-border size-4 rounded"
                   />
-                  Mostrar nombre del campo
+                  Mostrar Nombre Del Campo
                 </label>
               )}
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <label className="grid gap-1">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-3 text-xs">
+                <label className="grid min-w-0 gap-1.5">
                   <span className="font-medium text-slate-600">X (%)</span>
                   <input
                     type="number"
                     value={Math.round(selectedElement.x * 10) / 10}
-                    onChange={(event) => commitElement(selectedElement.id, { x: Number(event.target.value) })}
-                    className="border-border h-8 rounded-md border px-2"
+                    onChange={(event) => commitElement(selectedElement.id, { x: clampX(selectedElement, Number(event.target.value)) })}
+                    className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-9 w-full min-w-0 rounded-md border bg-white px-2 text-sm outline-none focus:ring-2"
                   />
                 </label>
-                <label className="grid gap-1">
+                <label className="grid min-w-0 gap-1.5">
                   <span className="font-medium text-slate-600">Y (%)</span>
                   <input
                     type="number"
                     value={Math.round(selectedElement.y * 10) / 10}
-                    onChange={(event) => commitElement(selectedElement.id, { y: Number(event.target.value) })}
-                    className="border-border h-8 rounded-md border px-2"
+                    onChange={(event) => commitElement(selectedElement.id, { y: clampY(selectedElement, Number(event.target.value)) })}
+                    className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-9 w-full min-w-0 rounded-md border bg-white px-2 text-sm outline-none focus:ring-2"
                   />
                 </label>
-                <label className="grid gap-1">
+                <label className="grid min-w-0 gap-1.5">
                   <span className="font-medium text-slate-600">Ancho (%)</span>
                   <input
                     type="number"
                     value={selectedElement.w}
-                    onChange={(event) => commitElement(selectedElement.id, { w: Number(event.target.value) })}
-                    className="border-border h-8 rounded-md border px-2"
+                    onChange={(event) => commitElement(selectedElement.id, { w: Math.max(1, Math.min(100 - selectedElement.x, Number(event.target.value))) })}
+                    className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-9 w-full min-w-0 rounded-md border bg-white px-2 text-sm outline-none focus:ring-2"
                   />
                 </label>
-                <label className="grid gap-1">
-                  <span className="font-medium text-slate-600">Alto mín. (px)</span>
+                <label className="grid min-w-0 gap-1.5">
+                  <span className="font-medium text-slate-600">Alto Mín. (px)</span>
                   <input
                     type="number"
                     value={selectedElement.h}
                     onChange={(event) => commitElement(selectedElement.id, { h: Number(event.target.value) })}
-                    className="border-border h-8 rounded-md border px-2"
+                    className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-9 w-full min-w-0 rounded-md border bg-white px-2 text-sm outline-none focus:ring-2"
                   />
                 </label>
-                <label className="grid gap-1">
+                <label className="grid min-w-0 gap-1.5">
                   <span className="font-medium text-slate-600">Fuente (px)</span>
                   <input
                     type="number"
                     value={selectedElement.fontSize}
                     onChange={(event) => commitElement(selectedElement.id, { fontSize: Number(event.target.value) })}
-                    className="border-border h-8 rounded-md border px-2"
+                    className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-9 w-full min-w-0 rounded-md border bg-white px-2 text-sm outline-none focus:ring-2"
                   />
                 </label>
-                <label className="grid gap-1">
+                <label className="grid min-w-0 gap-1.5">
                   <span className="font-medium text-slate-600">Rotación (°)</span>
                   <input
                     type="number"
                     value={selectedElement.rotation}
                     onChange={(event) => commitElement(selectedElement.id, { rotation: Number(event.target.value) })}
-                    className="border-border h-8 rounded-md border px-2"
+                    className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-9 w-full min-w-0 rounded-md border bg-white px-2 text-sm outline-none focus:ring-2"
                   />
                 </label>
               </div>
-              <label className="grid gap-1 text-xs">
+              <label className="grid min-w-0 gap-1.5 text-xs">
                 <span className="font-medium text-slate-600">Color</span>
                 <input
                   type="color"
@@ -672,7 +612,7 @@ export function LabelEditor({
                 className="mt-1 flex items-center justify-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
               >
                 <Trash2 className="size-3.5" />
-                Eliminar elemento
+                Eliminar Elemento
               </button>
             </div>
           )}
@@ -687,14 +627,14 @@ export function LabelEditor({
             onClick={() => addElement({ type: 'text' }, 8, 80)}
             className="border-border flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs hover:border-slate-400"
           >
-            <Type className="size-3.5" /> Texto fijo
+            <Type className="size-3.5" /> Texto Fijo
           </button>
           <button
             type="button"
             onClick={() => addElement({ type: 'line' }, 5, 90)}
             className="border-border flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs hover:border-slate-400"
           >
-            <Minus className="size-3.5" /> Línea separadora
+            <Minus className="size-3.5" /> Línea Separadora
           </button>
         </div>
       </aside>
@@ -724,7 +664,7 @@ export function LabelVariablePalette({
                 onClick={() => onAdd(key)}
                 className="border-border flex items-center justify-between rounded-md border bg-white px-2.5 py-1.5 text-left text-xs hover:border-slate-400"
               >
-                <span>{LABEL_VARIABLE_LABELS[key]}</span>
+                <span>{toTitleCase(LABEL_VARIABLE_LABELS[key])}</span>
               </button>
             ))}
           </div>
@@ -734,4 +674,3 @@ export function LabelVariablePalette({
   )
 }
 
-export { createElement as createLabelElement, SAMPLES as LABEL_SAMPLES }

@@ -280,19 +280,44 @@ input {
 }
 
 /*
- * Impresión de una etiqueta física (`<LabelPrintDialog>`): el tamaño de
- * página real lo fija un `<style>` con `@page` inyectado junto a la
- * etiqueta (depende del ancho/alto configurado), así que aquí solo se oculta
+ * Impresión de una etiqueta física (`<LabelPrint>`): el tamaño de página real
+ * lo fija un `<style>` con `@page` (en pulgadas) inyectado junto a la
+ * etiqueta, y el contenedor se monta directo en <body>. Aquí solo se oculta
  * todo lo demás para que no quede nada más que la hoja de la etiqueta.
  */
 .label-print-portal {
   display: none;
 }
 @media print {
+  html:has(.label-print-portal),
+  body:has(.label-print-portal) {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
   body:has(.label-print-portal) > *:not(.label-print-portal) {
     display: none !important;
   }
   .label-print-portal {
     display: block !important;
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    break-inside: avoid;
+    page-break-after: avoid;
+  }
+  .label-print-portal,
+  .label-print-portal * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .label-print-portal .label-print-sheet {
+    border: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
   }
 }

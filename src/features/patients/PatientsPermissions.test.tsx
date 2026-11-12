@@ -24,7 +24,7 @@ function mockReadOnlyApi() {
       name: 'Farmacia Demo',
       googleMapsApiKey: null,
     },
-    role: 'read_only',
+    allBranches: false,
     roleId: null,
     roleName: null,
     isPlatformOwner: false,

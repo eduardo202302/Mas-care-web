@@ -57,7 +57,7 @@ export default function TransfersPage() {
     () => transferFiltersFromSearch(searchParams),
     [searchParams],
   )
-  const privileged = me?.role === 'owner' || me?.role === 'admin'
+  const privileged = me?.allBranches === true
 
   const branches = useQuery({
     queryKey: ['branches'],

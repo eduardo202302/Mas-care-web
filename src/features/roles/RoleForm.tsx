@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
-import { LayoutList, ShieldCheck } from 'lucide-react'
+import { KeyRound, LayoutList, ShieldCheck } from 'lucide-react'
 import { FormFields, FormFooter } from '@/components/ui/FormMode'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextAreaField } from '@/components/ui/TextAreaField'
@@ -17,6 +17,7 @@ import {
 } from '@/schemas/role'
 import type { GrantMap } from './grants'
 import { MenuPermissionTree } from './MenuPermissionTree'
+import { permissionGroups } from './permissionCatalog'
 
 type RoleDto = components['schemas']['Role']
 
@@ -47,7 +48,8 @@ export function RoleForm({
   submitting = false,
 }: Props) {
   const system = role?.isSystem ?? false
-  const owner = role?.key === 'owner'
+  // Master siempre tiene todos los permisos, sucursales y pantallas: solo su descripción cambia.
+  const locked = role?.key === 'master'
   const [grants, setGrants] = useState<GrantMap>(() =>
     Object.fromEntries(
       (role?.items ?? []).map(({ menuItemId, ...flags }) => [
@@ -60,18 +62,32 @@ export function RoleForm({
     register,
     handleSubmit,
     setError,
+    setValue,
+    control,
     formState: { errors },
   } = useForm<RoleFormValues>({
     resolver: zodResolver(roleFormSchema),
     defaultValues: {
       name: role?.name ?? '',
       description: role?.description ?? '',
-      baseRole:
-        (role?.baseRole as RoleFormValues['baseRole'] | undefined) ??
-        'operator',
+      permissions: role?.permissions ?? [],
+      allBranches: role?.allBranches ?? false,
       isActive: role?.isActive ?? true,
     },
   })
+
+  const permissions = useWatch({ control, name: 'permissions' })
+  const allBranches = useWatch({ control, name: 'allBranches' })
+  const selected = new Set(permissions)
+
+  function togglePermissions(actions: string[], checked: boolean) {
+    const next = new Set(permissions)
+    for (const action of actions) {
+      if (checked) next.add(action)
+      else next.delete(action)
+    }
+    setValue('permissions', [...next], { shouldDirty: true })
+  }
 
   async function submit(values: RoleFormValues) {
     const items = Object.entries(grants).map(([menuItemId, flags]) => ({
@@ -112,9 +128,9 @@ export function RoleForm({
         >
           {system ? (
             <p className="bg-surface text-muted rounded-lg px-3 py-2 text-sm">
-              <strong className="text-ink">{role?.name}</strong> es un rol del
-              sistema: su nombre y estado no se pueden cambiar.
-              {owner && ' El Propietario siempre accede a todo el menú.'}
+              <strong className="text-ink">{role?.name}</strong> siempre tiene
+              todos los permisos, todas las sucursales y todas las pantallas:
+              solo puedes cambiar su descripción.
             </p>
           ) : (
             <TextField
@@ -165,6 +181,77 @@ export function RoleForm({
         </ModalSection>
 
         <ModalSection
+          icon={<KeyRound className="size-4" />}
+          title="Permisos"
+        >
+          <label className="border-border flex cursor-pointer items-center gap-3 rounded-lg border p-3">
+            <input
+              type="checkbox"
+              checked={locked || allBranches}
+              disabled={locked}
+              onChange={(event) =>
+                setValue('allBranches', event.target.checked, {
+                  shouldDirty: true,
+                })
+              }
+              className="accent-tealmax size-4 cursor-pointer"
+            />
+            <span className="text-ink text-sm font-medium">
+              Acceso a todas las sucursales
+            </span>
+          </label>
+          <div className="grid gap-4">
+            {permissionGroups.map((group) => {
+              const actions = group.permissions.map((item) => item.action)
+              const allOn = locked || actions.every((a) => selected.has(a))
+              return (
+                <fieldset key={group.title} className="grid gap-1.5">
+                  <legend className="mb-1 flex w-full items-center justify-between">
+                    <span className="text-ink text-sm font-semibold">
+                      {group.title}
+                    </span>
+                    {!locked && (
+                      <button
+                        type="button"
+                        className="text-tealmax text-xs hover:underline"
+                        onClick={() => togglePermissions(actions, !allOn)}
+                      >
+                        {allOn ? 'Quitar Todos' : 'Marcar Todos'}
+                      </button>
+                    )}
+                  </legend>
+                  <div className="grid gap-1 sm:grid-cols-2">
+                    {group.permissions.map((permission) => (
+                      <label
+                        key={permission.action}
+                        className="flex cursor-pointer items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={locked || selected.has(permission.action)}
+                          disabled={locked}
+                          onChange={(event) =>
+                            togglePermissions(
+                              [permission.action],
+                              event.target.checked,
+                            )
+                          }
+                          className="accent-tealmax size-4 cursor-pointer"
+                        />
+                        <span className="text-ink">{permission.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              )
+            })}
+          </div>
+          <p className="text-muted text-xs">
+            Solo puedes otorgar permisos que tu propio rol tiene.
+          </p>
+        </ModalSection>
+
+        <ModalSection
           icon={<LayoutList className="size-4" />}
           title="Pantallas Permitidas"
         >
@@ -172,7 +259,7 @@ export function RoleForm({
             catalog={catalog}
             value={grants}
             onChange={setGrants}
-            disabled={owner}
+            disabled={locked}
           />
           <p className="text-muted text-xs">
             Al marcar una pantalla se incluye su grupo en el menú.

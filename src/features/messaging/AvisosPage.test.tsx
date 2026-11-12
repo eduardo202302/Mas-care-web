@@ -38,7 +38,7 @@ function setup(permissions: string[]) {
   const me = {
     user: { id: 'u1', name: 'Dueña', email: 'o@example.test' },
     organization: { id: 'org', name: 'Farmacia' },
-    role: 'owner',
+    allBranches: true,
     roleId: null,
     roleName: null,
     isPlatformOwner: false,

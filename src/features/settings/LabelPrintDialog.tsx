@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Printer, Tag } from 'lucide-react'
 import { Dialog } from '@/components/ui/Dialog'
@@ -10,9 +10,8 @@ import type {
   LabelTemplate,
   LabelTemplateList,
 } from '@/lib/operations'
-import { LABEL_VARIABLE_LABELS } from './LabelEditor'
-
-const MM_TO_PX = 3.78
+import { formatInches, labelDims, type LabelDesign } from './labelConfig'
+import { LabelPrint, LabelSheet } from './LabelSheet'
 
 function pickDefaultTemplate(
   templates: LabelTemplate[],
@@ -28,64 +27,12 @@ function pickDefaultTemplate(
   )
 }
 
-/** Renders one label at its real mm size for printing, variables already resolved. */
-function LabelSheet({
-  template,
-  values,
-}: {
-  template: LabelTemplate
-  values: Record<string, string>
-}) {
-  const widthMm = Number(template.widthMm)
-  const heightMm = Number(template.heightMm)
-  let w = widthMm
-  let h = heightMm
-  if (template.orientation === 'portrait' && w > h) [w, h] = [h, w]
-  if (template.orientation === 'landscape' && h > w) [w, h] = [h, w]
-
-  return (
-    <>
-      <style>{`@page { size: ${w}mm ${h}mm; margin: 0; }`}</style>
-      <div
-        className="label-print-sheet relative mx-auto border border-slate-300 bg-white"
-        style={{ width: w * MM_TO_PX, height: h * MM_TO_PX }}
-      >
-        {template.elements.map((element) => {
-          const text =
-            element.type === 'text'
-              ? element.text
-              : element.type === 'line'
-                ? ''
-                : element.showLabel
-                  ? `${LABEL_VARIABLE_LABELS[element.key]}: ${values[element.key] ?? ''}`
-                  : values[element.key] ?? ''
-          return (
-            <div
-              key={element.id}
-              className="absolute px-1 py-0.5 leading-tight whitespace-pre-wrap"
-              style={{
-                left: `${element.x}%`,
-                top: `${element.y}%`,
-                width: `${element.w}%`,
-                minHeight: element.h,
-                fontSize: element.fontSize,
-                fontWeight: element.bold ? 700 : 400,
-                fontStyle: element.italic ? 'italic' : 'normal',
-                textAlign: element.align,
-                color: element.color,
-                textDecoration: element.underline ? 'underline' : 'none',
-                borderBottom: element.type === 'line' ? `1px solid ${element.color}` : undefined,
-                transform: element.rotation ? `rotate(${element.rotation}deg)` : undefined,
-              }}
-            >
-              {text}
-            </div>
-          )
-        })}
-      </div>
-    </>
-  )
-}
+const toDesign = (template: LabelTemplate): LabelDesign => ({
+  widthIn: Number(template.widthIn),
+  heightIn: Number(template.heightIn),
+  orientation: template.orientation,
+  elements: template.elements,
+})
 
 export function LabelPrintDialog({
   treatmentId,
@@ -114,20 +61,14 @@ export function LabelPrintDialog({
     enabled: Boolean(template),
   })
 
-  useEffect(() => {
-    if (!printing) return
-    const after = () => setPrinting(false)
-    window.addEventListener('afterprint', after, { once: true })
-    const timer = window.setTimeout(() => window.print(), 50)
-    return () => {
-      window.clearTimeout(timer)
-      window.removeEventListener('afterprint', after)
-    }
-  }, [printing])
+  const design = template ? toDesign(template) : null
+  const [w, h] = design
+    ? labelDims(design.widthIn, design.heightIn, design.orientation)
+    : [0, 0]
 
   return (
     <Dialog
-      title="Imprimir etiqueta"
+      title="Imprimir Etiqueta"
       icon={<Tag className="size-5" />}
       compactHeader
       onClose={onClose}
@@ -135,7 +76,7 @@ export function LabelPrintDialog({
     >
       {templates.isLoading ? (
         <p className="text-muted text-sm">Cargando plantillas…</p>
-      ) : !template ? (
+      ) : !template || !design ? (
         <p role="alert" className="text-sm text-amber-800">
           No hay ninguna etiqueta activa configurada como predeterminada.
           Configúrala en Ajustes → Plantillas de aviso → Etiquetas.
@@ -149,10 +90,15 @@ export function LabelPrintDialog({
       ) : (
         <div className="grid gap-4">
           <p className="text-muted text-xs">
-            Etiqueta: <strong className="text-ink">{template.name}</strong>
+            Etiqueta: <strong className="text-ink">{template.name}</strong> ·{' '}
+            {formatInches(w)} × {formatInches(h)} in
           </p>
           <div className="bg-surface flex justify-center overflow-auto rounded-lg border border-slate-200 p-6">
-            <LabelSheet template={template} values={preview.data!.values} />
+            <LabelSheet
+              design={design}
+              values={preview.data!.values}
+              className="border border-slate-300"
+            />
           </div>
         </div>
       )}
@@ -172,10 +118,12 @@ export function LabelPrintDialog({
         </Button>
       </FormActions>
 
-      {printing && template && preview.data && (
-        <div className="label-print-portal">
-          <LabelSheet template={template} values={preview.data.values} />
-        </div>
+      {printing && design && preview.data && (
+        <LabelPrint
+          design={design}
+          values={preview.data.values}
+          onDone={() => setPrinting(false)}
+        />
       )}
     </Dialog>
   )

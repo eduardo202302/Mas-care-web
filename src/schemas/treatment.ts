@@ -20,6 +20,11 @@ const doseFrequencyFields = {
 
 export const treatmentSchema = z.object({
   ...doseFrequencyFields,
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Indica el nombre del tratamiento.')
+    .max(160, 'Máximo 160 caracteres.'),
   medicationId: z.string().min(1, 'Selecciona un medicamento.'),
   dosePerIntake: z
     .number({ error: 'Indica una dosis válida.' })

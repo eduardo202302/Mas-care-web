@@ -59,7 +59,7 @@ export function ReportFilterBar({
   onChange: (next: ReportFilters) => void
 }) {
   const { data: me } = useMe()
-  const privileged = me?.role === 'owner' || me?.role === 'admin'
+  const privileged = me?.allBranches === true
   const branchOptions = me?.branches ?? []
   const [rangeError, setRangeError] = useState<string | null>(null)
   const [draft, setDraft] = useState<ReportFilters | null>(null)

@@ -52,6 +52,16 @@ function addressValues(details: BranchAddressDetails) {
   }
 }
 
+const addressFields = new Set([
+  'address',
+  'city',
+  'state',
+  'postalCode',
+  'sector',
+  'latitude',
+  'longitude',
+])
+
 function toAddressDetails(values: BranchFormValues) {
   const details: Record<string, string | number> = {}
   if (values.address) details.address = values.address
@@ -95,16 +105,19 @@ export default function BranchesPage() {
   })
   const save = useMutation({
     mutationFn: (values: BranchFormValues) => {
-      const {
-        address,
-        city,
-        state,
-        postalCode,
-        sector,
-        latitude,
-        longitude,
-        ...rest
-      } = values
+      // The address fields travel inside addressDetails, not at the top level.
+      const rest = Object.fromEntries(
+        Object.entries(values).filter(([key]) => !addressFields.has(key)),
+      ) as Omit<
+        BranchFormValues,
+        | 'address'
+        | 'city'
+        | 'state'
+        | 'postalCode'
+        | 'sector'
+        | 'latitude'
+        | 'longitude'
+      >
       const payload = { ...rest, addressDetails: toAddressDetails(values) }
       if (editing) {
         const body: components['schemas']['BranchPatch'] = payload

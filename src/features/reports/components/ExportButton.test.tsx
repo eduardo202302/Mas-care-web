@@ -13,7 +13,7 @@ function meResponse(permissions: string[]): components['schemas']['Me'] {
   return {
     user: { id: 'user-1', name: 'Usuario', email: 'user@example.test' },
     organization: { id: 'org-1', name: 'Farmacia Demo', googleMapsApiKey: null },
-    role: 'read_only',
+    allBranches: false,
     roleId: null,
     roleName: null,
     isPlatformOwner: false,

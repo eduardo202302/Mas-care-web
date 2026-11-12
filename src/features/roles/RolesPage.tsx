@@ -92,7 +92,7 @@ export default function RolesPage() {
       const description = values.description || null
       if (editing) {
         const body = editing.isSystem
-          ? { description, ...(editing.key === 'owner' ? {} : { items }) }
+          ? { description }
           : { ...values, description, items }
         return api<RoleDto>(`/api/v1/roles/${encodeURIComponent(editing.id)}`, {
           method: 'PATCH',

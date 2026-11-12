@@ -1,4 +1,5 @@
 import { expect, test, type Browser, type Page } from '@playwright/test'
+import { ensureLimitedRole } from './helpers/roles'
 import { randomUUID } from 'node:crypto'
 
 const API = 'http://localhost:3000'
@@ -428,7 +429,7 @@ test.describe.serial('Fase 2 · tablero, existencias e incidencias', () => {
         username: `lectura_${suffix}`,
         email: readOnlyEmail,
         password: readOnlyPassword,
-        role: 'read_only',
+        roleId: await ensureLimitedRole(page, API, 'read_only'),
         branchIds: [branch.id],
       },
     })

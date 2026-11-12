@@ -103,8 +103,6 @@ type TreatmentListResponse =
   paths['/api/v1/treatments']['get']['responses'][200]['content']['application/json']
 type MedicationList =
   paths['/api/v1/medications']['get']['responses'][200]['content']['application/json']
-type UserList =
-  paths['/api/v1/users']['get']['responses'][200]['content']['application/json']
 type DoctorPickerList = {
   data: {
     id: string
@@ -327,10 +325,6 @@ export default function PatientDetailPage() {
     queryFn: () =>
       api<MedicationList>('/api/v1/medications?archived=false&limit=15'),
   })
-  const users = useQuery({
-    queryKey: ['users', { limit: 15 }],
-    queryFn: () => api<UserList>('/api/v1/users?limit=15'),
-  })
   // Médicos activos para el select de prescriptor del tratamiento.
   const doctors = useQuery({
     queryKey: ['doctors', 'picker'],
@@ -444,6 +438,7 @@ export default function PatientDetailPage() {
     }) => {
       if (treatment) {
         const body: components['schemas']['TreatmentPatch'] = {
+          name: values.name?.trim() || null,
           medication_id: values.medicationId,
           branch_id: values.branchId,
           responsible_user_id: values.responsibleUserId || null,
@@ -467,6 +462,7 @@ export default function PatientDetailPage() {
       }
       const body: components['schemas']['TreatmentCreate'] = {
         patient_id: id,
+        name: values.name?.trim() || null,
         medication_id: values.medicationId,
         branch_id: values.branchId,
         responsible_user_id: values.responsibleUserId || null,
@@ -1510,7 +1506,6 @@ export default function PatientDetailPage() {
             patientName={record.fullName}
             medications={medications.data?.data ?? []}
             branches={branches.data?.data ?? []}
-            users={users.data?.data ?? []}
             doctors={doctors.data?.data ?? []}
             doctorsLoading={doctors.isLoading}
             defaultBranchId={record.primaryBranchId}

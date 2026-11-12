@@ -58,8 +58,6 @@ type MedicationList =
   paths['/api/v1/medications']['get']['responses'][200]['content']['application/json']
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
-type UserList =
-  paths['/api/v1/users']['get']['responses'][200]['content']['application/json']
 type DoctorPickerList = {
   data: {
     id: string
@@ -178,11 +176,6 @@ export default function TreatmentsPage() {
     queryKey: ['medications', { archived: 'false', rows: 100 }],
     queryFn: () =>
       api<MedicationList>('/api/v1/medications?archived=false&rows=100'),
-    enabled: formOpen || editingId !== null,
-  })
-  const users = useQuery({
-    queryKey: ['users', { rows: 100 }],
-    queryFn: () => api<UserList>('/api/v1/users?rows=100'),
     enabled: formOpen || editingId !== null,
   })
   const canReadDoctors = useCan('doctors:read')
@@ -572,7 +565,6 @@ export default function TreatmentsPage() {
                 patientName={patient.fullName}
                 medications={medications.data?.data ?? []}
                 branches={branches.data?.data ?? []}
-                users={users.data?.data ?? []}
                 doctors={doctors.data?.data ?? []}
                 doctorsLoading={doctors.isLoading}
                 defaultBranchId={patient.primaryBranchId}
@@ -611,7 +603,6 @@ export default function TreatmentsPage() {
               }
               medications={medications.data?.data ?? []}
               branches={branches.data?.data ?? []}
-              users={users.data?.data ?? []}
               doctors={doctors.data?.data ?? []}
               doctorsLoading={doctors.isLoading}
               onSave={(values) =>

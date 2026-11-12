@@ -33,8 +33,6 @@ type DoctorPickerList = {
     licenseNumber?: string | null
   }[]
 }
-type UserList =
-  paths['/api/v1/users']['get']['responses'][200]['content']['application/json']
 
 export function PatientTreatmentsPanel({
   patientId,
@@ -71,10 +69,6 @@ export function PatientTreatmentsPanel({
   const branches = useQuery({
     queryKey: ['branches'],
     queryFn: () => api<BranchList>('/api/v1/branches'),
-  })
-  const users = useQuery({
-    queryKey: ['users', { rows: 100 }],
-    queryFn: () => api<UserList>('/api/v1/users?rows=100'),
   })
   // Médicos activos: el prescriptor del tratamiento es un médico registrado.
   const canReadDoctors = useCan('doctors:read')
@@ -221,7 +215,6 @@ export function PatientTreatmentsPanel({
               patientName={patientName}
               medications={medications.data?.data ?? []}
               branches={branches.data?.data ?? []}
-              users={users.data?.data ?? []}
               doctors={doctors.data?.data ?? []}
               doctorsLoading={doctors.isLoading}
               defaultBranchId={defaultBranchId}

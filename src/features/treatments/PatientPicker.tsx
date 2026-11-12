@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { api } from '@/lib/http'
 import { formatPhone } from '@/lib/phone'
+import { toTitleCase } from '@/lib/titleCase'
 import type { paths } from '@/lib/api-types'
 
 type PatientList =
@@ -28,11 +29,19 @@ export function PatientPicker({
   value,
   onChange,
   branchId,
+  inline = false,
+  label = 'Paciente',
+  required = true,
 }: {
   value: PickerPatient | null
   onChange: (patient: PickerPatient | null) => void
   branchId?: string
+  /** Sin tarjeta de sección y con la lista flotando, para usarlo dentro de una fila de filtros. */
+  inline?: boolean
+  label?: string
+  required?: boolean
 }) {
+  const t = (text: string) => (inline ? toTitleCase(text) : text)
   const [search, setSearch] = useState('')
   const [listOpen, setListOpen] = useState(false)
   const term = useDebounced(search.trim())
@@ -48,119 +57,123 @@ export function PatientPicker({
   })
   const items = patients.data?.data ?? []
 
-  return (
-    <ModalSection icon={<UserRound className="size-4" />} title="Paciente">
-      <div className="grid gap-1.5">
-        <label
-          htmlFor="treatment-patient"
-          className="text-ink text-sm font-medium"
-        >
-          Paciente <span className="text-red-700">*</span>
-        </label>
-        {value ? (
-          <div className="border-border flex items-center justify-between gap-3 rounded-lg border bg-white px-3 py-2">
-            <div className="min-w-0">
-              <p className="text-ink truncate text-sm font-semibold">
-                {value.fullName}
-              </p>
-              <p className="text-muted truncate text-xs">
-                ID: <span className="font-semibold">{value.numericId}</span>
-                {value.phone ? ` · ${formatPhone(value.phone)}` : ''}
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-8 shrink-0 px-2 text-xs"
-              onClick={() => {
-                onChange(null)
-                setSearch('')
-              }}
-            >
-              Cambiar
-            </Button>
+  const field = (
+    <div className={inline ? 'relative grid gap-1.5' : 'grid gap-1.5'}>
+      <label
+        htmlFor="treatment-patient"
+        className="text-ink text-sm font-medium"
+      >
+        {label} {required && <span className="text-red-700">*</span>}
+      </label>
+      {value ? (
+        <div className="border-border flex items-center justify-between gap-3 rounded-lg border bg-white px-3 py-2">
+          <div className="min-w-0">
+            <p className="text-ink truncate text-sm font-semibold">
+              {value.fullName}
+            </p>
+            <p className="text-muted truncate text-xs">
+              ID: <span className="font-semibold">{value.numericId}</span>
+              {value.phone ? ` · ${formatPhone(value.phone)}` : ''}
+            </p>
           </div>
-        ) : (
-          <>
-            <div className="relative">
-              <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-              <input
-                id="treatment-patient"
-                value={search}
-                onChange={(event) => {
-                  setSearch(event.target.value)
-                  setListOpen(true)
-                }}
-                onFocus={() => setListOpen(true)}
-                onBlur={() => window.setTimeout(() => setListOpen(false), 120)}
-                placeholder="Buscar por nombre, documento o teléfono…"
-                autoComplete="off"
-                role="combobox"
-                aria-expanded={listOpen}
-                aria-controls="treatment-patient-options"
-                aria-autocomplete="list"
-                className={`${fieldClass} pr-9 pl-9`}
-              />
-              {search && (
-                <button
-                  type="button"
-                  aria-label="Limpiar búsqueda"
-                  onClick={() => setSearch('')}
-                  className="text-muted hover:text-ink absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
-                >
-                  <X className="size-4" />
-                </button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-8 shrink-0 px-2 text-xs"
+            onClick={() => {
+              onChange(null)
+              setSearch('')
+            }}
+          >
+            {t('Cambiar')}
+          </Button>
+        </div>
+      ) : (
+        <>
+          <div className="relative">
+            <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <input
+              id="treatment-patient"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value)
+                setListOpen(true)
+              }}
+              onFocus={() => setListOpen(true)}
+              onBlur={() => window.setTimeout(() => setListOpen(false), 120)}
+              placeholder={t('Buscar por nombre, documento o teléfono…')}
+              autoComplete="off"
+              role="combobox"
+              aria-expanded={listOpen}
+              aria-controls="treatment-patient-options"
+              aria-autocomplete="list"
+              className={`${fieldClass} pr-9 pl-9`}
+            />
+            {search && (
+              <button
+                type="button"
+                aria-label="Limpiar búsqueda"
+                onClick={() => setSearch('')}
+                className="text-muted hover:text-ink absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+          {listOpen && (
+            <div
+              id="treatment-patient-options"
+              role="listbox"
+              aria-label="Pacientes"
+              className={`app-scroll border-border max-h-56 overflow-y-auto rounded-lg border bg-white p-1 shadow-lg ${
+                inline ? 'absolute top-full right-0 left-0 z-30 mt-1' : 'mt-1'
+              }`}
+            >
+              {patients.isFetching ? (
+                <p className="text-muted px-3 py-2 text-sm">{t('Buscando…')}</p>
+              ) : items.length ? (
+                items.map((patient) => (
+                  <button
+                    key={patient.id}
+                    type="button"
+                    role="option"
+                    aria-selected={false}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => {
+                      onChange(patient)
+                      setListOpen(false)
+                    }}
+                    className="hover:bg-surface flex w-full flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left"
+                  >
+                    <span className="text-ink text-sm font-medium">
+                      {patient.fullName}
+                    </span>
+                    <span className="text-muted text-xs">
+                      ID: {patient.numericId}
+                      {patient.phone ? ` · ${formatPhone(patient.phone)}` : ''}
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <p className="text-muted px-3 py-2 text-sm">
+                  {t('No encontramos pacientes con esa búsqueda.')}
+                </p>
               )}
             </div>
-            {listOpen && (
-              <div
-                id="treatment-patient-options"
-                role="listbox"
-                aria-label="Pacientes"
-                className="app-scroll border-border mt-1 max-h-56 overflow-y-auto rounded-lg border bg-white p-1 shadow-lg"
-              >
-                {patients.isFetching ? (
-                  <p className="text-muted px-3 py-2 text-sm">Buscando…</p>
-                ) : items.length ? (
-                  items.map((patient) => (
-                    <button
-                      key={patient.id}
-                      type="button"
-                      role="option"
-                      aria-selected={false}
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => {
-                        onChange(patient)
-                        setListOpen(false)
-                      }}
-                      className="hover:bg-surface flex w-full flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left"
-                    >
-                      <span className="text-ink text-sm font-medium">
-                        {patient.fullName}
-                      </span>
-                      <span className="text-muted text-xs">
-                        ID: {patient.numericId}
-                        {patient.phone
-                          ? ` · ${formatPhone(patient.phone)}`
-                          : ''}
-                      </span>
-                    </button>
-                  ))
-                ) : (
-                  <p className="text-muted px-3 py-2 text-sm">
-                    No encontramos pacientes con esa búsqueda.
-                  </p>
-                )}
-              </div>
-            )}
-            {patients.isError && (
-              <p role="alert" className="text-xs text-red-700">
-                No pudimos cargar los pacientes.
-              </p>
-            )}
-          </>
-        )}
-      </div>
+          )}
+          {patients.isError && (
+            <p role="alert" className="text-xs text-red-700">
+              {t('No pudimos cargar los pacientes.')}
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  )
+  if (inline) return field
+  return (
+    <ModalSection icon={<UserRound className="size-4" />} title="Paciente">
+      {field}
     </ModalSection>
   )
 }

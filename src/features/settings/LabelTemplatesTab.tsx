@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Plus, Printer, Star, Tag } from 'lucide-react'
+import { Pencil, Plus, Star, Tag } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/Button'
@@ -10,6 +10,7 @@ import type { paths } from '@/lib/api-types'
 import { useCan } from '@/lib/permissions'
 import type { LabelTemplate, LabelTemplateList } from '@/lib/operations'
 import { LabelTemplateFormDialog } from './LabelTemplateFormDialog'
+import { formatInches } from './labelConfig'
 
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
@@ -60,8 +61,8 @@ export function LabelTemplatesTab() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-muted text-sm">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="text-muted text-xs">
           Diseña las etiquetas físicas que se imprimen para cada medicamento de
           un tratamiento.
         </p>
@@ -74,7 +75,7 @@ export function LabelTemplatesTab() {
             }}
           >
             <Plus className="size-4" />
-            Nueva etiqueta
+            Nueva Etiqueta
           </Button>
         )}
       </div>
@@ -107,7 +108,7 @@ export function LabelTemplatesTab() {
             canWrite ? (
               <Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true) }}>
                 <Plus className="size-4" />
-                Nueva etiqueta
+                Nueva Etiqueta
               </Button>
             ) : undefined
           }
@@ -126,7 +127,7 @@ export function LabelTemplatesTab() {
                     <div>
                       <h3 className="text-ink text-sm font-semibold">{template.name}</h3>
                       <p className="text-muted text-xs">
-                        {template.widthMm} × {template.heightMm} mm ·{' '}
+                        {formatInches(Number(template.widthIn))} × {formatInches(Number(template.heightIn))} in ·{' '}
                         {template.orientation === 'landscape' ? 'Horizontal' : 'Vertical'}
                       </p>
                     </div>
@@ -198,13 +199,6 @@ export function LabelTemplatesTab() {
           })}
         </div>
       )}
-
-      <p className="text-muted mt-5 flex items-start gap-2 text-xs">
-        <Printer className="mt-0.5 size-4 shrink-0" />
-        Imprime una etiqueta desde el detalle del tratamiento de un paciente;
-        usa la etiqueta predeterminada de la sucursal (o de la organización si
-        la sucursal no tiene una propia).
-      </p>
 
       {formOpen && (
         <LabelTemplateFormDialog

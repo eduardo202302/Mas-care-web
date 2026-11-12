@@ -1,12 +1,5 @@
 import { z } from 'zod'
 
-export const assignableRoles = [
-  'admin',
-  'pharmacist',
-  'operator',
-  'read_only',
-] as const
-
 export const userCreateSchema = z.object({
   name: z
     .string()
@@ -43,8 +36,7 @@ export const userCreateSchema = z.object({
     .trim()
     .length(6, 'El PIN debe tener 6 dígitos.')
     .regex(/^\d{6}$/, 'El PIN debe tener 6 dígitos numéricos.'),
-  role: z.enum(assignableRoles),
-  /** Role created in the Roles screen; `role` follows its base role. */
+  /** Role created in the Roles screen; it defines permissions and branch access. */
   roleId: z.string().min(1, 'Selecciona un rol.'),
   branchIds: z.array(z.string()),
 })
@@ -59,6 +51,5 @@ export type UserCreateValues = Omit<
 export const userEditSchema = userCreateSchema.extend({
   password: z.string().optional(),
   pin: z.string().optional(),
-  role: z.string(),
   roleId: z.string().optional(),
 })

@@ -378,18 +378,21 @@ export default function TemplatesPage() {
   return (
     <div className="animate-in">
       <PageHeader
-        title="Plantillas de aviso"
+        title="Plantillas de Aviso"
         subtitle="Mensajes de aviso y etiquetas de impresión para los tratamientos."
-      />
-
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        className="mb-5"
-        tabs={[
-          { value: 'alerts', label: 'Alertas', icon: <Bell className="size-4" /> },
-          { value: 'labels', label: 'Etiquetas', icon: <Tag className="size-4" /> },
-        ]}
+        className="mb-3"
+        actions={
+          <Tabs
+            value={tab}
+            onChange={setTab}
+            dense
+            className="mx-0 px-0"
+            tabs={[
+              { value: 'alerts', label: 'Alertas', icon: <Bell className="size-4" /> },
+              { value: 'labels', label: 'Etiquetas', icon: <Tag className="size-4" /> },
+            ]}
+          />
+        }
       />
 
       {tab === 'alerts' ? <AlertTemplatesTab /> : <LabelTemplatesTab />}

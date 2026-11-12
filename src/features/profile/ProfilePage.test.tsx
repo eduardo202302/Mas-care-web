@@ -20,7 +20,7 @@ function setup(profile: object) {
   const me = {
     user: { id: 'u1', name: 'Ana Pérez', email: 'ana@example.test' },
     organization: { id: 'org', name: 'Farmacia Demo' },
-    role: 'pharmacist',
+    allBranches: false,
     roleId: null,
     roleName: 'Farmacéutico',
     isPlatformOwner: false,

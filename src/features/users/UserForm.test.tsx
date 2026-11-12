@@ -10,8 +10,8 @@ afterEach(() => {
 
 const branches = [{ id: 'branch-1', name: 'Centro' }]
 const roles = [
-  { id: 'role-master', name: 'Master', baseRole: 'admin' },
-  { id: 'role-cashier', name: 'Cajero', baseRole: 'operator' },
+  { id: 'role-master', name: 'Master', allBranches: true },
+  { id: 'role-cashier', name: 'Cajero', allBranches: false },
 ]
 
 function renderForm(onSave: (values: UserCreateValues) => Promise<void>) {
@@ -78,7 +78,6 @@ describe('UserForm', () => {
         phone: '',
         pin: screen.getByLabelText<HTMLInputElement>('PIN de Recuperación')
           .value,
-        role: 'operator',
         roleId: 'role-cashier',
         branchIds: ['branch-1'],
       }),
@@ -125,7 +124,7 @@ describe('UserForm', () => {
     expect(onSave).not.toHaveBeenCalled()
   })
 
-  it('exige una sucursal para roles que no son administradores', async () => {
+  it('exige una sucursal para roles sin acceso a todas las sucursales', async () => {
     const onSave = vi.fn(async (values: UserCreateValues) => {
       void values
     })
@@ -142,7 +141,7 @@ describe('UserForm', () => {
     expect(onSave).not.toHaveBeenCalled()
   })
 
-  it('permite crear un usuario con rol administrador sin sucursales', async () => {
+  it('permite crear un usuario con un rol de todas las sucursales sin elegir sucursales', async () => {
     const onSave = vi.fn(async (values: UserCreateValues) => {
       void values
     })
@@ -156,7 +155,6 @@ describe('UserForm', () => {
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith(
         expect.objectContaining({
-          role: 'admin',
           roleId: 'role-master',
           branchIds: [],
         }),

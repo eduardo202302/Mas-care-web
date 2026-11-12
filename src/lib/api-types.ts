@@ -5082,6 +5082,298 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/label-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List label (printing) templates */
+        get: {
+            parameters: {
+                query?: {
+                    branch_id?: string;
+                    active?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Label templates */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                [key: string]: unknown;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create a label template */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["LabelTemplateCreate"];
+                };
+            };
+            responses: {
+                /** @description Label template created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Owner, admin or pharmacist required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/label-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a label template */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Label template */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Label template not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Deactivate a label template */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Label template deactivated */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Owner, admin or pharmacist required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Label template not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Update a label template */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["LabelTemplatePatch"];
+                };
+            };
+            responses: {
+                /** @description Updated label template */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Owner, admin or pharmacist required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Label template not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/label-templates/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resolve label variables for a patient (and optionally one of their treatments) */
+        get: {
+            parameters: {
+                query: {
+                    patient_id: string;
+                    treatment_id?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Resolved variable values; unavailable variables are empty strings */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Patient or treatment not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/label-templates/{id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resolve a label template's variables against a real treatment */
+        get: {
+            parameters: {
+                query: {
+                    treatment_id: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Resolved variable values */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Label template or treatment not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/imports/patients/preview": {
         parameters: {
             query?: never;
@@ -10012,7 +10304,7 @@ export interface components {
                 name: string;
                 googleMapsApiKey: string | null;
             };
-            role: string;
+            allBranches: boolean;
             roleId: string | null;
             roleName: string | null;
             isPlatformOwner: boolean;
@@ -10709,9 +11001,7 @@ export interface components {
             phone?: string;
             password: string;
             pin?: string;
-            /** @enum {string} */
-            role?: "admin" | "pharmacist" | "operator" | "read_only";
-            roleId?: string;
+            roleId: string;
             /** @default [] */
             branchIds: string[];
         };
@@ -10721,9 +11011,7 @@ export interface components {
             /** Format: email */
             email?: string;
             phone?: string | null;
-            /** @enum {string} */
-            role?: "admin" | "pharmacist" | "operator" | "read_only";
-            roleId?: string | null;
+            roleId?: string;
             /** @default [] */
             branchIds: string[];
         };
@@ -10736,7 +11024,6 @@ export interface components {
             email: string;
             phone?: string | null;
             createdAt: string;
-            role: string;
             roleId?: string | null;
             roleName?: string | null;
             memberSince: string;
@@ -11021,6 +11308,212 @@ export interface components {
             /** @enum {string} */
             active?: "true" | "false";
         };
+        LabelTemplateCreate: {
+            name: string;
+            description?: string | null;
+            branch_id?: string | null;
+            width_in: number;
+            height_in: number;
+            /** @enum {string} */
+            orientation: "landscape" | "portrait";
+            elements: ({
+                /** @enum {string} */
+                type: "variable";
+                /** @enum {string} */
+                key: "farmacia_nombre" | "farmacia_telefono" | "farmacia_direccion" | "paciente_nombre" | "paciente_documento" | "paciente_edad" | "paciente_telefono" | "tratamiento_nombre" | "medicamento_nombre" | "medicamento_presentacion" | "dosis" | "programacion_dosis" | "dosis_cantidad" | "dosis_unidad" | "via_administracion" | "frecuencia" | "horario" | "duracion" | "cantidad" | "instrucciones" | "fecha_inicio" | "fecha_fin" | "prescriptor" | "codigo_tratamiento";
+                /** @default true */
+                showLabel: boolean;
+                id: number;
+                x: number;
+                y: number;
+                w: number;
+                h: number;
+                /** @default 12 */
+                fontSize: number;
+                /** @default false */
+                bold: boolean;
+                /** @default false */
+                italic: boolean;
+                /** @default false */
+                underline: boolean;
+                /**
+                 * @default left
+                 * @enum {string}
+                 */
+                align: "left" | "center" | "right";
+                /** @default #243247 */
+                color: string;
+                /** @default 0 */
+                rotation: number;
+            } | {
+                /** @enum {string} */
+                type: "text";
+                text: string;
+                id: number;
+                x: number;
+                y: number;
+                w: number;
+                h: number;
+                /** @default 12 */
+                fontSize: number;
+                /** @default false */
+                bold: boolean;
+                /** @default false */
+                italic: boolean;
+                /** @default false */
+                underline: boolean;
+                /**
+                 * @default left
+                 * @enum {string}
+                 */
+                align: "left" | "center" | "right";
+                /** @default #243247 */
+                color: string;
+                /** @default 0 */
+                rotation: number;
+            } | {
+                /** @enum {string} */
+                type: "line";
+                /**
+                 * @default horizontal
+                 * @enum {string}
+                 */
+                orientation: "horizontal" | "vertical";
+                id: number;
+                x: number;
+                y: number;
+                w: number;
+                h: number;
+                /** @default 12 */
+                fontSize: number;
+                /** @default false */
+                bold: boolean;
+                /** @default false */
+                italic: boolean;
+                /** @default false */
+                underline: boolean;
+                /**
+                 * @default left
+                 * @enum {string}
+                 */
+                align: "left" | "center" | "right";
+                /** @default #243247 */
+                color: string;
+                /** @default 0 */
+                rotation: number;
+            })[];
+            is_default?: boolean;
+            is_active?: boolean;
+        };
+        LabelTemplatePatch: {
+            name?: string;
+            description?: string | null;
+            branch_id?: string | null;
+            width_in?: number;
+            height_in?: number;
+            /** @enum {string} */
+            orientation?: "landscape" | "portrait";
+            elements?: ({
+                /** @enum {string} */
+                type: "variable";
+                /** @enum {string} */
+                key: "farmacia_nombre" | "farmacia_telefono" | "farmacia_direccion" | "paciente_nombre" | "paciente_documento" | "paciente_edad" | "paciente_telefono" | "tratamiento_nombre" | "medicamento_nombre" | "medicamento_presentacion" | "dosis" | "programacion_dosis" | "dosis_cantidad" | "dosis_unidad" | "via_administracion" | "frecuencia" | "horario" | "duracion" | "cantidad" | "instrucciones" | "fecha_inicio" | "fecha_fin" | "prescriptor" | "codigo_tratamiento";
+                /** @default true */
+                showLabel: boolean;
+                id: number;
+                x: number;
+                y: number;
+                w: number;
+                h: number;
+                /** @default 12 */
+                fontSize: number;
+                /** @default false */
+                bold: boolean;
+                /** @default false */
+                italic: boolean;
+                /** @default false */
+                underline: boolean;
+                /**
+                 * @default left
+                 * @enum {string}
+                 */
+                align: "left" | "center" | "right";
+                /** @default #243247 */
+                color: string;
+                /** @default 0 */
+                rotation: number;
+            } | {
+                /** @enum {string} */
+                type: "text";
+                text: string;
+                id: number;
+                x: number;
+                y: number;
+                w: number;
+                h: number;
+                /** @default 12 */
+                fontSize: number;
+                /** @default false */
+                bold: boolean;
+                /** @default false */
+                italic: boolean;
+                /** @default false */
+                underline: boolean;
+                /**
+                 * @default left
+                 * @enum {string}
+                 */
+                align: "left" | "center" | "right";
+                /** @default #243247 */
+                color: string;
+                /** @default 0 */
+                rotation: number;
+            } | {
+                /** @enum {string} */
+                type: "line";
+                /**
+                 * @default horizontal
+                 * @enum {string}
+                 */
+                orientation: "horizontal" | "vertical";
+                id: number;
+                x: number;
+                y: number;
+                w: number;
+                h: number;
+                /** @default 12 */
+                fontSize: number;
+                /** @default false */
+                bold: boolean;
+                /** @default false */
+                italic: boolean;
+                /** @default false */
+                underline: boolean;
+                /**
+                 * @default left
+                 * @enum {string}
+                 */
+                align: "left" | "center" | "right";
+                /** @default #243247 */
+                color: string;
+                /** @default 0 */
+                rotation: number;
+            })[];
+            is_default?: boolean;
+            is_active?: boolean;
+        };
+        LabelTemplateListQuery: {
+            branch_id?: string;
+            /** @enum {string} */
+            active?: "true" | "false";
+        };
+        LabelTemplatePreviewQuery: {
+            treatment_id: string;
+        };
+        LabelTemplateResolveQuery: {
+            patient_id: string;
+            treatment_id?: string;
+        };
         ColumnMapping: {
             [key: string]: string;
         };
@@ -11078,7 +11571,8 @@ export interface components {
             key: string | null;
             name: string;
             description: string | null;
-            baseRole: string;
+            permissions: string[];
+            allBranches: boolean;
             isSystem: boolean;
             isActive: boolean;
             memberCount: number;
@@ -11093,8 +11587,9 @@ export interface components {
         RoleCreate: {
             name: string;
             description?: string | null;
-            /** @enum {string} */
-            baseRole: "admin" | "pharmacist" | "operator" | "read_only";
+            /** @default [] */
+            permissions: ("branches:read" | "branches:write" | "patients:read" | "patients:write" | "patients:archive" | "medications:read" | "medications:write" | "treatments:read" | "treatments:write" | "treatments:manage" | "dashboard:read" | "tasks:read" | "tasks:write" | "templates:read" | "templates:write" | "imports:write" | "settings:read" | "settings:write" | "audit:read" | "users:write" | "roles:read" | "roles:write" | "cycle:move" | "cycle:edit-date" | "stock:mark" | "incident:create" | "incident:move" | "incident:resolve" | "automation:manage" | "outbox:view" | "outbox:retry" | "inbound:assign" | "patient:transfer" | "export:csv" | "doctors:read" | "doctors:write" | "specialties:read" | "specialties:write" | "medical-centers:read" | "medical-centers:write" | "health-conditions:read" | "health-conditions:write" | "dose:log" | "dose:correct" | "inventory:purchase" | "inventory:adjust" | "inventory:settings:write")[];
+            allBranches?: boolean;
             isActive?: boolean;
             /** @default [] */
             items: {
@@ -11112,8 +11607,8 @@ export interface components {
         RolePatch: {
             name?: string;
             description?: string | null;
-            /** @enum {string} */
-            baseRole?: "admin" | "pharmacist" | "operator" | "read_only";
+            permissions?: ("branches:read" | "branches:write" | "patients:read" | "patients:write" | "patients:archive" | "medications:read" | "medications:write" | "treatments:read" | "treatments:write" | "treatments:manage" | "dashboard:read" | "tasks:read" | "tasks:write" | "templates:read" | "templates:write" | "imports:write" | "settings:read" | "settings:write" | "audit:read" | "users:write" | "roles:read" | "roles:write" | "cycle:move" | "cycle:edit-date" | "stock:mark" | "incident:create" | "incident:move" | "incident:resolve" | "automation:manage" | "outbox:view" | "outbox:retry" | "inbound:assign" | "patient:transfer" | "export:csv" | "doctors:read" | "doctors:write" | "specialties:read" | "specialties:write" | "medical-centers:read" | "medical-centers:write" | "health-conditions:read" | "health-conditions:write" | "dose:log" | "dose:correct" | "inventory:purchase" | "inventory:adjust" | "inventory:settings:write")[];
+            allBranches?: boolean;
             isActive?: boolean;
             items?: {
                 menuItemId: string;

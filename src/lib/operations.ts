@@ -253,11 +253,17 @@ export type LabelVariableKey =
   | 'paciente_nombre'
   | 'paciente_documento'
   | 'paciente_edad'
+  | 'paciente_telefono'
+  | 'tratamiento_nombre'
   | 'medicamento_nombre'
   | 'medicamento_presentacion'
   | 'dosis'
+  | 'programacion_dosis'
+  | 'dosis_cantidad'
+  | 'dosis_unidad'
   | 'via_administracion'
   | 'frecuencia'
+  | 'horario'
   | 'duracion'
   | 'cantidad'
   | 'instrucciones'
@@ -299,8 +305,8 @@ export type LabelTemplate = {
   branchId: string | null
   name: string
   description: string | null
-  widthMm: string | number
-  heightMm: string | number
+  widthIn: string | number
+  heightIn: string | number
   orientation: 'landscape' | 'portrait'
   elements: LabelElement[]
   isDefault: boolean
@@ -314,6 +320,12 @@ export type LabelTemplateList = { data: LabelTemplate[] }
 export type LabelPreviewValues = {
   template_id: string
   treatment_id: string
+  values: Record<LabelVariableKey, string>
+}
+
+export type LabelResolvedValues = {
+  patient_id: string
+  treatment_id: string | null
   values: Record<LabelVariableKey, string>
 }
 

@@ -22,7 +22,7 @@ describe('permisos de sucursales', () => {
             email: 'read@example.test',
           },
           organization: { id: 'org-1', name: 'Farmacia Demo', googleMapsApiKey: null },
-          role: 'read_only',
+          allBranches: false,
           roleId: null,
           roleName: null,
           isPlatformOwner: false,

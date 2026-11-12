@@ -25,7 +25,7 @@ export default function StockPage() {
   const { data: me } = useMe()
   const canMark = useCan('stock:mark')
   const branches = me?.branches ?? []
-  const privileged = me?.role === 'owner' || me?.role === 'admin'
+  const privileged = me?.allBranches === true
   const [branchId, setBranchId] = useState('')
 
   useEffect(() => {
