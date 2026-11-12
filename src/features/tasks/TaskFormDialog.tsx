@@ -157,7 +157,9 @@ export function TaskFormDialog({
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Tipo</span>
+              <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+                Tipo
+              </span>
               <select
                 value={type}
                 onChange={(event) => changeType(event.target.value as TaskType)}
@@ -186,7 +188,9 @@ export function TaskFormDialog({
               />
             </label>
             <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Prioridad</span>
+              <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+                Prioridad
+              </span>
               <select
                 value={priority}
                 onChange={(event) =>
@@ -334,11 +338,7 @@ export function TaskFormDialog({
           <Button type="button" onClick={onClose}>
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={!title.trim() || !type || !priority || create.isPending}
-          >
+          <Button type="submit" variant="primary" disabled={create.isPending}>
             {create.isPending ? 'Creando…' : 'Crear Tarea'}
           </Button>
         </FormActions>

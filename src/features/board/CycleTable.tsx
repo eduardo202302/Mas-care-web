@@ -36,6 +36,11 @@ import { derivedStatusLabel, formatDate } from '@/lib/treatments'
 import { cn } from '@/lib/cn'
 import { compareValues } from '@/lib/table-sort'
 import { BatchBar, ColumnPicker, SavedViewsBar } from './CycleTableControls'
+import {
+  emptyCycleColumnFilters,
+  matchesCycleColumnFilters,
+  type CycleColumnFilters,
+} from './cycleColumnFilters'
 
 /** Column keys that map to a backend-sortable field; columns without an entry sort client-side (current page only). */
 const columnSortField: Record<string, string> = {
@@ -48,6 +53,7 @@ const columnSortField: Record<string, string> = {
 
 export function CycleTable({
   filters,
+  columnFilters = emptyCycleColumnFilters,
   canMove,
   canWrite = false,
   onMove,
@@ -56,6 +62,8 @@ export function CycleTable({
   controlsSlot,
 }: {
   filters: BoardFilters
+  /** Filtros por columna del Filtro Avanzado; se aplican sobre la página cargada. */
+  columnFilters?: CycleColumnFilters
   canMove: boolean
   /** Batch actions need write access (assign, tasks) and move access (stage, archive). */
   canWrite?: boolean
@@ -174,7 +182,25 @@ export function CycleTable({
   const boardFiltersKey = boardFiltersToSearch(filters).toString()
   useEffect(() => setPage(1), [boardFiltersKey])
 
-  const cards = table.data?.data ?? []
+  const columnFiltersKey = JSON.stringify(columnFilters)
+  useEffect(() => setPage(1), [columnFiltersKey])
+
+  const loadedCards = table.data?.data ?? []
+  const cards = loadedCards.filter((card) =>
+    matchesCycleColumnFilters(
+      card,
+      columnFilters,
+      (item) =>
+        pipeline
+          ? effectiveStage(
+              pipeline,
+              item.status,
+              (item as { stage_id?: string | null }).stage_id,
+            )?.id
+          : undefined,
+      properties,
+    ),
+  )
   const displayCards = clientSort
     ? [...cards].sort(
         (a, b) =>

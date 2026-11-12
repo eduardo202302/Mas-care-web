@@ -16,7 +16,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical } from 'lucide-react'
+import { GripVertical, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { menuIcon, type MenuItemDto, type MenuNode } from '@/lib/menu'
 
@@ -25,6 +25,37 @@ const gridClass =
   'grid min-w-[56rem] grid-cols-[8rem_minmax(12rem,2fr)_minmax(8rem,1.5fr)_minmax(8rem,1.5fr)_4rem_6.5rem] items-center'
 
 type Node = MenuNode<MenuItemDto>
+
+function FixedRow() {
+  return (
+    <div
+      className={cn(
+        gridClass,
+        'border-border border-t bg-white px-3 py-3 text-sm',
+      )}
+    >
+      <span />
+      <span className="inline-flex items-center gap-2 px-5 font-semibold">
+        <Settings2
+          className="text-tealmax size-4 shrink-0"
+          aria-hidden="true"
+        />
+        Componentes
+        <span className="bg-surface text-muted rounded-full px-2 py-0.5 text-xs font-medium">
+          Ajustes
+        </span>
+      </span>
+      <span className="text-muted px-5 font-mono text-xs">/dev/chips</span>
+      <span className="text-muted px-5 font-mono text-xs">componentes</span>
+      <span className="text-muted px-5">—</span>
+      <span className="px-5">
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+          Fijo
+        </span>
+      </span>
+    </div>
+  )
+}
 
 function useReorderSensors() {
   return useSensors(
@@ -303,6 +334,7 @@ export function MenuOrderTable({
               ))}
             </SortableContext>
           </DndContext>
+          <FixedRow />
         </div>
       </div>
     </div>

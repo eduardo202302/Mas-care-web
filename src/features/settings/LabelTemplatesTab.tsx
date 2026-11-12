@@ -38,10 +38,15 @@ export function LabelTemplatesTab() {
     mutationFn: (template: LabelTemplate) =>
       api<LabelTemplate>(
         `/api/v1/label-templates/${encodeURIComponent(template.id)}`,
-        { method: 'PATCH', body: JSON.stringify({ is_active: !template.isActive }) },
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ is_active: !template.isActive }),
+        },
       ),
     onSuccess: async (template) => {
-      setFeedback(template.isActive ? 'Etiqueta activada.' : 'Etiqueta desactivada.')
+      setFeedback(
+        template.isActive ? 'Etiqueta activada.' : 'Etiqueta desactivada.',
+      )
       await queryClient.invalidateQueries({ queryKey: ['label-templates'] })
     },
   })
@@ -86,16 +91,26 @@ export function LabelTemplatesTab() {
         </p>
       )}
       {templates.isError && (
-        <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <p
+          role="alert"
+          className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+        >
           No pudimos cargar las etiquetas. {templates.error.message}{' '}
-          <button type="button" className="font-semibold underline" onClick={() => void templates.refetch()}>
+          <button
+            type="button"
+            className="font-semibold underline"
+            onClick={() => void templates.refetch()}
+          >
             Reintentar
           </button>
         </p>
       )}
 
       {templates.isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
+        <div
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          aria-busy="true"
+        >
           {[0, 1, 2].map((item) => (
             <Skeleton key={item} className="h-40 w-full rounded-xl" />
           ))}
@@ -106,7 +121,13 @@ export function LabelTemplatesTab() {
           description="Diseña una etiqueta para imprimirla al entregar los medicamentos de un tratamiento."
           action={
             canWrite ? (
-              <Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true) }}>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setEditing(null)
+                  setFormOpen(true)
+                }}
+              >
                 <Plus className="size-4" />
                 Nueva Etiqueta
               </Button>
@@ -116,19 +137,29 @@ export function LabelTemplatesTab() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {data.map((template) => {
-            const branch = template.branchId ? branchMap.get(template.branchId) : undefined
+            const branch = template.branchId
+              ? branchMap.get(template.branchId)
+              : undefined
             return (
-              <article key={template.id} className="border-border shadow-card rounded-xl border bg-white p-4">
+              <article
+                key={template.id}
+                className="border-border shadow-card rounded-xl border bg-white p-4"
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="bg-surface text-tealmax grid size-9 place-items-center rounded-lg">
                       <Tag className="size-4" />
                     </span>
                     <div>
-                      <h3 className="text-ink text-sm font-semibold">{template.name}</h3>
+                      <h3 className="text-ink text-sm font-semibold">
+                        {template.name}
+                      </h3>
                       <p className="text-muted text-xs">
-                        {formatInches(Number(template.widthIn))} × {formatInches(Number(template.heightIn))} in ·{' '}
-                        {template.orientation === 'landscape' ? 'Horizontal' : 'Vertical'}
+                        {formatInches(Number(template.widthIn))} ×{' '}
+                        {formatInches(Number(template.heightIn))} in ·{' '}
+                        {template.orientation === 'landscape'
+                          ? 'Horizontal'
+                          : 'Vertical'}
                       </p>
                     </div>
                   </div>
@@ -151,14 +182,21 @@ export function LabelTemplatesTab() {
                     {template.isActive ? 'Activa' : 'Inactiva'}
                   </span>
                   {branch ? (
-                    <BranchTag name={branch.name} labelColor={branch.labelColor} />
+                    <BranchTag
+                      name={branch.name}
+                      labelColor={branch.labelColor}
+                    />
                   ) : (
-                    <span className="text-muted text-[11px]">Toda la organización</span>
+                    <span className="text-muted text-[11px]">
+                      Toda la organización
+                    </span>
                   )}
                 </div>
 
                 {template.description && (
-                  <p className="text-muted mt-2 line-clamp-2 text-xs">{template.description}</p>
+                  <p className="text-muted mt-2 line-clamp-2 text-xs">
+                    {template.description}
+                  </p>
                 )}
 
                 {canWrite && (

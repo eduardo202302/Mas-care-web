@@ -239,6 +239,7 @@ export function PatientConditionsPanel({
             className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
+              if (!healthConditionId) return
               add.mutate()
             }}
           >
@@ -249,7 +250,7 @@ export function PatientConditionsPanel({
               <div className="grid gap-1.5">
                 <label
                   htmlFor="condition-picker"
-                  className="text-ink text-sm font-medium"
+                  className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
                 >
                   Condición
                 </label>
@@ -297,7 +298,7 @@ export function PatientConditionsPanel({
               <div className="grid gap-1.5">
                 <label
                   htmlFor="condition-status"
-                  className="text-ink text-sm font-medium"
+                  className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
                 >
                   Estado
                 </label>
@@ -376,11 +377,7 @@ export function PatientConditionsPanel({
               <Button type="button" onClick={closeAdd}>
                 Cancelar
               </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={add.isPending || !healthConditionId}
-              >
+              <Button type="submit" variant="primary" disabled={add.isPending}>
                 {add.isPending ? 'Guardando…' : 'Agregar Condición'}
               </Button>
             </FormActions>

@@ -9,7 +9,11 @@ import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError, api } from '@/lib/http'
 import { useCan } from '@/lib/permissions'
-import { formatPhone, maskPhoneInput } from '@/lib/phone'
+import {
+  PHONE_INPUT_MAX_LENGTH,
+  formatPhone,
+  maskPhoneInput,
+} from '@/lib/phone'
 import type { paths } from '@/lib/api-types'
 
 export type CaregiverList =
@@ -232,6 +236,8 @@ export function PatientCaregiversPanel({
             className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
+              if (!fullName.trim() || !phone.trim() || !relationship.trim())
+                return
               saving.mutate()
             }}
           >
@@ -261,6 +267,7 @@ export function PatientCaregiversPanel({
                   type="tel"
                   inputMode="tel"
                   placeholder="(809) 555-1234"
+                  maxLength={PHONE_INPUT_MAX_LENGTH}
                   required
                   value={phone}
                   onChange={(event) =>
@@ -348,12 +355,7 @@ export function PatientCaregiversPanel({
               <Button
                 type="submit"
                 variant="primary"
-                disabled={
-                  saving.isPending ||
-                  !fullName.trim() ||
-                  !phone.trim() ||
-                  !relationship.trim()
-                }
+                disabled={saving.isPending}
               >
                 {saving.isPending
                   ? 'Guardando…'

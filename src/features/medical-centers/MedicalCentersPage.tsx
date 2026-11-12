@@ -1,6 +1,14 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Activity, Building2, Plus, Search } from 'lucide-react'
+import {
+  Activity,
+  Building2,
+  Hash,
+  Landmark,
+  MapPin,
+  Plus,
+  Search,
+} from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
@@ -32,6 +40,24 @@ type MedicalCenterQuery = NonNullable<
   paths['/api/v1/medical-centers']['get']['parameters']['query']
 >
 
+type CenterFilters = {
+  isActive: 'true' | 'false'
+  id: string
+  name: string
+  centerType: string
+  location: string
+}
+
+const emptyFilters: CenterFilters = {
+  isActive: 'true',
+  id: '',
+  name: '',
+  centerType: '',
+  location: '',
+}
+
+const centerTypeOptions = Object.entries(medicalCenterTypeLabels)
+
 function queryString(query: MedicalCenterQuery) {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query))
@@ -47,14 +73,23 @@ function addressText(
   return typeof value === 'string' ? value : ''
 }
 
+function uniqueSorted(
+  values: (string | null | undefined)[],
+  ...selected: string[]
+) {
+  const set = new Set(values.filter((value): value is string => !!value))
+  for (const value of selected) if (value) set.add(value)
+  return [...set].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+}
+
 export default function MedicalCentersPage() {
   const canWrite = useCan('medical-centers:write')
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
-  const [isActive, setIsActive] = useState<'true' | 'false'>('true')
-  const [filterDraft, setFilterDraft] = useState<{
-    isActive: 'true' | 'false'
-  } | null>(null)
+  // El servidor solo filtra por estado: el resto se aplica sobre la página cargada.
+  const [applied, setApplied] = useState<CenterFilters>(emptyFilters)
+  const [filterDraft, setFilterDraft] = useState<CenterFilters | null>(null)
+  const isActive = applied.isActive
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
@@ -138,8 +173,36 @@ export default function MedicalCentersPage() {
     setFormOpen(true)
   }
 
+  const locationText = (item: components['schemas']['MedicalCenter']) =>
+    [
+      addressText(item.addressDetails, 'city'),
+      addressText(item.addressDetails, 'region'),
+    ]
+      .filter(Boolean)
+      .join(', ')
+  const loaded = centers.data?.data ?? []
+  const idOptions = uniqueSorted(
+    loaded.map((item) => String(item.numericId)),
+    applied.id,
+    filterDraft?.id ?? '',
+  )
+  const nameOptions = uniqueSorted(
+    loaded.map((item) => item.name),
+    applied.name,
+    filterDraft?.name ?? '',
+  )
+  const locationOptions = uniqueSorted(
+    loaded.map(locationText),
+    applied.location,
+    filterDraft?.location ?? '',
+  )
+  const matchesFilters = (item: components['schemas']['MedicalCenter']) =>
+    (!applied.id || String(item.numericId) === applied.id) &&
+    (!applied.name || item.name === applied.name) &&
+    (!applied.centerType || item.centerType === applied.centerType) &&
+    (!applied.location || locationText(item) === applied.location)
   const items = applyColumnSort(
-    centers.data?.data ?? [],
+    (centers.data?.data ?? []).filter(matchesFilters),
     sort,
     (item, index) =>
       index === 0
@@ -208,11 +271,31 @@ export default function MedicalCentersPage() {
       .filter(Boolean)
       .join(', ') || '',
   ])
-  const filterCount = isActive === 'false' ? 1 : 0
-  const chips: ActiveFilterChip[] =
-    isActive === 'false'
+  const chips: ActiveFilterChip[] = [
+    ...(applied.isActive === 'false'
       ? [{ key: 'isActive', label: 'Estado', value: 'Inactivos' }]
-      : []
+      : []),
+    ...(applied.id ? [{ key: 'id', label: 'ID', value: applied.id }] : []),
+    ...(applied.name
+      ? [{ key: 'name', label: 'Nombre', value: applied.name }]
+      : []),
+    ...(applied.centerType
+      ? [
+          {
+            key: 'centerType',
+            label: 'Tipo',
+            value:
+              centerTypeOptions.find(
+                ([value]) => value === applied.centerType,
+              )?.[1] ?? applied.centerType,
+          },
+        ]
+      : []),
+    ...(applied.location
+      ? [{ key: 'location', label: 'Ubicación', value: applied.location }]
+      : []),
+  ]
+  const filterCount = chips.length
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
@@ -247,7 +330,7 @@ export default function MedicalCentersPage() {
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
-          onClick={() => setFilterDraft({ isActive })}
+          onClick={() => setFilterDraft(applied)}
         />
         <TableToolbarActions
           title="Centros Médicos"
@@ -258,8 +341,11 @@ export default function MedicalCentersPage() {
       </FilterBarRow>
       <ActiveFilterChips
         chips={chips}
-        onRemove={() => {
-          setIsActive('true')
+        onRemove={(key) => {
+          setApplied((current) => ({
+            ...current,
+            [key]: key === 'isActive' ? 'true' : '',
+          }))
           setPage(1)
         }}
       />
@@ -269,13 +355,16 @@ export default function MedicalCentersPage() {
           description="Combina estos criterios para acotar la lista de centros médicos."
           onClose={() => setFilterDraft(null)}
           onClear={() => {
-            setFilterDraft({ isActive: 'true' })
-            setIsActive('true')
+            setFilterDraft(emptyFilters)
+            setApplied(emptyFilters)
             setPage(1)
           }}
-          clearDisabled={!filterCount && filterDraft.isActive === 'true'}
+          clearDisabled={
+            !filterCount &&
+            JSON.stringify(filterDraft) === JSON.stringify(emptyFilters)
+          }
           onApply={() => {
-            setIsActive(filterDraft.isActive)
+            setApplied(filterDraft)
             setPage(1)
             setFilterDraft(null)
           }}
@@ -289,13 +378,85 @@ export default function MedicalCentersPage() {
               value={filterDraft.isActive}
               onChange={(event) =>
                 setFilterDraft({
-                  isActive: event.target.value as 'true' | 'false',
+                  ...filterDraft,
+                  isActive: event.target.value as CenterFilters['isActive'],
                 })
               }
               className={`${filterControlClass} pl-11`}
             >
               <option value="true">Activos</option>
               <option value="false">Inactivos</option>
+            </select>
+          </FilterField>
+          <FilterField label="ID" icon={<Hash className="size-4" />}>
+            <select
+              aria-label="ID del centro"
+              value={filterDraft.id}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, id: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {idOptions.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="Nombre" icon={<Building2 className="size-4" />}>
+            <select
+              aria-label="Nombre del centro"
+              value={filterDraft.name}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, name: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {nameOptions.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="Tipo" icon={<Landmark className="size-4" />}>
+            <select
+              aria-label="Tipo de centro"
+              value={filterDraft.centerType}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  centerType: event.target.value,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {centerTypeOptions.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="Ubicación" icon={<MapPin className="size-4" />}>
+            <select
+              aria-label="Ubicación del centro"
+              value={filterDraft.location}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, location: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todas</option>
+              {locationOptions.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
             </select>
           </FilterField>
         </AdvancedFilterDialog>

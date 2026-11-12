@@ -12,11 +12,16 @@ const separatorLabels: Record<ReportCsvSeparator, string> = {
   ';': 'Punto y coma (;)',
 }
 
-function buildExportUrl(type: ReportType, filters: ReportFilters, separator: ReportCsvSeparator) {
+function buildExportUrl(
+  type: ReportType,
+  filters: ReportFilters,
+  separator: ReportCsvSeparator,
+) {
   const params = new URLSearchParams()
   if (filters.from) params.set('from', filters.from)
   if (filters.to) params.set('to', filters.to)
-  if (filters.branch_id.length > 0) params.set('branch_id', filters.branch_id.join(','))
+  if (filters.branch_id.length > 0)
+    params.set('branch_id', filters.branch_id.join(','))
   params.set('separator', separator === ',' ? 'comma' : 'semicolon')
   return `${API_URL}/api/v1/reports/export/${type}?${params.toString()}`
 }
@@ -29,7 +34,13 @@ function buildExportUrl(type: ReportType, filters: ReportFilters, separator: Rep
  * `X-Contains-Patient-Data` header — never assumed from the report type,
  * even though in practice it lines up with overdue/no-response.
  */
-export function ExportButton({ type, filters }: { type: ReportType; filters: ReportFilters }) {
+export function ExportButton({
+  type,
+  filters,
+}: {
+  type: ReportType
+  filters: ReportFilters
+}) {
   const canExport = useCan('export:csv')
   const separator = useUiStore((state) => state.reportCsvSeparator)
   const setSeparator = useUiStore((state) => state.setReportCsvSeparator)
@@ -56,11 +67,14 @@ export function ExportButton({ type, filters }: { type: ReportType; filters: Rep
           )
         }
         if (response.status === 429) {
-          throw new Error('Demasiadas exportaciones en poco tiempo. Intenta de nuevo en unos minutos.')
+          throw new Error(
+            'Demasiadas exportaciones en poco tiempo. Intenta de nuevo en unos minutos.',
+          )
         }
         throw new Error('No pudimos generar el archivo. Intenta de nuevo.')
       }
-      const hasPatientData = response.headers.get('X-Contains-Patient-Data') === 'true'
+      const hasPatientData =
+        response.headers.get('X-Contains-Patient-Data') === 'true'
       setContainsPatientData(hasPatientData)
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
@@ -73,7 +87,11 @@ export function ExportButton({ type, filters }: { type: ReportType; filters: Rep
       URL.revokeObjectURL(url)
       setState('idle')
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'No pudimos generar el archivo.')
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'No pudimos generar el archivo.',
+      )
       setState('error')
     }
   }
@@ -85,7 +103,9 @@ export function ExportButton({ type, filters }: { type: ReportType; filters: Rep
         <select
           aria-label="Separador del CSV"
           value={separator}
-          onChange={(event) => setSeparator(event.target.value as ReportCsvSeparator)}
+          onChange={(event) =>
+            setSeparator(event.target.value as ReportCsvSeparator)
+          }
           className="border-border h-8 rounded-lg border bg-white px-2 text-xs outline-none"
         >
           {Object.entries(separatorLabels).map(([value, label]) => (

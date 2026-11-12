@@ -31,14 +31,21 @@ export function MetricCard({
           {label}
         </p>
         {definitionKey && (
-          <DefinitionHelp definitions={definitions} term={definitionKey} label={label} />
+          <DefinitionHelp
+            definitions={definitions}
+            term={definitionKey}
+            label={label}
+          />
         )}
       </div>
       {percentage === null ? (
         <p className="text-muted text-2xl font-bold">Sin datos</p>
       ) : (
         <p className="font-display text-petroleo text-2xl font-bold">
-          {percentage}% <span className="text-muted text-sm font-medium">— {numerator} de {denominator}</span>
+          {percentage}%{' '}
+          <span className="text-muted text-sm font-medium">
+            — {numerator} de {denominator}
+          </span>
         </p>
       )}
       {trend && <div className="text-muted mt-1 text-xs">{trend}</div>}
@@ -67,7 +74,11 @@ export function SimpleMetricCard({
           {label}
         </p>
         {definitionKey && (
-          <DefinitionHelp definitions={definitions} term={definitionKey} label={label} />
+          <DefinitionHelp
+            definitions={definitions}
+            term={definitionKey}
+            label={label}
+          />
         )}
       </div>
       {value === null ? (
@@ -75,7 +86,9 @@ export function SimpleMetricCard({
       ) : (
         <p className="font-display text-petroleo text-2xl font-bold">
           {value}
-          {unit ? <span className="text-muted text-sm font-medium"> {unit}</span> : null}
+          {unit ? (
+            <span className="text-muted text-sm font-medium"> {unit}</span>
+          ) : null}
         </p>
       )}
     </div>

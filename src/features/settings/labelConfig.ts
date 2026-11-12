@@ -95,13 +95,13 @@ export function labelSizeChoice(
   heightIn: number,
 ): LabelSizeChoice {
   const match = LABEL_SIZES.find(
-    (size) => Math.abs(size - widthIn) < 0.01 && Math.abs(size - heightIn) < 0.01,
+    (size) =>
+      Math.abs(size - widthIn) < 0.01 && Math.abs(size - heightIn) < 0.01,
   )
   return match ? (`${match}` as LabelSizeChoice) : 'custom'
 }
 
-export const formatInches = (value: number) =>
-  `${Number(value.toFixed(2))}`
+export const formatInches = (value: number) => `${Number(value.toFixed(2))}`
 
 /** Ancho y alto finales en pulgadas, respetando la orientación (en cuadrados no cambia nada). */
 export function labelDims(
@@ -168,7 +168,7 @@ export function labelElementText(
 ): { text: string; missing: boolean } {
   if (element.type === 'text') return { text: element.text, missing: false }
   if (element.type === 'line') return { text: '', missing: false }
-  const label = LABEL_VARIABLE_LABELS[element.key]
+  const label = element.label?.trim() || LABEL_VARIABLE_LABELS[element.key]
   if (values === null) {
     return {
       text: element.showLabel ? `${label}: [${label}]` : `[${label}]`,
@@ -232,7 +232,18 @@ export function createElement(
     }
   }
   if (partial.type === 'text') {
-    return { ...base, ...partial, type: 'text', text: partial.text ?? 'Texto fijo' }
+    return {
+      ...base,
+      ...partial,
+      type: 'text',
+      text: partial.text ?? 'Texto fijo',
+    }
   }
-  return { ...base, h: 4, ...partial, type: 'line', orientation: partial.orientation ?? 'horizontal' }
+  return {
+    ...base,
+    h: 4,
+    ...partial,
+    type: 'line',
+    orientation: partial.orientation ?? 'horizontal',
+  }
 }

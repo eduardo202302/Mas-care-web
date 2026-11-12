@@ -56,7 +56,7 @@ export function ChangeExpectedDateDialog({
         }}
       >
         <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium">
+          <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
             Nueva fecha de reposición
           </span>
           <input
@@ -84,7 +84,7 @@ export function ChangeExpectedDateDialog({
             type="submit"
             variant="primary"
             className="w-full sm:w-auto"
-            disabled={!date || save.isPending}
+            disabled={save.isPending}
           >
             <CalendarClock className="size-4" />
             {save.isPending ? 'Guardando…' : 'Guardar fecha'}

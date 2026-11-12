@@ -1,7 +1,15 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search, Stethoscope, ToggleRight } from 'lucide-react'
+import {
+  BadgeCheck,
+  Phone,
+  Plus,
+  Search,
+  Stethoscope,
+  ToggleRight,
+  UserRound,
+} from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
@@ -46,6 +54,50 @@ const activeOptions: { value: 'true' | 'false'; label: string }[] = [
   { value: 'false', label: 'Inactivos' },
 ]
 
+type DoctorFilters = {
+  isActive: 'true' | 'false'
+  name: string
+  license: string
+  phone: string
+  specialty: string
+}
+
+const emptyFilters: DoctorFilters = {
+  isActive: DEFAULT_ACTIVE,
+  name: '',
+  license: '',
+  phone: '',
+  specialty: '',
+}
+
+function uniqueSorted(
+  values: (string | null | undefined)[],
+  ...selected: string[]
+) {
+  const set = new Set(values.filter((value): value is string => !!value))
+  for (const value of selected) if (value) set.add(value)
+  return [...set].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+}
+
+const textFilters: {
+  key: 'name' | 'license' | 'phone' | 'specialty'
+  label: string
+  icon: ReactNode
+}[] = [
+  { key: 'name', label: 'Médico', icon: <UserRound className="size-4" /> },
+  {
+    key: 'license',
+    label: 'Colegiatura',
+    icon: <BadgeCheck className="size-4" />,
+  },
+  { key: 'phone', label: 'Teléfono', icon: <Phone className="size-4" /> },
+  {
+    key: 'specialty',
+    label: 'Especialidades',
+    icon: <Stethoscope className="size-4" />,
+  },
+]
+
 function queryString(query: DoctorQuery) {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query))
@@ -58,10 +110,10 @@ export default function DoctorsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
-  const [isActive, setIsActive] = useState<'true' | 'false'>(DEFAULT_ACTIVE)
-  const [filterDraft, setFilterDraft] = useState<{
-    isActive: 'true' | 'false'
-  } | null>(null)
+  // El servidor solo filtra por estado: el resto se aplica sobre la página cargada.
+  const [applied, setApplied] = useState<DoctorFilters>(emptyFilters)
+  const [filterDraft, setFilterDraft] = useState<DoctorFilters | null>(null)
+  const isActive = applied.isActive
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
@@ -137,8 +189,43 @@ export default function DoctorsPage() {
     setFormOpen(true)
   }
 
+  const loaded = (doctors.data?.data ?? []) as DoctorWithLinks[]
+  const specialtyNames = (item: DoctorWithLinks) =>
+    item.specialties?.map((link) => link.specialty.name) ?? []
+  const phoneText = (item: DoctorWithLinks) =>
+    item.phone ? formatPhone(item.phone) : ''
+  const textOptions = {
+    name: uniqueSorted(
+      loaded.map((item) => `${item.firstName} ${item.lastName}`),
+      applied.name,
+      filterDraft?.name ?? '',
+    ),
+    license: uniqueSorted(
+      loaded.map((item) => item.licenseNumber),
+      applied.license,
+      filterDraft?.license ?? '',
+    ),
+    phone: uniqueSorted(
+      loaded.map(phoneText),
+      applied.phone,
+      filterDraft?.phone ?? '',
+    ),
+    specialty: uniqueSorted(
+      loaded.flatMap(specialtyNames),
+      applied.specialty,
+      filterDraft?.specialty ?? '',
+    ),
+  }
   const items = applyColumnSort(
-    (doctors.data?.data ?? []) as DoctorWithLinks[],
+    loaded.filter(
+      (item) =>
+        (!applied.name ||
+          `${item.firstName} ${item.lastName}` === applied.name) &&
+        (!applied.license || item.licenseNumber === applied.license) &&
+        (!applied.phone || phoneText(item) === applied.phone) &&
+        (!applied.specialty ||
+          specialtyNames(item).includes(applied.specialty)),
+    ),
     sort,
     (item, index) =>
       index === 0
@@ -198,14 +285,17 @@ export default function DoctorsPage() {
     item.phone ? formatPhone(item.phone) : '',
     item.specialties?.map((link) => link.specialty.name).join(', ') || '',
   ])
-  const filterCount = isActive !== DEFAULT_ACTIVE ? 1 : 0
   const chips: ActiveFilterChip[] = []
-  if (isActive !== DEFAULT_ACTIVE)
+  if (applied.isActive !== DEFAULT_ACTIVE)
     chips.push({
       key: 'isActive',
       label: 'Estado',
-      value: activeOptions.find((option) => option.value === isActive)!.label,
+      value: activeOptions.find((option) => option.value === applied.isActive)!
+        .label,
     })
+  for (const { key, label } of textFilters)
+    if (applied[key]) chips.push({ key, label, value: applied[key] })
+  const filterCount = chips.length
   const rowActions = items.map((item) => (
     <RowActions
       key={item.id}
@@ -253,7 +343,7 @@ export default function DoctorsPage() {
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
-          onClick={() => setFilterDraft({ isActive })}
+          onClick={() => setFilterDraft(applied)}
         />
         <TableToolbarActions
           title="Médicos"
@@ -264,8 +354,11 @@ export default function DoctorsPage() {
       </FilterBarRow>
       <ActiveFilterChips
         chips={chips}
-        onRemove={() => {
-          setIsActive(DEFAULT_ACTIVE)
+        onRemove={(key) => {
+          setApplied((current) => ({
+            ...current,
+            [key]: emptyFilters[key as keyof DoctorFilters],
+          }))
           setPage(1)
         }}
       />
@@ -275,15 +368,16 @@ export default function DoctorsPage() {
           description="Combina estos criterios para acotar la lista de médicos."
           onClose={() => setFilterDraft(null)}
           onClear={() => {
-            setFilterDraft({ isActive: DEFAULT_ACTIVE })
-            setIsActive(DEFAULT_ACTIVE)
+            setFilterDraft(emptyFilters)
+            setApplied(emptyFilters)
             setPage(1)
           }}
           clearDisabled={
-            !filterCount && filterDraft.isActive === DEFAULT_ACTIVE
+            !filterCount &&
+            JSON.stringify(filterDraft) === JSON.stringify(emptyFilters)
           }
           onApply={() => {
-            setIsActive(filterDraft.isActive)
+            setApplied(filterDraft)
             setPage(1)
             setFilterDraft(null)
           }}
@@ -294,6 +388,7 @@ export default function DoctorsPage() {
               value={filterDraft.isActive}
               onChange={(event) =>
                 setFilterDraft({
+                  ...filterDraft,
                   isActive: event.target.value as 'true' | 'false',
                 })
               }
@@ -306,6 +401,27 @@ export default function DoctorsPage() {
               ))}
             </select>
           </FilterField>
+          {textFilters.map(({ key, label, icon }) => (
+            <FilterField key={key} label={label} icon={icon}>
+              <select
+                aria-label={label}
+                value={filterDraft[key]}
+                onChange={(event) =>
+                  setFilterDraft({ ...filterDraft, [key]: event.target.value })
+                }
+                className={`${filterControlClass} pl-11`}
+              >
+                <option value="">
+                  {key === 'specialty' ? 'Todas' : 'Todos'}
+                </option>
+                {textOptions[key].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </FilterField>
+          ))}
         </AdvancedFilterDialog>
       )}
       {doctors.isError && (

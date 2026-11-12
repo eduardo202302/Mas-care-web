@@ -83,7 +83,8 @@ describe('WhatsAppAccountCard', () => {
     const connect = await screen.findByRole('button', {
       name: 'Conectar número',
     })
-    expect(connect).toBeDisabled()
+    await user.click(connect)
+    expect(calls.some((call) => call.method === 'PUT')).toBe(false)
     await user.type(
       screen.getByLabelText('Identificador del número'),
       '109876543210987',
@@ -145,7 +146,8 @@ describe('TemplateTestSendDialog', () => {
       />,
     )
     const send = screen.getByRole('button', { name: 'Enviar prueba' })
-    expect(send).toBeDisabled()
+    await user.click(send)
+    expect(calls.some((call) => call.method === 'POST')).toBe(false)
     await user.type(screen.getByLabelText('Teléfono de prueba'), '809 555 0123')
     await user.click(send)
     await waitFor(() => {

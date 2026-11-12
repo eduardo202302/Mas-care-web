@@ -9,15 +9,15 @@ const escapeHtml = (value: string) =>
 export function printTable({
   company,
   branch,
+  user,
   title,
-  subtitle,
   headers,
   rows,
 }: {
   company?: string
   branch?: string
+  user?: string
   title: string
-  subtitle?: string
   headers: string[]
   rows: string[][]
 }) {
@@ -39,20 +39,39 @@ export function printTable({
         `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`,
     )
     .join('')
+  const stamp = new Date().toLocaleString('es-DO', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  })
+  const meta = (label: string, value: string) =>
+    `<div><b>${label}:</b> <span class="v">${escapeHtml(value)}</span></div>`
+  const header = `<div class="hdr"><div class="center">${company ? `<div class="org">${escapeHtml(company)}</div>` : ''}<div class="ttl">${escapeHtml(title)}</div></div><div class="meta"><div>${branch ? meta('Sucursal', branch) : ''}${user ? meta('Usuario', user) : ''}${meta('Fecha', stamp)}</div><div><b>Total de filas:</b> <span class="v">${rows.length}</span></div></div></div>`
   doc.open()
   doc.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>
-    @page { size: landscape; margin: 12mm }
-    body { font-family: Arial, sans-serif; color: #1f2937; font-size: 10px }
-    .org { font-size: 13px; font-weight: 700; margin: 0 }
-    .branch { margin: 0 0 8px; color: #374151 }
-    h1 { font-size: 16px; margin: 0 0 2px }
-    p { margin: 0 0 10px; color: #6b7280 }
-    table { width: 100%; border-collapse: collapse }
-    th, td { border: 1px solid #d1d5db; padding: 4px 6px; text-align: left; vertical-align: top }
-    th { background: #f3f4f6; font-weight: 600 }
-    tr { page-break-inside: avoid }
-    thead { display: table-header-group }
-  </style></head><body>${company ? `<p class="org">${escapeHtml(company)}</p>` : ''}${branch ? `<p class="branch">Sucursal: ${escapeHtml(branch)}</p>` : ''}<h1>${escapeHtml(title)}</h1><p>${escapeHtml(subtitle ?? '')}</p><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></body></html>`)
+    @page { size: landscape; margin: 0 }
+    body { margin: 0; font-family: Arial, sans-serif; color: #1f2937; font-size: 10px }
+    .frame { width: 100%; border-collapse: collapse }
+    .frame > thead > tr > td { padding: 12mm 12mm 0 }
+    .frame > tbody > tr > td { padding: 0 12mm }
+    .frame > tfoot > tr > td { height: 12mm }
+    .frame > thead { display: table-header-group }
+    .frame > tfoot { display: table-footer-group }
+    .hdr { margin-bottom: 8px }
+    .center { text-align: center; margin-bottom: 10px }
+    .org { font-size: 20px; font-weight: 700; color: #111827 }
+    .ttl { font-size: 13px; color: #6b7280 }
+    .meta { display: flex; justify-content: space-between; align-items: flex-end; font-size: 10px }
+    .meta .v { color: #1e3a5f }
+    table.data { width: 100%; border-collapse: collapse }
+    .data th, .data td { border: 1px solid #d1d5db; padding: 4px 6px; text-align: left; vertical-align: top }
+    .data th { background: #f3f4f6; font-weight: 600 }
+    .data tr { page-break-inside: avoid }
+    .data thead { display: table-header-group }
+  </style></head><body><table class="frame"><thead><tr><td>${header}</td></tr></thead><tbody><tr><td><table class="data"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table></body></html>`)
   doc.close()
   win.addEventListener('afterprint', () => frame.remove(), { once: true })
   win.focus()

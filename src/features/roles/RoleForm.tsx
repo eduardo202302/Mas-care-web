@@ -77,7 +77,6 @@ export function RoleForm({
   })
 
   const permissions = useWatch({ control, name: 'permissions' })
-  const allBranches = useWatch({ control, name: 'allBranches' })
   const selected = new Set(permissions)
 
   function togglePermissions(actions: string[], checked: boolean) {
@@ -120,7 +119,7 @@ export function RoleForm({
   }
 
   return (
-    <form className="grid gap-5" onSubmit={handleSubmit(submit)}>
+    <form noValidate className="grid gap-5" onSubmit={handleSubmit(submit)}>
       <FormFields readOnly={readOnly}>
         <ModalSection
           icon={<ShieldCheck className="size-4" />}
@@ -180,26 +179,7 @@ export function RoleForm({
           )}
         </ModalSection>
 
-        <ModalSection
-          icon={<KeyRound className="size-4" />}
-          title="Permisos"
-        >
-          <label className="border-border flex cursor-pointer items-center gap-3 rounded-lg border p-3">
-            <input
-              type="checkbox"
-              checked={locked || allBranches}
-              disabled={locked}
-              onChange={(event) =>
-                setValue('allBranches', event.target.checked, {
-                  shouldDirty: true,
-                })
-              }
-              className="accent-tealmax size-4 cursor-pointer"
-            />
-            <span className="text-ink text-sm font-medium">
-              Acceso a todas las sucursales
-            </span>
-          </label>
+        <ModalSection icon={<KeyRound className="size-4" />} title="Permisos">
           <div className="grid gap-4">
             {permissionGroups.map((group) => {
               const actions = group.permissions.map((item) => item.action)

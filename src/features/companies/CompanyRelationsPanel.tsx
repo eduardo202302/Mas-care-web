@@ -260,6 +260,7 @@ function DealCreateForm({
       className="grid gap-3"
       onSubmit={(event) => {
         event.preventDefault()
+        if (!name.trim()) return
         void onSave({
           name: name.trim(),
           dealType,
@@ -300,7 +301,10 @@ function DealCreateForm({
       </div>
 
       <div className="grid gap-1.5">
-        <label htmlFor="deal-type" className="text-ink text-sm font-medium">
+        <label
+          htmlFor="deal-type"
+          className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
+        >
           Tipo de oferta
         </label>
         <select
@@ -338,7 +342,7 @@ function DealCreateForm({
           type="submit"
           variant="primary"
           className="w-full sm:w-auto"
-          disabled={submitting || !name.trim()}
+          disabled={submitting}
         >
           {submitting ? 'Guardando…' : 'Guardar'}
         </Button>
@@ -358,7 +362,10 @@ function ExistingDealPicker({
   return (
     <div className="grid gap-3">
       <div className="grid gap-1.5">
-        <label htmlFor="existing-deal" className="text-ink text-sm font-medium">
+        <label
+          htmlFor="existing-deal"
+          className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
+        >
           Oferta existente
         </label>
         <select
@@ -406,12 +413,14 @@ export function CompanyRelationsPanel({
   companyName,
   contacts,
   onGoToPatients,
+  onAddPatient,
   switching,
 }: {
   companyId: string
   companyName: string
   contacts: CompanyContact[]
   onGoToPatients: () => void
+  onAddPatient: () => void
   switching: boolean
 }) {
   const queryClient = useQueryClient()
@@ -462,7 +471,7 @@ export function CompanyRelationsPanel({
       <CollapsibleSection
         title="Pacientes"
         count={contacts.length}
-        onAdd={!switching ? onGoToPatients : undefined}
+        onAdd={!switching ? onAddPatient : undefined}
       >
         {contacts.length ? (
           <div className="grid gap-2">

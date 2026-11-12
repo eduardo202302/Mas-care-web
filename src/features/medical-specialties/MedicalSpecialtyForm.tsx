@@ -76,7 +76,7 @@ export function MedicalSpecialtyForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="grid gap-5">
+    <form noValidate onSubmit={handleSubmit(submit)} className="grid gap-5">
       <FormFields readOnly={readOnly}>
         <ModalSection
           icon={<Stethoscope className="size-4" />}

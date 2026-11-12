@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react'
-import { ImportButton } from '@/components/ImportButton'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pill, Plus, Search, ToggleRight } from 'lucide-react'
+import {
+  FlaskConical,
+  Hash,
+  Package,
+  Pill,
+  Plus,
+  Search,
+  ToggleRight,
+} from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
@@ -46,6 +53,41 @@ const archivedOptions: { value: 'true' | 'false'; label: string }[] = [
   { value: 'true', label: 'Archivados' },
 ]
 
+type MedicationFilters = {
+  archived: 'true' | 'false'
+  id: string
+  name: string
+  ingredient: string
+  presentation: string
+  content: string
+}
+
+const emptyFilters: MedicationFilters = {
+  archived: DEFAULT_ARCHIVED,
+  id: '',
+  name: '',
+  ingredient: '',
+  presentation: '',
+  content: '',
+}
+
+const norm = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+const contains = (value: string, needle: string) =>
+  !needle.trim() || norm(value).includes(norm(needle.trim()))
+
+function distinctOptions(
+  values: (string | null | undefined)[],
+  selected: string,
+) {
+  const set = new Set(values.filter((value): value is string => !!value))
+  if (selected) set.add(selected)
+  return [...set].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+}
+
 function queryString(query: MedicationQuery) {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query))
@@ -65,10 +107,9 @@ export default function MedicationsPage() {
     components['schemas']['Medication'] | null
   >(null)
   const [search, setSearch] = useState('')
-  const [archived, setArchived] = useState<'true' | 'false'>(DEFAULT_ARCHIVED)
-  const [filterDraft, setFilterDraft] = useState<{
-    archived: 'true' | 'false'
-  } | null>(null)
+  // El servidor solo filtra por estado: el resto se aplica sobre la página cargada.
+  const [applied, setApplied] = useState<MedicationFilters>(emptyFilters)
+  const [filterDraft, setFilterDraft] = useState<MedicationFilters | null>(null)
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
@@ -81,6 +122,7 @@ export default function MedicationsPage() {
     components['schemas']['Medication'] | null
   >(null)
 
+  const archived = applied.archived
   const filters = useMemo<MedicationQuery>(
     () => ({
       q: search.trim() || undefined,
@@ -212,8 +254,26 @@ export default function MedicationsPage() {
     setFormOpen(true)
   }
 
+  const medicationLabel = (item: components['schemas']['Medication']) =>
+    item.brandName || item.genericName || item.activeIngredient || 'Medicamento'
+  const matchesFilters = (item: components['schemas']['Medication']) => {
+    return (
+      (!applied.id || String(item.numericId) === applied.id) &&
+      contains(medicationLabel(item), applied.name) &&
+      contains(
+        item.activeIngredient || item.genericName || '',
+        applied.ingredient,
+      ) &&
+      contains(item.presentation, applied.presentation) &&
+      contains(
+        `${String(item.unitsPerPackage)} ${item.doseUnit} por envase`,
+        applied.content,
+      )
+    )
+  }
+  const loadedItems = medications.data?.data ?? []
   const items = applyColumnSort(
-    medications.data?.data ?? [],
+    loadedItems.filter(matchesFilters),
     sort,
     (item, index) =>
       index === 0
@@ -266,7 +326,7 @@ export default function MedicationsPage() {
       <button
         key="treatments"
         type="button"
-        title="Ver clientes en tratamiento"
+        title="Ver Clientes en Tratamiento"
         onClick={() => setPatientsOf(item)}
         className="text-tealmax font-semibold underline-offset-2 hover:underline"
       >
@@ -299,14 +359,45 @@ export default function MedicationsPage() {
     `${String(item.unitsPerPackage)} ${item.doseUnit} por envase`,
     String(item.treatmentCount ?? 0),
   ])
-  const filterCount = archived !== DEFAULT_ARCHIVED ? 1 : 0
-  const chips: ActiveFilterChip[] = []
-  if (archived !== DEFAULT_ARCHIVED)
-    chips.push({
-      key: 'archived',
-      label: 'Estado',
-      value: archivedOptions.find((option) => option.value === archived)!.label,
-    })
+  const chips: ActiveFilterChip[] = [
+    ...(applied.archived !== DEFAULT_ARCHIVED
+      ? [
+          {
+            key: 'archived',
+            label: 'Estado',
+            value: archivedOptions.find(
+              (option) => option.value === applied.archived,
+            )!.label,
+          },
+        ]
+      : []),
+    ...(applied.id ? [{ key: 'id', label: 'ID', value: applied.id }] : []),
+    ...(applied.name
+      ? [{ key: 'name', label: 'Medicamento', value: applied.name }]
+      : []),
+    ...(applied.ingredient
+      ? [
+          {
+            key: 'ingredient',
+            label: 'Principio activo',
+            value: applied.ingredient,
+          },
+        ]
+      : []),
+    ...(applied.presentation
+      ? [
+          {
+            key: 'presentation',
+            label: 'Presentación',
+            value: applied.presentation,
+          },
+        ]
+      : []),
+    ...(applied.content
+      ? [{ key: 'content', label: 'Contenido', value: applied.content }]
+      : []),
+  ]
+  const filterCount = chips.length
   const rowActions = items.map((item) => {
     const label = item.brandName || item.genericName || item.presentation
     return (
@@ -340,7 +431,6 @@ export default function MedicationsPage() {
         actions={
           <>
             <div className="flex flex-wrap gap-2">
-              <ImportButton entity="medications" />
               {canCreate && (
                 <Button variant="primary" onClick={openCreate}>
                   <Plus className="size-4" />
@@ -368,7 +458,7 @@ export default function MedicationsPage() {
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
-          onClick={() => setFilterDraft({ archived })}
+          onClick={() => setFilterDraft(applied)}
         />
         <TableToolbarActions
           title="Medicamentos"
@@ -381,8 +471,11 @@ export default function MedicationsPage() {
       </FilterBarRow>
       <ActiveFilterChips
         chips={chips}
-        onRemove={() => {
-          setArchived(DEFAULT_ARCHIVED)
+        onRemove={(key) => {
+          setApplied((current) => ({
+            ...current,
+            [key]: emptyFilters[key as keyof MedicationFilters],
+          }))
           setPage(1)
         }}
       />
@@ -392,15 +485,16 @@ export default function MedicationsPage() {
           description="Combina estos criterios para acotar la lista de medicamentos."
           onClose={() => setFilterDraft(null)}
           onClear={() => {
-            setFilterDraft({ archived: DEFAULT_ARCHIVED })
-            setArchived(DEFAULT_ARCHIVED)
+            setFilterDraft(emptyFilters)
+            setApplied(emptyFilters)
             setPage(1)
           }}
           clearDisabled={
-            !filterCount && filterDraft.archived === DEFAULT_ARCHIVED
+            !filterCount &&
+            JSON.stringify(filterDraft) === JSON.stringify(emptyFilters)
           }
           onApply={() => {
-            setArchived(filterDraft.archived)
+            setApplied(filterDraft)
             setPage(1)
             setFilterDraft(null)
           }}
@@ -411,6 +505,7 @@ export default function MedicationsPage() {
               value={filterDraft.archived}
               onChange={(event) =>
                 setFilterDraft({
+                  ...filterDraft,
                   archived: event.target.value as 'true' | 'false',
                 })
               }
@@ -419,6 +514,123 @@ export default function MedicationsPage() {
               {archivedOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="ID" icon={<Hash className="size-4" />}>
+            <select
+              aria-label="ID del medicamento"
+              value={filterDraft.id}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, id: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {distinctOptions(
+                loadedItems.map((item) => String(item.numericId)),
+                filterDraft.id,
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="Medicamento" icon={<Pill className="size-4" />}>
+            <select
+              aria-label="Nombre del medicamento"
+              value={filterDraft.name}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, name: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {distinctOptions(
+                loadedItems.map(medicationLabel),
+                filterDraft.name,
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField
+            label="Principio activo"
+            icon={<FlaskConical className="size-4" />}
+          >
+            <select
+              aria-label="Principio activo"
+              value={filterDraft.ingredient}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  ingredient: event.target.value,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {distinctOptions(
+                loadedItems.map(
+                  (item) => item.activeIngredient || item.genericName,
+                ),
+                filterDraft.ingredient,
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField
+            label="Presentación"
+            icon={<Package className="size-4" />}
+          >
+            <select
+              aria-label="Presentación"
+              value={filterDraft.presentation}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  presentation: event.target.value,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todas</option>
+              {distinctOptions(
+                loadedItems.map((item) => item.presentation),
+                filterDraft.presentation,
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="Contenido" icon={<Package className="size-4" />}>
+            <select
+              aria-label="Contenido por envase"
+              value={filterDraft.content}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, content: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {distinctOptions(
+                loadedItems.map(
+                  (item) =>
+                    `${String(item.unitsPerPackage)} ${item.doseUnit} por envase`,
+                ),
+                filterDraft.content,
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
                 </option>
               ))}
             </select>

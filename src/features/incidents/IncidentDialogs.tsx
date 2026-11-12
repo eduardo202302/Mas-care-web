@@ -62,8 +62,8 @@ export function ResolveIncidentDialog({
         }}
       >
         <label className="grid gap-1.5">
-          <span className="text-ink text-sm font-medium">
-            Resolución <span className="text-red-700">*</span>
+          <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+            Resolución
           </span>
           <textarea
             required
@@ -88,11 +88,7 @@ export function ResolveIncidentDialog({
           <Button type="button" onClick={onClose}>
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={!resolution.trim() || resolve.isPending}
-          >
+          <Button type="submit" variant="primary" disabled={resolve.isPending}>
             <CheckCircle2 className="size-4" />
             {resolve.isPending ? 'Resolviendo…' : 'Resolver incidencia'}
           </Button>

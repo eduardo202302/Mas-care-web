@@ -52,26 +52,21 @@ export function TableToolbarActions({
       ? ((branches.data?.data ?? []).find((b) => b.id === activeBranchId)
           ?.name ?? '')
       : 'Todas las Sucursales'
-  const stamp = new Date().toLocaleString('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const user = authClient.useSession().data?.user
 
   return (
     <div className="ml-auto flex flex-wrap items-center gap-2">
       <Button
         type="button"
+        className="hover:bg-[#c3e9cf]"
         disabled={!rows.length}
         aria-label={`Imprimir ${title}`}
         onClick={() =>
           printTable({
             company,
             branch,
+            user: user?.name || user?.email,
             title,
-            subtitle: `Impreso el ${stamp}`,
             headers,
             rows,
           })
@@ -91,9 +86,17 @@ export function TableToolbarActions({
         canExport && (
           <Button
             type="button"
+            className="hover:bg-[#c3e9cf]"
             disabled={!rows.length}
             onClick={() =>
-              downloadTableXlsx({ company, branch, title, headers, rows, filename })
+              downloadTableXlsx({
+                company,
+                branch,
+                title,
+                headers,
+                rows,
+                filename,
+              })
             }
           >
             <Download className="size-4" />

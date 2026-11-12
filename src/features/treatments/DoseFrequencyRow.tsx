@@ -130,7 +130,10 @@ export function DoseFrequencyRow({
   onChange,
   requireTomaTime = false,
   alwaysShowToma = false,
+  quantityError,
 }: {
+  /** Mensaje de error bajo el campo de cantidad (formularios con validación propia). */
+  quantityError?: string
   quantity: number | string
   onQuantityChange: (value: string) => void
   unit: string
@@ -161,6 +164,7 @@ export function DoseFrequencyRow({
         min="0.001"
         step="any"
         required
+        error={quantityError}
         value={quantity}
         onChange={(event) => onQuantityChange(event.target.value)}
       />

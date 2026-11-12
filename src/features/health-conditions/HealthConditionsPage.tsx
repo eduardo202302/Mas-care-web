@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { HeartPulse, Plus, Search, ToggleRight } from 'lucide-react'
+import { FileText, HeartPulse, Plus, Search, ToggleRight } from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
@@ -37,6 +37,40 @@ const activeOptions: { value: 'true' | 'false'; label: string }[] = [
   { value: 'false', label: 'Inactivas' },
 ]
 
+type ConditionFilters = {
+  isActive: 'true' | 'false'
+  name: string
+  description: string
+}
+
+const emptyFilters: ConditionFilters = {
+  isActive: DEFAULT_ACTIVE,
+  name: '',
+  description: '',
+}
+
+function uniqueSorted(
+  values: (string | null | undefined)[],
+  ...selected: string[]
+) {
+  const set = new Set(values.filter((value): value is string => !!value))
+  for (const value of selected) if (value) set.add(value)
+  return [...set].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+}
+
+const textFilters: {
+  key: 'name' | 'description'
+  label: string
+  icon: ReactNode
+}[] = [
+  { key: 'name', label: 'Nombre', icon: <HeartPulse className="size-4" /> },
+  {
+    key: 'description',
+    label: 'Descripción',
+    icon: <FileText className="size-4" />,
+  },
+]
+
 function queryString(query: ConditionQuery) {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query))
@@ -48,10 +82,10 @@ export default function HealthConditionsPage() {
   const canWrite = useCan('health-conditions:write')
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
-  const [isActive, setIsActive] = useState<'true' | 'false'>(DEFAULT_ACTIVE)
-  const [filterDraft, setFilterDraft] = useState<{
-    isActive: 'true' | 'false'
-  } | null>(null)
+  // El servidor solo filtra por estado: el resto se aplica sobre la página cargada.
+  const [applied, setApplied] = useState<ConditionFilters>(emptyFilters)
+  const [filterDraft, setFilterDraft] = useState<ConditionFilters | null>(null)
+  const isActive = applied.isActive
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
@@ -123,8 +157,26 @@ export default function HealthConditionsPage() {
     setFormOpen(true)
   }
 
+  const loaded = conditions.data?.data ?? []
+  const textOptions = {
+    name: uniqueSorted(
+      loaded.map((item) => item.name),
+      applied.name,
+      filterDraft?.name ?? '',
+    ),
+    description: uniqueSorted(
+      loaded.map((item) => item.description),
+      applied.description,
+      filterDraft?.description ?? '',
+    ),
+  }
   const items = applyColumnSort(
-    conditions.data?.data ?? [],
+    loaded.filter(
+      (item) =>
+        (!applied.name || item.name === applied.name) &&
+        (!applied.description ||
+          (item.description ?? '') === applied.description),
+    ),
     sort,
     (item, index) =>
       index === 0
@@ -158,14 +210,17 @@ export default function HealthConditionsPage() {
     item.name,
     item.description || '',
   ])
-  const filterCount = isActive !== DEFAULT_ACTIVE ? 1 : 0
   const chips: ActiveFilterChip[] = []
-  if (isActive !== DEFAULT_ACTIVE)
+  if (applied.isActive !== DEFAULT_ACTIVE)
     chips.push({
       key: 'isActive',
       label: 'Estado',
-      value: activeOptions.find((option) => option.value === isActive)!.label,
+      value: activeOptions.find((option) => option.value === applied.isActive)!
+        .label,
     })
+  for (const { key, label } of textFilters)
+    if (applied[key]) chips.push({ key, label, value: applied[key] })
+  const filterCount = chips.length
   const rowActions = items.map((item) => (
     <RowActions
       key={item.id}
@@ -213,7 +268,7 @@ export default function HealthConditionsPage() {
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
-          onClick={() => setFilterDraft({ isActive })}
+          onClick={() => setFilterDraft(applied)}
         />
         <TableToolbarActions
           title="Condiciones de Salud"
@@ -224,8 +279,11 @@ export default function HealthConditionsPage() {
       </FilterBarRow>
       <ActiveFilterChips
         chips={chips}
-        onRemove={() => {
-          setIsActive(DEFAULT_ACTIVE)
+        onRemove={(key) => {
+          setApplied((current) => ({
+            ...current,
+            [key]: emptyFilters[key as keyof ConditionFilters],
+          }))
           setPage(1)
         }}
       />
@@ -235,15 +293,16 @@ export default function HealthConditionsPage() {
           description="Combina estos criterios para acotar la lista de condiciones de salud."
           onClose={() => setFilterDraft(null)}
           onClear={() => {
-            setFilterDraft({ isActive: DEFAULT_ACTIVE })
-            setIsActive(DEFAULT_ACTIVE)
+            setFilterDraft(emptyFilters)
+            setApplied(emptyFilters)
             setPage(1)
           }}
           clearDisabled={
-            !filterCount && filterDraft.isActive === DEFAULT_ACTIVE
+            !filterCount &&
+            JSON.stringify(filterDraft) === JSON.stringify(emptyFilters)
           }
           onApply={() => {
-            setIsActive(filterDraft.isActive)
+            setApplied(filterDraft)
             setPage(1)
             setFilterDraft(null)
           }}
@@ -254,6 +313,7 @@ export default function HealthConditionsPage() {
               value={filterDraft.isActive}
               onChange={(event) =>
                 setFilterDraft({
+                  ...filterDraft,
                   isActive: event.target.value as 'true' | 'false',
                 })
               }
@@ -266,6 +326,25 @@ export default function HealthConditionsPage() {
               ))}
             </select>
           </FilterField>
+          {textFilters.map(({ key, label, icon }) => (
+            <FilterField key={key} label={label} icon={icon}>
+              <select
+                aria-label={label}
+                value={filterDraft[key]}
+                onChange={(event) =>
+                  setFilterDraft({ ...filterDraft, [key]: event.target.value })
+                }
+                className={`${filterControlClass} pl-11`}
+              >
+                <option value="">{key === 'name' ? 'Todos' : 'Todas'}</option>
+                {textOptions[key].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </FilterField>
+          ))}
         </AdvancedFilterDialog>
       )}
       {conditions.isError && (

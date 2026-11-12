@@ -118,10 +118,12 @@ describe('ProfilePage', () => {
     const submit = await screen.findByRole('button', {
       name: 'Cambiar contraseña',
     })
-    expect(submit).toBeDisabled()
+    await user.click(submit)
+    expect(changePassword).not.toHaveBeenCalled()
     await user.type(screen.getByLabelText(/Contraseña actual/), 'vieja-clave-1')
     await user.type(screen.getByLabelText(/^Nueva contraseña/), 'corta')
-    expect(submit).toBeDisabled()
+    await user.click(submit)
+    expect(changePassword).not.toHaveBeenCalled()
     expect(screen.getByText(/al menos 8 caracteres/)).toBeInTheDocument()
     await user.clear(screen.getByLabelText(/^Nueva contraseña/))
     await user.type(
@@ -132,7 +134,8 @@ describe('ProfilePage', () => {
     expect(
       screen.getByText('Las contraseñas no coinciden.'),
     ).toBeInTheDocument()
-    expect(submit).toBeDisabled()
+    await user.click(submit)
+    expect(changePassword).not.toHaveBeenCalled()
     await user.clear(screen.getByLabelText(/^Repite/))
     await user.type(screen.getByLabelText(/^Repite/), 'clave-nueva-segura')
     await user.click(submit)

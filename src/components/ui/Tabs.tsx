@@ -40,7 +40,7 @@ export function Tabs<T extends string>({
               dense ? 'px-1.5 py-1.5 text-xs' : 'px-3 py-2 text-sm',
               active
                 ? 'border-tealmax text-tealmax'
-                : 'border-transparent text-muted hover:text-ink',
+                : 'text-muted hover:text-ink border-transparent',
             )}
           >
             {tab.icon}

@@ -81,17 +81,14 @@ export function TelegramBotCard() {
           <input
             type="password"
             autoComplete="off"
+            required
             placeholder="123456:ABC-DEF..."
             value={token}
             onChange={(event) => setToken(event.target.value)}
             className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
           />
         </label>
-        <Button
-          type="submit"
-          variant="primary"
-          disabled={!token.trim() || connect.isPending}
-        >
+        <Button type="submit" variant="primary" disabled={connect.isPending}>
           {account.data?.connected ? 'Reemplazar' : 'Conectar bot'}
         </Button>
       </form>

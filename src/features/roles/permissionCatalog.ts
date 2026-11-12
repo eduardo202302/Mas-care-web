@@ -13,7 +13,10 @@ export const permissionGroups: PermissionGroup[] = [
       { action: 'patients:read', label: 'Ver pacientes' },
       { action: 'patients:write', label: 'Crear y editar pacientes' },
       { action: 'patients:archive', label: 'Archivar pacientes' },
-      { action: 'patient:transfer', label: 'Transferir pacientes entre sucursales' },
+      {
+        action: 'patient:transfer',
+        label: 'Transferir pacientes entre sucursales',
+      },
     ],
   },
   {
@@ -21,7 +24,10 @@ export const permissionGroups: PermissionGroup[] = [
     permissions: [
       { action: 'treatments:read', label: 'Ver tratamientos' },
       { action: 'treatments:write', label: 'Crear y editar tratamientos' },
-      { action: 'treatments:manage', label: 'Gestionar el estado de los tratamientos' },
+      {
+        action: 'treatments:manage',
+        label: 'Gestionar el estado de los tratamientos',
+      },
       { action: 'medications:read', label: 'Ver medicamentos' },
       { action: 'medications:write', label: 'Crear y editar medicamentos' },
     ],
@@ -42,7 +48,10 @@ export const permissionGroups: PermissionGroup[] = [
     permissions: [
       { action: 'dashboard:read', label: 'Ver el panel del día' },
       { action: 'cycle:move', label: 'Mover ciclos en el tablero' },
-      { action: 'cycle:edit-date', label: 'Editar la fecha esperada de un ciclo' },
+      {
+        action: 'cycle:edit-date',
+        label: 'Editar la fecha esperada de un ciclo',
+      },
     ],
   },
   {
@@ -74,9 +83,15 @@ export const permissionGroups: PermissionGroup[] = [
       { action: 'specialties:read', label: 'Ver especialidades' },
       { action: 'specialties:write', label: 'Crear y editar especialidades' },
       { action: 'medical-centers:read', label: 'Ver centros médicos' },
-      { action: 'medical-centers:write', label: 'Crear y editar centros médicos' },
+      {
+        action: 'medical-centers:write',
+        label: 'Crear y editar centros médicos',
+      },
       { action: 'health-conditions:read', label: 'Ver condiciones de salud' },
-      { action: 'health-conditions:write', label: 'Crear y editar condiciones de salud' },
+      {
+        action: 'health-conditions:write',
+        label: 'Crear y editar condiciones de salud',
+      },
     ],
   },
   {

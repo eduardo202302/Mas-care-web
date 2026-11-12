@@ -5,8 +5,10 @@ export const medicationSchema = z.object({
   genericName: z.string().trim().max(160).optional(),
   activeIngredient: z.string().trim().max(160).optional(),
   presentation: z.string().trim().min(1, 'Ingresa una presentación.').max(160),
-  doseUnit: z.string().trim().min(1, 'Ingresa una unidad.').max(50),
-  unitsPerPackage: z.number().positive('Debe ser mayor a cero.'),
+  doseUnit: z.string().trim().min(1, 'Selecciona una unidad.').max(50),
+  unitsPerPackage: z
+    .number({ error: 'Ingresa las unidades por envase.' })
+    .positive('Debe ser mayor a cero.'),
 })
 
 export type MedicationFormValues = z.infer<typeof medicationSchema>

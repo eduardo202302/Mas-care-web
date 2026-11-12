@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { phoneField } from '@/schemas/phone'
 
 const optionalDecimal = (min: number, max: number) =>
   z
@@ -18,7 +19,7 @@ export const branchSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, 'Ingresa al menos 2 caracteres.')
+    .min(2, 'Campo requerido.')
     .max(100, 'Máximo 100 caracteres.'),
   labelColor: z
     .string()
@@ -36,7 +37,7 @@ export const branchSchema = z.object({
     .max(2000, 'Máximo 2000 caracteres.')
     .optional(),
   managerName: z.string().trim().max(120, 'Máximo 120 caracteres.').optional(),
-  managerPhone: z.string().trim().max(40, 'Máximo 40 caracteres.').optional(),
+  managerPhone: phoneField.optional(),
   managerEmail: z.union([
     z.literal(''),
     z.string().trim().email('Ingresa un correo válido.'),

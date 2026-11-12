@@ -3,7 +3,7 @@ export const roleFormSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, 'Ingresa al menos 2 caracteres.')
+    .min(2, 'Campo requerido.')
     .max(80, 'Máximo 80 caracteres.'),
   description: z.string().trim().max(300, 'Máximo 300 caracteres.'),
   permissions: z.array(z.string()),

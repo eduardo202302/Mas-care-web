@@ -138,7 +138,19 @@ export function NewCycleDialog({
   // Con un tratamiento elegido, producto y sucursal ya vienen de él: el ciclo
   // se crea solo con treatment_id. Exigirlos aquí bloqueaba el botón cuando el
   // nombre del producto del catálogo no coincidía con el del tratamiento.
-  const formComplete = Boolean(treatmentId && quantity && coverageEndOn)
+  const formComplete = Boolean(
+    patientId && treatmentId && quantity.trim() && coverageEndOn,
+  )
+  const [showErrors, setShowErrors] = useState(false)
+
+  function submitWith(again: boolean) {
+    if (create.isPending) return
+    if (!formComplete) {
+      setShowErrors(true)
+      return
+    }
+    create.mutate({ again })
+  }
 
   function selectTreatment(option: Eligible) {
     setTreatmentId(option.id)
@@ -173,6 +185,7 @@ export function NewCycleDialog({
     clearTreatment()
     setType('')
     setPriority('')
+    setShowErrors(false)
   }
 
   const create = useMutation({
@@ -224,10 +237,11 @@ export function NewCycleDialog({
       size="lg"
     >
       <form
+        noValidate
         className="grid gap-4"
         onSubmit={(event) => {
           event.preventDefault()
-          if (formComplete && !create.isPending) create.mutate({ again: false })
+          submitWith(false)
         }}
       >
         <ModalSection icon={<User className="size-4" />} title="Paciente">
@@ -248,6 +262,9 @@ export function NewCycleDialog({
                 </option>
               ))}
             </select>
+            {showErrors && !patientId && (
+              <p className="text-xs text-red-700">Campo requerido.</p>
+            )}
           </label>
           {patients.isError && (
             <p role="alert" className="text-sm text-red-700">
@@ -296,9 +313,14 @@ export function NewCycleDialog({
                   </option>
                 ))}
               </select>
+              {showErrors && !treatmentId && (
+                <p className="text-xs text-red-700">Campo requerido.</p>
+              )}
             </label>
             <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Etapa</span>
+              <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+                Etapa
+              </span>
               <select
                 value={status}
                 onChange={(event) =>
@@ -408,26 +430,34 @@ export function NewCycleDialog({
           >
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="grid gap-1.5">
-                <span className="text-ink text-sm font-medium">Cantidad</span>
+                <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+                  Cantidad
+                </span>
                 <input
-                  disabled={!treatmentId && !treatmentName}
                   value={quantity}
                   onChange={(event) => setQuantity(event.target.value)}
                   placeholder="—"
-                  className={`${fieldClass} disabled:cursor-not-allowed disabled:opacity-60`}
+                  aria-invalid={showErrors && !quantity.trim()}
+                  className={fieldClass}
                 />
+                {showErrors && !quantity.trim() && (
+                  <p className="text-xs text-red-700">Campo requerido.</p>
+                )}
               </label>
               <label className="grid gap-1.5">
-                <span className="text-ink text-sm font-medium">
+                <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
                   Fecha de Cierre
                 </span>
                 <input
                   type="date"
-                  disabled={!treatmentId && !treatmentName}
                   value={coverageEndOn}
                   onChange={(event) => setCoverageEndOn(event.target.value)}
-                  className={`${fieldClass} disabled:cursor-not-allowed disabled:opacity-60`}
+                  aria-invalid={showErrors && !coverageEndOn}
+                  className={fieldClass}
                 />
+                {showErrors && !coverageEndOn && (
+                  <p className="text-xs text-red-700">Campo requerido.</p>
+                )}
               </label>
             </div>
             <label className="grid gap-1.5">
@@ -502,15 +532,15 @@ export function NewCycleDialog({
           </Button>
           <Button
             type="button"
-            disabled={!formComplete || create.isPending}
-            onClick={() => create.mutate({ again: true })}
+            disabled={create.isPending}
+            onClick={() => submitWith(true)}
           >
             {creatingAgain ? 'Registrando…' : 'Registrar y agregar otra'}
           </Button>
           <Button
             type="submit"
             variant="primary"
-            disabled={!formComplete || create.isPending}
+            disabled={create.isPending}
             className="hover:bg-emerald-700"
           >
             {creatingFinal ? 'Registrando…' : 'Registrar Reposición'}

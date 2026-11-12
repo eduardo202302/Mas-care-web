@@ -7,13 +7,16 @@ describe('toTitleCase', () => {
     expect(toTitleCase('ajuste automático')).toBe('Ajuste Automático')
   })
 
-  it('deja en minúscula de, al, el, la, con, para y un', () => {
+  it('deja en minúscula de, en, al, el, la, con, para y un', () => {
     expect(toTitleCase('nombre de farmacia')).toBe('Nombre de Farmacia')
     expect(toTitleCase('toda la organización')).toBe('Toda la Organización')
-    expect(toTitleCase('selecciona un paciente para imprimir con sus datos')).toBe(
-      'Selecciona un Paciente para Imprimir con Sus Datos',
-    )
+    expect(
+      toTitleCase('selecciona un paciente para imprimir con sus datos'),
+    ).toBe('Selecciona un Paciente para Imprimir con Sus Datos')
     expect(toTitleCase('ir al inicio')).toBe('Ir al Inicio')
+    expect(toTitleCase('clientes en tratamiento')).toBe(
+      'Clientes en Tratamiento',
+    )
   })
 
   it('capitaliza siempre la primera palabra', () => {

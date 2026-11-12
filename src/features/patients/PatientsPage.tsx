@@ -1,13 +1,23 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
-import { ImportButton } from '@/components/ImportButton'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Archive, CalendarDays, Plus, Search, UserRound } from 'lucide-react'
+import {
+  Archive,
+  Building2,
+  CalendarDays,
+  ClipboardList,
+  Hash,
+  MapPin,
+  Plus,
+  Search,
+  Stethoscope,
+  Tag,
+  UserRound,
+} from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { CustomPropertyFilter } from '@/components/CustomFields'
-import { SortEditor } from '@/features/board/CycleTableControls'
 import { type ColumnDef, type SortPart } from '@/lib/cycle-table'
 import { Pagination } from '@/components/Pagination'
 import { formatPhone } from '@/lib/phone'
@@ -34,14 +44,16 @@ import { compareValues } from '@/lib/table-sort'
 import type { components, paths } from '@/lib/api-types'
 import type { PatientFormValues } from '@/schemas/patient'
 import { PatientForm } from './PatientForm'
+import {
+  buildPatientCreateBody,
+  type PatientCreateResult,
+} from './patientPayload'
 
 type PatientList =
   paths['/api/v1/patients']['get']['responses'][200]['content']['application/json']
 type PatientRow = PatientList['data'][number]
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
-type PatientCreateResult =
-  paths['/api/v1/patients']['post']['responses'][201]['content']['application/json']
 type PatientQuery = NonNullable<
   paths['/api/v1/patients']['get']['parameters']['query']
 > &
@@ -59,13 +71,6 @@ const patientColumns: ColumnDef[] = [
   { key: 'created', label: 'Creado' },
 ]
 
-const patientSortFields = [
-  { value: 'full_name', label: 'Nombre' },
-  { value: 'created_at', label: 'Fecha de creación' },
-  { value: 'document_id', label: 'Documento' },
-  { value: 'birth_date', label: 'Fecha de Nacimiento' },
-]
-
 /** Column keys that map to a backend-sortable field; columns without an entry sort client-side (current page only). */
 const columnSortField: Record<string, string> = {
   name: 'full_name',
@@ -73,12 +78,59 @@ const columnSortField: Record<string, string> = {
   created: 'created_at',
 }
 
-const dateFilterLabels = [
-  ['created_from', 'created_to', 'Creación'],
-  ['activity_from', 'activity_to', 'Última actividad'],
-  ['expected_from', 'expected_to', 'Fecha prevista'],
-  ['coverage_from', 'coverage_to', 'Fin de cobertura'],
-] as const
+const dateFilterLabels = [['created_from', 'created_to', 'Creación']] as const
+
+/** Filtros por columna: el servidor no los admite, se aplican sobre la página cargada. */
+type PatientColumnFilters = {
+  id: string
+  branch: string
+  treatmentsMin: string
+  condition: string
+  city: string
+  custom: Record<string, string>
+}
+
+const emptyColumnFilters: PatientColumnFilters = {
+  id: '',
+  branch: '',
+  treatmentsMin: '',
+  condition: '',
+  city: '',
+  custom: {},
+}
+
+const norm = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+const contains = (value: string, needle: string) =>
+  !needle.trim() || norm(value).includes(norm(needle.trim()))
+
+const patientCity = (patient: PatientRow) =>
+  (patient.addressDetails as { city?: string } | null)?.city ?? ''
+
+function distinctOptions(
+  values: (string | null | undefined)[],
+  selected: string,
+) {
+  const set = new Set(values.filter((value): value is string => !!value))
+  if (selected) set.add(selected)
+  return [...set].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+}
+
+function columnFilterCount(columns: PatientColumnFilters) {
+  return (
+    [
+      columns.id,
+      columns.branch,
+      columns.treatmentsMin,
+      columns.condition,
+      columns.city,
+    ].filter(Boolean).length +
+    Object.values(columns.custom).filter(Boolean).length
+  )
+}
 
 function queryString(query: PatientQuery) {
   const params = new URLSearchParams()
@@ -92,7 +144,7 @@ function activeFilterCount(
   responsibleUserId: string,
   archived: string,
   dates: Record<string, string>,
-  sort: SortPart[],
+  columns: PatientColumnFilters,
 ) {
   const dateCount = Object.entries(dates).filter(
     ([key, value]) => value && key !== 'cp_value',
@@ -101,14 +153,13 @@ function activeFilterCount(
     (responsibleUserId ? 1 : 0) +
     (archived === 'true' ? 1 : 0) +
     dateCount +
-    (sort.length ? 1 : 0)
+    columnFilterCount(columns)
   )
 }
 
 export default function PatientsPage() {
   const canCreate = useCan('patients:write')
   const canUpdate = useCan('patients:write')
-  const canCreateTreatments = useCan('treatments:write')
   const { data: me } = useMe()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -125,6 +176,8 @@ export default function PatientsPage() {
     components['schemas']['Patient'] | null
   >(null)
   const [dates, setDates] = useState<Record<string, string>>({})
+  const [columnFilters, setColumnFilters] =
+    useState<PatientColumnFilters>(emptyColumnFilters)
   const [sort, setSort] = useState<SortPart[]>([])
   const [clientSort, setClientSort] = useState<{
     key: string
@@ -157,6 +210,7 @@ export default function PatientsPage() {
     archived: 'true' | 'false'
     dates: Record<string, string>
     sort: SortPart[]
+    columns: PatientColumnFilters
   } | null>(null)
   // Patient properties defined by the organization can be added as columns (key `custom:<key>`).
   const properties = useCustomProperties('patient').data?.data ?? []
@@ -182,10 +236,17 @@ export default function PatientsPage() {
     queryKey: ['branches'],
     queryFn: () => api<BranchList>('/api/v1/branches'),
   })
+  const conditionsQuery = useQuery({
+    queryKey: ['health-conditions', 'patient-filter'],
+    queryFn: () =>
+      api<{ data: { id: string; name: string }[] }>(
+        '/api/v1/health-conditions?isActive=true&page=1&rows=50',
+      ),
+  })
   const filters = useMemo<PatientQuery>(
     () => ({
       q: search.trim() || undefined,
-      branchId,
+      branchId: columnFilters.branch || branchId,
       responsibleUserId: responsibleUserId || undefined,
       archived,
       page,
@@ -195,7 +256,17 @@ export default function PatientsPage() {
         ? { sort: sort.map((part) => `${part.field}:${part.dir}`).join(',') }
         : {}),
     }),
-    [archived, branchId, dates, page, responsibleUserId, rows, search, sort],
+    [
+      archived,
+      branchId,
+      columnFilters.branch,
+      dates,
+      page,
+      responsibleUserId,
+      rows,
+      search,
+      sort,
+    ],
   )
   const patients = useQuery({
     queryKey: ['patients', filters],
@@ -204,33 +275,7 @@ export default function PatientsPage() {
   })
   const create = useMutation({
     mutationFn: (values: PatientFormValues) => {
-      const { address, state, city, sector, latitude, longitude, ...rest } =
-        values
-      const body: components['schemas']['PatientCreate'] = {
-        ...rest,
-        addressDetails: {
-          ...(address ? { address } : {}),
-          ...(state ? { region: state } : {}),
-          ...(city ? { city } : {}),
-          ...(sector ? { sector } : {}),
-          ...(latitude ? { latitude: Number(latitude) } : {}),
-          ...(longitude ? { longitude: Number(longitude) } : {}),
-        },
-        ...(values.documentId
-          ? { documentId: values.documentId }
-          : { documentId: null }),
-        ...(values.birthDate
-          ? { birthDate: values.birthDate }
-          : { birthDate: null }),
-        ...(values.phone ? { phone: values.phone } : { phone: null }),
-        ...(values.email ? { email: values.email } : { email: null }),
-        ...(values.careNotes
-          ? { careNotes: values.careNotes }
-          : { careNotes: null }),
-        ...(values.responsibleUserId
-          ? { responsibleUserId: values.responsibleUserId }
-          : { responsibleUserId: null }),
-      }
+      const body = buildPatientCreateBody(values)
       return api<PatientCreateResult>('/api/v1/patients', {
         method: 'POST',
         body: JSON.stringify(body),
@@ -338,7 +383,27 @@ export default function PatientsPage() {
       }
     }
   }
-  const rawPatients = patients.data?.data ?? []
+  const matchesColumns = (patient: PatientRow) => {
+    const treatments = patient.treatmentsCount || 0
+    const custom =
+      (patient as { customValues?: Record<string, unknown> }).customValues ?? {}
+    return (
+      (!columnFilters.id || String(patient.numericId) === columnFilters.id) &&
+      (!columnFilters.treatmentsMin ||
+        treatments >= Number(columnFilters.treatmentsMin)) &&
+      contains(patient.primaryConditionName ?? '', columnFilters.condition) &&
+      contains(patientCity(patient), columnFilters.city) &&
+      Object.entries(columnFilters.custom).every(([key, value]) => {
+        if (!value) return true
+        const property = properties.find((item) => item.key === key)
+        return (
+          !property || contains(formatCustomValue(property, custom[key]), value)
+        )
+      })
+    )
+  }
+  const loadedPatients = patients.data?.data ?? []
+  const rawPatients = loadedPatients.filter(matchesColumns)
   const displayPatients = clientSort
     ? [...rawPatients].sort(
         (a, b) =>
@@ -471,16 +536,23 @@ export default function PatientsPage() {
     responsibleUserId,
     archived,
     dates,
-    sort,
+    columnFilters,
   )
   const draftFilterCount = filterDraft
     ? activeFilterCount(
         filterDraft.responsibleUserId,
         filterDraft.archived,
         filterDraft.dates,
-        filterDraft.sort,
+        filterDraft.columns,
       )
     : 0
+  const branchOptions = branchesQuery.data?.data ?? []
+  const setDraftColumn = (patch: Partial<PatientColumnFilters>) =>
+    filterDraft &&
+    setFilterDraft({
+      ...filterDraft,
+      columns: { ...filterDraft.columns, ...patch },
+    })
   const activeFilterChips = useMemo<ActiveFilterChip[]>(() => {
     const chips: ActiveFilterChip[] = []
     if (responsibleUserId)
@@ -503,6 +575,42 @@ export default function PatientsPage() {
         label: 'Propiedad',
         value: dates.cp_value || dates.cp_key,
       })
+    if (columnFilters.id)
+      chips.push({ key: 'col:id', label: 'ID', value: columnFilters.id })
+    if (columnFilters.branch)
+      chips.push({
+        key: 'col:branch',
+        label: 'Sucursal',
+        value:
+          branchOptions.find((branch) => branch.id === columnFilters.branch)
+            ?.name ?? columnFilters.branch,
+      })
+    if (columnFilters.treatmentsMin)
+      chips.push({
+        key: 'col:treatmentsMin',
+        label: 'Cat.Tratamiento',
+        value: columnFilters.treatmentsMin,
+      })
+    if (columnFilters.condition)
+      chips.push({
+        key: 'col:condition',
+        label: 'Condiciones',
+        value: columnFilters.condition,
+      })
+    if (columnFilters.city)
+      chips.push({
+        key: 'col:city',
+        label: 'Ciudad',
+        value: columnFilters.city,
+      })
+    for (const [key, value] of Object.entries(columnFilters.custom)) {
+      if (value)
+        chips.push({
+          key: `col:custom:${key}`,
+          label: properties.find((item) => item.key === key)?.label ?? key,
+          value,
+        })
+    }
     if (sort.length)
       chips.push({
         key: 'sort',
@@ -510,10 +618,26 @@ export default function PatientsPage() {
         value: sort.map((part) => `${part.field} ${part.dir}`).join(', '),
       })
     return chips
-  }, [archived, dates, responsibleUserId, sort])
+  }, [
+    archived,
+    branchOptions,
+    columnFilters,
+    dates,
+    properties,
+    responsibleUserId,
+    sort,
+  ])
 
   function removeFilterChip(key: string) {
-    if (key === 'responsible') setResponsibleUserId('')
+    if (key.startsWith('col:custom:')) {
+      const customKey = key.slice('col:custom:'.length)
+      setColumnFilters({
+        ...columnFilters,
+        custom: { ...columnFilters.custom, [customKey]: '' },
+      })
+    } else if (key.startsWith('col:'))
+      setColumnFilters({ ...columnFilters, [key.slice(4)]: '' })
+    else if (key === 'responsible') setResponsibleUserId('')
     else if (key === 'archived') setArchived('false')
     else if (key === 'sort') setSort([])
     else if (key === 'cp')
@@ -536,13 +660,6 @@ export default function PatientsPage() {
         actions={
           <>
             <div className="flex flex-wrap gap-2">
-              <ImportButton entity="patients" />
-              {canCreateTreatments && (
-                <ImportButton
-                  entity="treatments"
-                  label="Importar tratamientos"
-                />
-              )}
               {canCreate && (
                 <Button variant="primary" onClick={openCreate}>
                   <Plus className="size-4" />
@@ -571,15 +688,19 @@ export default function PatientsPage() {
           open={filterDraft !== null}
           count={filterCount}
           onClick={() =>
-            setFilterDraft({ responsibleUserId, archived, dates, sort })
+            setFilterDraft({
+              responsibleUserId,
+              archived,
+              dates,
+              sort,
+              columns: columnFilters,
+            })
           }
         />
         <TableToolbarActions
           title="Pacientes"
           filename="pacientes"
           branchScoped
-          exportEntity="patients"
-          exportFilters={{ q: search.trim(), branchId }}
           headers={columnKeys.map(
             (key) =>
               allColumns.find((column) => column.key === key)?.label ?? key,
@@ -602,10 +723,12 @@ export default function PatientsPage() {
               archived: 'false',
               dates: {},
               sort: [],
+              columns: emptyColumnFilters,
             })
             setResponsibleUserId('')
             setArchived('false')
             setDates({})
+            setColumnFilters(emptyColumnFilters)
             setSort([])
             setClientSort(null)
             setPage(1)
@@ -615,6 +738,7 @@ export default function PatientsPage() {
             setResponsibleUserId(filterDraft.responsibleUserId)
             setArchived(filterDraft.archived)
             setDates(filterDraft.dates)
+            setColumnFilters(filterDraft.columns)
             setSort(filterDraft.sort)
             setClientSort(null)
             setPage(1)
@@ -637,6 +761,165 @@ export default function PatientsPage() {
               <option value="true">Archivados</option>
             </select>
           </FilterField>
+          <FilterField label="Sucursal" icon={<Building2 className="size-4" />}>
+            <select
+              aria-label="Sucursal del paciente"
+              value={filterDraft.columns.branch}
+              onChange={(event) =>
+                setDraftColumn({ branch: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todas</option>
+              {branchOptions.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="ID" icon={<Hash className="size-4" />}>
+            <input
+              inputMode="numeric"
+              aria-label="ID del paciente"
+              value={filterDraft.columns.id}
+              onChange={(event) =>
+                setDraftColumn({ id: event.target.value.replace(/D/g, '') })
+              }
+              placeholder="Escribe el ID"
+              className={`${filterControlClass} pl-11`}
+            />
+          </FilterField>
+          <FilterField
+            label="Cat.Tratamiento"
+            icon={<ClipboardList className="size-4" />}
+          >
+            <input
+              type="number"
+              min={0}
+              aria-label="Cat.Tratamiento"
+              value={filterDraft.columns.treatmentsMin}
+              onChange={(event) =>
+                setDraftColumn({ treatmentsMin: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
+          </FilterField>
+          <FilterField
+            label="Condiciones"
+            icon={<Stethoscope className="size-4" />}
+          >
+            <select
+              aria-label="Condiciones"
+              value={filterDraft.columns.condition}
+              onChange={(event) =>
+                setDraftColumn({ condition: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todas</option>
+              {distinctOptions(
+                [
+                  ...(conditionsQuery.data?.data ?? []).map(
+                    (item) => item.name,
+                  ),
+                  ...loadedPatients.map(
+                    (patient) => patient.primaryConditionName,
+                  ),
+                ],
+                filterDraft.columns.condition,
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="Ciudad" icon={<MapPin className="size-4" />}>
+            <select
+              aria-label="Ciudad"
+              value={filterDraft.columns.city}
+              onChange={(event) => setDraftColumn({ city: event.target.value })}
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todas</option>
+              {distinctOptions(
+                loadedPatients.map(patientCity),
+                filterDraft.columns.city,
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          {properties.map((property) => {
+            const selected = filterDraft.columns.custom[property.key] ?? ''
+            return (
+              <FilterField
+                key={property.key}
+                label={property.label}
+                icon={<Tag className="size-4" />}
+              >
+                <select
+                  aria-label={property.label}
+                  value={selected}
+                  onChange={(event) =>
+                    setDraftColumn({
+                      custom: {
+                        ...filterDraft.columns.custom,
+                        [property.key]: event.target.value,
+                      },
+                    })
+                  }
+                  className={`${filterControlClass} pl-11`}
+                >
+                  <option value="">Todos</option>
+                  {distinctOptions(
+                    property.options?.length
+                      ? property.options
+                      : loadedPatients.map((patient) =>
+                          formatCustomValue(
+                            property,
+                            (
+                              patient as {
+                                customValues?: Record<string, unknown>
+                              }
+                            ).customValues?.[property.key],
+                          ),
+                        ),
+                    selected,
+                  ).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </FilterField>
+            )
+          })}
+          <div className="sm:col-span-2">
+            <CustomPropertyFilter
+              entity="patient"
+              propertyKey={filterDraft.dates.cp_key}
+              value={filterDraft.dates.cp_value}
+              onChange={(next) => {
+                const rest = Object.fromEntries(
+                  Object.entries(filterDraft.dates).filter(
+                    ([key]) => key !== 'cp_key' && key !== 'cp_value',
+                  ),
+                )
+                setFilterDraft({
+                  ...filterDraft,
+                  dates: {
+                    ...rest,
+                    ...(next.cp_key ? { cp_key: next.cp_key } : {}),
+                    ...(next.cp_value ? { cp_value: next.cp_value } : {}),
+                  },
+                })
+              }}
+            />
+          </div>
           {dateFilterLabels.map(([from, to, label]) => (
             <div
               key={label}
@@ -681,37 +964,6 @@ export default function PatientsPage() {
               </FilterField>
             </div>
           ))}
-          <div className="sm:col-span-2">
-            <CustomPropertyFilter
-              entity="patient"
-              propertyKey={filterDraft.dates.cp_key}
-              value={filterDraft.dates.cp_value}
-              onChange={(next) => {
-                const rest = Object.fromEntries(
-                  Object.entries(filterDraft.dates).filter(
-                    ([key]) => key !== 'cp_key' && key !== 'cp_value',
-                  ),
-                )
-                setFilterDraft({
-                  ...filterDraft,
-                  dates: {
-                    ...rest,
-                    ...(next.cp_key ? { cp_key: next.cp_key } : {}),
-                    ...(next.cp_value ? { cp_value: next.cp_value } : {}),
-                  },
-                })
-              }}
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <SortEditor
-              sort={filterDraft.sort}
-              fields={patientSortFields}
-              onChange={(next) =>
-                setFilterDraft({ ...filterDraft, sort: next })
-              }
-            />
-          </div>
         </AdvancedFilterDialog>
       )}
       {patients.isError && (

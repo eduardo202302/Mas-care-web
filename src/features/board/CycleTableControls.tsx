@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowDown, ArrowUp, Columns3, X } from 'lucide-react'
+import { Columns3, GripVertical, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
@@ -15,11 +15,9 @@ import {
   type ColumnDef,
   dateFilterKeys,
   savedViewsKey,
-  sortFields,
   useSaveView,
   useSavedViews,
   type SavedView,
-  type SortPart,
   type TableFilters,
 } from '@/lib/cycle-table'
 
@@ -316,83 +314,6 @@ function Chip({
   )
 }
 
-/** Up to 3 sort levels, e.g. derived status then expected date. */
-export function SortEditor({
-  sort,
-  onChange,
-  fields = sortFields,
-}: {
-  sort: SortPart[]
-  onChange: (next: SortPart[]) => void
-  fields?: { value: string; label: string }[]
-}) {
-  const set = (index: number, part: SortPart) =>
-    onChange(sort.map((p, i) => (i === index ? part : p)))
-  return (
-    <div
-      className="flex flex-wrap items-center gap-2 text-sm"
-      aria-label="Orden"
-    >
-      <span className="text-muted text-xs font-semibold">Ordenar por</span>
-      {sort.map((part, index) => (
-        <span key={index} className="flex items-center gap-1">
-          <select
-            aria-label={`Campo de orden ${index + 1}`}
-            className={control}
-            value={part.field}
-            onChange={(e) => set(index, { ...part, field: e.target.value })}
-          >
-            {fields.map((field) => (
-              <option key={field.value} value={field.value}>
-                {field.label}
-              </option>
-            ))}
-          </select>
-          <Button
-            type="button"
-            className="size-9 px-0"
-            aria-label={`Dirección ${index + 1}: ${part.dir === 'asc' ? 'ascendente' : 'descendente'}`}
-            onClick={() =>
-              set(index, { ...part, dir: part.dir === 'asc' ? 'desc' : 'asc' })
-            }
-          >
-            {part.dir === 'asc' ? (
-              <ArrowUp className="size-4" />
-            ) : (
-              <ArrowDown className="size-4" />
-            )}
-          </Button>
-          <Button
-            type="button"
-            className="size-9 px-0"
-            aria-label={`Quitar orden ${index + 1}`}
-            onClick={() => onChange(sort.filter((_, i) => i !== index))}
-          >
-            <X className="size-4" />
-          </Button>
-        </span>
-      ))}
-      {sort.length < 3 && (
-        <Button
-          type="button"
-          className="h-9"
-          onClick={() =>
-            onChange([
-              ...sort,
-              {
-                field: fields[Math.min(sort.length, fields.length - 1)]!.value,
-                dir: 'asc',
-              },
-            ])
-          }
-        >
-          + Nivel de orden
-        </Button>
-      )}
-    </div>
-  )
-}
-
 /** Show/hide and reorder columns; saved per user by the caller. */
 export function ColumnPicker({
   keys,
@@ -409,11 +330,16 @@ export function ColumnPicker({
   const hidden = all.filter((column) => !keys.includes(column.key))
   const label = (key: string) =>
     all.find((column) => column.key === key)?.label ?? key
-  const move = (index: number, by: -1 | 1) => {
-    const next = [...keys]
-    const [item] = next.splice(index, 1)
-    next.splice(index + by, 0, item!)
-    onChange(next)
+  const [dragKey, setDragKey] = useState<string | null>(null)
+  const [overKey, setOverKey] = useState<string | null>(null)
+  const drop = (target: string) => {
+    if (dragKey && dragKey !== target) {
+      const next = keys.filter((key) => key !== dragKey)
+      next.splice(keys.indexOf(target), 0, dragKey)
+      onChange(next)
+    }
+    setDragKey(null)
+    setOverKey(null)
   }
   return (
     <>
@@ -428,27 +354,39 @@ export function ColumnPicker({
           onClose={() => setOpen(false)}
         >
           <ul className="grid gap-1">
-            {keys.map((key, index) => (
-              <li key={key} className="flex items-center gap-2 text-sm">
-                <span className="flex-1">{label(key)}</span>
-                <Button
-                  type="button"
-                  className="size-8 px-0"
-                  aria-label={`Subir ${label(key)}`}
-                  disabled={index === 0}
-                  onClick={() => move(index, -1)}
-                >
-                  <ArrowUp className="size-4" />
-                </Button>
-                <Button
-                  type="button"
-                  className="size-8 px-0"
-                  aria-label={`Bajar ${label(key)}`}
-                  disabled={index === keys.length - 1}
-                  onClick={() => move(index, 1)}
-                >
-                  <ArrowDown className="size-4" />
-                </Button>
+            {keys.map((key) => (
+              <li
+                key={key}
+                draggable
+                onDragStart={(event) => {
+                  event.dataTransfer.effectAllowed = 'move'
+                  setDragKey(key)
+                }}
+                onDragOver={(event) => {
+                  event.preventDefault()
+                  if (overKey !== key) setOverKey(key)
+                }}
+                onDrop={(event) => {
+                  event.preventDefault()
+                  drop(key)
+                }}
+                onDragEnd={() => {
+                  setDragKey(null)
+                  setOverKey(null)
+                }}
+                className={`border-border flex cursor-grab items-center gap-2 rounded-lg border bg-white px-2 py-1.5 text-sm active:cursor-grabbing ${
+                  dragKey === key ? 'opacity-40' : ''
+                } ${
+                  overKey === key && dragKey && dragKey !== key
+                    ? 'border-tealmax ring-tealmax/30 ring-1'
+                    : ''
+                }`}
+              >
+                <GripVertical
+                  className="text-muted size-4 shrink-0"
+                  aria-hidden="true"
+                />
+                <span className="flex-1 select-none">{label(key)}</span>
                 <Button
                   type="button"
                   className="h-8"
@@ -543,6 +481,7 @@ export function SavedViewsBar({
             className="grid gap-3"
             onSubmit={(event) => {
               event.preventDefault()
+              if (!name.trim()) return
               create.mutate(
                 { name: name.trim(), ...current() },
                 {
@@ -557,6 +496,7 @@ export function SavedViewsBar({
           >
             <TextField
               label="Nombre de la vista"
+              required
               value={name}
               maxLength={100}
               onChange={(e) => setName(e.target.value)}
@@ -578,7 +518,7 @@ export function SavedViewsBar({
                 type="submit"
                 variant="primary"
                 className="w-full sm:w-auto"
-                disabled={!name.trim() || create.isPending}
+                disabled={create.isPending}
               >
                 {create.isPending ? 'Guardando…' : 'Guardar vista'}
               </Button>
@@ -709,6 +649,7 @@ export function BatchBar({
             {action === 'create_tasks' && (
               <TextField
                 label="Título de la tarea"
+                required
                 placeholder="Título de la tarea"
                 value={title}
                 maxLength={160}

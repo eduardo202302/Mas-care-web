@@ -11323,6 +11323,7 @@ export interface components {
                 key: "farmacia_nombre" | "farmacia_telefono" | "farmacia_direccion" | "paciente_nombre" | "paciente_documento" | "paciente_edad" | "paciente_telefono" | "tratamiento_nombre" | "medicamento_nombre" | "medicamento_presentacion" | "dosis" | "programacion_dosis" | "dosis_cantidad" | "dosis_unidad" | "via_administracion" | "frecuencia" | "horario" | "duracion" | "cantidad" | "instrucciones" | "fecha_inicio" | "fecha_fin" | "prescriptor" | "codigo_tratamiento";
                 /** @default true */
                 showLabel: boolean;
+                label?: string;
                 id: number;
                 x: number;
                 y: number;
@@ -11420,6 +11421,7 @@ export interface components {
                 key: "farmacia_nombre" | "farmacia_telefono" | "farmacia_direccion" | "paciente_nombre" | "paciente_documento" | "paciente_edad" | "paciente_telefono" | "tratamiento_nombre" | "medicamento_nombre" | "medicamento_presentacion" | "dosis" | "programacion_dosis" | "dosis_cantidad" | "dosis_unidad" | "via_administracion" | "frecuencia" | "horario" | "duracion" | "cantidad" | "instrucciones" | "fecha_inicio" | "fecha_fin" | "prescriptor" | "codigo_tratamiento";
                 /** @default true */
                 showLabel: boolean;
+                label?: string;
                 id: number;
                 x: number;
                 y: number;

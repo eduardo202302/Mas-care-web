@@ -1,7 +1,15 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { ArrowRightLeft, Building2, CalendarDays, Search } from 'lucide-react'
+import {
+  ArrowRightLeft,
+  Building2,
+  CalendarDays,
+  FileText,
+  Hash,
+  Search,
+  UserRound,
+} from 'lucide-react'
 import { NotFoundPage } from '@/app/NotFoundPage'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
 import {
@@ -10,6 +18,7 @@ import {
   AdvancedFilterDialog,
   FilterBarRow,
   FilterField,
+  FilterSelect,
   filterControlClass,
   type ActiveFilterChip,
 } from '@/components/ui/AdvancedFilter'
@@ -43,6 +52,41 @@ const transferColumns = [
   'Registrado por',
 ]
 
+type ExtraFilters = {
+  id: string
+  patient: string
+  fromBranch: string
+  toBranch: string
+  reason: string
+  createdBy: string
+}
+type TransferDraft = ReturnType<typeof transferFiltersFromSearch> & ExtraFilters
+
+const emptyExtra: ExtraFilters = {
+  id: '',
+  patient: '',
+  fromBranch: '',
+  toBranch: '',
+  reason: '',
+  createdBy: '',
+}
+const extraLabels: Record<keyof ExtraFilters, string> = {
+  id: 'ID',
+  patient: 'Paciente',
+  fromBranch: 'De',
+  toBranch: 'A',
+  reason: 'Motivo',
+  createdBy: 'Registrado por',
+}
+
+const norm = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+const contains = (value: string, needle: string) =>
+  !needle.trim() || norm(value).includes(norm(needle.trim()))
+
 export default function TransfersPage() {
   const { data: me, isPending: mePending } = useMe()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -50,9 +94,9 @@ export default function TransfersPage() {
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
   const [search, setSearch] = useState('')
-  const [filterDraft, setFilterDraft] = useState<ReturnType<
-    typeof transferFiltersFromSearch
-  > | null>(null)
+  // El servidor solo filtra por sucursal y fechas: el resto se aplica sobre la página cargada.
+  const [extra, setExtra] = useState<ExtraFilters>(emptyExtra)
+  const [filterDraft, setFilterDraft] = useState<TransferDraft | null>(null)
   const filters = useMemo(
     () => transferFiltersFromSearch(searchParams),
     [searchParams],
@@ -87,21 +131,41 @@ export default function TransfersPage() {
 
   // La API no tiene `q`: la búsqueda se aplica a las filas cargadas.
   const needle = search.trim().toLowerCase()
-  const visibleTransfers = (transfers.data?.data ?? []).filter(
-    (row) =>
-      !needle ||
-      [
-        row.numeric_id,
-        row.patient.full_name,
-        row.from_branch.name,
-        row.to_branch.name,
-        row.reason,
-        row.created_by.name,
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(needle),
-  )
+  const loadedTransfers = transfers.data?.data ?? []
+  const branchNameOptions = (side: 'from_branch' | 'to_branch') =>
+    Array.from(
+      new Set([
+        ...(branches.data?.data ?? []).map((branch) => branch.name),
+        ...loadedTransfers.map((row) => row[side].name),
+        ...(extra[side === 'from_branch' ? 'fromBranch' : 'toBranch']
+          ? [extra[side === 'from_branch' ? 'fromBranch' : 'toBranch']]
+          : []),
+      ]),
+    ).sort((a, b) => a.localeCompare(b, 'es'))
+  const matchesExtra = (row: (typeof loadedTransfers)[number]) =>
+    contains(String(row.numeric_id), extra.id) &&
+    contains(row.patient.full_name, extra.patient) &&
+    (!extra.fromBranch || row.from_branch.name === extra.fromBranch) &&
+    (!extra.toBranch || row.to_branch.name === extra.toBranch) &&
+    contains(row.reason, extra.reason) &&
+    contains(row.created_by.name, extra.createdBy)
+  const visibleTransfers = loadedTransfers
+    .filter(matchesExtra)
+    .filter(
+      (row) =>
+        !needle ||
+        [
+          row.numeric_id,
+          row.patient.full_name,
+          row.from_branch.name,
+          row.to_branch.name,
+          row.reason,
+          row.created_by.name,
+        ]
+          .join(' ')
+          .toLowerCase()
+          .includes(needle),
+    )
   const items = applyColumnSort(visibleTransfers, sort, (row, index) =>
     index === 0
       ? row.numeric_id
@@ -118,7 +182,10 @@ export default function TransfersPage() {
                 : row.created_by.name,
   )
 
-  const filterCount = Object.values(filters).filter(Boolean).length
+  const extraKeys = Object.keys(emptyExtra) as (keyof ExtraFilters)[]
+  const filterCount =
+    Object.values(filters).filter(Boolean).length +
+    extraKeys.filter((key) => extra[key]).length
   const draftCount = filterDraft
     ? Object.values(filterDraft).filter(Boolean).length
     : 0
@@ -134,6 +201,9 @@ export default function TransfersPage() {
   if (filters.from)
     chips.push({ key: 'from', label: 'Desde', value: filters.from })
   if (filters.to) chips.push({ key: 'to', label: 'Hasta', value: filters.to })
+  for (const key of extraKeys)
+    if (extra[key])
+      chips.push({ key, label: extraLabels[key], value: extra[key] })
 
   if (mePending) {
     return (
@@ -169,7 +239,7 @@ export default function TransfersPage() {
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
-          onClick={() => setFilterDraft({ ...filters })}
+          onClick={() => setFilterDraft({ ...filters, ...extra })}
         />
         <TableToolbarActions
           title="Traspasos"
@@ -189,7 +259,12 @@ export default function TransfersPage() {
       </FilterBarRow>
       <ActiveFilterChips
         chips={chips}
-        onRemove={(key) => updateFilters({ ...filters, [key]: undefined })}
+        onRemove={(key) => {
+          if (key in emptyExtra) {
+            setExtra((current) => ({ ...current, [key]: '' }))
+            setPage(1)
+          } else updateFilters({ ...filters, [key]: undefined })
+        }}
       />
       {filterDraft && (
         <AdvancedFilterDialog
@@ -197,12 +272,15 @@ export default function TransfersPage() {
           description="Combina estos criterios para acotar el historial de traspasos."
           onClose={() => setFilterDraft(null)}
           onClear={() => {
-            setFilterDraft({})
+            setFilterDraft({ ...emptyExtra })
+            setExtra(emptyExtra)
             updateFilters({})
           }}
           clearDisabled={!filterCount && !draftCount}
           onApply={() => {
-            updateFilters(filterDraft)
+            const { branch_id, from, to, ...draftExtra } = filterDraft
+            setExtra(draftExtra)
+            updateFilters({ branch_id, from, to })
             setFilterDraft(null)
           }}
         >
@@ -226,7 +304,86 @@ export default function TransfersPage() {
               ))}
             </select>
           </FilterField>
-          <div className="hidden sm:block" />
+          <FilterField label="ID" icon={<Hash className="size-4" />}>
+            <FilterSelect
+              label="ID del traspaso"
+              value={filterDraft.id}
+              options={loadedTransfers.map((row) => String(row.numeric_id))}
+              onChange={(value) =>
+                setFilterDraft({ ...filterDraft, id: value })
+              }
+            />
+          </FilterField>
+          <FilterField label="Paciente" icon={<UserRound className="size-4" />}>
+            <FilterSelect
+              label="Paciente"
+              value={filterDraft.patient}
+              options={loadedTransfers.map((row) => row.patient.full_name)}
+              onChange={(value) =>
+                setFilterDraft({ ...filterDraft, patient: value })
+              }
+            />
+          </FilterField>
+          <FilterField label="De" icon={<Building2 className="size-4" />}>
+            <select
+              aria-label="Sucursal de origen"
+              value={filterDraft.fromBranch}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  fromBranch: event.target.value,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todas</option>
+              {branchNameOptions('from_branch').map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="A" icon={<ArrowRightLeft className="size-4" />}>
+            <select
+              aria-label="Sucursal de destino"
+              value={filterDraft.toBranch}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, toBranch: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todas</option>
+              {branchNameOptions('to_branch').map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="Motivo" icon={<FileText className="size-4" />}>
+            <FilterSelect
+              label="Motivo"
+              value={filterDraft.reason}
+              options={loadedTransfers.map((row) => row.reason)}
+              onChange={(value) =>
+                setFilterDraft({ ...filterDraft, reason: value })
+              }
+            />
+          </FilterField>
+          <FilterField
+            label="Registrado por"
+            icon={<UserRound className="size-4" />}
+          >
+            <FilterSelect
+              label="Registrado por"
+              value={filterDraft.createdBy}
+              options={loadedTransfers.map((row) => row.created_by.name)}
+              onChange={(value) =>
+                setFilterDraft({ ...filterDraft, createdBy: value })
+              }
+            />
+          </FilterField>
           <FilterField label="Desde" icon={<CalendarDays className="size-4" />}>
             <input
               type="date"

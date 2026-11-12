@@ -1,4 +1,9 @@
-import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  ChevronFirst,
+  ChevronLast,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PAGE_ROWS_OPTIONS } from '@/lib/paging'
 
@@ -31,19 +36,35 @@ export function Pagination({
           {from}–{to} de {total} · Página {page} de {pages}
         </span>
         <div className="flex gap-2">
-          <Button aria-label="Primera página" disabled={disabled || page <= 1} onClick={() => onChange(1)}>
+          <Button
+            aria-label="Primera página"
+            disabled={disabled || page <= 1}
+            onClick={() => onChange(1)}
+          >
             <ChevronFirst className="size-4" />
             Inicio
           </Button>
-          <Button aria-label="Página anterior" disabled={disabled || page <= 1} onClick={() => onChange(page - 1)}>
+          <Button
+            aria-label="Página anterior"
+            disabled={disabled || page <= 1}
+            onClick={() => onChange(page - 1)}
+          >
             <ChevronLeft className="size-4" />
             Anterior
           </Button>
-          <Button aria-label="Página siguiente" disabled={disabled || page >= pages} onClick={() => onChange(page + 1)}>
+          <Button
+            aria-label="Página siguiente"
+            disabled={disabled || page >= pages}
+            onClick={() => onChange(page + 1)}
+          >
             Siguiente
             <ChevronRight className="size-4" />
           </Button>
-          <Button aria-label="Última página" disabled={disabled || page >= pages} onClick={() => onChange(pages)}>
+          <Button
+            aria-label="Última página"
+            disabled={disabled || page >= pages}
+            onClick={() => onChange(pages)}
+          >
             Fin
             <ChevronLast className="size-4" />
           </Button>
@@ -59,7 +80,9 @@ export function Pagination({
             className="border-border focus:border-tealmax h-8 rounded-lg border bg-white px-2 text-sm outline-none"
           >
             {rowsOptions.map((option) => (
-              <option key={option} value={option}>{option}</option>
+              <option key={option} value={option}>
+                {option}
+              </option>
             ))}
           </select>
         </label>

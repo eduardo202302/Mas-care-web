@@ -56,7 +56,14 @@ function SelectField({
 } & React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <div className="grid gap-1.5">
-      <label htmlFor={id} className="text-ink text-sm font-medium">
+      <label
+        htmlFor={id}
+        className={cn(
+          'text-ink text-sm font-medium',
+          props.required &&
+            "after:ml-0.5 after:text-red-600 after:content-['*']",
+        )}
+      >
         {label}
       </label>
       <div className="relative">
@@ -131,7 +138,7 @@ export function MenuItemForm({
   }
 
   return (
-    <form className="grid gap-5" onSubmit={handleSubmit(submit)}>
+    <form noValidate className="grid gap-5" onSubmit={handleSubmit(submit)}>
       <ModalSection
         icon={<TextCursorInput className="size-4" />}
         title="Datos del Ítem"
@@ -161,6 +168,7 @@ export function MenuItemForm({
           <SelectField
             id="menu-icon"
             label="Ícono"
+            required
             error={errors.icon?.message}
             {...register('icon')}
           >

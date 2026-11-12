@@ -28,13 +28,15 @@ export const typeLabels: Record<PropertyType, string> = {
   multiselect: 'Selección múltiple',
 }
 
-export const customPropertiesKey = (entity: PropertyEntity, archived = false) => [
-  'custom-properties',
-  entity,
-  archived,
-]
+export const customPropertiesKey = (
+  entity: PropertyEntity,
+  archived = false,
+) => ['custom-properties', entity, archived]
 
-export function useCustomProperties(entity: PropertyEntity, includeArchived = false) {
+export function useCustomProperties(
+  entity: PropertyEntity,
+  includeArchived = false,
+) {
   return useQuery({
     queryKey: customPropertiesKey(entity, includeArchived),
     queryFn: () =>

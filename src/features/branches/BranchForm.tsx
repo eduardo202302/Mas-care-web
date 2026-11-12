@@ -9,6 +9,7 @@ import { ModalSection } from '@/components/ui/ModalSection'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { TextField } from '@/components/ui/TextField'
+import { PHONE_INPUT_MAX_LENGTH, maskPhoneInput } from '@/lib/phone'
 import { branchSchema, type BranchFormValues } from '@/schemas/branch'
 
 /** Mismo control que el resto de la app: alto fijo, borde y anillo de foco. */
@@ -123,7 +124,7 @@ export function BranchForm({
   ]
 
   return (
-    <form className="grid gap-5" onSubmit={handleSubmit(submit)}>
+    <form className="grid gap-5" onSubmit={handleSubmit(submit)} noValidate>
       <Tabs tabs={tabs} value={activeTab} onChange={setActiveTab} />
       <FormFields readOnly={readOnly}>
         {activeTab === 'datos' && (
@@ -134,6 +135,7 @@ export function BranchForm({
             >
               <TextField
                 label="Nombre de Sucursal"
+                required
                 {...register('name')}
                 error={errors.name?.message}
                 placeholder="Sucursal Centro"
@@ -221,7 +223,7 @@ export function BranchForm({
               <div className="grid gap-1.5">
                 <label
                   htmlFor="labelColor"
-                  className="text-ink text-sm font-medium"
+                  className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
                 >
                   Color de la Etiqueta
                 </label>
@@ -264,8 +266,14 @@ export function BranchForm({
               <TextField
                 label="WhatsApp"
                 type="tel"
-                placeholder="+502 5555 5555"
-                {...register('managerPhone')}
+                placeholder="(809) 555-1234"
+                inputMode="tel"
+                maxLength={PHONE_INPUT_MAX_LENGTH}
+                {...register('managerPhone', {
+                  onChange: (e) => {
+                    e.target.value = maskPhoneInput(e.target.value)
+                  },
+                })}
                 error={errors.managerPhone?.message}
               />
               <TextField

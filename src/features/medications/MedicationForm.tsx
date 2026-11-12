@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
-import { Pill } from 'lucide-react'
+import { ChevronDown, Pill } from 'lucide-react'
 import { FormFields, FormFooter } from '@/components/ui/FormMode'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
@@ -20,8 +20,7 @@ import {
 } from './MedicationAttachments'
 import { MedicationPhotoViewer } from './MedicationPhotoViewer'
 
-/** Sugerencias comunes, no una lista cerrada: el campo sigue siendo texto libre para no romper datos existentes. */
-const DOSE_UNIT_SUGGESTIONS = [
+const DOSE_UNITS = [
   'tableta',
   'cápsula',
   'ampolla',
@@ -86,8 +85,8 @@ export function MedicationForm({
           genericName: '',
           activeIngredient: '',
           presentation: '',
-          doseUnit: 'tableta',
-          unitsPerPackage: 1,
+          doseUnit: '',
+          unitsPerPackage: undefined,
         },
   })
 
@@ -121,7 +120,7 @@ export function MedicationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="grid gap-5">
+    <form noValidate onSubmit={handleSubmit(submit)} className="grid gap-5">
       <FormFields readOnly={readOnly}>
         <ModalSection icon={<Pill className="size-4" />} title="Identificación">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -167,19 +166,46 @@ export function MedicationForm({
               {...register('presentation')}
               error={errors.presentation?.message}
             />
-            <TextField
-              label="Unidad de Dosis"
-              required
-              placeholder="tableta, ml…"
-              list="dose-unit-options"
-              {...register('doseUnit')}
-              error={errors.doseUnit?.message}
-            />
-            <datalist id="dose-unit-options">
-              {DOSE_UNIT_SUGGESTIONS.map((unit) => (
-                <option key={unit} value={unit} />
-              ))}
-            </datalist>
+            <div className="grid content-start gap-1.5">
+              <label
+                htmlFor="dose-unit"
+                className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
+              >
+                Unidad de Dosis
+              </label>
+              <div className="relative">
+                <select
+                  id="dose-unit"
+                  aria-invalid={Boolean(errors.doseUnit)}
+                  {...register('doseUnit')}
+                  className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full appearance-none rounded-lg border bg-white px-3 pr-9 text-sm transition outline-none focus:ring-2 aria-[invalid=true]:border-red-400"
+                >
+                  <option value="">Selecciona una unidad</option>
+                  {medication?.doseUnit &&
+                    !(DOSE_UNITS as readonly string[]).includes(
+                      medication.doseUnit,
+                    ) && (
+                      <option value={medication.doseUnit}>
+                        {medication.doseUnit}
+                      </option>
+                    )}
+                  {DOSE_UNITS.map((unit) => (
+                    <option key={unit} value={unit}>
+                      {unit}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
+                  aria-hidden="true"
+                />
+              </div>
+              {errors.doseUnit?.message && (
+                <p className="text-xs text-red-700">
+                  {errors.doseUnit.message}
+                </p>
+              )}
+            </div>
             <TextField
               label="Unidades por Envase"
               type="number"

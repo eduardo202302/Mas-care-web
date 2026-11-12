@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, Plus, Stethoscope, User, X } from 'lucide-react'
+import { Building2, Check, Plus, Stethoscope, User, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
@@ -12,10 +12,11 @@ import { TextField } from '@/components/ui/TextField'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { ApiError, api } from '@/lib/http'
-import { maskPhoneInput } from '@/lib/phone'
+import { maskPhoneInput, PHONE_INPUT_MAX_LENGTH } from '@/lib/phone'
 import type { components, paths } from '@/lib/api-types'
 import {
   doctorSchema,
+  LICENSE_NUMBER_LENGTH,
   type DoctorBaseFormValues,
   type DoctorFormValues,
 } from '@/schemas/doctor'
@@ -45,42 +46,41 @@ function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
   )
 }
 
-function PickerSelect({
+function OptionChecklist({
   label,
-  placeholder,
+  emptyText,
   options,
-  onPick,
-  disabled = false,
-  assignedSuffix = 'ya asignada',
+  onToggle,
 }: {
   label: string
-  placeholder: string
-  options: { id: string; name: string; assigned?: boolean }[]
-  onPick: (id: string) => void
-  disabled?: boolean
-  assignedSuffix?: string
+  emptyText: string
+  options: { id: string; name: string; assigned: boolean }[]
+  onToggle: (id: string, assigned: boolean) => void
 }) {
+  if (!options.length) return <p className="text-muted text-sm">{emptyText}</p>
   return (
-    <div className="min-w-0 flex-1">
-      <select
-        aria-label={label}
-        value=""
-        disabled={disabled}
-        onChange={(event) => {
-          if (event.target.value) onPick(event.target.value)
-        }}
-        className="border-border text-ink focus:border-tealmax h-10 w-full min-w-0 rounded-lg border bg-white px-3 text-sm outline-none disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option.id} value={option.id} disabled={option.assigned}>
-            {option.assigned
-              ? `${option.name} — ${assignedSuffix}`
-              : option.name}
-          </option>
-        ))}
-      </select>
-    </div>
+    <ul
+      aria-label={label}
+      className="app-scroll flex max-h-40 min-w-0 flex-1 flex-wrap gap-2 overflow-y-auto"
+    >
+      {options.map((option) => (
+        <li key={option.id}>
+          <button
+            type="button"
+            aria-pressed={option.assigned}
+            onClick={() => onToggle(option.id, option.assigned)}
+            className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition ${
+              option.assigned
+                ? 'border-tealmax bg-tealmax/10 text-petroleo font-medium'
+                : 'border-border text-ink bg-white hover:bg-[#c3e9cf]'
+            }`}
+          >
+            {option.assigned && <Check className="size-3.5" />}
+            {option.name}
+          </button>
+        </li>
+      ))}
+    </ul>
   )
 }
 
@@ -251,7 +251,6 @@ export function DoctorForm({
     setSpecialtyIds((current) =>
       current.includes(id) ? current : [...current, id],
     )
-    setSpecialtyPickerOpen(false)
   }
   function removeSpecialty(id: string) {
     setSpecialtyIds((current) => current.filter((value) => value !== id))
@@ -260,7 +259,6 @@ export function DoctorForm({
     setMedicalCenterIds((current) =>
       current.includes(id) ? current : [...current, id],
     )
-    setCenterPickerOpen(false)
   }
   function removeMedicalCenter(id: string) {
     setMedicalCenterIds((current) => current.filter((value) => value !== id))
@@ -333,8 +331,6 @@ export function DoctorForm({
       })),
     [centerOptions.data, medicalCenterIds],
   )
-  const hasFreeSpecialties = specialtyPickerOptions.some((o) => !o.assigned)
-  const hasFreeCenters = centerPickerOptions.some((o) => !o.assigned)
   const selectedSpecialties = useMemo(
     () =>
       specialtyIds.map((id) => ({
@@ -352,20 +348,9 @@ export function DoctorForm({
     [centerNameById, medicalCenterIds],
   )
 
-  const specialtyPlaceholder = !specialtyPickerOptions.length
-    ? 'Sin especialidades registradas'
-    : !hasFreeSpecialties
-      ? 'Todas ya están asignadas'
-      : 'Selecciona una especialidad…'
-  const centerPlaceholder = !centerPickerOptions.length
-    ? 'Sin centros médicos registrados'
-    : !hasFreeCenters
-      ? 'Todos ya están asignados'
-      : 'Selecciona un centro médico…'
-
   return (
     <>
-      <form onSubmit={handleSubmit(submit)} className="grid gap-5">
+      <form noValidate onSubmit={handleSubmit(submit)} className="grid gap-5">
         <ModalSection
           icon={<User className="size-4" />}
           title="Datos del Médico"
@@ -385,11 +370,26 @@ export function DoctorForm({
             />
             <TextField
               label="Número de colegiatura (Exequátur)"
+              required
+              inputMode="numeric"
+              maxLength={LICENSE_NUMBER_LENGTH}
+              placeholder="123456"
               {...register('licenseNumber')}
+              onChange={(event) =>
+                setValue(
+                  'licenseNumber',
+                  event.target.value
+                    .replace(/D/g, '')
+                    .slice(0, LICENSE_NUMBER_LENGTH),
+                  { shouldDirty: true },
+                )
+              }
               error={errors.licenseNumber?.message}
             />
             <TextField
               label="Teléfono"
+              required
+              maxLength={PHONE_INPUT_MAX_LENGTH}
               type="tel"
               inputMode="tel"
               placeholder="(809) 555-1234"
@@ -447,13 +447,14 @@ export function DoctorForm({
           ) : (
             <>
               {specialtyPickerOpen && (
-                <div className="flex flex-wrap items-end gap-2">
-                  <PickerSelect
-                    label="Especialidad"
-                    placeholder={specialtyPlaceholder}
+                <div className="flex flex-wrap items-start gap-2">
+                  <OptionChecklist
+                    label="Especialidades disponibles"
+                    emptyText="Sin especialidades registradas."
                     options={specialtyPickerOptions}
-                    onPick={addSpecialty}
-                    disabled={!hasFreeSpecialties}
+                    onToggle={(id, assigned) =>
+                      assigned ? removeSpecialty(id) : addSpecialty(id)
+                    }
                   />
                   {canWriteSpecialties && (
                     <AddButton
@@ -507,14 +508,14 @@ export function DoctorForm({
           ) : (
             <>
               {centerPickerOpen && (
-                <div className="flex flex-wrap items-end gap-2">
-                  <PickerSelect
-                    label="Centro médico"
-                    placeholder={centerPlaceholder}
+                <div className="flex flex-wrap items-start gap-2">
+                  <OptionChecklist
+                    label="Centros médicos disponibles"
+                    emptyText="Sin centros médicos registrados."
                     options={centerPickerOptions}
-                    onPick={addMedicalCenter}
-                    disabled={!hasFreeCenters}
-                    assignedSuffix="ya asignado"
+                    onToggle={(id, assigned) =>
+                      assigned ? removeMedicalCenter(id) : addMedicalCenter(id)
+                    }
                   />
                   {canWriteCenters && (
                     <AddButton

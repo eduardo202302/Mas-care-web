@@ -95,7 +95,7 @@ export function AdvancedFilterButton({
       variant={count > 0 ? 'primary' : 'secondary'}
       aria-haspopup="dialog"
       aria-expanded={open}
-      className="h-10 gap-1.5"
+      className={cn('h-10 gap-1.5', count === 0 && 'hover:bg-[#c3e9cf]')}
       onClick={onClick}
     >
       <SlidersHorizontal className="size-3.5" />
@@ -234,5 +234,46 @@ export function FilterSegmented<T extends string>({
         )
       })}
     </div>
+  )
+}
+
+/** Valores únicos, no vacíos y ordenados, para poblar un select de filtro. */
+export function distinctOptions(
+  values: (string | null | undefined)[],
+  selected?: string,
+) {
+  return Array.from(
+    new Set([...values, selected].filter((value): value is string => !!value)),
+  ).sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+}
+
+/** Select de filtro con los valores que ya existen en los datos. */
+export function FilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+  allLabel = 'Todos',
+}: {
+  label: string
+  value: string
+  options: (string | null | undefined)[]
+  onChange: (value: string) => void
+  allLabel?: string
+}) {
+  return (
+    <select
+      aria-label={label}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className={`${filterControlClass} pl-11`}
+    >
+      <option value="">{allLabel}</option>
+      {distinctOptions(options, value).map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
   )
 }

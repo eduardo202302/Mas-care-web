@@ -116,11 +116,7 @@ function ChangePassword() {
           </p>
         )}
         <div>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={!ready || state === 'saving'}
-          >
+          <Button type="submit" variant="primary" disabled={state === 'saving'}>
             {state === 'saving' ? 'Guardando…' : 'Cambiar contraseña'}
           </Button>
         </div>

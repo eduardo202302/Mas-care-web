@@ -110,9 +110,7 @@ export function KanbanBoard<T>({
 
   function columnFor(id: string, overData: unknown): string | undefined {
     const data = overData as
-      | { type?: string; column?: string }
-      | null
-      | undefined
+      { type?: string; column?: string } | null | undefined
     if (data?.column) return data.column
     if (data?.type === 'column') return id.replace(/^column:/, '')
     return itemById.get(id)?.column
@@ -147,10 +145,7 @@ export function KanbanBoard<T>({
       )
       if (overIndex >= 0) index = overIndex
     }
-    if (
-      source.column === targetKey &&
-      String(over.id) === String(dragged.id)
-    ) {
+    if (source.column === targetKey && String(over.id) === String(dragged.id)) {
       return
     }
     const afterId = index > 0 ? getId(targetCards[index - 1]!) : null
@@ -257,13 +252,17 @@ function KanbanColumnView<T>({
       aria-label={`${column.title}, ${column.count ?? column.cards.length} tarjetas`}
       className={cn(
         'border-border flex w-[min(85vw,320px)] shrink-0 snap-start flex-col rounded-xl border bg-slate-50/80 transition xl:w-auto xl:min-w-[240px] xl:flex-1',
-        isOver && droppable && 'border-tealmax ring-tealmax/15 bg-teal-50/60 ring-2',
+        isOver &&
+          droppable &&
+          'border-tealmax ring-tealmax/15 bg-teal-50/60 ring-2',
         isOver && !droppable && 'border-red-200 bg-red-50/40',
       )}
     >
       <header
         className="border-border border-b px-3 py-3"
-        style={column.color ? { borderTop: `3px solid ${column.color}` } : undefined}
+        style={
+          column.color ? { borderTop: `3px solid ${column.color}` } : undefined
+        }
       >
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-petroleo text-sm font-bold">{column.title}</h2>
@@ -278,7 +277,9 @@ function KanbanColumnView<T>({
           </p>
         )}
         {column.note && (
-          <p className="text-muted mt-1 text-[11px] leading-snug">{column.note}</p>
+          <p className="text-muted mt-1 text-[11px] leading-snug">
+            {column.note}
+          </p>
         )}
       </header>
       <div className="flex min-h-[160px] flex-1 flex-col gap-2 p-2.5">

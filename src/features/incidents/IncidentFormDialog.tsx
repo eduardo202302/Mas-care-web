@@ -124,7 +124,9 @@ export function IncidentFormDialog({
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Sucursal</span>
+              <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+                Sucursal
+              </span>
               <select
                 value={branchId}
                 onChange={(event) => setBranchId(event.target.value)}
@@ -140,7 +142,9 @@ export function IncidentFormDialog({
               </select>
             </label>
             <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Tipo</span>
+              <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+                Tipo
+              </span>
               <select
                 value={type}
                 onChange={(event) =>
@@ -246,7 +250,7 @@ export function IncidentFormDialog({
           <div className="grid gap-1.5">
             <label
               htmlFor="incident-description"
-              className="text-ink text-sm font-medium"
+              className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
             >
               Descripción{' '}
               <span className="text-muted font-normal">
@@ -275,11 +279,7 @@ export function IncidentFormDialog({
           <Button type="button" onClick={onClose}>
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={!valid || create.isPending}
-          >
+          <Button type="submit" variant="primary" disabled={create.isPending}>
             <TriangleAlert className="size-4" />
             {create.isPending ? 'Creando…' : 'Crear Incidencia'}
           </Button>

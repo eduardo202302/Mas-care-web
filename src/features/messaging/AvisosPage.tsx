@@ -8,7 +8,15 @@ import {
 } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
-import { Mail, Search } from 'lucide-react'
+import {
+  BellRing,
+  CalendarDays,
+  FileText,
+  Mail,
+  MessageSquare,
+  Search,
+  UserRound,
+} from 'lucide-react'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
 import {
   ActiveFilterChips,
@@ -17,6 +25,7 @@ import {
   FilterBarRow,
   FilterField,
   filterControlClass,
+  type ActiveFilterChip,
 } from '@/components/ui/AdvancedFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
@@ -94,12 +103,45 @@ const explainError = (code: string | null) =>
 const when = (value: string | null) =>
   value ? new Date(value).toLocaleString('es') : ''
 
+type QueueFilters = {
+  status: OutboxStatus | ''
+  patient: string
+  channel: string
+  notice: string
+  from: string
+  to: string
+  detail: string
+}
+
+const emptyFilters: QueueFilters = {
+  status: '',
+  patient: '',
+  channel: '',
+  notice: '',
+  from: '',
+  to: '',
+  detail: '',
+}
+
+const noticeLabel = (attempt: number) =>
+  attempt === 1 ? 'Primer aviso' : `Recordatorio ${attempt - 1}`
+const norm = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+const contains = (value: string, needle: string) =>
+  !needle.trim() || norm(value).includes(norm(needle.trim()))
+const localDay = (value: string) => new Date(value).toLocaleDateString('en-CA')
+
 function Queue() {
   const queryClient = useQueryClient()
   const canAct = useCan('outbox:retry')
-  const [status, setStatus] = useState<OutboxStatus | ''>('')
-  const [filterOpen, setFilterOpen] = useState(false)
+  // El servidor solo filtra por estado: el resto se aplica sobre los envíos cargados.
+  const [applied, setApplied] = useState<QueueFilters>(emptyFilters)
+  const [filterDraft, setFilterDraft] = useState<QueueFilters | null>(null)
   const [search, setSearch] = useState('')
+  const status = applied.status
   const list = useInfiniteQuery({
     queryKey: ['outbox', status],
     queryFn: ({ pageParam }) => {
@@ -119,20 +161,80 @@ function Queue() {
   })
   // La API no tiene `q`: la búsqueda se aplica a los envíos cargados.
   const needle = search.trim().toLowerCase()
-  const rows = (list.data?.pages.flatMap((page) => page.data) ?? []).filter(
-    (row) =>
-      !needle ||
-      [
-        row.patient.name,
-        channelLabels[row.channel] ?? row.channel,
-        row.template.name,
-        statusLabels[row.status],
-        explainError(row.last_error),
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(needle),
-  )
+  const loadedRows = list.data?.pages.flatMap((page) => page.data) ?? []
+  const noticeOptions = Array.from(
+    new Set([
+      ...loadedRows.map((row) => noticeLabel(row.attempt_number)),
+      ...(applied.notice ? [applied.notice] : []),
+    ]),
+  ).sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+  const distinctOptions = (values: string[], selected: string) =>
+    Array.from(
+      new Set([...values.filter(Boolean), ...(selected ? [selected] : [])]),
+    ).sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+  const matchesFilters = (row: OutboxRow) => {
+    const day = localDay(row.sent_at ?? row.scheduled_for)
+    return (
+      contains(row.patient.name, applied.patient) &&
+      (!applied.channel || row.channel === applied.channel) &&
+      (!applied.notice || noticeLabel(row.attempt_number) === applied.notice) &&
+      contains(explainError(row.last_error), applied.detail) &&
+      (!applied.from || day >= applied.from) &&
+      (!applied.to || day <= applied.to)
+    )
+  }
+  const rows = loadedRows
+    .filter(matchesFilters)
+    .filter(
+      (row) =>
+        !needle ||
+        [
+          row.patient.name,
+          channelLabels[row.channel] ?? row.channel,
+          row.template.name,
+          statusLabels[row.status],
+          explainError(row.last_error),
+        ]
+          .join(' ')
+          .toLowerCase()
+          .includes(needle),
+    )
+  const chips: ActiveFilterChip[] = [
+    ...(applied.status
+      ? [
+          {
+            key: 'status',
+            label: 'Estado',
+            value: statusLabels[applied.status],
+          },
+        ]
+      : []),
+    ...(applied.patient
+      ? [{ key: 'patient', label: 'Paciente', value: applied.patient }]
+      : []),
+    ...(applied.channel
+      ? [
+          {
+            key: 'channel',
+            label: 'Canal',
+            value: channelLabels[applied.channel] ?? applied.channel,
+          },
+        ]
+      : []),
+    ...(applied.notice
+      ? [{ key: 'notice', label: 'Aviso', value: applied.notice }]
+      : []),
+    ...(applied.from
+      ? [{ key: 'from', label: 'Fecha desde', value: applied.from }]
+      : []),
+    ...(applied.to
+      ? [{ key: 'to', label: 'Fecha hasta', value: applied.to }]
+      : []),
+    ...(applied.detail
+      ? [{ key: 'detail', label: 'Detalle', value: applied.detail }]
+      : []),
+  ]
+  const filterCount = chips.length
 
   return (
     <section aria-label="Cola de envíos">
@@ -148,9 +250,9 @@ function Queue() {
           />
         </label>
         <AdvancedFilterButton
-          open={filterOpen}
-          count={status ? 1 : 0}
-          onClick={() => setFilterOpen(true)}
+          open={filterDraft !== null}
+          count={filterCount}
+          onClick={() => setFilterDraft(applied)}
         />
         <TableToolbarActions
           title="Avisos"
@@ -173,32 +275,94 @@ function Queue() {
         Se actualiza solo cada 30 segundos.
       </p>
       <ActiveFilterChips
-        chips={
-          status
-            ? [{ key: 'status', label: 'Estado', value: statusLabels[status] }]
-            : []
-        }
-        onRemove={() => setStatus('')}
+        chips={chips}
+        onRemove={(key) => setApplied((current) => ({ ...current, [key]: '' }))}
       />
-      {filterOpen && (
+      {filterDraft && (
         <AdvancedFilterDialog
           open
           title="Filtro Avanzado"
-          description="Acota la cola de envíos por estado."
-          onClose={() => setFilterOpen(false)}
+          description="Combina estos criterios para acotar la cola de envíos."
+          onClose={() => setFilterDraft(null)}
           onClear={() => {
-            setStatus('')
-            setFilterOpen(false)
+            setFilterDraft(emptyFilters)
+            setApplied(emptyFilters)
           }}
-          clearDisabled={!status}
-          onApply={() => setFilterOpen(false)}
+          clearDisabled={
+            !filterCount &&
+            JSON.stringify(filterDraft) === JSON.stringify(emptyFilters)
+          }
+          onApply={() => {
+            setApplied(filterDraft)
+            setFilterDraft(null)
+          }}
         >
+          <FilterField label="Paciente" icon={<UserRound className="size-4" />}>
+            <select
+              aria-label="Paciente"
+              value={filterDraft.patient}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, patient: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {distinctOptions(
+                loadedRows.map((row) => row.patient.name),
+                filterDraft.patient,
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField
+            label="Canal"
+            icon={<MessageSquare className="size-4" />}
+          >
+            <select
+              aria-label="Canal"
+              value={filterDraft.channel}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, channel: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {Object.entries(channelLabels).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="Aviso" icon={<BellRing className="size-4" />}>
+            <select
+              aria-label="Aviso"
+              value={filterDraft.notice}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, notice: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {noticeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </FilterField>
           <FilterField label="Estado" icon={<Mail className="size-4" />}>
             <select
               aria-label="Filtrar por estado"
-              value={status}
+              value={filterDraft.status}
               onChange={(event) =>
-                setStatus(event.target.value as OutboxStatus | '')
+                setFilterDraft({
+                  ...filterDraft,
+                  status: event.target.value as OutboxStatus | '',
+                })
               }
               className={`${filterControlClass} pl-11`}
             >
@@ -209,6 +373,54 @@ function Queue() {
                 </option>
               ))}
             </select>
+          </FilterField>
+          <FilterField label="Detalle" icon={<FileText className="size-4" />}>
+            <select
+              aria-label="Detalle"
+              value={filterDraft.detail}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, detail: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {distinctOptions(
+                loadedRows.map((row) => explainError(row.last_error)),
+                filterDraft.detail,
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField
+            label="Fecha desde"
+            icon={<CalendarDays className="size-4" />}
+          >
+            <input
+              type="date"
+              aria-label="Fecha desde"
+              value={filterDraft.from}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, from: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
+          </FilterField>
+          <FilterField
+            label="Fecha hasta"
+            icon={<CalendarDays className="size-4" />}
+          >
+            <input
+              type="date"
+              aria-label="Fecha hasta"
+              value={filterDraft.to}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, to: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
           </FilterField>
         </AdvancedFilterDialog>
       )}

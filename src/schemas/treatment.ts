@@ -23,11 +23,11 @@ export const treatmentSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(1, 'Indica el nombre del tratamiento.')
+    .min(1, 'Campo requerido.')
     .max(160, 'Máximo 160 caracteres.'),
-  medicationId: z.string().min(1, 'Selecciona un medicamento.'),
+  medicationId: z.string().min(1, 'Campo requerido.'),
   dosePerIntake: z
-    .number({ error: 'Indica una dosis válida.' })
+    .number({ error: 'Campo requerido.' })
     .positive('Debe ser mayor a cero.'),
   intakesPerDay: z
     .number({ error: 'Indica las tomas por día.' })
@@ -35,7 +35,7 @@ export const treatmentSchema = z.object({
   quantityPerCycle: z
     .number({ error: 'Indica la cantidad por ciclo.' })
     .positive('Debe ser mayor a cero.'),
-  startDate: z.string().min(1, 'Indica la fecha de inicio.'),
+  startDate: z.string().min(1, 'Campo requerido.'),
   /** Hasta qué fecha llega el tratamiento (opcional). */
   endDate: z.string().optional(),
   /** Médico registrado que prescribe (id del doctor). */
@@ -43,7 +43,7 @@ export const treatmentSchema = z.object({
   /** Nombre anterior en texto libre: solo se conserva para no perderlo al editar. */
   prescriberName: z.string().trim().max(160).optional(),
   prescriptionExpiresOn: z.string().optional(),
-  branchId: z.string().min(1, 'Selecciona una sucursal.'),
+  branchId: z.string().min(1, 'Campo requerido.'),
   responsibleUserId: z.string().optional(),
   notes: z.string().max(5000).optional(),
   customValues: z.record(z.string(), z.unknown()).optional(),

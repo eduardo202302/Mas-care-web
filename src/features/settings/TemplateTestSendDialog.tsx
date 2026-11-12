@@ -17,6 +17,7 @@ export function TemplateTestSendDialog({
   onClose: () => void
 }) {
   const [phone, setPhone] = useState('')
+  const [showShort, setShowShort] = useState(false)
   const send = useMutation({
     mutationFn: () =>
       api<{ sent: boolean }>(
@@ -37,17 +38,28 @@ export function TemplateTestSendDialog({
         className="grid gap-5"
         onSubmit={(event) => {
           event.preventDefault()
-          if (phone.trim().length >= 7) send.mutate()
+          if (phone.trim().length < 7) {
+            setShowShort(true)
+            return
+          }
+          send.mutate()
         }}
       >
         <TextField
           label="Teléfono de prueba"
+          required
           type="tel"
           inputMode="tel"
           placeholder="809 555 0123"
           value={phone}
+          error={
+            showShort && phone.trim() && phone.trim().length < 7
+              ? 'Ingresa un teléfono de al menos 7 dígitos.'
+              : undefined
+          }
           onChange={(event) => {
             setPhone(event.target.value)
+            setShowShort(false)
             send.reset()
           }}
         />
@@ -69,7 +81,7 @@ export function TemplateTestSendDialog({
             type="submit"
             variant="primary"
             className="w-full sm:w-auto"
-            disabled={phone.trim().length < 7 || send.isPending}
+            disabled={send.isPending}
           >
             {send.isPending ? 'Enviando…' : 'Enviar prueba'}
           </Button>

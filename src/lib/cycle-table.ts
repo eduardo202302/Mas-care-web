@@ -42,18 +42,30 @@ export const dateFilterKeys = [
   ['coverage_from', 'coverage_to', 'Fin de cobertura'],
 ] as const
 
-export function tableFiltersToSearch(filters: TableFilters, sort: SortPart[], params: URLSearchParams) {
+export function tableFiltersToSearch(
+  filters: TableFilters,
+  sort: SortPart[],
+  params: URLSearchParams,
+) {
   for (const [key, value] of Object.entries(filters)) {
     if (key === 'match') continue
     if (Array.isArray(value)) {
       if (value.length) params.set(key, value.join(','))
     } else if (value) params.set(key, String(value))
   }
-  const hasSets = [filters.patient_ids, filters.medication_ids, filters.branch_ids, filters.responsible_ids, filters.treatment_ids].some(
-    (set) => set?.length,
-  )
+  const hasSets = [
+    filters.patient_ids,
+    filters.medication_ids,
+    filters.branch_ids,
+    filters.responsible_ids,
+    filters.treatment_ids,
+  ].some((set) => set?.length)
   if (hasSets) params.set('match', filters.match)
-  if (sort.length) params.set('sort', sort.map((part) => `${part.field}:${part.dir}`).join(','))
+  if (sort.length)
+    params.set(
+      'sort',
+      sort.map((part) => `${part.field}:${part.dir}`).join(','),
+    )
   return params
 }
 
@@ -77,7 +89,10 @@ export type SavedView = {
   id: string
   name: string
   entity: string
-  filters: { board?: BoardFilters; table?: TableFilters } & Record<string, unknown>
+  filters: { board?: BoardFilters; table?: TableFilters } & Record<
+    string,
+    unknown
+  >
   columns: string[]
   sort: { parts?: SortPart[] } & Record<string, unknown>
   isDefault: boolean
@@ -88,26 +103,35 @@ export const savedViewsKey = (entity: string) => ['saved-views', entity]
 export function useSavedViews(entity: string) {
   return useQuery({
     queryKey: savedViewsKey(entity),
-    queryFn: () => api<{ data: SavedView[] }>(`/api/v1/saved-views?entity=${entity}`),
+    queryFn: () =>
+      api<{ data: SavedView[] }>(`/api/v1/saved-views?entity=${entity}`),
   })
 }
 
 export function useSaveView(entity: string) {
   const queryClient = useQueryClient()
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: savedViewsKey(entity) })
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: savedViewsKey(entity) })
   return {
     create: useMutation({
       mutationFn: (body: Partial<SavedView> & { name: string }) =>
-        api<SavedView>('/api/v1/saved-views', { method: 'POST', body: JSON.stringify({ entity, ...body }) }),
+        api<SavedView>('/api/v1/saved-views', {
+          method: 'POST',
+          body: JSON.stringify({ entity, ...body }),
+        }),
       onSuccess: invalidate,
     }),
     patch: useMutation({
       mutationFn: ({ id, ...body }: Partial<SavedView> & { id: string }) =>
-        api<SavedView>(`/api/v1/saved-views/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+        api<SavedView>(`/api/v1/saved-views/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(body),
+        }),
       onSuccess: invalidate,
     }),
     remove: useMutation({
-      mutationFn: (id: string) => api(`/api/v1/saved-views/${id}`, { method: 'DELETE' }),
+      mutationFn: (id: string) =>
+        api(`/api/v1/saved-views/${id}`, { method: 'DELETE' }),
       onSuccess: invalidate,
     }),
   }
@@ -118,7 +142,11 @@ export function useSaveView(entity: string) {
  * `<entity>_columns` saved view named "default".
  */
 /** `defaults`: columns shown until the user chooses; `all` may offer more (e.g. custom properties). */
-export function useColumnPrefs(entity: string, all: ColumnDef[], defaults: string[] = all.map((column) => column.key)) {
+export function useColumnPrefs(
+  entity: string,
+  all: ColumnDef[],
+  defaults: string[] = all.map((column) => column.key),
+) {
   const columnsEntity = `${entity}_columns`
   const views = useSavedViews(columnsEntity)
   const { create, patch } = useSaveView(columnsEntity)
@@ -127,6 +155,8 @@ export function useColumnPrefs(entity: string, all: ColumnDef[], defaults: strin
   const visible = stored?.columns.filter((key) => known.has(key))
   const keys = visible?.length ? visible : defaults
   const save = (next: string[]) =>
-    stored ? patch.mutate({ id: stored.id, columns: next }) : create.mutate({ name: 'default', columns: next })
+    stored
+      ? patch.mutate({ id: stored.id, columns: next })
+      : create.mutate({ name: 'default', columns: next })
   return { keys, save, saving: create.isPending || patch.isPending }
 }

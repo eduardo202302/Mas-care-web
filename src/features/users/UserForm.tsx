@@ -1,8 +1,11 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath, Resolver } from 'react-hook-form'
+import { useState } from 'react'
 import {
+  Check,
   ChevronDown,
+  Copy,
   KeyRound,
   RefreshCw,
   ShieldCheck,
@@ -13,6 +16,8 @@ import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { TextField } from '@/components/ui/TextField'
+import { cn } from '@/lib/cn'
+import { PHONE_INPUT_MAX_LENGTH, maskPhoneInput } from '@/lib/phone'
 import { ApiError } from '@/lib/http'
 import {
   userCreateSchema,
@@ -63,6 +68,7 @@ export function UserForm({
     register,
     handleSubmit,
     setValue,
+    getValues,
     setError,
     watch,
     formState: { errors },
@@ -81,6 +87,7 @@ export function UserForm({
       branchIds: initialValues?.branchIds ?? [],
     },
   })
+  const [copied, setCopied] = useState(false)
   const editing = mode === 'edit'
   const selectedRoleId = watch('roleId')
   const allBranches = Boolean(
@@ -90,6 +97,18 @@ export function UserForm({
   const control =
     'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2'
   const fieldClass = `${control} placeholder:text-muted/70 transition aria-[invalid=true]:border-red-400`
+
+  async function copyPassword() {
+    const password = getValues('password')
+    if (!password) return
+    try {
+      await navigator.clipboard.writeText(password)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setCopied(false)
+    }
+  }
 
   async function submit(values: UserCreateValues) {
     if (!allBranches && values.branchIds.length === 0) {
@@ -133,7 +152,7 @@ export function UserForm({
   }
 
   return (
-    <form className="grid gap-5" onSubmit={handleSubmit(submit)}>
+    <form noValidate className="grid gap-5" onSubmit={handleSubmit(submit)}>
       <ModalSection
         icon={<UserRound className="size-4" />}
         title="Datos del Usuario"
@@ -163,10 +182,16 @@ export function UserForm({
             error={errors.email?.message}
           />
           <TextField
-            label="WhatsApp / Teléfono"
+            label="WhatsApp"
             type="tel"
-            placeholder="Número de celular"
-            {...register('phone')}
+            placeholder="(809) 555-1234"
+            inputMode="tel"
+            maxLength={PHONE_INPUT_MAX_LENGTH}
+            {...register('phone', {
+              onChange: (e) => {
+                e.target.value = maskPhoneInput(e.target.value)
+              },
+            })}
             error={errors.phone?.message}
           />
         </div>
@@ -179,7 +204,7 @@ export function UserForm({
           <div className="grid gap-1.5">
             <label
               htmlFor="user-password"
-              className="text-ink text-sm font-medium"
+              className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
             >
               Contraseña Temporal
             </label>
@@ -198,14 +223,28 @@ export function UserForm({
               <Button
                 type="button"
                 className="shrink-0 px-3"
-                onClick={() =>
+                onClick={() => {
                   setValue('password', generatePassword(), {
                     shouldValidate: true,
                   })
-                }
+                  setCopied(false)
+                }}
               >
                 <RefreshCw className="size-4" />
                 Generar
+              </Button>
+              <Button
+                type="button"
+                className="shrink-0 px-3"
+                aria-label="Copiar contraseña"
+                onClick={copyPassword}
+              >
+                {copied ? (
+                  <Check className="size-4" />
+                ) : (
+                  <Copy className="size-4" />
+                )}
+                {copied ? 'Copiada' : 'Copiar'}
               </Button>
             </div>
             {errors.password?.message ? (
@@ -220,7 +259,10 @@ export function UserForm({
           </div>
 
           <div className="grid gap-1.5">
-            <label htmlFor="user-pin" className="text-ink text-sm font-medium">
+            <label
+              htmlFor="user-pin"
+              className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
+            >
               PIN de Recuperación
             </label>
             <div className="flex gap-2">
@@ -268,7 +310,13 @@ export function UserForm({
         title="Rol y Sucursales"
       >
         <div className="grid gap-1.5">
-          <label htmlFor="user-role" className="text-ink text-sm font-medium">
+          <label
+            htmlFor="user-role"
+            className={cn(
+              'text-ink text-sm font-medium',
+              !editing && "after:ml-0.5 after:text-red-600 after:content-['*']",
+            )}
+          >
             Rol
           </label>
           <div className="relative">
@@ -303,7 +351,13 @@ export function UserForm({
           </p>
         </div>
         <div className="border-border grid gap-3 border-t pt-4">
-          <span className="text-ink text-sm font-medium">
+          <span
+            className={cn(
+              'text-ink text-sm font-medium',
+              !allBranches &&
+                "after:ml-0.5 after:text-red-600 after:content-['*']",
+            )}
+          >
             Sucursales Asignadas
           </span>
           {branchesLoading ? (

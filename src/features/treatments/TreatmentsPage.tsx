@@ -3,11 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Activity,
+  Building2,
+  CalendarDays,
   ClipboardList,
+  Clock,
+  Hash,
   Pill,
   Plus,
   Printer,
   Search,
+  ShoppingBag,
+  Stethoscope,
+  UserRound,
 } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
 import { DataTable, RowActions } from '@/components/DataTable'
@@ -20,6 +27,7 @@ import {
   AdvancedFilterDialog,
   FilterBarRow,
   FilterField,
+  FilterSelect,
   filterControlClass,
   type ActiveFilterChip,
 } from '@/components/ui/AdvancedFilter'
@@ -76,6 +84,10 @@ type TreatmentRow = Treatment & {
   active_schedule:
     (DoseScheduleFrequency & { dosePerIntake?: string | number }) | null
 }
+/** Sin compras registradas, la última compra es la creación del tratamiento. */
+const lastPurchaseAt = (item: TreatmentRow) =>
+  item.last_purchase_at ?? item.createdAt
+
 type TreatmentRows = {
   data: TreatmentRow[]
   total: number
@@ -107,6 +119,45 @@ const derivedOptions: { value: DerivedStatusFilter; label: string }[] = [
   { value: 'vencido', label: 'Vencido' },
 ]
 
+type TreatmentFilters = {
+  status: TreatmentStatusFilter
+  derived: DerivedStatusFilter
+  branch: string
+  id: string
+  patient: string
+  medication: string
+  pauta: string
+  doctor: string
+  purchaseFrom: string
+  purchaseTo: string
+  coverageFrom: string
+  coverageTo: string
+}
+
+const emptyFilters: TreatmentFilters = {
+  status: '',
+  derived: '',
+  branch: '',
+  id: '',
+  patient: '',
+  medication: '',
+  pauta: '',
+  doctor: '',
+  purchaseFrom: '',
+  purchaseTo: '',
+  coverageFrom: '',
+  coverageTo: '',
+}
+
+const norm = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+const contains = (value: string, needle: string) =>
+  !needle.trim() || norm(value).includes(norm(needle.trim()))
+const localDay = (value: string) => new Date(value).toLocaleDateString('en-CA')
+
 const columns = [
   'Sucursal',
   'ID',
@@ -134,12 +185,10 @@ export default function TreatmentsPage() {
   const queryClient = useQueryClient()
   const { branchId, ready: branchReady } = useActiveBranch()
   const [search, setSearch] = useState('')
-  const [status, setStatus] = useState<TreatmentStatusFilter>('')
-  const [derived, setDerived] = useState<DerivedStatusFilter>('')
-  const [filterDraft, setFilterDraft] = useState<{
-    status: TreatmentStatusFilter
-    derived: DerivedStatusFilter
-  } | null>(null)
+  // El servidor solo filtra por estado y cobertura: el resto se aplica sobre la página cargada.
+  const [applied, setApplied] = useState<TreatmentFilters>(emptyFilters)
+  const [filterDraft, setFilterDraft] = useState<TreatmentFilters | null>(null)
+  const { status, derived } = applied
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
@@ -166,6 +215,7 @@ export default function TreatmentsPage() {
   })
   const activeOrganization = authClient.useActiveOrganization()
   const organizations = authClient.useListOrganizations()
+  const sessionUser = authClient.useSession().data?.user
   const branches = useQuery({
     queryKey: ['branches'],
     queryFn: () => api<BranchList>('/api/v1/branches'),
@@ -224,11 +274,37 @@ export default function TreatmentsPage() {
     create.reset()
   }
 
+  const loadedTreatments = treatments.data?.data ?? []
   const branchMap = new Map(
     (branches.data?.data ?? []).map((branch) => [branch.id, branch]),
   )
+  const matchesFilters = (item: TreatmentRow) => {
+    const purchaseDay = lastPurchaseAt(item)
+      ? localDay(lastPurchaseAt(item))
+      : ''
+    const coverageDay = (item.coverageEndOn ?? '').slice(0, 10)
+    return (
+      (!applied.branch || item.branchId === applied.branch) &&
+      contains(String(item.numericId), applied.id) &&
+      contains(item.patient_name, applied.patient) &&
+      contains(medicationName(item.medication), applied.medication) &&
+      contains(
+        treatmentPauta(item, item.medication, item.active_schedule),
+        applied.pauta,
+      ) &&
+      contains(item.prescriberName ?? '', applied.doctor) &&
+      (!applied.purchaseFrom ||
+        (purchaseDay !== '' && purchaseDay >= applied.purchaseFrom)) &&
+      (!applied.purchaseTo ||
+        (purchaseDay !== '' && purchaseDay <= applied.purchaseTo)) &&
+      (!applied.coverageFrom ||
+        (coverageDay !== '' && coverageDay >= applied.coverageFrom)) &&
+      (!applied.coverageTo ||
+        (coverageDay !== '' && coverageDay <= applied.coverageTo))
+    )
+  }
   const items = applyColumnSort(
-    treatments.data?.data ?? [],
+    (treatments.data?.data ?? []).filter(matchesFilters),
     sort,
     (item, index) => {
       switch (index) {
@@ -247,7 +323,7 @@ export default function TreatmentsPage() {
         case 6:
           return item.prescriberName ?? ''
         case 7:
-          return item.last_purchase_at ?? ''
+          return lastPurchaseAt(item) ?? ''
         case 8:
           return item.coverageEndOn ?? ''
         case 9:
@@ -266,6 +342,7 @@ export default function TreatmentsPage() {
           key="branch"
           name={branch.name}
           labelColor={branch.labelColor}
+          className="whitespace-nowrap"
         />
       ) : (
         <span key="branch" className="text-muted">
@@ -288,11 +365,11 @@ export default function TreatmentsPage() {
       <span key="prescriber" className="text-muted">
         {item.prescriberName || ''}
       </span>,
-      item.last_purchase_at ? (
+      lastPurchaseAt(item) ? (
         <div key="purchase" className="grid gap-0.5">
-          <span>{formatPurchaseDateTime(item.last_purchase_at)}</span>
+          <span>{formatPurchaseDateTime(lastPurchaseAt(item))}</span>
           <span className="text-muted text-xs">
-            {elapsedSinceLabel(item.last_purchase_at)}
+            {elapsedSinceLabel(lastPurchaseAt(item))}
           </span>
         </div>
       ) : null,
@@ -333,8 +410,8 @@ export default function TreatmentsPage() {
       branch: branchId
         ? (branchMap.get(branchId)?.name ?? '')
         : 'Todas las Sucursales',
+      user: sessionUser?.name || sessionUser?.email,
       title: 'Tratamientos',
-      subtitle: `Impreso el ${formatPurchaseDateTime(new Date().toISOString())}`,
       headers: columns,
       rows: items.map((item) => [
         branchMap.get(item.branchId)?.name ?? '',
@@ -344,8 +421,8 @@ export default function TreatmentsPage() {
         medicationName(item.medication),
         treatmentPauta(item, item.medication, item.active_schedule),
         item.prescriberName || '',
-        item.last_purchase_at
-          ? `${formatPurchaseDateTime(item.last_purchase_at)} (${elapsedSinceLabel(item.last_purchase_at)})`
+        lastPurchaseAt(item)
+          ? `${formatPurchaseDateTime(lastPurchaseAt(item))} (${elapsedSinceLabel(lastPurchaseAt(item))})`
           : '',
         item.coverageEndOn ? formatDate(item.coverageEndOn) : '',
         item.days_remaining === null
@@ -356,23 +433,39 @@ export default function TreatmentsPage() {
     })
   }
 
-  const filterCount = (status ? 1 : 0) + (derived ? 1 : 0)
-  const draftCount = filterDraft
-    ? (filterDraft.status ? 1 : 0) + (filterDraft.derived ? 1 : 0)
-    : 0
   const chips: ActiveFilterChip[] = []
-  if (status)
-    chips.push({
-      key: 'status',
-      label: 'Estado',
-      value: statusOptions.find((option) => option.value === status)!.label,
-    })
-  if (derived)
-    chips.push({
-      key: 'derived',
-      label: 'Cobertura',
-      value: derivedOptions.find((option) => option.value === derived)!.label,
-    })
+  const addChip = (
+    key: keyof TreatmentFilters,
+    label: string,
+    value: string,
+  ) => {
+    if (applied[key]) chips.push({ key, label, value })
+  }
+  addChip(
+    'status',
+    'Estado',
+    statusOptions.find((option) => option.value === status)?.label ?? status,
+  )
+  addChip(
+    'derived',
+    'Cobertura',
+    derivedOptions.find((option) => option.value === derived)?.label ?? derived,
+  )
+  addChip(
+    'branch',
+    'Sucursal',
+    branchMap.get(applied.branch)?.name ?? applied.branch,
+  )
+  addChip('id', 'ID', applied.id)
+  addChip('patient', 'Paciente', applied.patient)
+  addChip('medication', 'Medicamento', applied.medication)
+  addChip('pauta', 'Dosis y frecuencia', applied.pauta)
+  addChip('doctor', 'Doctor', applied.doctor)
+  addChip('purchaseFrom', 'Última compra desde', applied.purchaseFrom)
+  addChip('purchaseTo', 'Última compra hasta', applied.purchaseTo)
+  addChip('coverageFrom', 'Fin de cobertura desde', applied.coverageFrom)
+  addChip('coverageTo', 'Fin de cobertura hasta', applied.coverageTo)
+  const filterCount = chips.length
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
@@ -405,11 +498,12 @@ export default function TreatmentsPage() {
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
-          onClick={() => setFilterDraft({ status, derived })}
+          onClick={() => setFilterDraft(applied)}
         />
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <Button
             type="button"
+            className="hover:bg-[#c3e9cf]"
             onClick={printList}
             disabled={!items.length}
             aria-label="Imprimir tratamientos"
@@ -428,8 +522,7 @@ export default function TreatmentsPage() {
       <ActiveFilterChips
         chips={chips}
         onRemove={(key) => {
-          if (key === 'status') setStatus('')
-          else setDerived('')
+          setApplied((current) => ({ ...current, [key]: '' }))
           setPage(1)
         }}
       />
@@ -439,15 +532,16 @@ export default function TreatmentsPage() {
           description="Combina estos criterios para acotar la lista de tratamientos."
           onClose={() => setFilterDraft(null)}
           onClear={() => {
-            setFilterDraft({ status: '', derived: '' })
-            setStatus('')
-            setDerived('')
+            setFilterDraft(emptyFilters)
+            setApplied(emptyFilters)
             setPage(1)
           }}
-          clearDisabled={!filterCount && !draftCount}
+          clearDisabled={
+            !filterCount &&
+            JSON.stringify(filterDraft) === JSON.stringify(emptyFilters)
+          }
           onApply={() => {
-            setStatus(filterDraft.status)
-            setDerived(filterDraft.derived)
+            setApplied(filterDraft)
             setPage(1)
             setFilterDraft(null)
           }}
@@ -496,6 +590,148 @@ export default function TreatmentsPage() {
               ))}
             </select>
           </FilterField>
+          <FilterField label="Sucursal" icon={<Building2 className="size-4" />}>
+            <select
+              aria-label="Sucursal del tratamiento"
+              value={filterDraft.branch}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, branch: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todas</option>
+              {(branches.data?.data ?? []).map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="ID" icon={<Hash className="size-4" />}>
+            <FilterSelect
+              label="ID del tratamiento"
+              value={filterDraft.id}
+              options={loadedTreatments.map((item) => String(item.numericId))}
+              onChange={(value) =>
+                setFilterDraft({ ...filterDraft, id: value })
+              }
+            />
+          </FilterField>
+          <FilterField label="Paciente" icon={<UserRound className="size-4" />}>
+            <FilterSelect
+              label="Paciente"
+              value={filterDraft.patient}
+              options={loadedTreatments.map((item) => item.patient_name)}
+              onChange={(value) =>
+                setFilterDraft({ ...filterDraft, patient: value })
+              }
+            />
+          </FilterField>
+          <FilterField label="Medicamento" icon={<Pill className="size-4" />}>
+            <FilterSelect
+              label="Medicamento"
+              value={filterDraft.medication}
+              options={loadedTreatments.map((item) =>
+                medicationName(item.medication),
+              )}
+              onChange={(value) =>
+                setFilterDraft({ ...filterDraft, medication: value })
+              }
+            />
+          </FilterField>
+          <FilterField
+            label="Dosis y Frecuencia"
+            icon={<Clock className="size-4" />}
+          >
+            <FilterSelect
+              label="Dosis y frecuencia"
+              value={filterDraft.pauta}
+              options={loadedTreatments.map((item) =>
+                treatmentPauta(item, item.medication, item.active_schedule),
+              )}
+              onChange={(value) =>
+                setFilterDraft({ ...filterDraft, pauta: value })
+              }
+            />
+          </FilterField>
+          <FilterField label="Doctor" icon={<Stethoscope className="size-4" />}>
+            <FilterSelect
+              label="Doctor"
+              value={filterDraft.doctor}
+              options={loadedTreatments.map((item) => item.prescriberName)}
+              onChange={(value) =>
+                setFilterDraft({ ...filterDraft, doctor: value })
+              }
+            />
+          </FilterField>
+          <FilterField
+            label="Última Compra Desde"
+            icon={<ShoppingBag className="size-4" />}
+          >
+            <input
+              type="date"
+              aria-label="Última compra desde"
+              value={filterDraft.purchaseFrom}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  purchaseFrom: event.target.value,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
+          </FilterField>
+          <FilterField
+            label="Última Compra Hasta"
+            icon={<ShoppingBag className="size-4" />}
+          >
+            <input
+              type="date"
+              aria-label="Última compra hasta"
+              value={filterDraft.purchaseTo}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  purchaseTo: event.target.value,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
+          </FilterField>
+          <FilterField
+            label="Fin de Cobertura Desde"
+            icon={<CalendarDays className="size-4" />}
+          >
+            <input
+              type="date"
+              aria-label="Fin de cobertura desde"
+              value={filterDraft.coverageFrom}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  coverageFrom: event.target.value,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
+          </FilterField>
+          <FilterField
+            label="Fin de Cobertura Hasta"
+            icon={<CalendarDays className="size-4" />}
+          >
+            <input
+              type="date"
+              aria-label="Fin de cobertura hasta"
+              value={filterDraft.coverageTo}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  coverageTo: event.target.value,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
+          </FilterField>
         </AdvancedFilterDialog>
       )}
       {treatments.isError && (
@@ -515,6 +751,7 @@ export default function TreatmentsPage() {
             rows={tableRows}
             actions={rowActions}
             sortableColumns={columns.map((_, index) => index)}
+            centeredColumns={[0]}
             sort={sort}
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {

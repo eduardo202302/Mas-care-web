@@ -193,7 +193,7 @@ export function TemplateFormDialog({
           <div className="grid gap-1.5">
             <label
               htmlFor="template-body"
-              className="text-ink text-sm font-medium"
+              className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
             >
               Mensaje
             </label>
@@ -347,11 +347,7 @@ export function TemplateFormDialog({
           <Button type="button" onClick={onClose}>
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={!name.trim() || !body.trim() || save.isPending}
-          >
+          <Button type="submit" variant="primary" disabled={save.isPending}>
             {save.isPending ? 'Guardando…' : 'Guardar Plantilla'}
           </Button>
         </FormActions>

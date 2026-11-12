@@ -10,11 +10,7 @@ export type CycleTableResponse =
   paths['/api/v1/cycles']['get']['responses'][200]['content']['application/json']
 
 export type BoardColumnKey =
-  | 'to_notify'
-  | 'notified'
-  | 'confirmed'
-  | 'prepared'
-  | 'closed'
+  'to_notify' | 'notified' | 'confirmed' | 'prepared' | 'closed'
 
 /** One board column plus client-side cursor state for "Cargar más". */
 export type BoardColumnData = components['schemas']['BoardColumn'] & {
@@ -53,8 +49,10 @@ export const cycleStatusLabels: Record<CycleStatus, string> = {
   cancelled: 'Cancelado',
 }
 
-export const openCycleStatuses: readonly Exclude<CycleStatus, 'delivered' | 'not_picked_up' | 'cancelled'>[] =
-  ['to_notify', 'notified', 'confirmed', 'prepared']
+export const openCycleStatuses: readonly Exclude<
+  CycleStatus,
+  'delivered' | 'not_picked_up' | 'cancelled'
+>[] = ['to_notify', 'notified', 'confirmed', 'prepared']
 
 export const derivedStatusLabels: Record<DerivedStatus, string> = {
   al_dia: 'Al día',

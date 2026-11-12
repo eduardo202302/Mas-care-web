@@ -76,6 +76,7 @@ export function DataTable({
   footer,
   sort = null,
   sortableColumns,
+  centeredColumns,
   onSortChange,
 }: {
   columns: string[]
@@ -92,6 +93,8 @@ export function DataTable({
   sort?: ColumnSort
   /** Indices of the columns whose header can be clicked to sort. */
   sortableColumns?: number[]
+  /** Indices of the columns whose header and cells are centered. */
+  centeredColumns?: number[]
   /** Called with the clicked column's index; the caller owns computing the next sort state. */
   onSortChange?: (index: number) => void
 }) {
@@ -118,7 +121,10 @@ export function DataTable({
               {columns.map((column, index) => (
                 <th
                   key={`${column}-${index}`}
-                  className="bg-surface px-5 py-3.5 font-semibold"
+                  className={cn(
+                    'bg-surface px-5 py-3.5 font-semibold',
+                    centeredColumns?.includes(index) && 'text-center',
+                  )}
                 >
                   {sortableColumns?.includes(index) && onSortChange ? (
                     <button
@@ -169,7 +175,10 @@ export function DataTable({
                 {row.map((cell, cellIndex) => (
                   <td
                     key={cellIndex}
-                    className="text-ink px-5 py-4 align-middle"
+                    className={cn(
+                      'text-ink px-5 py-4 align-middle',
+                      centeredColumns?.includes(cellIndex) && 'text-center',
+                    )}
                   >
                     {cell}
                   </td>

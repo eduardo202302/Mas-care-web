@@ -1,18 +1,22 @@
 import { z } from 'zod'
+import { isValidRnc } from '@/lib/rnc'
+import { requiredPhoneField } from './phone'
 
-const optionalDecimal = (min: number, max: number) =>
+const required = (max: number) =>
+  z.string().trim().min(1, 'Campo requerido.').max(max)
+
+const requiredDecimal = (min: number, max: number) =>
   z
     .string()
     .trim()
+    .min(1, 'Campo requerido.')
     .max(20, 'Máximo 20 caracteres.')
-    .refine((value) => value === '' || /^-?\d{1,3}(\.\d+)?$/.test(value), {
+    .refine((value) => /^-?\d{1,3}(\.\d+)?$/.test(value), {
       message: 'Ingresa un número decimal válido.',
     })
-    .refine(
-      (value) => value === '' || (Number(value) >= min && Number(value) <= max),
-      { message: `Debe estar entre ${min} y ${max}.` },
-    )
-    .optional()
+    .refine((value) => Number(value) >= min && Number(value) <= max, {
+      message: `Debe estar entre ${min} y ${max}.`,
+    })
 
 export const medicalCenterTypes = [
   'clinic',
@@ -25,21 +29,22 @@ export const medicalCenterTypes = [
 export const medicalCenterSchema = z.object({
   name: z.string().trim().min(1, 'Ingresa un nombre.').max(160),
   centerType: z.enum(medicalCenterTypes),
-  rnc: z.string().trim().max(40).optional(),
-  phone: z.string().trim().max(40).optional(),
+  rnc: required(40).refine(isValidRnc, {
+    message: 'RNC inválido: debe tener 9 dígitos, ej. 101-01234-5.',
+  }),
+  phone: requiredPhoneField,
   email: z
     .string()
     .trim()
+    .min(1, 'Campo requerido.')
     .email('Correo inválido.')
-    .max(254)
-    .optional()
-    .or(z.literal('')),
-  address: z.string().trim().max(500).optional(),
-  state: z.string().trim().max(120).optional(),
-  city: z.string().trim().max(120).optional(),
-  sector: z.string().trim().max(120).optional(),
-  latitude: optionalDecimal(-90, 90),
-  longitude: optionalDecimal(-180, 180),
+    .max(254),
+  address: required(500),
+  state: required(120),
+  city: required(120),
+  sector: required(120),
+  latitude: requiredDecimal(-90, 90),
+  longitude: requiredDecimal(-180, 180),
   notes: z.string().trim().max(2000).optional(),
 })
 

@@ -12,6 +12,7 @@ import {
   Mail,
   Pencil,
   Phone,
+  UserRound,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -26,13 +27,21 @@ import { authClient } from '@/lib/auth-client'
 import { formatPhone } from '@/lib/phone'
 import { useCan } from '@/lib/permissions'
 import { useUiStore } from '@/stores/ui-store'
-import type { components } from '@/lib/api-types'
+import type { components, paths } from '@/lib/api-types'
 import type { CompanyFormValues } from '@/schemas/company'
+import type { PatientFormValues } from '@/schemas/patient'
+import { PatientForm } from '@/features/patients/PatientForm'
+import {
+  buildPatientCreateBody,
+  type PatientCreateResult,
+} from '@/features/patients/patientPayload'
 import { CompanyActivityPanel } from './CompanyActivityPanel'
 import { CompanyForm } from './CompanyForm'
 import { CompanyRelationsPanel } from './CompanyRelationsPanel'
 
 type CompanyDetail = components['schemas']['CompanyDetail']
+type BranchList =
+  paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
 
 type PropertyKey = keyof CompanyDetail
 
@@ -308,6 +317,7 @@ export default function CompanyDetailPage() {
   const setActiveBranchId = useUiStore((state) => state.setActiveBranchId)
   const [editing, setEditing] = useState(false)
   const [switching, setSwitching] = useState(false)
+  const [addingPatient, setAddingPatient] = useState(false)
   const [viewingProperties, setViewingProperties] = useState(false)
   const [customizingProperties, setCustomizingProperties] = useState(false)
   const [visibleProperties, setVisibleProperties] = useState<PropertyKey[]>(
@@ -321,6 +331,25 @@ export default function CompanyDetailPage() {
     queryFn: () =>
       api<CompanyDetail>(`/api/v1/companies/${encodeURIComponent(id)}`),
     enabled: Boolean(id),
+  })
+
+  const branches = useQuery({
+    queryKey: ['branches'],
+    queryFn: () => api<BranchList>('/api/v1/branches'),
+    enabled: addingPatient,
+  })
+  const createPatient = useMutation({
+    mutationFn: (values: PatientFormValues) =>
+      api<PatientCreateResult>('/api/v1/patients', {
+        method: 'POST',
+        body: JSON.stringify(buildPatientCreateBody(values)),
+      }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['companies'] }),
+        queryClient.invalidateQueries({ queryKey: ['patients'] }),
+      ])
+    },
   })
 
   const update = useMutation({
@@ -374,7 +403,7 @@ export default function CompanyDetailPage() {
 
   const record = company.data
 
-  async function goTo(path: string) {
+  async function activateCompany() {
     setSwitching(true)
     const result = await authClient.organization.setActive({
       organizationId: record.id,
@@ -387,7 +416,21 @@ export default function CompanyDetailPage() {
       ])
     }
     setSwitching(false)
+  }
+
+  async function goTo(path: string) {
+    await activateCompany()
     navigate(path)
+  }
+
+  async function openAddPatient() {
+    await activateCompany()
+    setAddingPatient(true)
+  }
+
+  function closeAddPatient() {
+    setAddingPatient(false)
+    createPatient.reset()
   }
 
   return (
@@ -412,8 +455,8 @@ export default function CompanyDetailPage() {
         }
       />
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(250px,0.9fr)_minmax(360px,1.35fr)_minmax(230px,0.8fr)]">
-        <div className="grid gap-4">
+      <div className="grid items-start gap-x-8 gap-y-4 xl:grid-cols-[minmax(260px,0.9fr)_minmax(0,1.6fr)_minmax(240px,0.85fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
           <div className="border-border rounded-xl border bg-white p-4">
             <div className="flex items-start gap-3">
               <span className="bg-tealmax/10 text-petroleo grid size-10 shrink-0 place-items-center overflow-hidden rounded-full">
@@ -527,20 +570,44 @@ export default function CompanyDetailPage() {
           </div>
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
           <CompanyActivityPanel companyId={record.id} />
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
           <CompanyRelationsPanel
             companyId={record.id}
             companyName={record.name}
             contacts={record.contacts}
             switching={switching}
             onGoToPatients={() => goTo('/pacientes')}
+            onAddPatient={openAddPatient}
           />
         </div>
       </div>
+
+      {addingPatient && (
+        <Dialog
+          title="Nuevo Paciente"
+          description="Registra sus datos de contacto y atención."
+          icon={<UserRound className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
+          onClose={closeAddPatient}
+          size="lg"
+        >
+          <PatientForm
+            branches={branches.data?.data ?? []}
+            onSave={(values) =>
+              createPatient
+                .mutateAsync(values)
+                .then((result) => result.patient.id)
+            }
+            submitting={createPatient.isPending}
+            onCancel={closeAddPatient}
+          />
+        </Dialog>
+      )}
 
       {editing && (
         <Dialog

@@ -13,7 +13,8 @@ describe('permissionCatalog', () => {
   it('gives each permission a label and each group a title', () => {
     for (const group of permissionGroups) {
       expect(group.title).not.toBe('')
-      for (const permission of group.permissions) expect(permission.label).not.toBe('')
+      for (const permission of group.permissions)
+        expect(permission.label).not.toBe('')
     }
   })
 })

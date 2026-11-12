@@ -1321,6 +1321,7 @@ export default function PatientDetailPage() {
             className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
+              if (!activityBody.trim()) return
               addActivity.mutate({
                 type: activityType,
                 body: activityBody.trim(),
@@ -1387,7 +1388,7 @@ export default function PatientDetailPage() {
                 variant="primary"
                 type="submit"
                 className="w-full sm:w-auto"
-                disabled={addActivity.isPending || !activityBody.trim()}
+                disabled={addActivity.isPending}
               >
                 {addActivity.isPending
                   ? 'Guardando…'
@@ -1443,7 +1444,7 @@ export default function PatientDetailPage() {
               <div className="grid gap-1.5">
                 <label
                   htmlFor="consent-channel"
-                  className="text-ink text-sm font-medium"
+                  className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
                 >
                   Canal
                 </label>

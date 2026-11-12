@@ -1,6 +1,15 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Activity, Building2, MapPin, Plus, Search } from 'lucide-react'
+import {
+  Activity,
+  Building2,
+  Compass,
+  MapPin,
+  MessageCircle,
+  Plus,
+  Search,
+  UserRound,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
@@ -52,6 +61,63 @@ function addressValues(details: BranchAddressDetails) {
   }
 }
 
+type BranchFilters = {
+  archived: 'true' | 'false'
+  name: string
+  address: string
+  sector: string
+  manager: string
+  whatsapp: string
+}
+
+const emptyFilters: BranchFilters = {
+  archived: 'false',
+  name: '',
+  address: '',
+  sector: '',
+  manager: '',
+  whatsapp: '',
+}
+
+type BranchTextKey = 'name' | 'address' | 'sector' | 'manager' | 'whatsapp'
+
+function branchTextValue(
+  branch: components['schemas']['Branch'],
+  key: BranchTextKey,
+): string {
+  if (key === 'name') return branch.name
+  if (key === 'address') return addressText(branch.addressDetails, 'address')
+  if (key === 'sector') return addressText(branch.addressDetails, 'sector')
+  if (key === 'manager') return branch.managerName ?? ''
+  return branch.managerPhone ? formatPhone(branch.managerPhone) : ''
+}
+
+function uniqueSorted(values: string[], ...selected: string[]) {
+  const set = new Set(values.filter(Boolean))
+  for (const value of selected) if (value) set.add(value)
+  return [...set].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+}
+
+const textFilters: {
+  key: BranchTextKey
+  label: string
+  icon: ReactNode
+}[] = [
+  { key: 'name', label: 'Sucursal', icon: <Building2 className="size-4" /> },
+  { key: 'address', label: 'Dirección', icon: <MapPin className="size-4" /> },
+  { key: 'sector', label: 'Sector', icon: <Compass className="size-4" /> },
+  {
+    key: 'manager',
+    label: 'Nombre del Encargado',
+    icon: <UserRound className="size-4" />,
+  },
+  {
+    key: 'whatsapp',
+    label: 'WhatsApp',
+    icon: <MessageCircle className="size-4" />,
+  },
+]
+
 const addressFields = new Set([
   'address',
   'city',
@@ -87,11 +153,11 @@ export default function BranchesPage() {
   const [archiving, setArchiving] = useState<
     components['schemas']['Branch'] | null
   >(null)
-  const [archived, setArchived] = useState<'true' | 'false'>('false')
   const [search, setSearch] = useState('')
-  const [filterDraft, setFilterDraft] = useState<{
-    archived: 'true' | 'false'
-  } | null>(null)
+  // El servidor solo filtra por archivadas: el resto se aplica sobre la página cargada.
+  const [applied, setApplied] = useState<BranchFilters>(emptyFilters)
+  const [filterDraft, setFilterDraft] = useState<BranchFilters | null>(null)
+  const archived = applied.archived
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
@@ -177,16 +243,31 @@ export default function BranchesPage() {
     await save.mutateAsync(values)
   }
   const needle = search.trim().toLocaleLowerCase('es')
-  const visibleBranches = (branches.data?.data ?? []).filter(
+  const loadedBranches = branches.data?.data ?? []
+  const textOptions = Object.fromEntries(
+    textFilters.map(({ key }) => [
+      key,
+      uniqueSorted(
+        loadedBranches.map((branch) => branchTextValue(branch, key)),
+        applied[key],
+        filterDraft?.[key] ?? '',
+      ),
+    ]),
+  ) as Record<BranchTextKey, string[]>
+  const visibleBranches = loadedBranches.filter(
     (branch) =>
-      !needle ||
-      [
-        branch.name,
-        addressText(branch.addressDetails, 'address'),
-        addressText(branch.addressDetails, 'sector'),
-        branch.managerName ?? '',
-        branch.managerPhone ?? '',
-      ].some((value) => value.toLocaleLowerCase('es').includes(needle)),
+      (!needle ||
+        [
+          branch.name,
+          addressText(branch.addressDetails, 'address'),
+          addressText(branch.addressDetails, 'sector'),
+          branch.managerName ?? '',
+          branch.managerPhone ?? '',
+        ].some((value) => value.toLocaleLowerCase('es').includes(needle))) &&
+      textFilters.every(
+        ({ key }) =>
+          !applied[key] || branchTextValue(branch, key) === applied[key],
+      ),
   )
   const data = applyColumnSort(visibleBranches, sort, (branch, index) =>
     index === 0
@@ -276,12 +357,27 @@ export default function BranchesPage() {
     branch.managerName ?? 'Sin encargado',
     branch.managerPhone ? formatPhone(branch.managerPhone) : 'Sin WhatsApp',
   ])
-  const filterCount = archived === 'true' ? 1 : 0
-  const draftCount = filterDraft?.archived === 'true' ? 1 : 0
-  const chips: ActiveFilterChip[] =
-    archived === 'true'
+  const chips: ActiveFilterChip[] = [
+    ...(applied.archived === 'true'
       ? [{ key: 'archived', label: 'Estado', value: 'Archivadas' }]
-      : []
+      : []),
+    ...(applied.name
+      ? [{ key: 'name', label: 'Sucursal', value: applied.name }]
+      : []),
+    ...(applied.address
+      ? [{ key: 'address', label: 'Dirección', value: applied.address }]
+      : []),
+    ...(applied.sector
+      ? [{ key: 'sector', label: 'Sector', value: applied.sector }]
+      : []),
+    ...(applied.manager
+      ? [{ key: 'manager', label: 'Encargado', value: applied.manager }]
+      : []),
+    ...(applied.whatsapp
+      ? [{ key: 'whatsapp', label: 'WhatsApp', value: applied.whatsapp }]
+      : []),
+  ]
+  const filterCount = chips.length
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
@@ -313,7 +409,7 @@ export default function BranchesPage() {
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
-          onClick={() => setFilterDraft({ archived })}
+          onClick={() => setFilterDraft(applied)}
         />
         <TableToolbarActions
           title="Sucursales"
@@ -324,8 +420,11 @@ export default function BranchesPage() {
       </FilterBarRow>
       <ActiveFilterChips
         chips={chips}
-        onRemove={() => {
-          setArchived('false')
+        onRemove={(key) => {
+          setApplied((current) => ({
+            ...current,
+            [key]: emptyFilters[key as keyof BranchFilters],
+          }))
           setPage(1)
         }}
       />
@@ -335,13 +434,16 @@ export default function BranchesPage() {
           description="Combina estos criterios para acotar la lista de sucursales."
           onClose={() => setFilterDraft(null)}
           onClear={() => {
-            setFilterDraft({ archived: 'false' })
-            setArchived('false')
+            setFilterDraft(emptyFilters)
+            setApplied(emptyFilters)
             setPage(1)
           }}
-          clearDisabled={!filterCount && !draftCount}
+          clearDisabled={
+            !filterCount &&
+            JSON.stringify(filterDraft) === JSON.stringify(emptyFilters)
+          }
           onApply={() => {
-            setArchived(filterDraft.archived)
+            setApplied(filterDraft)
             setPage(1)
             setFilterDraft(null)
           }}
@@ -355,6 +457,7 @@ export default function BranchesPage() {
               value={filterDraft.archived}
               onChange={(event) =>
                 setFilterDraft({
+                  ...filterDraft,
                   archived: event.target.value as 'true' | 'false',
                 })
               }
@@ -364,6 +467,27 @@ export default function BranchesPage() {
               <option value="true">Archivadas</option>
             </select>
           </FilterField>
+          {textFilters.map(({ key, label, icon }) => (
+            <FilterField key={key} label={label} icon={icon}>
+              <select
+                aria-label={label}
+                value={filterDraft[key]}
+                onChange={(event) =>
+                  setFilterDraft({ ...filterDraft, [key]: event.target.value })
+                }
+                className={`${filterControlClass} pl-11`}
+              >
+                <option value="">
+                  {key === 'address' ? 'Todas' : 'Todos'}
+                </option>
+                {textOptions[key].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </FilterField>
+          ))}
         </AdvancedFilterDialog>
       )}
       {branches.isError && (

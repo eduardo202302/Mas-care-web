@@ -275,6 +275,7 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
             className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
+              if (!purchaseQuantity) return
               purchase.mutate()
             }}
           >
@@ -324,7 +325,7 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
                 variant="primary"
                 type="submit"
                 className="w-full sm:w-auto"
-                disabled={purchase.isPending || !purchaseQuantity}
+                disabled={purchase.isPending}
               >
                 {purchase.isPending ? 'Guardando…' : 'Guardar'}
               </Button>
@@ -346,6 +347,7 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
             className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
+              if (!adjustDelta || !adjustNote.trim()) return
               adjust.mutate()
             }}
           >
@@ -385,9 +387,7 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
                 variant="primary"
                 type="submit"
                 className="w-full sm:w-auto"
-                disabled={
-                  adjust.isPending || !adjustDelta || !adjustNote.trim()
-                }
+                disabled={adjust.isPending}
               >
                 {adjust.isPending ? 'Guardando…' : 'Guardar'}
               </Button>

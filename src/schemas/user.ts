@@ -1,14 +1,16 @@
 import { z } from 'zod'
+import { phoneField } from '@/schemas/phone'
 
 export const userCreateSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, 'Ingresa al menos 2 caracteres.')
+    .min(2, 'Campo requerido.')
     .max(120, 'Máximo 120 caracteres.'),
   username: z
     .string()
     .trim()
+    .min(1, 'Campo requerido.')
     .min(3, 'Mínimo 3 caracteres.')
     .max(40, 'Máximo 40 caracteres.')
     .regex(
@@ -18,22 +20,19 @@ export const userCreateSchema = z.object({
   email: z
     .string()
     .trim()
+    .min(1, 'Campo requerido.')
     .email('Ingresa un correo válido.')
     .max(254, 'Máximo 254 caracteres.'),
-  phone: z
-    .string()
-    .trim()
-    .min(7, 'Ingresa un número válido.')
-    .max(20, 'Máximo 20 caracteres.')
-    .optional()
-    .or(z.literal('')),
+  phone: phoneField.optional(),
   password: z
     .string()
+    .min(1, 'Campo requerido.')
     .min(8, 'Usa al menos 8 caracteres.')
     .max(128, 'Máximo 128 caracteres.'),
   pin: z
     .string()
     .trim()
+    .min(1, 'Campo requerido.')
     .length(6, 'El PIN debe tener 6 dígitos.')
     .regex(/^\d{6}$/, 'El PIN debe tener 6 dígitos numéricos.'),
   /** Role created in the Roles screen; it defines permissions and branch access. */

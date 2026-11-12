@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { phoneField } from './phone'
 
 export const companyStatuses = ['active', 'inactive'] as const
 
@@ -37,7 +38,7 @@ export const companyFormSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, 'Ingresa al menos 2 caracteres.')
+    .min(2, 'Campo requerido.')
     .max(120, 'Máximo 120 caracteres.'),
   email: z
     .string()
@@ -82,7 +83,7 @@ export const companyFormSchema = z.object({
         return false
       }
     }, 'Ingresa un dominio válido, por ejemplo https://farmacia.com.'),
-  phone: optionalTextField(30),
+  phone: phoneField,
   ownerName: optionalTextField(120),
   industry: optionalTextField(120),
   type: optionalTextField(60),

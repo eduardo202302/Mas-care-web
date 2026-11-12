@@ -31,8 +31,6 @@ export function useActiveBranch() {
   return {
     branchId: showAll ? undefined : current?.id,
     ready:
-      showAll ||
-      Boolean(current) ||
-      (list !== undefined && list.length === 0),
+      showAll || Boolean(current) || (list !== undefined && list.length === 0),
   }
 }

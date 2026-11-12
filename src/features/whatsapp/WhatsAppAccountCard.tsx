@@ -40,7 +40,10 @@ export function WhatsAppAccountCard() {
       api('/api/v1/automation/whatsapp-account', { method: 'DELETE' }),
     onSuccess: refresh,
   })
-  const ready = phoneNumberId.trim().length >= 5 && token.trim().length >= 20
+  const [attempted, setAttempted] = useState(false)
+  const idShort = phoneNumberId.trim().length < 5
+  const tokenShort = token.trim().length < 20
+  const ready = !idShort && !tokenShort
 
   return (
     <section className="border-border mt-6 grid gap-3 rounded-xl border bg-white p-5 md:p-6">
@@ -81,7 +84,11 @@ export function WhatsAppAccountCard() {
         className="grid gap-2 md:grid-cols-[1fr_2fr_auto] md:items-end"
         onSubmit={(event) => {
           event.preventDefault()
-          if (ready) connect.mutate()
+          if (!ready) {
+            setAttempted(true)
+            return
+          }
+          connect.mutate()
         }}
       >
         <label className="grid gap-1 text-sm font-medium">
@@ -89,27 +96,35 @@ export function WhatsAppAccountCard() {
           <input
             inputMode="numeric"
             autoComplete="off"
+            required
             placeholder="109876543210987"
             value={phoneNumberId}
             onChange={(event) => setPhoneNumberId(event.target.value)}
             className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
           />
+          {attempted && phoneNumberId.trim() && idShort && (
+            <p className="text-xs font-normal text-red-700">
+              Debe tener al menos 5 caracteres.
+            </p>
+          )}
         </label>
         <label className="grid gap-1 text-sm font-medium">
           {account.data?.connected ? 'Reemplazar el token' : 'Token de acceso'}
           <input
             type="password"
             autoComplete="off"
+            required
             value={token}
             onChange={(event) => setToken(event.target.value)}
             className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
           />
+          {attempted && token.trim() && tokenShort && (
+            <p className="text-xs font-normal text-red-700">
+              El token debe tener al menos 20 caracteres.
+            </p>
+          )}
         </label>
-        <Button
-          type="submit"
-          variant="primary"
-          disabled={!ready || connect.isPending}
-        >
+        <Button type="submit" variant="primary" disabled={connect.isPending}>
           {account.data?.connected ? 'Reemplazar' : 'Conectar número'}
         </Button>
       </form>

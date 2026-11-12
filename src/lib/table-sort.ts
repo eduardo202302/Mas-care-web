@@ -13,17 +13,27 @@ function toggle(current: ColumnSort, index: number): ColumnSort {
 /** Tracks which single column is sorted and in which direction; clicking another column drops the previous one. */
 export function useColumnSort(initial: ColumnSort = null) {
   const [sort, setSort] = useState<ColumnSort>(initial)
-  return [sort, (index: number) => setSort((current) => toggle(current, index))] as const
+  return [
+    sort,
+    (index: number) => setSort((current) => toggle(current, index)),
+  ] as const
 }
 
 /** Locale-aware comparator for the scalar value backing a sorted column. */
 export function compareValues(a: unknown, b: unknown) {
   if (typeof a === 'number' && typeof b === 'number') return a - b
-  return String(a ?? '').localeCompare(String(b ?? ''), 'es', { numeric: true, sensitivity: 'base' })
+  return String(a ?? '').localeCompare(String(b ?? ''), 'es', {
+    numeric: true,
+    sensitivity: 'base',
+  })
 }
 
 /** Sorts a copy of `items` by `sort`, using `valueOf` to read the compared field from each item. */
-export function applyColumnSort<T>(items: T[], sort: ColumnSort, valueOf: (item: T, index: number) => unknown): T[] {
+export function applyColumnSort<T>(
+  items: T[],
+  sort: ColumnSort,
+  valueOf: (item: T, index: number) => unknown,
+): T[] {
   if (!sort) return items
   const { index, dir } = sort
   return items

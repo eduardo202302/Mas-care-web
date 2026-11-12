@@ -492,7 +492,7 @@ export default function DoctorDetailPage() {
               <div className="grid gap-1.5">
                 <label
                   htmlFor="specialty-select"
-                  className="text-ink text-sm font-medium"
+                  className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
                 >
                   Especialidad
                 </label>
@@ -533,7 +533,7 @@ export default function DoctorDetailPage() {
                 type="submit"
                 variant="primary"
                 className="w-full sm:w-auto"
-                disabled={!selectedSpecialtyId || addSpecialty.isPending}
+                disabled={addSpecialty.isPending}
               >
                 {addSpecialty.isPending ? 'Agregando…' : 'Agregar'}
               </Button>
@@ -554,6 +554,7 @@ export default function DoctorDetailPage() {
             className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
+              if (!centerForm.medicalCenterId) return
               setCenterFormError(null)
               addCenter.mutate()
             }}
@@ -565,7 +566,7 @@ export default function DoctorDetailPage() {
               <div className="grid gap-1.5">
                 <label
                   htmlFor="center-select"
-                  className="text-ink text-sm font-medium"
+                  className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
                 >
                   Centro médico
                 </label>
@@ -649,7 +650,7 @@ export default function DoctorDetailPage() {
                 type="submit"
                 variant="primary"
                 className="w-full sm:w-auto"
-                disabled={!centerForm.medicalCenterId || addCenter.isPending}
+                disabled={addCenter.isPending}
               >
                 {addCenter.isPending ? 'Agregando…' : 'Agregar'}
               </Button>

@@ -1,10 +1,15 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
+  Boxes,
   Building2,
   CalendarDays,
   Check,
+  Clock,
   Filter,
+  Flag,
+  Layers,
+  ListChecks,
   Pill,
   Search,
   SlidersHorizontal,
@@ -17,11 +22,21 @@ import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { api } from '@/lib/http'
 import type { paths } from '@/lib/api-types'
+import { useCustomProperties } from '@/lib/custom-properties'
+import { usePipeline } from '@/lib/pipeline'
 import {
+  cycleStatusLabels,
   derivedStatusOptions,
+  stockLevelLabels,
   type BoardFilters as Filters,
   type DerivedStatus,
 } from '@/lib/board'
+import {
+  cycleColumnFilterCount,
+  emptyCycleColumnFilters,
+  nextActionLabels,
+  type CycleColumnFilters,
+} from './cycleColumnFilters'
 
 type UserList =
   paths['/api/v1/users']['get']['responses'][200]['content']['application/json']
@@ -36,6 +51,28 @@ function FieldIcon({ children }: { children: ReactNode }) {
     <span className="bg-modulos text-cuidado pointer-events-none absolute top-1/2 left-1.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-md">
       {children}
     </span>
+  )
+}
+
+function ColumnField({
+  label,
+  icon,
+  children,
+}: {
+  label: string
+  icon: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <label className="grid gap-1.5">
+      <span className="text-ink text-sm font-medium">{label}</span>
+      <span className="relative block">
+        <FieldIcon>
+          <span className="[&>svg]:size-4">{icon}</span>
+        </FieldIcon>
+        {children}
+      </span>
+    </label>
   )
 }
 
@@ -56,6 +93,8 @@ export function BoardFilters({
   privileged,
   meId,
   rightActions,
+  columnFilters,
+  onColumnFiltersChange,
 }: {
   filters: Filters
   onChange: (next: Filters) => void
@@ -64,10 +103,19 @@ export function BoardFilters({
   privileged: boolean
   meId?: string
   rightActions?: ReactNode
+  /** Filtros extra de la vista tabla; sin ellos solo se muestran los del tablero. */
+  columnFilters?: CycleColumnFilters
+  onColumnFiltersChange?: (next: CycleColumnFilters) => void
 }) {
   const [query, setQuery] = useState(filters.q ?? '')
   const [panelOpen, setPanelOpen] = useState(false)
   const [draft, setDraft] = useState<Filters>(filters)
+  const showColumns = Boolean(columnFilters && onColumnFiltersChange)
+  const appliedColumns = columnFilters ?? emptyCycleColumnFilters
+  const [columnDraft, setColumnDraft] =
+    useState<CycleColumnFilters>(appliedColumns)
+  const { data: pipeline } = usePipeline()
+  const properties = useCustomProperties('treatment').data?.data ?? []
   const users = useQuery({
     queryKey: ['users', 'board-filter'],
     queryFn: () => api<UserList>('/api/v1/users?limit=100'),
@@ -99,30 +147,106 @@ export function BoardFilters({
     setDraft((prev) => ({ ...prev, [key]: value || undefined }))
   }
 
+  function setColumnDraftField(patch: Partial<CycleColumnFilters>) {
+    setColumnDraft((prev) => ({ ...prev, ...patch }))
+  }
+
   function openPanel() {
     setDraft(filters)
+    setColumnDraft(appliedColumns)
     setPanelOpen(true)
   }
 
   function applyDraft() {
     onChange(draft)
+    onColumnFiltersChange?.(columnDraft)
     setPanelOpen(false)
   }
 
   function clearDraft() {
     setDraft({})
+    setColumnDraft(emptyCycleColumnFilters)
     onChange({})
+    onColumnFiltersChange?.(emptyCycleColumnFilters)
   }
 
   function removeFilter(key: keyof Filters) {
     onChange({ ...filters, [key]: undefined })
   }
 
+  function removeColumnChip(key: string) {
+    if (key.startsWith('custom:'))
+      onColumnFiltersChange?.({
+        ...appliedColumns,
+        custom: { ...appliedColumns.custom, [key.slice(7)]: '' },
+      })
+    else onColumnFiltersChange?.({ ...appliedColumns, [key]: '' })
+  }
+
   const activeEntries = (
     Object.keys(filterChipLabel) as (keyof Filters)[]
   ).filter((key) => Boolean(filters[key]))
-  const hasFilters = Object.values(filters).some(Boolean)
-  const draftHasFilters = Object.values(draft).some(Boolean)
+  const columnChips: { key: string; label: string; value: string }[] = []
+  if (showColumns) {
+    if (appliedColumns.status)
+      columnChips.push({
+        key: 'status',
+        label: 'Estado del ciclo',
+        value:
+          cycleStatusLabels[
+            appliedColumns.status as keyof typeof cycleStatusLabels
+          ] ?? appliedColumns.status,
+      })
+    if (appliedColumns.stage)
+      columnChips.push({
+        key: 'stage',
+        label: 'Etapa',
+        value:
+          pipeline?.stages.find((stage) => stage.id === appliedColumns.stage)
+            ?.name ?? appliedColumns.stage,
+      })
+    if (appliedColumns.daysMin)
+      columnChips.push({
+        key: 'daysMin',
+        label: 'Días mín.',
+        value: appliedColumns.daysMin,
+      })
+    if (appliedColumns.daysMax)
+      columnChips.push({
+        key: 'daysMax',
+        label: 'Días máx.',
+        value: appliedColumns.daysMax,
+      })
+    if (appliedColumns.nextAction)
+      columnChips.push({
+        key: 'nextAction',
+        label: 'Próxima acción',
+        value: nextActionLabels[appliedColumns.nextAction],
+      })
+    if (appliedColumns.stock)
+      columnChips.push({
+        key: 'stock',
+        label: 'Existencias',
+        value:
+          appliedColumns.stock === 'none'
+            ? 'Sin marca'
+            : stockLevelLabels[appliedColumns.stock],
+      })
+    for (const [key, value] of Object.entries(appliedColumns.custom)) {
+      if (value)
+        columnChips.push({
+          key: `custom:${key}`,
+          label: properties.find((item) => item.key === key)?.label ?? key,
+          value,
+        })
+    }
+  }
+  const filterCount = activeEntries.length + columnChips.length
+  const hasFilters =
+    Object.values(filters).some(Boolean) || columnChips.length > 0
+  const draftHasFilters =
+    Object.values(draft).some(Boolean) ||
+    (showColumns && cycleColumnFilterCount(columnDraft) > 0)
   const mine = Boolean(meId) && filters.responsible_user_id === meId
 
   function userLabel(id: string) {
@@ -178,8 +302,8 @@ export function BoardFilters({
               onClick={() => removeFilter('responsible_user_id')}
               className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                 !mine
-                  ? 'bg-surface text-petroleo'
-                  : 'text-muted hover:bg-surface hover:text-ink'
+                  ? 'bg-surface text-petroleo border-tealmax border'
+                  : 'border-border text-muted hover:text-ink border bg-white hover:bg-[#c3e9cf]'
               }`}
             >
               Todos los ciclos
@@ -191,8 +315,8 @@ export function BoardFilters({
               onClick={() => set('responsible_user_id', meId)}
               className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                 mine
-                  ? 'bg-surface text-petroleo'
-                  : 'text-muted hover:bg-surface hover:text-ink'
+                  ? 'bg-surface text-petroleo border-tealmax border'
+                  : 'border-border text-muted hover:text-ink border bg-white hover:bg-[#c3e9cf]'
               }`}
             >
               Asignados a mí
@@ -209,11 +333,11 @@ export function BoardFilters({
         >
           <SlidersHorizontal className="size-3.5" />
           Filtro Avanzado
-          {activeEntries.length > 0 ? ` (${activeEntries.length})` : ''}
+          {filterCount > 0 ? ` (${filterCount})` : ''}
         </Button>
         {rightActions}
       </div>
-      {activeEntries.length > 0 && (
+      {filterCount > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {activeEntries.map((key) => (
             <button
@@ -223,6 +347,17 @@ export function BoardFilters({
               className="border-border text-ink hover:bg-surface flex items-center gap-1 rounded-full border bg-white px-2.5 py-1 text-xs font-medium"
             >
               {filterChipLabel[key]}: {chipValue(key)}
+              <X className="size-3" />
+            </button>
+          ))}
+          {columnChips.map((chip) => (
+            <button
+              key={`col:${chip.key}`}
+              type="button"
+              onClick={() => removeColumnChip(chip.key)}
+              className="border-border text-ink hover:bg-surface flex items-center gap-1 rounded-full border bg-white px-2.5 py-1 text-xs font-medium"
+            >
+              {chip.label}: {chip.value}
               <X className="size-3" />
             </button>
           ))}
@@ -336,6 +471,152 @@ export function BoardFilters({
                 </select>
               </span>
             </label>
+            {showColumns && (
+              <>
+                <ColumnField label="Estado del ciclo" icon={<Flag />}>
+                  <select
+                    aria-label="Estado del ciclo"
+                    value={columnDraft.status}
+                    onChange={(event) =>
+                      setColumnDraftField({ status: event.target.value })
+                    }
+                    className={`${controlClass} pl-11`}
+                  >
+                    <option value="">Todos</option>
+                    {Object.entries(cycleStatusLabels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </ColumnField>
+                <ColumnField label="Etapa" icon={<Layers />}>
+                  <select
+                    aria-label="Etapa"
+                    value={columnDraft.stage}
+                    onChange={(event) =>
+                      setColumnDraftField({ stage: event.target.value })
+                    }
+                    className={`${controlClass} pl-11`}
+                  >
+                    <option value="">Todas</option>
+                    {(pipeline?.stages ?? []).map((stage) => (
+                      <option key={stage.id} value={stage.id}>
+                        {stage.name}
+                      </option>
+                    ))}
+                  </select>
+                </ColumnField>
+                <ColumnField label="Días mín." icon={<Clock />}>
+                  <input
+                    type="number"
+                    aria-label="Días mínimo"
+                    value={columnDraft.daysMin}
+                    onChange={(event) =>
+                      setColumnDraftField({ daysMin: event.target.value })
+                    }
+                    className={`${controlClass} pl-11`}
+                  />
+                </ColumnField>
+                <ColumnField label="Días máx." icon={<Clock />}>
+                  <input
+                    type="number"
+                    aria-label="Días máximo"
+                    value={columnDraft.daysMax}
+                    onChange={(event) =>
+                      setColumnDraftField({ daysMax: event.target.value })
+                    }
+                    className={`${controlClass} pl-11`}
+                  />
+                </ColumnField>
+                <ColumnField label="Próxima acción" icon={<ListChecks />}>
+                  <select
+                    aria-label="Próxima acción"
+                    value={columnDraft.nextAction}
+                    onChange={(event) =>
+                      setColumnDraftField({
+                        nextAction: event.target
+                          .value as CycleColumnFilters['nextAction'],
+                      })
+                    }
+                    className={`${controlClass} pl-11`}
+                  >
+                    <option value="">Todas</option>
+                    {Object.entries(nextActionLabels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </ColumnField>
+                <ColumnField label="Existencias" icon={<Boxes />}>
+                  <select
+                    aria-label="Existencias"
+                    value={columnDraft.stock}
+                    onChange={(event) =>
+                      setColumnDraftField({
+                        stock: event.target
+                          .value as CycleColumnFilters['stock'],
+                      })
+                    }
+                    className={`${controlClass} pl-11`}
+                  >
+                    <option value="">Todas</option>
+                    {Object.entries(stockLevelLabels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                    <option value="none">Sin marca</option>
+                  </select>
+                </ColumnField>
+                {properties.map((property) => (
+                  <ColumnField
+                    key={property.key}
+                    label={property.label}
+                    icon={<Tag />}
+                  >
+                    {property.options.length > 0 ? (
+                      <select
+                        aria-label={property.label}
+                        value={columnDraft.custom[property.key] ?? ''}
+                        onChange={(event) =>
+                          setColumnDraftField({
+                            custom: {
+                              ...columnDraft.custom,
+                              [property.key]: event.target.value,
+                            },
+                          })
+                        }
+                        className={`${controlClass} pl-11`}
+                      >
+                        <option value="">Todos</option>
+                        {property.options.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        aria-label={property.label}
+                        value={columnDraft.custom[property.key] ?? ''}
+                        onChange={(event) =>
+                          setColumnDraftField({
+                            custom: {
+                              ...columnDraft.custom,
+                              [property.key]: event.target.value,
+                            },
+                          })
+                        }
+                        placeholder="Contiene…"
+                        className={`${controlClass} pl-11`}
+                      />
+                    )}
+                  </ColumnField>
+                ))}
+              </>
+            )}
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium">Desde</span>
               <span className="relative block">

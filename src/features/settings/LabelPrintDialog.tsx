@@ -19,7 +19,9 @@ function pickDefaultTemplate(
 ): LabelTemplate | null {
   const active = templates.filter((template) => template.isActive)
   return (
-    active.find((template) => template.isDefault && template.branchId === branchId) ??
+    active.find(
+      (template) => template.isDefault && template.branchId === branchId,
+    ) ??
     active.find((template) => template.isDefault && !template.branchId) ??
     active.find((template) => template.branchId === branchId) ??
     active.find((template) => !template.branchId) ??
@@ -46,7 +48,8 @@ export function LabelPrintDialog({
   const [printing, setPrinting] = useState(false)
   const templates = useQuery({
     queryKey: ['label-templates', 'active'],
-    queryFn: () => api<LabelTemplateList>('/api/v1/label-templates?active=true'),
+    queryFn: () =>
+      api<LabelTemplateList>('/api/v1/label-templates?active=true'),
   })
   const template = templates.data
     ? pickDefaultTemplate(templates.data.data, branchId)

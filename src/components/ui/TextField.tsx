@@ -13,7 +13,7 @@ export const TextField = forwardRef<HTMLInputElement, Props>(function TextField(
   const generatedId = useId()
   const inputId = id ?? props.name ?? generatedId
   return (
-    <div className="grid gap-1.5">
+    <div className="grid content-start gap-1.5">
       <label
         htmlFor={inputId}
         className={cn(

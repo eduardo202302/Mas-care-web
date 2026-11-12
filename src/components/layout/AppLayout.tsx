@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { ChevronDown, Menu, Settings2, LogOut, HeartPulse, UserRound } from 'lucide-react'
+import {
+  ChevronDown,
+  Menu,
+  Settings2,
+  LogOut,
+  HeartPulse,
+  UserRound,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useUiStore } from '@/stores/ui-store'
@@ -27,6 +34,8 @@ function SidebarLink({ item, nested }: { item: MeMenuItem; nested?: boolean }) {
   )
 }
 
+const devLink = { path: '/dev/chips', label: 'Componentes' }
+
 function SidebarGroup({
   group,
   items,
@@ -35,11 +44,14 @@ function SidebarGroup({
   items: MeMenuItem[]
 }) {
   const { pathname } = useLocation()
-  const containsActive = items.some(
-    (child) =>
-      child.path !== null &&
-      (pathname === child.path || pathname.startsWith(`${child.path}/`)),
-  )
+  const withDevLink = items.some((child) => child.path?.startsWith('/ajustes/'))
+  const containsActive =
+    items.some(
+      (child) =>
+        child.path !== null &&
+        (pathname === child.path || pathname.startsWith(`${child.path}/`)),
+    ) ||
+    (withDevLink && pathname.startsWith(devLink.path))
   const [toggled, setToggled] = useState<boolean | null>(null)
   const open = toggled ?? containsActive
   const Icon = menuIcon(group.icon)
@@ -63,6 +75,12 @@ function SidebarGroup({
           {items.map((child) => (
             <SidebarLink key={child.id} item={child} nested />
           ))}
+          {withDevLink && (
+            <NavLink to={devLink.path} className={linkClass}>
+              <Settings2 className="size-4" />
+              {devLink.label}
+            </NavLink>
+          )}
         </div>
       )}
     </div>
@@ -103,6 +121,7 @@ function SidebarNav() {
 export function AppLayout() {
   const { sidebarOpen, toggleSidebar } = useUiStore()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const signOut = async () => {
     await authClient.signOut()
     // Drop cached /me so the next user never sees this user's menu.
@@ -134,16 +153,7 @@ export function AppLayout() {
           <SidebarNav />
         </div>
         <div className="mt-auto px-4 pb-5">
-          {import.meta.env.DEV && (
-            <NavLink
-              to="/dev/chips"
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/55 hover:bg-white/8 hover:text-white"
-            >
-              <Settings2 className="size-[18px]" />
-              Componentes
-            </NavLink>
-          )}
-          <div className="mt-3 grid gap-1 border-t border-white/10 pt-3">
+          <div className="grid gap-1 border-t border-white/10 pt-3">
             <NavLink
               to="/perfil"
               className="flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm text-white/70 transition hover:bg-white/8 hover:text-white"
@@ -174,7 +184,14 @@ export function AppLayout() {
             <Menu className="size-5" />
           </Button>
         </header>
-        <main className="app-scroll mx-auto min-h-0 w-full max-w-[1440px] flex-1 overflow-y-auto px-5 py-8 md:px-8 lg:px-10">
+        <main
+          className={cn(
+            'app-scroll mx-auto min-h-0 w-full flex-1 overflow-y-auto px-5 py-8 md:px-8 lg:px-10',
+            pathname.startsWith('/tratamientos')
+              ? 'max-w-[1800px]'
+              : 'max-w-[1440px]',
+          )}
+        >
           <Outlet />
         </main>
       </div>

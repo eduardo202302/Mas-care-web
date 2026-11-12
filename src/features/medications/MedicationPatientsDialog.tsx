@@ -3,6 +3,7 @@ import { Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Dialog } from '@/components/ui/Dialog'
 import { api } from '@/lib/http'
+import { formatPhone } from '@/lib/phone'
 import { formatDurationYMD } from '@/lib/treatments'
 import type { components } from '@/lib/api-types'
 
@@ -34,7 +35,7 @@ export function MedicationPatientsDialog({
 
   return (
     <Dialog
-      title="Clientes en tratamiento"
+      title="Clientes en Tratamiento"
       titleAside={name}
       description="Clientes con este medicamento en un tratamiento activo o en pausa."
       icon={<Users className="size-5" />}
@@ -65,7 +66,7 @@ export function MedicationPatientsDialog({
                 <th className="px-3 py-2">Cliente</th>
                 <th className="px-3 py-2">WhatsApp</th>
                 <th className="px-3 py-2">Ciudad</th>
-                <th className="px-3 py-2">Tiempo de tratamiento</th>
+                <th className="px-3 py-2">Tiempo de Tratamiento</th>
               </tr>
             </thead>
             <tbody className="divide-border divide-y">
@@ -83,17 +84,17 @@ export function MedicationPatientsDialog({
                     </Link>
                     {row.status === 'paused' && (
                       <span className="text-muted ml-2 text-xs font-normal">
-                        En pausa
+                        En Pausa
                       </span>
                     )}
                   </td>
                   <td className="px-3 py-2">
                     {row.phone ? (
                       <>
-                        {row.phone}
+                        {formatPhone(row.phone)}
                         {!row.phoneHasWhatsapp && (
                           <span className="text-muted ml-2 text-xs">
-                            sin WhatsApp
+                            Sin WhatsApp
                           </span>
                         )}
                       </>

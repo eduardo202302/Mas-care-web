@@ -6,6 +6,10 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+  server: {
+    allowedHosts: ['.ngrok-free.dev'],
+    proxy: { '/api': 'http://localhost:3000' },
+  },
   test: {
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     environment: 'jsdom',

@@ -55,3 +55,16 @@ export function maskPhoneInput(value: string): string {
   if (digits.length <= 6) return `(${area}) ${prefix}`
   return `(${area}) ${prefix}-${line}`
 }
+
+/** Longest masked value: `+1 (809) 555-1234`. */
+export const PHONE_INPUT_MAX_LENGTH = 17
+
+/** Empty is valid (optionality is up to the schema); otherwise 10 digits, or 11 starting with 1. */
+export function isValidPhone(value: string): boolean {
+  if (value === '') return true
+  if (!/^\+?[\d\s()-]+$/.test(value)) return false
+  const digits = value.replace(/\D/g, '')
+  return (
+    digits.length === 10 || (digits.length === 11 && digits.startsWith('1'))
+  )
+}

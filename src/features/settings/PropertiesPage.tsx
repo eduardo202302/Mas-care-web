@@ -109,14 +109,18 @@ function PropertyDialog({
         className="grid gap-5"
         onSubmit={(event) => {
           event.preventDefault()
+          if (!value.label.trim() || !value.key.trim()) return
           save.mutate()
         }}
       >
         <ModalSection icon={<Tag className="size-4" />} title="Definición">
           <label className="grid gap-1.5">
-            <span className="text-ink text-sm font-medium">Etiqueta</span>
+            <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+              Etiqueta
+            </span>
             <input
               className={control}
+              required
               value={value.label}
               maxLength={80}
               onChange={(e) =>
@@ -129,9 +133,12 @@ function PropertyDialog({
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-ink text-sm font-medium">Clave Única</span>
+            <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+              Clave Única
+            </span>
             <input
               className={control}
+              required
               value={value.key}
               disabled={editing}
               maxLength={40}
@@ -145,7 +152,9 @@ function PropertyDialog({
             )}
           </label>
           <label className="grid gap-1.5">
-            <span className="text-ink text-sm font-medium">Tipo</span>
+            <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+              Tipo
+            </span>
             <select
               className={control}
               value={value.type}
@@ -225,7 +234,7 @@ function PropertyDialog({
             type="submit"
             variant="primary"
             className="w-full sm:w-auto"
-            disabled={save.isPending || !value.label.trim() || !value.key}
+            disabled={save.isPending}
           >
             {save.isPending
               ? 'Guardando…'

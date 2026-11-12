@@ -66,7 +66,9 @@ export type ReportFilters = {
   compare_previous?: boolean
 }
 
-export function reportFiltersFromSearch(params: URLSearchParams): ReportFilters {
+export function reportFiltersFromSearch(
+  params: URLSearchParams,
+): ReportFilters {
   const from = params.get('from')
   const to = params.get('to')
   const branch = params.get('branch_id')
@@ -104,14 +106,18 @@ export function reportFiltersToQuery(filters: ReportFilters): ReportQuery {
   return {
     from: filters.from,
     to: filters.to,
-    branch_id: filters.branch_id.length > 0 ? filters.branch_id.join(',') : undefined,
+    branch_id:
+      filters.branch_id.length > 0 ? filters.branch_id.join(',') : undefined,
     group_by: filters.group_by,
     compare_previous: filters.compare_previous,
   }
 }
 
 /** Builds the query string for a GET /api/v1/reports/{type} request, skipping empty values. */
-export function reportQueryString(filters: ReportFilters, extra?: Record<string, string | number | undefined>): string {
+export function reportQueryString(
+  filters: ReportFilters,
+  extra?: Record<string, string | number | undefined>,
+): string {
   const query = reportFiltersToQuery(filters)
   const params = new URLSearchParams()
   if (query?.from) params.set('from', query.from)
@@ -157,11 +163,7 @@ function toIsoDate(date: Date): string {
 }
 
 export type DateRangePreset =
-  | 'this-month'
-  | 'last-month'
-  | 'last-3-months'
-  | 'last-12-months'
-  | 'custom'
+  'this-month' | 'last-month' | 'last-3-months' | 'last-12-months' | 'custom'
 
 export const dateRangePresetLabels: Record<DateRangePreset, string> = {
   'this-month': 'Este mes',

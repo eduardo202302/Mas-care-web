@@ -70,7 +70,9 @@ function zip(files: { name: string; data: Uint8Array }[]) {
   end.setUint32(16, offset, true)
   return new Blob(
     [...parts, ...central, new Uint8Array(end.buffer)] as BlobPart[],
-    { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
+    {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    },
   )
 }
 
@@ -87,7 +89,9 @@ function buildXlsx(sheetRows: { cells: string[]; bold?: boolean }[]) {
     })
     .join('')
   const xml = (body: string) =>
-    encoder.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${body}`)
+    encoder.encode(
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${body}`,
+    )
   return zip([
     {
       name: '[Content_Types].xml',

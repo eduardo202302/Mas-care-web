@@ -6,15 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
 import {
   AlertTriangle,
-  CalendarDays,
   ChevronDown,
   HeartPulse,
   MapPin,
-  Package,
   Phone,
   Pill,
   Plus,
-  RefreshCw,
   Stethoscope,
   UserRound,
   X,
@@ -33,15 +30,16 @@ import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError, api } from '@/lib/http'
-import {
-  boardColumnLabels,
-  boardColumns,
-  type BoardColumnKey,
-} from '@/lib/board'
-import { usePipeline } from '@/lib/pipeline'
 import { useCan } from '@/lib/permissions'
 import type { components, paths } from '@/lib/api-types'
-import { patientSchema, type PatientFormValues } from '@/schemas/patient'
+import { DOCUMENT_INPUT_MAX_LENGTH, maskDocumentInput } from '@/lib/document'
+import { PHONE_INPUT_MAX_LENGTH, maskPhoneInput } from '@/lib/phone'
+import {
+  patientCreateSchema,
+  patientSchema,
+  todayISO,
+  type PatientFormValues,
+} from '@/schemas/patient'
 import type { DoctorFormValues } from '@/schemas/doctor'
 import type { HealthConditionFormValues } from '@/schemas/healthCondition'
 import { DoctorForm } from '@/features/doctors/DoctorForm'
@@ -50,7 +48,10 @@ import {
   syncDoctorSpecialties,
 } from '@/features/doctors/doctorLinks'
 import { HealthConditionForm } from '@/features/health-conditions/HealthConditionForm'
-import { medicationName } from '@/lib/treatments'
+import { createTreatmentFromForm, medicationName } from '@/lib/treatments'
+import { newIdempotencyKey } from '@/lib/operations'
+import type { TreatmentSaveValues } from '@/schemas/treatment'
+import { TreatmentForm } from '@/features/treatments/TreatmentForm'
 import { PatientDoctorsPanel } from './PatientDoctorsPanel'
 import {
   PatientConditionsPanel,
@@ -74,8 +75,6 @@ type HealthConditionList =
   paths['/api/v1/health-conditions']['get']['responses'][200]['content']['application/json']
 type MedicationList =
   paths['/api/v1/medications']['get']['responses'][200]['content']['application/json']
-type UserList =
-  paths['/api/v1/users']['get']['responses'][200]['content']['application/json']
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
 
@@ -93,37 +92,22 @@ type PendingCondition = {
   notes: string
 }
 type PendingTreatment = {
-  name: string
-  status: BoardColumnKey
-  type: string
-  priority: string
-  branchId: string
-  medicationId: string
+  values: TreatmentSaveValues
   medicationLabel: string
-  responsibleUserId: string
-  quantityPerCycle: string
-  coverageEndOn: string
+}
+type DoctorPickerList = {
+  data: {
+    id: string
+    firstName: string
+    lastName: string
+    licenseNumber?: string | null
+  }[]
 }
 
 type PatientTab = 'datos' | 'medicos' | 'tratamientos' | 'condiciones'
 
 const controlClass =
   'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400'
-
-const stageOptions = boardColumns.filter((key) => key !== 'closed')
-
-const cycleTypeOptions = [
-  { value: 'regular', label: 'Regular' },
-  { value: 'urgent', label: 'Urgente' },
-  { value: 'special', label: 'Especial' },
-] as const
-
-const cyclePriorityOptions = [
-  { value: 'low', label: 'Baja' },
-  { value: 'medium', label: 'Media' },
-  { value: 'high', label: 'Alta' },
-  { value: 'urgent', label: 'Urgente' },
-] as const
 
 function PendingDoctorsEditor({
   pending,
@@ -556,15 +540,16 @@ function PendingConditionsEditor({
 function PendingTreatmentsEditor({
   pending,
   setPending,
+  patientName,
   defaultBranchId,
 }: {
   pending: PendingTreatment[]
   setPending: Dispatch<SetStateAction<PendingTreatment[]>>
+  patientName?: string
   defaultBranchId?: string
 }) {
   const canWriteTreatments = useCan('treatments:write')
-  const [cycleFormOpen, setCycleFormOpen] = useState(false)
-  const { data: pipeline } = usePipeline()
+  const [formOpen, setFormOpen] = useState(false)
 
   const medications = useQuery({
     queryKey: ['medications', { archived: 'false', rows: 100 }],
@@ -575,296 +560,95 @@ function PendingTreatmentsEditor({
     queryKey: ['branches'],
     queryFn: () => api<BranchList>('/api/v1/branches'),
   })
-  const users = useQuery({
-    queryKey: ['users', { rows: 100 }],
-    queryFn: () => api<UserList>('/api/v1/users?rows=100'),
+  const canReadDoctors = useCan('doctors:read')
+  const doctors = useQuery({
+    queryKey: ['doctors', 'picker'],
+    queryFn: () =>
+      api<DoctorPickerList>('/api/v1/doctors?isActive=true&rows=100'),
+    enabled: canReadDoctors,
   })
-
-  const [name, setName] = useState('')
-  const [status, setStatus] = useState<BoardColumnKey>('to_notify')
-  const [type, setType] = useState('')
-  const [priority, setPriority] = useState('')
-  const [branchId, setBranchId] = useState(defaultBranchId ?? '')
-  const [medicationId, setMedicationId] = useState('')
-  const [responsibleUserId, setResponsibleUserId] = useState('')
-  const [quantity, setQuantity] = useState('')
-  const [coverageEndOn, setCoverageEndOn] = useState('')
-
-  const stageName = (key: BoardColumnKey) =>
-    pipeline?.stages.find((stage) => stage.system_status === key)?.name ??
-    boardColumnLabels[key]
-  const formComplete = Boolean(
-    name.trim() && quantity && coverageEndOn && branchId && medicationId,
-  )
-
-  function resetForm() {
-    setName('')
-    setStatus('to_notify')
-    setType('')
-    setPriority('')
-    setBranchId(defaultBranchId ?? '')
-    setMedicationId('')
-    setResponsibleUserId('')
-    setQuantity('')
-    setCoverageEndOn('')
-  }
 
   function removePending(index: number) {
     setPending((current) => current.filter((_, i) => i !== index))
   }
 
-  function addPending() {
+  async function addPending(values: TreatmentSaveValues) {
     const medication = (medications.data?.data ?? []).find(
-      (item) => item.id === medicationId,
+      (item) => item.id === values.medicationId,
     )
-    if (!medication) return
     setPending((current) => [
       ...current,
       {
-        name: name.trim(),
-        status,
-        type,
-        priority,
-        branchId,
-        medicationId,
-        medicationLabel: medicationName(medication),
-        responsibleUserId,
-        quantityPerCycle: quantity,
-        coverageEndOn,
+        values,
+        medicationLabel: medication ? medicationName(medication) : '',
       },
     ])
-    resetForm()
-    setCycleFormOpen(false)
+    setFormOpen(false)
   }
 
   return (
     <div className="grid gap-4">
       {pending.length > 0 && (
         <ul className="grid gap-2">
-          {pending.map((item, index) => (
-            <li
-              key={`${item.medicationId}-${index}`}
-              className="border-border flex items-center justify-between gap-2 rounded-lg border px-3 py-2"
-            >
-              <div>
-                <p className="text-ink text-sm font-medium">{item.name}</p>
-                <p className="text-muted text-xs">
-                  {item.medicationLabel} · {boardColumnLabels[item.status]}
-                </p>
-              </div>
-              <button
-                type="button"
-                title="Quitar"
-                onClick={() => removePending(index)}
-                className="text-muted shrink-0 hover:text-red-600"
+          {pending.map((item, index) => {
+            const treatmentName = item.values.name?.trim()
+            return (
+              <li
+                key={`${item.values.medicationId}-${index}`}
+                className="border-border flex items-center justify-between gap-2 rounded-lg border px-3 py-2"
               >
-                <X className="size-4" />
-              </button>
-            </li>
-          ))}
+                <div>
+                  <p className="text-ink text-sm font-medium">
+                    {treatmentName || item.medicationLabel}
+                  </p>
+                  <p className="text-muted text-xs">
+                    {treatmentName ? `${item.medicationLabel} · ` : ''}
+                    Inicio {item.values.startDate}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  title="Quitar"
+                  onClick={() => removePending(index)}
+                  className="text-muted shrink-0 hover:text-red-600"
+                >
+                  <X className="size-4" />
+                </button>
+              </li>
+            )
+          })}
         </ul>
       )}
       {canWriteTreatments && (
         <Button
           type="button"
           className="w-fit"
-          onClick={() => setCycleFormOpen(true)}
+          onClick={() => setFormOpen(true)}
         >
           <Plus className="size-4" />
           Nuevo
         </Button>
       )}
-      {cycleFormOpen && (
+      {formOpen && (
         <Dialog
           title="Nuevo Tratamiento"
-          description="Define el tratamiento y el ciclo de reposición con el que inicia este paciente."
-          icon={<Plus className="size-5" />}
+          description="Registra los datos del medicamento."
+          icon={<Pill className="size-5" />}
           compactHeader
-          bodyClassName="pt-3"
+          bodyClassName="pt-0"
           size="lg"
-          onClose={() => setCycleFormOpen(false)}
+          onClose={() => setFormOpen(false)}
         >
-          <div className="grid gap-4">
-            <ModalSection
-              icon={<RefreshCw className="size-4" />}
-              title="Tratamiento"
-            >
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label className="grid gap-1.5">
-                  <span className="text-ink text-sm font-medium">
-                    Tratamiento
-                  </span>
-                  <input
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    placeholder="Nombre del Tratamiento"
-                    className={controlClass}
-                  />
-                </label>
-                <label className="grid gap-1.5">
-                  <span className="text-ink text-sm font-medium">Etapa</span>
-                  <select
-                    value={status}
-                    onChange={(event) =>
-                      setStatus(event.target.value as BoardColumnKey)
-                    }
-                    className={controlClass}
-                  >
-                    {stageOptions.map((key) => (
-                      <option key={key} value={key}>
-                        {stageName(key)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-            </ModalSection>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <ModalSection
-                icon={<RefreshCw className="size-4" />}
-                title="Ciclo"
-              >
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <label className="grid gap-1.5">
-                    <span className="text-ink text-sm font-medium">
-                      Tipo de Ciclo
-                    </span>
-                    <select
-                      value={type}
-                      onChange={(event) => setType(event.target.value)}
-                      className={controlClass}
-                    >
-                      <option value="">Sin Definir</option>
-                      {cycleTypeOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="grid gap-1.5">
-                    <span className="text-ink text-sm font-medium">
-                      Prioridad
-                    </span>
-                    <select
-                      value={priority}
-                      onChange={(event) => setPriority(event.target.value)}
-                      className={controlClass}
-                    >
-                      <option value="">Sin Definir</option>
-                      {cyclePriorityOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              </ModalSection>
-
-              <ModalSection
-                icon={<CalendarDays className="size-4" />}
-                title="Información del Ciclo"
-              >
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <label className="grid gap-1.5">
-                    <span className="text-ink text-sm font-medium">
-                      Cantidad
-                    </span>
-                    <input
-                      value={quantity}
-                      onChange={(event) => setQuantity(event.target.value)}
-                      placeholder="—"
-                      className={controlClass}
-                    />
-                  </label>
-                  <label className="grid gap-1.5">
-                    <span className="text-ink text-sm font-medium">
-                      Fecha de Cierre
-                    </span>
-                    <input
-                      type="date"
-                      value={coverageEndOn}
-                      onChange={(event) => setCoverageEndOn(event.target.value)}
-                      className={controlClass}
-                    />
-                  </label>
-                </div>
-                <label className="grid gap-1.5">
-                  <span className="text-ink text-sm font-medium">
-                    Responsable
-                  </span>
-                  <select
-                    value={responsibleUserId}
-                    onChange={(event) =>
-                      setResponsibleUserId(event.target.value)
-                    }
-                    className={controlClass}
-                  >
-                    <option value="">Sin Responsable</option>
-                    {(users.data?.data ?? []).map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </ModalSection>
-            </div>
-
-            <ModalSection
-              icon={<Package className="size-4" />}
-              title="Producto Y Sucursal"
-            >
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label className="grid gap-1.5">
-                  <span className="text-ink text-sm font-medium">Sucursal</span>
-                  <select
-                    value={branchId}
-                    onChange={(event) => setBranchId(event.target.value)}
-                    className={controlClass}
-                  >
-                    <option value="">Seleccione…</option>
-                    {(branches.data?.data ?? []).map((branch) => (
-                      <option key={branch.id} value={branch.id}>
-                        {branch.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="grid gap-1.5">
-                  <span className="text-ink text-sm font-medium">Producto</span>
-                  <select
-                    value={medicationId}
-                    onChange={(event) => setMedicationId(event.target.value)}
-                    className={controlClass}
-                  >
-                    <option value="">Seleccione…</option>
-                    {(medications.data?.data ?? []).map((medication) => (
-                      <option key={medication.id} value={medication.id}>
-                        {medicationName(medication)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-            </ModalSection>
-
-            <FormActions>
-              <Button type="button" onClick={() => setCycleFormOpen(false)}>
-                Cancelar
-              </Button>
-              <Button
-                type="button"
-                variant="primary"
-                disabled={!formComplete}
-                onClick={addPending}
-              >
-                Agregar a la Lista
-              </Button>
-            </FormActions>
-          </div>
+          <TreatmentForm
+            patientName={patientName}
+            medications={medications.data?.data ?? []}
+            branches={branches.data?.data ?? []}
+            doctors={doctors.data?.data ?? []}
+            doctorsLoading={doctors.isLoading}
+            defaultBranchId={defaultBranchId}
+            onSave={addPending}
+            onCancel={() => setFormOpen(false)}
+          />
         </Dialog>
       )}
     </div>
@@ -907,7 +691,9 @@ export function PatientForm({
     setError,
     formState: { errors },
   } = useForm<PatientFormValues>({
-    resolver: zodResolver(patientSchema),
+    resolver: zodResolver(
+      (patient ? patientSchema : patientCreateSchema) as typeof patientSchema,
+    ),
     defaultValues: patient
       ? {
           fullName: patient.fullName,
@@ -1035,22 +821,9 @@ export function PatientForm({
       )
     }
     const treatmentsToSend = [...pendingTreatments]
+    const treatmentGroupId = newIdempotencyKey()
     for (const item of treatmentsToSend) {
-      await api('/api/v1/cycles', {
-        method: 'POST',
-        body: JSON.stringify({
-          patient_id: patientId,
-          branch_id: item.branchId,
-          medication_id: item.medicationId,
-          name: item.name || undefined,
-          responsible_user_id: item.responsibleUserId || undefined,
-          quantity_per_cycle: item.quantityPerCycle,
-          coverage_end_on: item.coverageEndOn || undefined,
-          status: item.status,
-          priority: item.priority || undefined,
-          type: item.type || undefined,
-        }),
-      })
+      await createTreatmentFromForm(patientId, item.values, treatmentGroupId)
       setPendingTreatments((current) => current.filter((t) => t !== item))
     }
   }
@@ -1141,7 +914,7 @@ export function PatientForm({
   ]
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="grid gap-5">
+    <form onSubmit={handleSubmit(submit)} noValidate className="grid gap-5">
       <Tabs tabs={tabs} value={activeTab} onChange={setActiveTab} />
       {activeTab === 'datos' && (
         <>
@@ -1178,6 +951,11 @@ export function PatientForm({
           <ModalSection
             icon={<UserRound className="size-4" />}
             title="Identificación"
+            collapsible
+            defaultCollapsed
+            forceOpen={Boolean(
+              errors.fullName || errors.documentId || errors.birthDate,
+            )}
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
@@ -1191,30 +969,52 @@ export function PatientForm({
               </div>
               <TextField
                 label="Documento"
+                required={!patient}
                 placeholder="DPI, cédula o pasaporte"
-                {...register('documentId')}
+                maxLength={DOCUMENT_INPUT_MAX_LENGTH}
+                {...register('documentId', {
+                  onChange: (e) => {
+                    e.target.value = maskDocumentInput(e.target.value)
+                  },
+                })}
                 error={errors.documentId?.message}
               />
               <TextField
                 label="Fecha de Nacimiento"
+                required={!patient}
                 type="date"
+                min="1900-01-01"
+                max={todayISO()}
                 {...register('birthDate')}
                 error={errors.birthDate?.message}
               />
             </div>
           </ModalSection>
 
-          <ModalSection icon={<Phone className="size-4" />} title="Contacto">
+          <ModalSection
+            icon={<Phone className="size-4" />}
+            title="Contacto"
+            collapsible
+            defaultCollapsed
+            forceOpen={Boolean(errors.phone || errors.email)}
+          >
             <div className="grid gap-3 sm:grid-cols-2">
               <TextField
                 label="WhatsApp"
+                required={!patient}
                 type="tel"
-                placeholder="+502 5555 5555"
-                {...register('phone')}
+                placeholder="(809) 555-1234"
+                maxLength={PHONE_INPUT_MAX_LENGTH}
+                {...register('phone', {
+                  onChange: (e) => {
+                    e.target.value = maskPhoneInput(e.target.value)
+                  },
+                })}
                 error={errors.phone?.message}
               />
               <TextField
                 label="Correo Electrónico"
+                required={!patient}
                 type="email"
                 placeholder="paciente@correo.com"
                 {...register('email')}
@@ -1226,6 +1026,16 @@ export function PatientForm({
           <ModalSection
             icon={<MapPin className="size-4" />}
             title="Dirección"
+            collapsible
+            defaultCollapsed
+            forceOpen={Boolean(
+              errors.address ||
+              errors.state ||
+              errors.city ||
+              errors.sector ||
+              errors.latitude ||
+              errors.longitude,
+            )}
             action={
               <AddressMapPicker
                 getValues={() => ({
@@ -1253,6 +1063,7 @@ export function PatientForm({
               <div className="sm:col-span-2">
                 <TextField
                   label="Dirección"
+                  required={!patient}
                   placeholder="G5CJ+2X Santo Domingo Este"
                   {...register('address')}
                   error={errors.address?.message}
@@ -1260,27 +1071,32 @@ export function PatientForm({
               </div>
               <TextField
                 label="Región"
+                required={!patient}
                 {...register('state')}
                 error={errors.state?.message}
               />
               <TextField
                 label="Ciudad"
+                required={!patient}
                 {...register('city')}
                 error={errors.city?.message}
               />
               <TextField
                 label="Sector"
+                required={!patient}
                 {...register('sector')}
                 error={errors.sector?.message}
               />
               <TextField
                 label="Latitud"
+                required={!patient}
                 placeholder="14.6349"
                 {...register('latitude')}
                 error={errors.latitude?.message}
               />
               <TextField
                 label="Longitud"
+                required={!patient}
                 placeholder="-90.5069"
                 {...register('longitude')}
                 error={errors.longitude?.message}
@@ -1291,12 +1107,15 @@ export function PatientForm({
           <ModalSection
             icon={<Stethoscope className="size-4" />}
             title="Atención"
+            collapsible
+            defaultCollapsed
+            forceOpen={Boolean(errors.primaryBranchId || errors.careNotes)}
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="grid gap-1.5">
                 <label
                   htmlFor="patient-branch"
-                  className="text-ink text-sm font-medium"
+                  className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
                 >
                   Sucursal
                 </label>
@@ -1422,6 +1241,7 @@ export function PatientForm({
           <PendingTreatmentsEditor
             pending={pendingTreatments}
             setPending={setPendingTreatments}
+            patientName={watch('fullName')}
             defaultBranchId={primaryBranchId}
           />
         ))}

@@ -8,6 +8,8 @@ import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { ApiError } from '@/lib/http'
+import { maskPhoneInput, PHONE_INPUT_MAX_LENGTH } from '@/lib/phone'
+import { maskRncInput, RNC_INPUT_MAX_LENGTH } from '@/lib/rnc'
 import type { components } from '@/lib/api-types'
 import {
   medicalCenterSchema,
@@ -114,7 +116,7 @@ export function MedicalCenterForm({
     'border-border text-ink placeholder:text-muted/70 focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm transition outline-none focus:ring-2 aria-[invalid=true]:border-red-400'
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="grid gap-5">
+    <form noValidate onSubmit={handleSubmit(submit)} className="grid gap-5">
       <FormFields readOnly={readOnly}>
         <ModalSection
           icon={<Building2 className="size-4" />}
@@ -133,7 +135,7 @@ export function MedicalCenterForm({
             <div className="grid gap-1.5">
               <label
                 htmlFor="center-type"
-                className="text-ink text-sm font-medium"
+                className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
               >
                 Tipo
               </label>
@@ -157,7 +159,16 @@ export function MedicalCenterForm({
             </div>
             <TextField
               label="RNC"
+              required
+              inputMode="numeric"
+              placeholder="101-01234-5"
+              maxLength={RNC_INPUT_MAX_LENGTH}
               {...register('rnc')}
+              onChange={(event) =>
+                setValue('rnc', maskRncInput(event.target.value), {
+                  shouldDirty: true,
+                })
+              }
               error={errors.rnc?.message}
             />
             <div className="sm:col-span-2">
@@ -174,12 +185,22 @@ export function MedicalCenterForm({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <TextField
               label="Teléfono"
+              required
               type="tel"
+              inputMode="tel"
+              placeholder="(809) 555-1234"
+              maxLength={PHONE_INPUT_MAX_LENGTH}
               {...register('phone')}
+              onChange={(event) =>
+                setValue('phone', maskPhoneInput(event.target.value), {
+                  shouldDirty: true,
+                })
+              }
               error={errors.phone?.message}
             />
             <TextField
               label="Correo electrónico"
+              required
               type="email"
               {...register('email')}
               error={errors.email?.message}
@@ -200,13 +221,29 @@ export function MedicalCenterForm({
                 longitude: getValues('longitude') ?? '',
               })}
               onApply={(next) => {
-                setValue('address', next.address, { shouldDirty: true })
-                setValue('city', next.city, { shouldDirty: true })
-                setValue('state', next.state, { shouldDirty: true })
-                setValue('sector', next.sector, { shouldDirty: true })
-                setValue('latitude', next.latitude, { shouldDirty: true })
+                setValue('address', next.address, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+                setValue('city', next.city, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+                setValue('state', next.state, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+                setValue('sector', next.sector, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+                setValue('latitude', next.latitude, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
                 setValue('longitude', next.longitude, {
                   shouldDirty: true,
+                  shouldValidate: true,
                 })
               }}
             />
@@ -216,6 +253,7 @@ export function MedicalCenterForm({
             <div className="sm:col-span-2">
               <TextField
                 label="Dirección"
+                required
                 placeholder="G5CJ+2X Santo Domingo Este"
                 {...register('address')}
                 error={errors.address?.message}
@@ -223,27 +261,32 @@ export function MedicalCenterForm({
             </div>
             <TextField
               label="Región"
+              required
               {...register('state')}
               error={errors.state?.message}
             />
             <TextField
               label="Ciudad"
+              required
               {...register('city')}
               error={errors.city?.message}
             />
             <TextField
               label="Sector"
+              required
               {...register('sector')}
               error={errors.sector?.message}
             />
             <TextField
               label="Latitud"
+              required
               placeholder="14.6349"
               {...register('latitude')}
               error={errors.latitude?.message}
             />
             <TextField
               label="Longitud"
+              required
               placeholder="-90.5069"
               {...register('longitude')}
               error={errors.longitude?.message}

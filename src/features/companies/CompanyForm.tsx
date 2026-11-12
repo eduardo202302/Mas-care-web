@@ -19,6 +19,7 @@ import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
+import { PHONE_INPUT_MAX_LENGTH, maskPhoneInput } from '@/lib/phone'
 import {
   companyFormSchema,
   companyIndustries,
@@ -212,7 +213,7 @@ export function CompanyForm({
   }
 
   return (
-    <form className="grid gap-4" onSubmit={handleSubmit(submit)}>
+    <form noValidate className="grid gap-4" onSubmit={handleSubmit(submit)}>
       <ModalSection
         icon={<Building2 className="size-4" />}
         title="Información básica"
@@ -296,17 +297,23 @@ export function CompanyForm({
             error={errors.email?.message}
           />
           <TextField
-            label="Teléfono"
+            label="WhatsApp"
             type="tel"
-            placeholder="+52 55 1234 5678"
-            {...register('phone')}
+            inputMode="tel"
+            placeholder="(809) 555-1234"
+            maxLength={PHONE_INPUT_MAX_LENGTH}
+            {...register('phone', {
+              onChange: (e) => {
+                e.target.value = maskPhoneInput(e.target.value)
+              },
+            })}
             error={errors.phone?.message}
           />
         </div>
         <div className="grid gap-1.5">
           <label
             htmlFor="company-status"
-            className="text-ink text-sm font-medium"
+            className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
           >
             Estado
           </label>
@@ -330,7 +337,10 @@ export function CompanyForm({
           </div>
         </div>
         <div className="grid gap-1.5">
-          <label htmlFor="company-pin" className="text-ink text-sm font-medium">
+          <label
+            htmlFor="company-pin"
+            className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
+          >
             PIN
           </label>
           <div className="flex gap-2">

@@ -216,6 +216,7 @@ export function PatientDoctorsPanel({
             className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
+              if (!doctorId) return
               add.mutate()
             }}
           >
@@ -226,7 +227,7 @@ export function PatientDoctorsPanel({
               <div className="grid gap-1.5">
                 <label
                   htmlFor="doctor-picker"
-                  className="text-ink text-sm font-medium"
+                  className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
                 >
                   Médico
                 </label>
@@ -321,11 +322,7 @@ export function PatientDoctorsPanel({
               <Button type="button" onClick={closeAdd}>
                 Cancelar
               </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={add.isPending || !doctorId}
-              >
+              <Button type="submit" variant="primary" disabled={add.isPending}>
                 {add.isPending ? 'Guardando…' : 'Agregar Médico'}
               </Button>
             </FormActions>

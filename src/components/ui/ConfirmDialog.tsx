@@ -39,7 +39,7 @@ export function ConfirmDialog({
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="animate-in w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl"
+        className="animate-in w-full max-w-md overflow-hidden rounded-xl bg-[#EAF7F0] shadow-2xl"
       >
         <header className="bg-petroleo flex items-center gap-2 px-5 py-3.5">
           <CircleAlert className="size-5 text-white" />

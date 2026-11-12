@@ -121,7 +121,7 @@ function monthLabel(iso: string) {
 function ActivityRow({ activity }: { activity: CompanyActivity }) {
   const meta = typeMeta[activity.type]
   return (
-    <div className="border-border rounded-lg border bg-white p-3">
+    <div className="border-border min-w-0 rounded-lg border bg-white p-3">
       <div className="flex items-start gap-2.5">
         <span
           className={`grid size-7 shrink-0 place-items-center rounded-full border ${meta.tone}`}
@@ -130,7 +130,7 @@ function ActivityRow({ activity }: { activity: CompanyActivity }) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-            <p className="text-ink text-sm font-semibold">
+            <p className="text-ink min-w-0 text-sm font-semibold break-words">
               {activity.title || meta.bodyLabel}
               {activity.contactName ? ` · ${activity.contactName}` : ''}
             </p>
@@ -331,34 +331,36 @@ export function CompanyActivityPanel({ companyId }: { companyId: string }) {
               </button>
             }
           >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <h4 className="text-muted mb-2 text-xs font-semibold tracking-wide uppercase">
-                  Entrante
-                </h4>
-                <EmptyState
-                  icon={<Inbox className="size-4" />}
-                  text="No se ha registrado ninguna actividad entrante en este registro."
-                />
-              </div>
-              <div>
-                <h4 className="text-muted mb-2 text-xs font-semibold tracking-wide uppercase">
-                  Salida
-                </h4>
-                {recent.isFetching ? (
-                  <p className="text-muted text-sm">Cargando...</p>
-                ) : recentItems.length ? (
-                  <div className="grid gap-2">
-                    {recentItems.map((activity) => (
-                      <ActivityRow key={activity.id} activity={activity} />
-                    ))}
-                  </div>
-                ) : (
+            <div className="@container">
+              <div className="grid gap-4 @xl:grid-cols-2">
+                <div className="min-w-0">
+                  <h4 className="text-muted mb-2 text-xs font-semibold tracking-wide uppercase">
+                    Entrante
+                  </h4>
                   <EmptyState
-                    icon={<Send className="size-4" />}
-                    text="Todavía no hay interacciones registradas."
+                    icon={<Inbox className="size-4" />}
+                    text="No se ha registrado ninguna actividad entrante en este registro."
                   />
-                )}
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-muted mb-2 text-xs font-semibold tracking-wide uppercase">
+                    Salida
+                  </h4>
+                  {recent.isFetching ? (
+                    <p className="text-muted text-sm">Cargando...</p>
+                  ) : recentItems.length ? (
+                    <div className="grid gap-2">
+                      {recentItems.map((activity) => (
+                        <ActivityRow key={activity.id} activity={activity} />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      icon={<Send className="size-4" />}
+                      text="Todavía no hay interacciones registradas."
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </InfoCard>

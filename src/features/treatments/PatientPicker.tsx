@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { api } from '@/lib/http'
 import { formatPhone } from '@/lib/phone'
+import { cn } from '@/lib/cn'
 import { toTitleCase } from '@/lib/titleCase'
 import type { paths } from '@/lib/api-types'
 
@@ -32,6 +33,7 @@ export function PatientPicker({
   inline = false,
   label = 'Paciente',
   required = true,
+  fieldClassName,
 }: {
   value: PickerPatient | null
   onChange: (patient: PickerPatient | null) => void
@@ -40,6 +42,7 @@ export function PatientPicker({
   inline?: boolean
   label?: string
   required?: boolean
+  fieldClassName?: string
 }) {
   const t = (text: string) => (inline ? toTitleCase(text) : text)
   const [search, setSearch] = useState('')
@@ -107,7 +110,7 @@ export function PatientPicker({
               aria-expanded={listOpen}
               aria-controls="treatment-patient-options"
               aria-autocomplete="list"
-              className={`${fieldClass} pr-9 pl-9`}
+              className={cn(fieldClass, 'pr-9 pl-9', fieldClassName)}
             />
             {search && (
               <button

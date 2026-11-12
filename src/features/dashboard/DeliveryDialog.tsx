@@ -196,7 +196,7 @@ export function DeliveryDialog({
             <div className="grid gap-1.5">
               <label
                 htmlFor="delivery-pickup"
-                className="text-ink text-sm font-medium"
+                className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
               >
                 ¿Quién Retira?
               </label>
@@ -257,9 +257,7 @@ export function DeliveryDialog({
           <Button
             type="submit"
             variant="primary"
-            disabled={
-              blocked || deliver.isPending || invalidQuantity || !deliveredOn
-            }
+            disabled={blocked || deliver.isPending}
           >
             <PackageCheck className="size-4" />
             {deliver.isPending ? 'Registrando…' : 'Confirmar Entrega'}

@@ -26,7 +26,7 @@ function printImage(url: string) {
   const frame = document.createElement('iframe')
   frame.style.cssText =
     'position:fixed;right:0;bottom:0;width:0;height:0;border:0'
-  frame.srcdoc = `<!doctype html><html><head><style>@page{margin:12mm}html,body{margin:0;height:100%}body{display:flex;align-items:center;justify-content:center}img{max-width:100%;max-height:100vh;object-fit:contain}</style></head><body><img src="${url}"></body></html>`
+  frame.srcdoc = `<!doctype html><html><head><style>@page{margin:0}html,body{margin:0;height:100%}body{display:flex;align-items:center;justify-content:center}img{max-width:100%;max-height:100vh;object-fit:contain}</style></head><body><img src="${url}"></body></html>`
   frame.onload = () => {
     const win = frame.contentWindow
     const img = win?.document.querySelector('img')

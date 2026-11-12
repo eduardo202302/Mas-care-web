@@ -732,6 +732,7 @@ export default function TreatmentDetailPage() {
               className="grid gap-5"
               onSubmit={(event) => {
                 event.preventDefault()
+                if (!body.trim()) return
                 addActivity.mutate()
               }}
             >
@@ -783,7 +784,7 @@ export default function TreatmentDetailPage() {
                   variant="primary"
                   type="submit"
                   className="w-full sm:w-auto"
-                  disabled={addActivity.isPending || !body.trim()}
+                  disabled={addActivity.isPending}
                 >
                   {addActivity.isPending ? 'Guardando…' : 'Guardar'}
                 </Button>

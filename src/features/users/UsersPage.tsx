@@ -1,8 +1,13 @@
+import { createPortal } from 'react-dom'
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  AtSign,
   Building2,
+  CalendarDays,
   KeyRound,
+  MessageCircle,
+  MessageSquare,
   ShieldCheck,
   Plus,
   RefreshCw,
@@ -20,6 +25,8 @@ import {
   AdvancedFilterDialog,
   FilterBarRow,
   FilterField,
+  FilterSelect,
+  distinctOptions,
   filterControlClass,
   type ActiveFilterChip,
 } from '@/components/ui/AdvancedFilter'
@@ -43,6 +50,76 @@ type UserQuery = NonNullable<
 >
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
+
+type UserFilters = {
+  role: string
+  branch: string
+  whatsapp: string
+  username: string
+  from: string
+  to: string
+}
+
+const emptyFilters: UserFilters = {
+  role: '',
+  branch: '',
+  whatsapp: '',
+  username: '',
+  from: '',
+  to: '',
+}
+
+function BranchesCell({
+  branches,
+}: {
+  branches: { id: string; name: string }[]
+}) {
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null)
+  if (!branches.length)
+    return <span className="text-muted">Sin asignación</span>
+  if (branches.length === 1)
+    return <span className="text-muted">{branches[0]!.name}</span>
+  function show(element: HTMLElement) {
+    const rect = element.getBoundingClientRect()
+    setPos({ left: rect.left, top: rect.bottom + 6 })
+  }
+  return (
+    <span
+      className="inline-flex max-w-[16rem] items-center gap-1.5"
+      onMouseEnter={(event) => show(event.currentTarget)}
+      onMouseLeave={() => setPos(null)}
+      onFocus={(event) => show(event.currentTarget)}
+      onBlur={() => setPos(null)}
+    >
+      <span className="text-muted truncate">{branches[0]!.name}</span>
+      <span
+        tabIndex={0}
+        aria-label={`${branches.length} sucursales: ${branches
+          .map((branch) => branch.name)
+          .join(', ')}`}
+        className="text-tealmax focus-visible:ring-tealmax/40 inline-flex shrink-0 items-center gap-0.5 rounded outline-none focus-visible:ring-2"
+      >
+        <MessageSquare className="size-4" />
+        <span className="text-xs font-semibold">{branches.length}</span>
+      </span>
+      {pos &&
+        createPortal(
+          <span
+            role="tooltip"
+            style={{ left: pos.left, top: pos.top }}
+            className="border-border text-ink pointer-events-none fixed z-50 grid min-w-48 gap-1.5 rounded-xl border bg-white px-4 py-3 text-sm shadow-lg"
+          >
+            {branches.map((branch) => (
+              <span key={branch.id} className="whitespace-nowrap">
+                {branch.name}
+              </span>
+            ))}
+          </span>,
+          document.body,
+        )}
+    </span>
+  )
+}
 
 function queryString(query: UserQuery) {
   const params = new URLSearchParams()
@@ -102,7 +179,7 @@ function UserDetail({
           </div>
           <div className="grid gap-0.5">
             <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
-              WhatsApp / Teléfono
+              WhatsApp
             </dt>
             <dd className="text-ink text-sm font-medium">
               {user.phone ? formatPhone(user.phone) : ''}
@@ -233,8 +310,8 @@ export default function UsersPage() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   // El servidor no filtra por rol: se aplica sobre la página cargada.
-  const [role, setRole] = useState('')
-  const [filterDraft, setFilterDraft] = useState<{ role: string } | null>(null)
+  const [applied, setApplied] = useState<UserFilters>(emptyFilters)
+  const [filterDraft, setFilterDraft] = useState<UserFilters | null>(null)
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [selectedId, setSelectedId] = useState('')
@@ -331,10 +408,42 @@ export default function UsersPage() {
     user.roleName ?? 'Sin rol'
   const loadedUsers = users.data?.data ?? []
   const roleOptions = Array.from(
-    new Set([...loadedUsers.map(userRole), ...(role ? [role] : [])]),
+    new Set([
+      ...loadedUsers.map(userRole),
+      ...(applied.role ? [applied.role] : []),
+    ]),
   ).sort((a, b) => a.localeCompare(b, 'es'))
+  const branchOptions = Array.from(
+    new Set([
+      ...loadedUsers.flatMap((user) =>
+        user.branches.map((branch) => branch.name),
+      ),
+      ...(applied.branch ? [applied.branch] : []),
+    ]),
+  ).sort((a, b) => a.localeCompare(b, 'es'))
+  const usernameOptions = distinctOptions(
+    loadedUsers.map((user) => user.username),
+    applied.username,
+  )
+  const whatsappOptions = distinctOptions(
+    loadedUsers.map((user) => (user.phone ? formatPhone(user.phone) : '')),
+    applied.whatsapp,
+  )
+  const matchesFilters = (user: components['schemas']['OrganizationUser']) => {
+    const joined = (user.memberSince || user.createdAt || '').slice(0, 10)
+    return (
+      (!applied.role || userRole(user) === applied.role) &&
+      (!applied.branch ||
+        user.branches.some((branch) => branch.name === applied.branch)) &&
+      (!applied.whatsapp ||
+        (user.phone ? formatPhone(user.phone) : '') === applied.whatsapp) &&
+      (!applied.username || user.username === applied.username) &&
+      (!applied.from || joined >= applied.from) &&
+      (!applied.to || joined <= applied.to)
+    )
+  }
   const sortedUsers = applyColumnSort(
-    loadedUsers.filter((user) => !role || userRole(user) === role),
+    loadedUsers.filter(matchesFilters),
     sort,
     (user, index) =>
       index === 0
@@ -351,11 +460,7 @@ export default function UsersPage() {
     <span key="id" className="text-muted font-mono text-xs">
       {user.numericId}
     </span>,
-    <span key="branches" className="text-muted">
-      {user.branches.length
-        ? user.branches.map((branch) => branch.name).join(', ')
-        : 'Sin asignación'}
-    </span>,
+    <BranchesCell key="branches" branches={user.branches} />,
     <span
       key="role"
       className="bg-surface text-petroleo inline-flex rounded-full px-2.5 py-1 text-xs font-semibold"
@@ -409,10 +514,39 @@ export default function UsersPage() {
     user.phone ? formatPhone(user.phone) : '',
     user.email,
   ])
-  const filterCount = role ? 1 : 0
-  const chips: ActiveFilterChip[] = role
-    ? [{ key: 'role', label: 'Rol', value: role }]
-    : []
+  const chips: ActiveFilterChip[] = [
+    ...(applied.role
+      ? [{ key: 'role', label: 'Rol', value: applied.role }]
+      : []),
+    ...(applied.branch
+      ? [{ key: 'branch', label: 'Sucursal', value: applied.branch }]
+      : []),
+    ...(applied.whatsapp
+      ? [
+          {
+            key: 'whatsapp',
+            label: 'WhatsApp',
+            value: applied.whatsapp,
+          },
+        ]
+      : []),
+    ...(applied.username
+      ? [
+          {
+            key: 'username',
+            label: 'Usuario',
+            value: applied.username,
+          },
+        ]
+      : []),
+    ...(applied.from
+      ? [{ key: 'from', label: 'Miembro desde', value: applied.from }]
+      : []),
+    ...(applied.to
+      ? [{ key: 'to', label: 'Miembro hasta', value: applied.to }]
+      : []),
+  ]
+  const filterCount = chips.length
 
   function updateSearch(value: string) {
     setSearch(value)
@@ -441,7 +575,7 @@ export default function UsersPage() {
             {canManage && (
               <Button variant="primary" onClick={openForm}>
                 <Plus className="size-4" />
-                Nuevo usuario
+                Nuevo Usuario
               </Button>
             )}
           </>
@@ -461,7 +595,7 @@ export default function UsersPage() {
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
-          onClick={() => setFilterDraft({ role })}
+          onClick={() => setFilterDraft(applied)}
         />
         <TableToolbarActions
           title="Usuarios"
@@ -472,8 +606,8 @@ export default function UsersPage() {
       </FilterBarRow>
       <ActiveFilterChips
         chips={chips}
-        onRemove={() => {
-          setRole('')
+        onRemove={(key) => {
+          setApplied((current) => ({ ...current, [key]: '' }))
           setPage(1)
         }}
       />
@@ -483,13 +617,16 @@ export default function UsersPage() {
           description="Combina estos criterios para acotar la lista de usuarios."
           onClose={() => setFilterDraft(null)}
           onClear={() => {
-            setFilterDraft({ role: '' })
-            setRole('')
+            setFilterDraft(emptyFilters)
+            setApplied(emptyFilters)
             setPage(1)
           }}
-          clearDisabled={!filterCount && !filterDraft.role}
+          clearDisabled={
+            !filterCount &&
+            JSON.stringify(filterDraft) === JSON.stringify(emptyFilters)
+          }
           onApply={() => {
-            setRole(filterDraft.role)
+            setApplied(filterDraft)
             setPage(1)
             setFilterDraft(null)
           }}
@@ -501,7 +638,9 @@ export default function UsersPage() {
             <select
               aria-label="Rol del usuario"
               value={filterDraft.role}
-              onChange={(event) => setFilterDraft({ role: event.target.value })}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, role: event.target.value })
+              }
               className={`${filterControlClass} pl-11`}
             >
               <option value="">Todos</option>
@@ -511,6 +650,74 @@ export default function UsersPage() {
                 </option>
               ))}
             </select>
+          </FilterField>
+          <FilterField label="Sucursal" icon={<Building2 className="size-4" />}>
+            <select
+              aria-label="Sucursal del usuario"
+              value={filterDraft.branch}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, branch: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todas</option>
+              {branchOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField
+            label="WhatsApp"
+            icon={<MessageCircle className="size-4" />}
+          >
+            <FilterSelect
+              label="WhatsApp del usuario"
+              value={filterDraft.whatsapp}
+              options={whatsappOptions}
+              onChange={(value) =>
+                setFilterDraft({ ...filterDraft, whatsapp: value })
+              }
+            />
+          </FilterField>
+          <FilterField label="Usuario" icon={<AtSign className="size-4" />}>
+            <FilterSelect
+              label="Nombre de usuario"
+              value={filterDraft.username}
+              options={usernameOptions}
+              onChange={(value) =>
+                setFilterDraft({ ...filterDraft, username: value })
+              }
+            />
+          </FilterField>
+          <FilterField
+            label="Miembro desde"
+            icon={<CalendarDays className="size-4" />}
+          >
+            <input
+              type="date"
+              aria-label="Miembro desde"
+              value={filterDraft.from}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, from: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
+          </FilterField>
+          <FilterField
+            label="Miembro hasta"
+            icon={<CalendarDays className="size-4" />}
+          >
+            <input
+              type="date"
+              aria-label="Miembro hasta"
+              value={filterDraft.to}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, to: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
           </FilterField>
         </AdvancedFilterDialog>
       )}

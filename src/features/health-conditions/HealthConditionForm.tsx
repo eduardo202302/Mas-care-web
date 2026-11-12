@@ -74,7 +74,7 @@ export function HealthConditionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="grid gap-5">
+    <form noValidate onSubmit={handleSubmit(submit)} className="grid gap-5">
       <FormFields readOnly={readOnly}>
         <ModalSection
           icon={<HeartPulse className="size-4" />}

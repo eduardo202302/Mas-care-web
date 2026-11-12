@@ -292,6 +292,7 @@ export type LabelElement =
       type: 'variable'
       key: LabelVariableKey
       showLabel: boolean
+      label?: string
     })
   | (LabelElementBase & { type: 'text'; text: string })
   | (LabelElementBase & {
@@ -301,6 +302,7 @@ export type LabelElement =
 
 export type LabelTemplate = {
   id: string
+  numericId?: string
   organizationId: string
   branchId: string | null
   name: string

@@ -48,6 +48,10 @@ export function MenuPermissionTree({
   disabled?: boolean
 }) {
   const tree = buildMenuTree(catalog)
+  const leaves = tree.flatMap((node) =>
+    node.children.length ? node.children : [node],
+  )
+  const allViewCount = leaves.filter((leaf) => value[leaf.id]?.canView).length
 
   function toggleGroup(children: MenuItemDto[], checked: boolean) {
     let next = value
@@ -101,6 +105,18 @@ export function MenuPermissionTree({
       >
         <span>Pantalla</span>
         <span className="text-center">Acceso</span>
+      </div>
+      <div role="row" className={cn(rowClass, 'border-border border-t')}>
+        <span className="text-ink text-sm font-semibold">Seleccionar todo</span>
+        <span className="flex justify-center">
+          <Check
+            checked={leaves.length > 0 && allViewCount === leaves.length}
+            indeterminate={allViewCount > 0 && allViewCount < leaves.length}
+            disabled={disabled}
+            label="Seleccionar todas las pantallas"
+            onChange={(checked) => toggleGroup(leaves, checked)}
+          />
+        </span>
       </div>
       {tree.map((node) => {
         if (!node.children.length) return renderLeaf(node, false)

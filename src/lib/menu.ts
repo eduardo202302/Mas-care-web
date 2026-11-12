@@ -82,7 +82,7 @@ export function menuIcon(name: string): LucideIcon {
  */
 export const alwaysAllowedPaths = [
   '/inicio',
-  ...(import.meta.env.DEV ? ['/dev/chips'] : []),
+  '/dev/chips',
   '/perfil',
   '/panel-global',
   '/traspasos',

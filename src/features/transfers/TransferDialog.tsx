@@ -273,7 +273,7 @@ export function TransferDialog({
             <Button
               type="submit"
               variant="primary"
-              disabled={transfer.isPending || invalid}
+              disabled={transfer.isPending}
             >
               <ArrowRightLeft className="size-4" />
               {transfer.isPending ? 'Trasladando…' : 'Trasladar Paciente'}

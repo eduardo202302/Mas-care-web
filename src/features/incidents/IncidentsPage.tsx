@@ -6,7 +6,17 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { Building2, Plus, Search, TriangleAlert, User } from 'lucide-react'
+import {
+  Activity,
+  Building2,
+  CalendarDays,
+  FileText,
+  Plus,
+  Search,
+  TriangleAlert,
+  User,
+  UserRound,
+} from 'lucide-react'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/EmptyState'
@@ -18,6 +28,7 @@ import {
   FilterBarRow,
   FilterField,
   filterControlClass,
+  type ActiveFilterChip,
 } from '@/components/ui/AdvancedFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useToast } from '@/components/ui/Toast'
@@ -48,6 +59,39 @@ import { IncidentFormDialog } from './IncidentFormDialog'
 
 type UserList =
   paths['/api/v1/users']['get']['responses'][200]['content']['application/json']
+
+type IncidentExtraFilters = {
+  status: '' | IncidentStatus
+  description: string
+  patient: string
+  from: string
+  to: string
+}
+
+const emptyExtra: IncidentExtraFilters = {
+  status: '',
+  description: '',
+  patient: '',
+  from: '',
+  to: '',
+}
+
+const extraLabels: Record<keyof IncidentExtraFilters, string> = {
+  status: 'Estado',
+  description: 'Descripción',
+  patient: 'Paciente',
+  from: 'Creada desde',
+  to: 'Creada hasta',
+}
+
+function uniqueSorted(
+  values: (string | null | undefined)[],
+  ...selected: string[]
+) {
+  const set = new Set(values.filter((value): value is string => !!value))
+  for (const value of selected) if (value) set.add(value)
+  return [...set].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+}
 
 function incidentsPath(
   status: IncidentStatus,
@@ -145,6 +189,9 @@ export default function IncidentsPage() {
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [filterDraft, setFilterDraft] = useState<IncidentFilters | null>(null)
+  // La API no filtra por estado, texto ni fecha: se aplican a las tarjetas cargadas.
+  const [extra, setExtra] = useState<IncidentExtraFilters>(emptyExtra)
+  const [extraDraft, setExtraDraft] = useState<IncidentExtraFilters>(emptyExtra)
   const [resolveTarget, setResolveTarget] = useState<Incident | null>(null)
   const [assignTarget, setAssignTarget] = useState<Incident | null>(null)
   const [detailTarget, setDetailTarget] = useState<Incident | null>(null)
@@ -216,8 +263,34 @@ export default function IncidentsPage() {
 
   // La API no tiene `q`: la búsqueda se aplica a las tarjetas ya cargadas.
   const needle = search.trim().toLowerCase()
-  const matchSearch = (cards: Incident[]) =>
-    needle
+  const loadedIncidents = [
+    newIncidents,
+    inProgressIncidents,
+    resolvedIncidents,
+  ].flatMap((query) => query.data?.pages.flatMap((page) => page.data) ?? [])
+  const descriptionOptions = uniqueSorted(
+    loadedIncidents.map((incident) => incident.description),
+    extra.description,
+    extraDraft.description,
+  )
+  const patientOptions = uniqueSorted(
+    loadedIncidents.map((incident) => incident.patient?.fullName),
+    extra.patient,
+    extraDraft.patient,
+  )
+  const matchesExtra = (incident: Incident) => {
+    const created = new Date(incident.createdAt).toLocaleDateString('en-CA')
+    return (
+      (!extra.status || incident.status === extra.status) &&
+      (!extra.description || incident.description === extra.description) &&
+      (!extra.patient || incident.patient?.fullName === extra.patient) &&
+      (!extra.from || created >= extra.from) &&
+      (!extra.to || created <= extra.to)
+    )
+  }
+  const matchSearch = (all: Incident[]) => {
+    const cards = all.filter(matchesExtra)
+    return needle
       ? cards.filter((incident) =>
           [
             incident.description,
@@ -231,6 +304,7 @@ export default function IncidentsPage() {
             .includes(needle),
         )
       : cards
+  }
   const datasets: Record<
     IncidentStatus,
     { cards: Incident[]; hasMore: boolean; loading: boolean; more: () => void }
@@ -274,16 +348,19 @@ export default function IncidentsPage() {
   const hasFilters = Boolean(
     filters.branch_id || filters.type || filters.assigned_to,
   )
-  const filterCount = [
-    filters.branch_id,
-    filters.type,
-    filters.assigned_to,
-  ].filter(Boolean).length
+  const extraKeys = Object.keys(emptyExtra) as (keyof IncidentExtraFilters)[]
+  const filterCount =
+    [filters.branch_id, filters.type, filters.assigned_to].filter(Boolean)
+      .length + extraKeys.filter((key) => extra[key]).length
   const draftHasFilters = filterDraft
     ? Boolean(
         filterDraft.branch_id || filterDraft.type || filterDraft.assigned_to,
-      )
+      ) || extraKeys.some((key) => extraDraft[key])
     : false
+  const extraValue = (key: keyof IncidentExtraFilters) =>
+    key === 'status' && extra.status
+      ? incidentColumnLabels[extra.status]
+      : extra[key]
   function filterChipValue(key: 'branch_id' | 'type' | 'assigned_to') {
     if (key === 'branch_id')
       return branches.find((b) => b.id === filters.branch_id)?.name ?? '—'
@@ -295,19 +372,28 @@ export default function IncidentsPage() {
       users.data?.data.find((u) => u.id === filters.assigned_to)?.name ?? '—'
     )
   }
-  const activeFilterChips = (
-    [
-      ['branch_id', 'Sucursal'],
-      ['type', 'Tipo'],
-      ['assigned_to', 'Responsable'],
-    ] as const
-  )
-    .filter(([key]) => Boolean(filters[key]))
-    .map(([key, label]) => ({
-      key,
-      label,
-      value: filterChipValue(key),
-    }))
+  const activeFilterChips: ActiveFilterChip[] = [
+    ...(
+      [
+        ['branch_id', 'Sucursal'],
+        ['type', 'Tipo'],
+        ['assigned_to', 'Responsable'],
+      ] as const
+    )
+      .filter(([key]) => Boolean(filters[key]))
+      .map(([key, label]) => ({
+        key,
+        label,
+        value: filterChipValue(key),
+      })),
+    ...extraKeys
+      .filter((key) => extra[key])
+      .map((key) => ({
+        key,
+        label: extraLabels[key],
+        value: extraValue(key),
+      })),
+  ]
 
   return (
     <div className="animate-in">
@@ -338,7 +424,10 @@ export default function IncidentsPage() {
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
-          onClick={() => setFilterDraft({ ...filters })}
+          onClick={() => {
+            setFilterDraft({ ...filters })
+            setExtraDraft(extra)
+          }}
         />
         <TableToolbarActions
           title="Incidencias"
@@ -368,7 +457,11 @@ export default function IncidentsPage() {
       </FilterBarRow>
       <ActiveFilterChips
         chips={activeFilterChips}
-        onRemove={(key) => updateFilters({ ...filters, [key]: undefined })}
+        onRemove={(key) => {
+          if (key === 'branch_id' || key === 'type' || key === 'assigned_to')
+            updateFilters({ ...filters, [key]: undefined })
+          else setExtra((current) => ({ ...current, [key]: '' }))
+        }}
       />
       {filterDraft && (
         <AdvancedFilterDialog
@@ -377,11 +470,14 @@ export default function IncidentsPage() {
           onClose={() => setFilterDraft(null)}
           onClear={() => {
             setFilterDraft({})
+            setExtraDraft(emptyExtra)
+            setExtra(emptyExtra)
             updateFilters({})
           }}
-          clearDisabled={!hasFilters && !draftHasFilters}
+          clearDisabled={!filterCount && !hasFilters && !draftHasFilters}
           onApply={() => {
             updateFilters(filterDraft)
+            setExtra(extraDraft)
             setFilterDraft(null)
           }}
         >
@@ -446,6 +542,94 @@ export default function IncidentsPage() {
                 </option>
               ))}
             </select>
+          </FilterField>
+          <FilterField label="Estado" icon={<Activity className="size-4" />}>
+            <select
+              aria-label="Estado de la incidencia"
+              value={extraDraft.status}
+              onChange={(event) =>
+                setExtraDraft({
+                  ...extraDraft,
+                  status: event.target.value as IncidentExtraFilters['status'],
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {incidentColumns.map((status) => (
+                <option key={status} value={status}>
+                  {incidentColumnLabels[status]}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField
+            label="Descripción"
+            icon={<FileText className="size-4" />}
+          >
+            <select
+              aria-label="Descripción de la incidencia"
+              value={extraDraft.description}
+              onChange={(event) =>
+                setExtraDraft({
+                  ...extraDraft,
+                  description: event.target.value,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todas</option>
+              {descriptionOptions.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="Paciente" icon={<UserRound className="size-4" />}>
+            <select
+              aria-label="Paciente de la incidencia"
+              value={extraDraft.patient}
+              onChange={(event) =>
+                setExtraDraft({ ...extraDraft, patient: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {patientOptions.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField
+            label="Creada desde"
+            icon={<CalendarDays className="size-4" />}
+          >
+            <input
+              type="date"
+              aria-label="Creada desde"
+              value={extraDraft.from}
+              onChange={(event) =>
+                setExtraDraft({ ...extraDraft, from: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
+          </FilterField>
+          <FilterField
+            label="Creada hasta"
+            icon={<CalendarDays className="size-4" />}
+          >
+            <input
+              type="date"
+              aria-label="Creada hasta"
+              value={extraDraft.to}
+              onChange={(event) =>
+                setExtraDraft({ ...extraDraft, to: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            />
           </FilterField>
         </AdvancedFilterDialog>
       )}

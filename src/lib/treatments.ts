@@ -1,6 +1,7 @@
 import type { StatusLabel } from '@/components/status-labels'
 import type { components } from './api-types'
 import { api } from './http'
+import { todayDateOnly } from './prescription'
 import type { TreatmentSaveValues } from '@/schemas/treatment'
 
 export type Treatment = components['schemas']['Treatment']
@@ -300,6 +301,10 @@ export function frequencyLabel(schedule: DoseScheduleFrequency): string {
       : label
   }
   if (!schedule.times.length) return 'Según indicación'
+  if (isEvenlySpacedDaily(schedule.times)) {
+    const hours = 24 / schedule.times.length
+    return `Cada ${hours} ${hours === 1 ? 'hora' : 'horas'}`
+  }
   if (schedule.times.length === 1)
     return `Una vez al día (${schedule.times[0]})`
   return `${schedule.times.length} veces al día (${formatTimeList(schedule.times)})`
@@ -351,12 +356,8 @@ function isEvenlySpacedDaily(times: string[]): boolean {
 /**
  * Frecuencia y hora de toma como dos columnas separadas, para la tabla
  * "Medicamentos del tratamiento" (Producto | Cantidad | Unidad | Frecuencia
- * | Toma). "Toma" solo tiene una hora concreta que mostrar para un intervalo
- * de días o días de la semana; un intervalo de horas (o un `daily` con horas
- * repartidas uniformemente, p.ej. "cada 8 horas" guardado como
- * 00:00/08:00/16:00) siempre es "Según inicio" - no hay una sola hora fija,
- * depende de cuándo se tomó la primera dosis -, sin importar la cantidad por
- * toma.
+ * | Toma). En intervalos de horas/días "Toma" muestra solo la hora de inicio
+ * que el usuario indicó (`anchorAt`), aunque el horario se guarde repartido.
  */
 export function frequencyColumns(schedule: DoseScheduleFrequency): {
   frequency: string
@@ -376,7 +377,9 @@ export function frequencyColumns(schedule: DoseScheduleFrequency): {
     }
     return {
       frequency: `Cada ${hours} ${hours === 1 ? 'hora' : 'horas'}`,
-      whenToTake: 'Según inicio',
+      whenToTake: schedule.anchorAt
+        ? to12Hour(new Date(schedule.anchorAt).toTimeString().slice(0, 5))
+        : 'Según inicio',
     }
   }
   if (schedule.frequencyType === 'weekly') {
@@ -406,7 +409,9 @@ export function frequencyColumns(schedule: DoseScheduleFrequency): {
     const hours = 24 / schedule.times.length
     return {
       frequency: `Cada ${hours} ${hours === 1 ? 'hora' : 'horas'}`,
-      whenToTake: 'Según inicio',
+      whenToTake: schedule.anchorAt
+        ? to12Hour(new Date(schedule.anchorAt).toTimeString().slice(0, 5))
+        : 'Según inicio',
     }
   }
   return {
@@ -531,6 +536,7 @@ export function buildDoseScheduleFields(
     return {
       frequency_type: 'daily',
       times: computeDailyTimesFromInterval(value.startTime, hours).join(','),
+      anchor_at: anchorAt,
     }
   }
   return {
@@ -654,7 +660,9 @@ export function loadDoseFrequencyFromSchedule(
   return {
     ...defaultDoseFrequencyValue(),
     frequencyMode: 'hours',
-    startTime: [...schedule.times].sort()[0] ?? '08:00',
+    startTime: schedule.anchorAt
+      ? new Date(schedule.anchorAt).toTimeString().slice(0, 5)
+      : ([...schedule.times].sort()[0] ?? '08:00'),
     hoursPreset: (HOUR_PRESETS as readonly string[]).includes(String(hours))
       ? String(hours)
       : 'custom',
@@ -710,7 +718,31 @@ export async function createTreatmentFromForm(
       { method: 'POST', body: form },
     )
   }
+  await markFirstCycleDelivered(created.id, values)
   return created
+}
+
+/**
+ * Un tratamiento nuevo se registra con su primera entrega hecha: el ciclo
+ * inicial queda en "Entregado" del tablero y se abre el siguiente. Si falla,
+ * el tratamiento ya existe y no debe recrearse, así que no corta el alta.
+ */
+async function markFirstCycleDelivered(
+  treatmentId: string,
+  values: TreatmentSaveValues,
+) {
+  try {
+    await api(`/api/v1/treatments/${encodeURIComponent(treatmentId)}/deliver`, {
+      method: 'POST',
+      body: JSON.stringify({
+        quantity: Number(values.quantityPerCycle),
+        delivered_on: todayDateOnly(),
+        picked_up_by: 'patient',
+      }),
+    })
+  } catch (error) {
+    console.warn('No se pudo marcar la primera entrega', error)
+  }
 }
 
 /** Guarda los cambios de `TreatmentForm` sobre un tratamiento existente y sube la receta adjunta. */

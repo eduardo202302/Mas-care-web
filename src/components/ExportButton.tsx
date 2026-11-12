@@ -90,7 +90,11 @@ export function ExportButton({
 
   return (
     <>
-      <Button type="button" onClick={() => setOpen(true)}>
+      <Button
+        type="button"
+        className="hover:bg-[#c3e9cf]"
+        onClick={() => setOpen(true)}
+      >
         <Download className="size-4" />
         {label}
       </Button>

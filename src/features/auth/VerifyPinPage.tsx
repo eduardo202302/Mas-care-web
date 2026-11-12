@@ -99,7 +99,7 @@ export default function VerifyPinPage() {
         <Button
           type="submit"
           variant="primary"
-          disabled={loading || pin.length !== 6}
+          disabled={loading}
           className="mt-1 w-full"
         >
           {loading ? 'Verificando…' : 'Verificar PIN'}

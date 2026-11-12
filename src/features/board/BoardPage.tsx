@@ -48,6 +48,10 @@ import {
 } from './BoardDialogs'
 import { CycleCard } from './CycleCard'
 import { CycleTable } from './CycleTable'
+import {
+  emptyCycleColumnFilters,
+  type CycleColumnFilters,
+} from './cycleColumnFilters'
 import { IncidentFormDialog } from '@/features/incidents/IncidentFormDialog'
 import { StockMarkDialog } from '@/features/settings/StockMarkDialog'
 
@@ -58,6 +62,9 @@ export default function BoardPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { data: me } = useMe()
   const { data: pipeline } = usePipeline()
+  const [columnFilters, setColumnFilters] = useState<CycleColumnFilters>(
+    emptyCycleColumnFilters,
+  )
   const [newCycleFor, setNewCycleFor] = useState<BoardColumnKey | 'top' | null>(
     null,
   )
@@ -385,6 +392,8 @@ export default function BoardPage() {
         branchLocked={Boolean(lockedBranch)}
         privileged={privileged}
         meId={me?.user.id}
+        columnFilters={view === 'table' ? columnFilters : undefined}
+        onColumnFiltersChange={view === 'table' ? setColumnFilters : undefined}
         rightActions={
           <div className="flex items-center gap-2">
             {view === 'table' && (
@@ -438,6 +447,7 @@ export default function BoardPage() {
         {view === 'table' ? (
           <CycleTable
             filters={effectiveFilters}
+            columnFilters={columnFilters}
             canMove={canMove}
             canWrite={canWrite}
             onBoardFiltersChange={updateFilters}

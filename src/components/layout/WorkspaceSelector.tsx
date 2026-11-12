@@ -5,6 +5,7 @@ import { api } from '@/lib/http'
 import { useUiStore } from '@/stores/ui-store'
 import type { paths } from '@/lib/api-types'
 import { authClient } from '@/lib/auth-client'
+import { useMe } from '@/lib/permissions'
 import { cn } from '@/lib/cn'
 
 type BranchList =
@@ -34,7 +35,11 @@ export function WorkspaceSelector({
   const containerRef = useRef<HTMLDivElement>(null)
   const autoSelected = useRef(false)
 
-  const branches = data?.data ?? []
+  const { data: me } = useMe()
+  const accessibleIds = me?.branches.map((branch) => branch.id)
+  const branches = (data?.data ?? []).filter(
+    (branch) => !accessibleIds || accessibleIds.includes(branch.id),
+  )
   const organizations = organizationsQuery.data ?? []
   const firstBranchId = branches[0]?.id
   const activeOrganizationId = activeOrganizationQuery.data?.id ?? ''
@@ -150,7 +155,7 @@ export function WorkspaceSelector({
   const title = currentOrganization?.name ?? 'Selecciona un espacio'
   const subtitle = showAllBranches
     ? 'Todas las sucursales'
-    : currentBranch?.name ?? 'Sin sucursal'
+    : (currentBranch?.name ?? 'Sin sucursal')
 
   function renderOption(option: Option, selected: boolean) {
     const Icon = option.kind === 'organization' ? Building2 : Store

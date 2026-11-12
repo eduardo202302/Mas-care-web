@@ -72,11 +72,15 @@ describe('labelElementText', () => {
 
   it('avisa en el editor y deja en blanco al imprimir una variable sin información', () => {
     const values = { paciente_nombre: '  ' }
-    expect(labelElementText(variable({ showLabel: false }), values, 'editor')).toEqual({
+    expect(
+      labelElementText(variable({ showLabel: false }), values, 'editor'),
+    ).toEqual({
       text: 'Sin Información',
       missing: true,
     })
-    expect(labelElementText(variable({ showLabel: false }), values, 'print')).toEqual({
+    expect(
+      labelElementText(variable({ showLabel: false }), values, 'print'),
+    ).toEqual({
       text: '',
       missing: true,
     })

@@ -92,9 +92,7 @@ export function AddressMapPicker({
     me?.organization.googleMapsApiKey ||
     import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
     ''
-  const [initialValue, setInitialValue] = useState<AddressMapValue | null>(
-    null,
-  )
+  const [initialValue, setInitialValue] = useState<AddressMapValue | null>(null)
   return (
     <>
       <Button
@@ -150,7 +148,9 @@ function AddressMapDialog({
     loadGoogleMapsLibraries(apiKey)
       .then(({ Map, Marker, Geocoder, Autocomplete }) => {
         if (cancelled || !mapNodeRef.current) return
-        const hasPosition = Boolean(initialValue.latitude && initialValue.longitude)
+        const hasPosition = Boolean(
+          initialValue.latitude && initialValue.longitude,
+        )
         const center = hasPosition
           ? {
               lat: Number(initialValue.latitude),
@@ -259,9 +259,8 @@ function AddressMapDialog({
           <div className="bg-modulos/60 border-border flex items-start gap-2 rounded-lg border px-3 py-2.5">
             <Info className="text-cuidado mt-0.5 size-4 shrink-0" />
             <p className="text-ink text-xs">
-              Haz clic en el mapa o arrastra el marcador para ajustar el
-              punto exacto. La dirección y el sector se completan
-              automáticamente.
+              Haz clic en el mapa o arrastra el marcador para ajustar el punto
+              exacto. La dirección y el sector se completan automáticamente.
             </p>
           </div>
         </div>

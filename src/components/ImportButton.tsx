@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Upload } from 'lucide-react'
+import { Columns3, FileSpreadsheet, ListChecks, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
+import { ModalSection } from '@/components/ui/ModalSection'
 import { api } from '@/lib/http'
 import { useCustomProperties } from '@/lib/custom-properties'
 import { useCan } from '@/lib/permissions'
@@ -49,7 +50,11 @@ const FIELDS: Record<Entity, Field[]> = {
   ],
 }
 
-type RowError = { row: number; message: string; fields?: Record<string, string> }
+type RowError = {
+  row: number
+  message: string
+  fields?: Record<string, string>
+}
 type Preview = {
   columns: string[]
   total_rows: number
@@ -59,10 +64,20 @@ type Preview = {
 }
 
 const norm = (value: string) =>
-  value.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+  value
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toLowerCase()
 
 /** Upload CSV → map columns → validated preview → explicit confirmation. */
-export function ImportButton({ entity, label = 'Importar' }: { entity: Entity; label?: string }) {
+export function ImportButton({
+  entity,
+  label = 'Importar',
+}: {
+  entity: Entity
+  label?: string
+}) {
   const canImport = useCan('imports:write')
   const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
@@ -74,12 +89,19 @@ export function ImportButton({ entity, label = 'Importar' }: { entity: Entity; l
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   // Patient properties defined by the organization can be filled from a CSV column too (target `custom:<key>`).
-  const properties = useCustomProperties(entity === 'treatments' ? 'treatment' : 'patient')
+  const properties = useCustomProperties(
+    entity === 'treatments' ? 'treatment' : 'patient',
+  )
   if (!canImport) return null
 
-  const customFields: Field[] = entity !== 'medications'
-    ? (properties.data?.data ?? []).map((property) => ({ key: `custom:${property.key}`, label: property.label, required: property.required }))
-    : []
+  const customFields: Field[] =
+    entity !== 'medications'
+      ? (properties.data?.data ?? []).map((property) => ({
+          key: `custom:${property.key}`,
+          label: property.label,
+          required: property.required,
+        }))
+      : []
   const fields = [...FIELDS[entity], ...customFields]
   const form = (map: Record<string, string>) => {
     const data = new FormData()
@@ -87,10 +109,15 @@ export function ImportButton({ entity, label = 'Importar' }: { entity: Entity; l
     data.append('column_mapping', JSON.stringify(map))
     return data
   }
-  const clean = Object.fromEntries(Object.entries(mapping).filter(([, column]) => column))
+  const clean = Object.fromEntries(
+    Object.entries(mapping).filter(([, column]) => column),
+  )
   // A treatment row finds its patient by document or phone: at least one of the two columns is needed.
-  const missingPatient = entity === 'treatments' && !clean.patientDocumentId && !clean.patientPhone
-  const missingRequired = missingPatient || fields.some((field) => field.required && !clean[field.key])
+  const missingPatient =
+    entity === 'treatments' && !clean.patientDocumentId && !clean.patientPhone
+  const missingRequired =
+    missingPatient ||
+    fields.some((field) => field.required && !clean[field.key])
 
   function close() {
     setOpen(false)
@@ -108,7 +135,11 @@ export function ImportButton({ entity, label = 'Importar' }: { entity: Entity; l
     try {
       await action()
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'No pudimos completar la acción.')
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'No pudimos completar la acción.',
+      )
     } finally {
       setBusy(false)
     }
@@ -118,14 +149,19 @@ export function ImportButton({ entity, label = 'Importar' }: { entity: Entity; l
     run(async () => {
       const data = new FormData()
       data.append('file', selected)
-      const head = await api<Preview>(`/api/v1/imports/${entity}/preview`, { method: 'POST', body: data })
+      const head = await api<Preview>(`/api/v1/imports/${entity}/preview`, {
+        method: 'POST',
+        body: data,
+      })
       setFile(selected)
       setColumns(head.columns)
       // Auto-map columns whose header matches the field label or key.
       setMapping(
         Object.fromEntries(
           fields.flatMap((field) => {
-            const match = head.columns.find((c) => [norm(field.key), norm(field.label)].includes(norm(c)))
+            const match = head.columns.find((c) =>
+              [norm(field.key), norm(field.label)].includes(norm(c)),
+            )
             return match ? [[field.key, match]] : []
           }),
         ),
@@ -135,18 +171,29 @@ export function ImportButton({ entity, label = 'Importar' }: { entity: Entity; l
 
   const validate = () =>
     run(async () => {
-      setPreview(await api<Preview>(`/api/v1/imports/${entity}/preview`, { method: 'POST', body: form(clean) }))
+      setPreview(
+        await api<Preview>(`/api/v1/imports/${entity}/preview`, {
+          method: 'POST',
+          body: form(clean),
+        }),
+      )
     })
 
   const confirm = () =>
     run(async () => {
-      const result = await api<{ summary: { imported_rows: number; error_rows: number } }>(
-        `/api/v1/imports/${entity}`,
-        { method: 'POST', body: form(clean) },
-      )
+      const result = await api<{
+        summary: { imported_rows: number; error_rows: number }
+      }>(`/api/v1/imports/${entity}`, { method: 'POST', body: form(clean) })
       await queryClient.invalidateQueries({ queryKey: [entity] })
-      if (entity === 'treatments') await Promise.all(['cycles', 'board', 'pipeline'].map((key) => queryClient.invalidateQueries({ queryKey: [key] })))
-      setDone(`${result.summary.imported_rows} filas importadas, ${result.summary.error_rows} omitidas por errores.`)
+      if (entity === 'treatments')
+        await Promise.all(
+          ['cycles', 'board', 'pipeline'].map((key) =>
+            queryClient.invalidateQueries({ queryKey: [key] }),
+          ),
+        )
+      setDone(
+        `${result.summary.imported_rows} filas importadas, ${result.summary.error_rows} omitidas por errores.`,
+      )
     })
 
   return (
@@ -159,67 +206,117 @@ export function ImportButton({ entity, label = 'Importar' }: { entity: Entity; l
         <Dialog
           title="Importar desde CSV"
           description="Nada se guarda hasta que confirmes en la vista previa."
+          icon={<Upload className="size-5" />}
+          compactHeader
+          bodyClassName="pt-3"
           onClose={close}
           size="lg"
         >
-          <div className="grid gap-4">
-            <input
-              type="file"
-              accept=".csv,text/csv"
-              aria-label="Archivo CSV"
-              onChange={(event) => {
-                const selected = event.target.files?.[0]
-                if (selected) void pick(selected)
-              }}
-            />
+          <div className="grid gap-5">
+            {!done && (
+              <ModalSection
+                collapsible={false}
+                icon={<FileSpreadsheet className="size-4" />}
+                title="Archivo"
+              >
+                <label className="border-tealmax/50 hover:border-tealmax has-[:focus-visible]:ring-tealmax/30 flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed bg-white px-4 py-6 text-center transition has-[:focus-visible]:ring-2">
+                  <span className="bg-modulos text-cuidado flex size-12 items-center justify-center rounded-2xl">
+                    <Upload className="size-6" />
+                  </span>
+                  <span className="bg-tealmax hover:bg-petroleo inline-flex h-10 items-center justify-center rounded-lg px-5 text-sm font-semibold text-white shadow-sm transition">
+                    {file ? 'Cambiar archivo' : 'Seleccionar archivo CSV'}
+                  </span>
+                  <span className="text-muted text-xs">
+                    {file ? file.name : 'Solo archivos .csv'}
+                  </span>
+                  <input
+                    type="file"
+                    accept=".csv,text/csv"
+                    aria-label="Archivo CSV"
+                    className="sr-only"
+                    onChange={(event) => {
+                      const selected = event.target.files?.[0]
+                      if (selected) void pick(selected)
+                    }}
+                  />
+                </label>
+              </ModalSection>
+            )}
             {columns.length > 0 && !done && (
-              <div className="grid gap-2 sm:grid-cols-2">
-                {fields.map((field) => (
-                  <label key={field.key} className="grid gap-1 text-sm font-medium">
-                    {field.label}
-                    {field.required && ' *'}
-                    <select
-                      value={mapping[field.key] ?? ''}
-                      onChange={(event) => {
-                        setMapping({ ...mapping, [field.key]: event.target.value })
-                        setPreview(null)
-                      }}
-                      className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
+              <ModalSection
+                collapsible={false}
+                icon={<Columns3 className="size-4" />}
+                title="Columnas"
+              >
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {fields.map((field) => (
+                    <label
+                      key={field.key}
+                      className="text-ink grid gap-1.5 text-sm font-medium"
                     >
-                      <option value="">— No importar —</option>
-                      {columns.map((column) => (
-                        <option key={column} value={column}>
-                          {column}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ))}
-              </div>
+                      <span
+                        className={
+                          field.required
+                            ? "after:ml-0.5 after:text-red-600 after:content-['*']"
+                            : undefined
+                        }
+                      >
+                        {field.label}
+                      </span>
+                      <select
+                        value={mapping[field.key] ?? ''}
+                        onChange={(event) => {
+                          setMapping({
+                            ...mapping,
+                            [field.key]: event.target.value,
+                          })
+                          setPreview(null)
+                        }}
+                        className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2"
+                      >
+                        <option value="">— No importar —</option>
+                        {columns.map((column) => (
+                          <option key={column} value={column}>
+                            {column}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ))}
+                </div>
+              </ModalSection>
             )}
             {preview?.valid_rows !== undefined && (
-              <div className="grid gap-2 text-sm" role="status">
-                <p>
-                  <strong>{preview.valid_rows}</strong> de {preview.total_rows} filas se importarán;{' '}
-                  <strong>{preview.error_rows}</strong> tienen errores y se omitirán.
-                </p>
-                {!!preview.errors?.length && (
-                  <ul className="max-h-48 overflow-y-auto rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-800">
-                    {preview.errors.map((rowError) => (
-                      <li key={rowError.row}>
-                        Fila {rowError.row}: {rowError.message}
-                        {rowError.fields &&
-                          ` (${Object.entries(rowError.fields)
-                            .map(([k, v]) => `${k}: ${v}`)
-                            .join('; ')})`}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+              <ModalSection
+                collapsible={false}
+                icon={<ListChecks className="size-4" />}
+                title="Vista previa"
+              >
+                <div className="grid gap-2 text-sm" role="status">
+                  <p>
+                    <strong>{preview.valid_rows}</strong> de{' '}
+                    {preview.total_rows} filas se importarán;{' '}
+                    <strong>{preview.error_rows}</strong> tienen errores y se
+                    omitirán.
+                  </p>
+                  {!!preview.errors?.length && (
+                    <ul className="max-h-48 overflow-y-auto rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+                      {preview.errors.map((rowError) => (
+                        <li key={rowError.row}>
+                          Fila {rowError.row}: {rowError.message}
+                          {rowError.fields &&
+                            ` (${Object.entries(rowError.fields)
+                              .map(([k, v]) => `${k}: ${v}`)
+                              .join('; ')})`}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </ModalSection>
             )}
             {done && (
-              <p role="status" className="text-sm font-medium">
+              <p role="status" className="text-ink text-sm font-medium">
                 {done}
               </p>
             )}
@@ -228,33 +325,37 @@ export function ImportButton({ entity, label = 'Importar' }: { entity: Entity; l
                 {error}
               </p>
             )}
+            <FormActions>
+              <Button
+                type="button"
+                className="w-full sm:w-auto"
+                onClick={close}
+              >
+                {done ? 'Cerrar' : 'Cancelar'}
+              </Button>
+              {!done && (
+                <Button
+                  type="button"
+                  className="w-full sm:w-auto"
+                  disabled={busy || !file || missingRequired}
+                  onClick={validate}
+                >
+                  Vista previa
+                </Button>
+              )}
+              {!done && (
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="w-full sm:w-auto"
+                  disabled={busy || !preview?.valid_rows}
+                  onClick={confirm}
+                >
+                  Confirmar importación
+                </Button>
+              )}
+            </FormActions>
           </div>
-          <FormActions>
-            <Button type="button" className="w-full sm:w-auto" onClick={close}>
-              {done ? 'Cerrar' : 'Cancelar'}
-            </Button>
-            {!done && (
-              <Button
-                type="button"
-                className="w-full sm:w-auto"
-                disabled={busy || !file || missingRequired}
-                onClick={validate}
-              >
-                Vista previa
-              </Button>
-            )}
-            {!done && (
-              <Button
-                type="button"
-                variant="primary"
-                className="w-full sm:w-auto"
-                disabled={busy || !preview?.valid_rows}
-                onClick={confirm}
-              >
-                Confirmar importación
-              </Button>
-            )}
-          </FormActions>
         </Dialog>
       )}
     </>

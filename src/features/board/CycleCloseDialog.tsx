@@ -266,11 +266,7 @@ export function CycleCloseDialog({
           <Button type="button" onClick={onClose}>
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={pending || invalidQuantity}
-          >
+          <Button type="submit" variant="primary" disabled={pending}>
             <ButtonIcon outcome={outcome} />
             {pending ? 'Guardando…' : title}
           </Button>

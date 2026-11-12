@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Activity, Plus, Search, ShieldCheck } from 'lucide-react'
+import {
+  Activity,
+  FileText,
+  Hash,
+  Plus,
+  Search,
+  ShieldCheck,
+} from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
@@ -30,6 +37,22 @@ type RoleDto = components['schemas']['Role']
 type RoleStateFilter = '' | 'active' | 'inactive'
 type RoleKindFilter = '' | 'system' | 'custom'
 
+type RoleFilters = {
+  state: RoleStateFilter
+  kind: RoleKindFilter
+  id: string
+  name: string
+  description: string
+}
+
+const emptyFilters: RoleFilters = {
+  state: '',
+  kind: '',
+  id: '',
+  name: '',
+  description: '',
+}
+
 const stateOptions: { value: RoleStateFilter; label: string }[] = [
   { value: '', label: 'Todos' },
   { value: 'active', label: 'Activos' },
@@ -49,6 +72,15 @@ const roleColumns = [
   'Pantallas',
 ]
 
+function distinctOptions(
+  values: (string | null | undefined)[],
+  selected: string,
+) {
+  const set = new Set(values.filter((value): value is string => !!value))
+  if (selected) set.add(selected)
+  return [...set].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+}
+
 export default function RolesPage() {
   const canManage = useCan('roles:write')
   const queryClient = useQueryClient()
@@ -60,12 +92,8 @@ export default function RolesPage() {
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
   const [search, setSearch] = useState('')
-  const [state, setState] = useState<RoleStateFilter>('')
-  const [kind, setKind] = useState<RoleKindFilter>('')
-  const [filterDraft, setFilterDraft] = useState<{
-    state: RoleStateFilter
-    kind: RoleKindFilter
-  } | null>(null)
+  const [applied, setApplied] = useState<RoleFilters>(emptyFilters)
+  const [filterDraft, setFilterDraft] = useState<RoleFilters | null>(null)
 
   // Distinct key from the full list ['roles'] used by the user form.
   const roles = useQuery({
@@ -140,15 +168,24 @@ export default function RolesPage() {
 
   // La API no filtra roles: búsqueda y filtros se aplican a la página cargada.
   const needle = search.trim().toLowerCase()
-  const visibleRoles = (roles.data?.data ?? []).filter(
-    (role) =>
+  const idNeedle = applied.id.trim()
+  const nameNeedle = applied.name.trim().toLowerCase()
+  const descriptionNeedle = applied.description.trim().toLowerCase()
+  const loadedRoles = roles.data?.data ?? []
+  const visibleRoles = loadedRoles.filter((role) => {
+    return (
       (!needle ||
         `${role.numericId} ${role.name} ${role.description ?? ''}`
           .toLowerCase()
           .includes(needle)) &&
-      (!state || role.isActive === (state === 'active')) &&
-      (!kind || role.isSystem === (kind === 'system')),
-  )
+      (!applied.state || role.isActive === (applied.state === 'active')) &&
+      (!applied.kind || role.isSystem === (applied.kind === 'system')) &&
+      (!idNeedle || String(role.numericId) === idNeedle) &&
+      (!nameNeedle || role.name.toLowerCase().includes(nameNeedle)) &&
+      (!descriptionNeedle ||
+        (role.description ?? '').toLowerCase().includes(descriptionNeedle))
+    )
+  })
   const list = applyColumnSort(visibleRoles, sort, (role, index) =>
     index === 0
       ? role.numericId
@@ -204,23 +241,30 @@ export default function RolesPage() {
     String(role.memberCount),
     String(role.items.filter((item) => item.canView).length),
   ])
-  const filterCount = (state ? 1 : 0) + (kind ? 1 : 0)
-  const draftCount = filterDraft
-    ? (filterDraft.state ? 1 : 0) + (filterDraft.kind ? 1 : 0)
-    : 0
   const chips: ActiveFilterChip[] = []
-  if (state)
+  if (applied.state)
     chips.push({
       key: 'state',
       label: 'Estado',
-      value: stateOptions.find((option) => option.value === state)!.label,
+      value: stateOptions.find((option) => option.value === applied.state)!
+        .label,
     })
-  if (kind)
+  if (applied.kind)
     chips.push({
       key: 'kind',
       label: 'Tipo',
-      value: kindOptions.find((option) => option.value === kind)!.label,
+      value: kindOptions.find((option) => option.value === applied.kind)!.label,
     })
+  if (applied.id) chips.push({ key: 'id', label: 'ID', value: applied.id })
+  if (applied.name)
+    chips.push({ key: 'name', label: 'Nombre', value: applied.name })
+  if (applied.description)
+    chips.push({
+      key: 'description',
+      label: 'Descripción',
+      value: applied.description,
+    })
+  const filterCount = chips.length
   const actions = list.map((role) =>
     canManage ? (
       <RowActions
@@ -276,7 +320,7 @@ export default function RolesPage() {
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
-          onClick={() => setFilterDraft({ state, kind })}
+          onClick={() => setFilterDraft(applied)}
         />
         <TableToolbarActions
           title="Roles"
@@ -288,8 +332,7 @@ export default function RolesPage() {
       <ActiveFilterChips
         chips={chips}
         onRemove={(key) => {
-          if (key === 'state') setState('')
-          else setKind('')
+          setApplied((current) => ({ ...current, [key]: '' }))
         }}
       />
       {filterDraft && (
@@ -298,14 +341,15 @@ export default function RolesPage() {
           description="Combina estos criterios para acotar la lista de roles."
           onClose={() => setFilterDraft(null)}
           onClear={() => {
-            setFilterDraft({ state: '', kind: '' })
-            setState('')
-            setKind('')
+            setFilterDraft(emptyFilters)
+            setApplied(emptyFilters)
           }}
-          clearDisabled={!filterCount && !draftCount}
+          clearDisabled={
+            !filterCount &&
+            JSON.stringify(filterDraft) === JSON.stringify(emptyFilters)
+          }
           onApply={() => {
-            setState(filterDraft.state)
-            setKind(filterDraft.kind)
+            setApplied(filterDraft)
             setFilterDraft(null)
           }}
         >
@@ -343,6 +387,72 @@ export default function RolesPage() {
               {kindOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="ID" icon={<Hash className="size-4" />}>
+            <select
+              aria-label="ID del rol"
+              value={filterDraft.id}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, id: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {distinctOptions(
+                loadedRoles.map((role) => String(role.numericId)),
+                filterDraft.id,
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="Nombre" icon={<ShieldCheck className="size-4" />}>
+            <select
+              aria-label="Nombre del rol"
+              value={filterDraft.name}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, name: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {distinctOptions(
+                loadedRoles.map((role) => role.name),
+                filterDraft.name,
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField
+            label="Descripción"
+            icon={<FileText className="size-4" />}
+          >
+            <select
+              aria-label="Descripción del rol"
+              value={filterDraft.description}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  description: event.target.value,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todas</option>
+              {distinctOptions(
+                loadedRoles.map((role) => role.description),
+                filterDraft.description,
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
                 </option>
               ))}
             </select>

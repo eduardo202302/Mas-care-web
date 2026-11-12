@@ -388,8 +388,16 @@ export default function TemplatesPage() {
             dense
             className="mx-0 px-0"
             tabs={[
-              { value: 'alerts', label: 'Alertas', icon: <Bell className="size-4" /> },
-              { value: 'labels', label: 'Etiquetas', icon: <Tag className="size-4" /> },
+              {
+                value: 'alerts',
+                label: 'Alertas',
+                icon: <Bell className="size-4" />,
+              },
+              {
+                value: 'labels',
+                label: 'Etiquetas',
+                icon: <Tag className="size-4" />,
+              },
             ]}
           />
         }

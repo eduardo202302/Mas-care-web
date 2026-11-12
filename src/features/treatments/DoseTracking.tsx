@@ -149,6 +149,7 @@ export function DoseScheduleCard({
   const setOpen = onOpenChange ?? setOpenState
   const [downloadError, setDownloadError] = useState<string | null>(null)
   const [dosePerIntake, setDosePerIntake] = useState('')
+  const [showFrequencyError, setShowFrequencyError] = useState(false)
   const [effectiveFrom, setEffectiveFrom] = useState(() =>
     new Date().toISOString().slice(0, 10),
   )
@@ -355,7 +356,7 @@ export function DoseScheduleCard({
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-petroleo font-semibold">Programación de Dosis</h3>
         {canWrite && showChangeButton && (
-          <Button onClick={() => setOpen(true)}>
+          <Button type="button" onClick={() => setOpen(true)}>
             {isChange ? 'Cambiar dosis' : 'Definir horario'}
           </Button>
         )}
@@ -435,6 +436,11 @@ export function DoseScheduleCard({
             className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
+              if (!dosePerIntake) return
+              if (!isFrequencyValid) {
+                setShowFrequencyError(true)
+                return
+              }
               create.mutate()
             }}
           >
@@ -470,6 +476,12 @@ export function DoseScheduleCard({
                   setWeekdayTimes(next.weekdayTimes)
                 }}
               />
+              {showFrequencyError && !isFrequencyValid && (
+                <p role="alert" className="text-xs text-red-700">
+                  Campo requerido. Selecciona los días y al menos una hora de
+                  toma.
+                </p>
+              )}
               <div className="flex items-end gap-3">
                 <TextField
                   label="Vigente desde"
@@ -500,7 +512,7 @@ export function DoseScheduleCard({
                 <div className="grid gap-1.5">
                   <label
                     htmlFor="authorized-by-doctor"
-                    className="text-ink text-sm font-medium"
+                    className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
                   >
                     Autorizado por
                   </label>
@@ -600,9 +612,7 @@ export function DoseScheduleCard({
                 variant="primary"
                 type="submit"
                 className="w-full sm:w-auto"
-                disabled={
-                  create.isPending || !dosePerIntake || !isFrequencyValid
-                }
+                disabled={create.isPending}
               >
                 {create.isPending ? 'Guardando…' : 'Guardar'}
               </Button>
@@ -761,15 +771,22 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
             <div className="flex gap-1.5">
               {dose.status === 'scheduled' && canLog && (
                 <>
-                  <Button onClick={() => take.mutate(dose.id)}>Tomar</Button>
-                  <Button onClick={() => setSkipTarget(dose.id)}>Omitir</Button>
-                  <Button onClick={() => setRescheduleTarget(dose.id)}>
+                  <Button type="button" onClick={() => take.mutate(dose.id)}>
+                    Tomar
+                  </Button>
+                  <Button type="button" onClick={() => setSkipTarget(dose.id)}>
+                    Omitir
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setRescheduleTarget(dose.id)}
+                  >
                     Reprogramar
                   </Button>
                 </>
               )}
               {dose.status !== 'scheduled' && canCorrect && (
-                <Button onClick={() => setCorrectTarget(dose.id)}>
+                <Button type="button" onClick={() => setCorrectTarget(dose.id)}>
                   Corregir
                 </Button>
               )}
@@ -799,7 +816,9 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
               title="Motivo de la Omisión"
             >
               <label className="text-ink grid gap-1.5 text-sm font-medium">
-                Motivo
+                <span className="after:ml-0.5 after:text-red-600 after:content-['*']">
+                  Motivo
+                </span>
                 <select
                   value={skipReasonCode}
                   onChange={(event) => setSkipReasonCode(event.target.value)}
@@ -857,6 +876,7 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
             className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
+              if (!rescheduledFor) return
               reschedule.mutate()
             }}
           >
@@ -889,7 +909,7 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
                 variant="primary"
                 type="submit"
                 className="w-full sm:w-auto"
-                disabled={reschedule.isPending || !rescheduledFor}
+                disabled={reschedule.isPending}
               >
                 {reschedule.isPending ? 'Guardando…' : 'Guardar'}
               </Button>
@@ -911,6 +931,7 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
             className="grid gap-5"
             onSubmit={(event) => {
               event.preventDefault()
+              if (!correctionNote.trim()) return
               correct.mutate()
             }}
           >
@@ -942,7 +963,7 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
                 variant="primary"
                 type="submit"
                 className="w-full sm:w-auto"
-                disabled={correct.isPending || !correctionNote.trim()}
+                disabled={correct.isPending}
               >
                 {correct.isPending ? 'Guardando…' : 'Guardar'}
               </Button>

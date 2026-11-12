@@ -118,6 +118,7 @@ export function TreatmentForm({
   // Texto crudo del input de dosis: con `Number()` en cada tecla, "0." se
   // volvía 0 y no se podían escribir decimales.
   const [doseInput, setDoseInput] = useState('')
+  const [showFrequencyError, setShowFrequencyError] = useState(false)
   const {
     register,
     handleSubmit,
@@ -320,6 +321,10 @@ export function TreatmentForm({
   })
 
   async function submit(values: TreatmentFormValues) {
+    if (!isFrequencyValid) {
+      setShowFrequencyError(true)
+      return
+    }
     if (
       values.prescriptionExpiresOn &&
       values.prescriptionExpiresOn < minPrescriptionDate
@@ -391,8 +396,12 @@ export function TreatmentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="grid gap-5">
-      <div className="sticky top-0 z-10 -mb-5 bg-white pt-3 pb-5">
+    <form
+      noValidate
+      onSubmit={handleSubmit(submit, () => setShowFrequencyError(true))}
+      className="grid gap-5"
+    >
+      <div className="sticky top-0 z-10 -mb-5 bg-[#EAF7F0] pt-3 pb-5">
         <ModalSection
           icon={<Pill className="size-4" />}
           title={patientName || 'Medicamento'}
@@ -759,6 +768,7 @@ export function TreatmentForm({
               })
             }}
             unit={selectedMedication?.doseUnit || ''}
+            quantityError={errors.dosePerIntake?.message}
             value={frequencyValue}
             requireTomaTime
             onChange={(next) => {
@@ -773,6 +783,11 @@ export function TreatmentForm({
               setWeekdayTimes(next.weekdayTimes)
             }}
           />
+          {showFrequencyError && !isFrequencyValid && (
+            <p role="alert" className="text-xs text-red-700">
+              Campo requerido. Selecciona los días y al menos una hora de toma.
+            </p>
+          )}
           <p className="text-muted text-xs leading-5">
             Para cambiar este horario más adelante, edita el tratamiento.
           </p>
@@ -861,7 +876,7 @@ export function TreatmentForm({
           type="submit"
           variant="primary"
           className="w-full sm:w-auto"
-          disabled={submitting || !medications.length || !isFrequencyValid}
+          disabled={submitting}
         >
           {submitting
             ? 'Guardando…'

@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search, Stethoscope, ToggleRight } from 'lucide-react'
+import {
+  FileText,
+  Hash,
+  Plus,
+  Search,
+  Stethoscope,
+  ToggleRight,
+} from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
@@ -37,6 +44,20 @@ const activeOptions: { value: 'true' | 'false'; label: string }[] = [
   { value: 'false', label: 'Inactivas' },
 ]
 
+type SpecialtyFilters = {
+  isActive: 'true' | 'false'
+  id: string
+  name: string
+  description: string
+}
+
+const emptyFilters: SpecialtyFilters = {
+  isActive: DEFAULT_ACTIVE,
+  id: '',
+  name: '',
+  description: '',
+}
+
 function queryString(query: SpecialtyQuery) {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query))
@@ -44,14 +65,23 @@ function queryString(query: SpecialtyQuery) {
   return params.toString()
 }
 
+function uniqueSorted(
+  values: (string | null | undefined)[],
+  ...selected: string[]
+) {
+  const set = new Set(values.filter((value): value is string => !!value))
+  for (const value of selected) if (value) set.add(value)
+  return [...set].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+}
+
 export default function MedicalSpecialtiesPage() {
   const canWrite = useCan('specialties:write')
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
-  const [isActive, setIsActive] = useState<'true' | 'false'>(DEFAULT_ACTIVE)
-  const [filterDraft, setFilterDraft] = useState<{
-    isActive: 'true' | 'false'
-  } | null>(null)
+  // El servidor solo filtra por estado: el resto se aplica sobre la página cargada.
+  const [applied, setApplied] = useState<SpecialtyFilters>(emptyFilters)
+  const [filterDraft, setFilterDraft] = useState<SpecialtyFilters | null>(null)
+  const isActive = applied.isActive
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
@@ -123,8 +153,28 @@ export default function MedicalSpecialtiesPage() {
     setFormOpen(true)
   }
 
+  const loaded = specialties.data?.data ?? []
+  const idOptions = uniqueSorted(
+    loaded.map((item) => String(item.numericId)),
+    applied.id,
+    filterDraft?.id ?? '',
+  )
+  const nameOptions = uniqueSorted(
+    loaded.map((item) => item.name),
+    applied.name,
+    filterDraft?.name ?? '',
+  )
+  const descriptionOptions = uniqueSorted(
+    loaded.map((item) => item.description),
+    applied.description,
+    filterDraft?.description ?? '',
+  )
+  const matchesFilters = (item: components['schemas']['MedicalSpecialty']) =>
+    (!applied.id || String(item.numericId) === applied.id) &&
+    (!applied.name || item.name === applied.name) &&
+    (!applied.description || (item.description ?? '') === applied.description)
   const items = applyColumnSort(
-    specialties.data?.data ?? [],
+    (specialties.data?.data ?? []).filter(matchesFilters),
     sort,
     (item, index) =>
       index === 0
@@ -158,14 +208,24 @@ export default function MedicalSpecialtiesPage() {
     item.name,
     item.description || '',
   ])
-  const filterCount = isActive !== DEFAULT_ACTIVE ? 1 : 0
   const chips: ActiveFilterChip[] = []
-  if (isActive !== DEFAULT_ACTIVE)
+  if (applied.isActive !== DEFAULT_ACTIVE)
     chips.push({
       key: 'isActive',
       label: 'Estado',
-      value: activeOptions.find((option) => option.value === isActive)!.label,
+      value: activeOptions.find((option) => option.value === applied.isActive)!
+        .label,
     })
+  if (applied.id) chips.push({ key: 'id', label: 'ID', value: applied.id })
+  if (applied.name)
+    chips.push({ key: 'name', label: 'Nombre', value: applied.name })
+  if (applied.description)
+    chips.push({
+      key: 'description',
+      label: 'Descripción',
+      value: applied.description,
+    })
+  const filterCount = chips.length
   const rowActions = items.map((item) => (
     <RowActions
       key={item.id}
@@ -183,7 +243,7 @@ export default function MedicalSpecialtiesPage() {
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
       <PageHeader
-        title="Especialidades médicas"
+        title="Especialidades Médicas"
         subtitle="Especialidades disponibles para asignar a los médicos."
         actions={
           <>
@@ -213,7 +273,7 @@ export default function MedicalSpecialtiesPage() {
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
-          onClick={() => setFilterDraft({ isActive })}
+          onClick={() => setFilterDraft(applied)}
         />
         <TableToolbarActions
           title="Especialidades Médicas"
@@ -224,8 +284,11 @@ export default function MedicalSpecialtiesPage() {
       </FilterBarRow>
       <ActiveFilterChips
         chips={chips}
-        onRemove={() => {
-          setIsActive(DEFAULT_ACTIVE)
+        onRemove={(key) => {
+          setApplied((current) => ({
+            ...current,
+            [key]: key === 'isActive' ? DEFAULT_ACTIVE : '',
+          }))
           setPage(1)
         }}
       />
@@ -235,15 +298,16 @@ export default function MedicalSpecialtiesPage() {
           description="Combina estos criterios para acotar la lista de especialidades."
           onClose={() => setFilterDraft(null)}
           onClear={() => {
-            setFilterDraft({ isActive: DEFAULT_ACTIVE })
-            setIsActive(DEFAULT_ACTIVE)
+            setFilterDraft(emptyFilters)
+            setApplied(emptyFilters)
             setPage(1)
           }}
           clearDisabled={
-            !filterCount && filterDraft.isActive === DEFAULT_ACTIVE
+            !filterCount &&
+            JSON.stringify(filterDraft) === JSON.stringify(emptyFilters)
           }
           onApply={() => {
-            setIsActive(filterDraft.isActive)
+            setApplied(filterDraft)
             setPage(1)
             setFilterDraft(null)
           }}
@@ -254,7 +318,8 @@ export default function MedicalSpecialtiesPage() {
               value={filterDraft.isActive}
               onChange={(event) =>
                 setFilterDraft({
-                  isActive: event.target.value as 'true' | 'false',
+                  ...filterDraft,
+                  isActive: event.target.value as SpecialtyFilters['isActive'],
                 })
               }
               className={`${filterControlClass} pl-11`}
@@ -262,6 +327,63 @@ export default function MedicalSpecialtiesPage() {
               {activeOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="ID" icon={<Hash className="size-4" />}>
+            <select
+              aria-label="ID de la especialidad"
+              value={filterDraft.id}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, id: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {idOptions.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="Nombre" icon={<Stethoscope className="size-4" />}>
+            <select
+              aria-label="Nombre de la especialidad"
+              value={filterDraft.name}
+              onChange={(event) =>
+                setFilterDraft({ ...filterDraft, name: event.target.value })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              {nameOptions.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField
+            label="Descripción"
+            icon={<FileText className="size-4" />}
+          >
+            <select
+              aria-label="Descripción de la especialidad"
+              value={filterDraft.description}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  description: event.target.value,
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todas</option>
+              {descriptionOptions.map((value) => (
+                <option key={value} value={value}>
+                  {value}
                 </option>
               ))}
             </select>

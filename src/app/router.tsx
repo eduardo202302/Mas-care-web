@@ -36,7 +36,6 @@ const TreatmentsPage = lazy(
   () => import('@/features/treatments/TreatmentsPage'),
 )
 const UsersPage = lazy(() => import('@/features/users/UsersPage'))
-const JobsPage = lazy(() => import('@/features/jobs/JobsPage'))
 const CompaniesPage = lazy(() => import('@/features/companies/CompaniesPage'))
 const CompanyDetailPage = lazy(
   () => import('@/features/companies/CompanyDetailPage'),
@@ -56,7 +55,9 @@ const TransfersPage = lazy(() => import('@/features/transfers/TransfersPage'))
 const TreatmentDetailPage = lazy(
   () => import('@/features/treatments/TreatmentDetailPage'),
 )
-const ReportsIndexPage = lazy(() => import('@/features/reports/ReportsIndexPage'))
+const ReportsIndexPage = lazy(
+  () => import('@/features/reports/ReportsIndexPage'),
+)
 const ReportPage = lazy(() => import('@/features/reports/ReportPage'))
 const DoctorsPage = lazy(() => import('@/features/doctors/DoctorsPage'))
 const DoctorDetailPage = lazy(
@@ -107,7 +108,6 @@ export const router = createBrowserRouter([
                   { path: '/tareas', element: <TasksPage /> },
                   { path: '/companias', element: <CompaniesPage /> },
                   { path: '/companias/:id', element: <CompanyDetailPage /> },
-                  { path: '/trabajos', element: <JobsPage /> },
                   { path: '/pacientes', element: <PatientsPage /> },
                   { path: '/pacientes/:id', element: <PatientDetailPage /> },
                   {
@@ -143,9 +143,7 @@ export const router = createBrowserRouter([
                   { path: '/ajustes/propiedades', element: <PropertiesPage /> },
                   { path: '/ajustes/roles', element: <RolesPage /> },
                   { path: '/ajustes/menu', element: <MenuPage /> },
-                  ...(import.meta.env.DEV
-                    ? [{ path: '/dev/chips', element: <ChipsPage /> }]
-                    : []),
+                  { path: '/dev/chips', element: <ChipsPage /> },
                 ],
               },
             ],

@@ -32,6 +32,7 @@ export default function StagesPage() {
   const [draft, setDraft] = useState<Pipeline | null>(null)
   const [addTo, setAddTo] = useState<(typeof columns)[number]>('to_notify')
   const [counter, setCounter] = useState(0)
+  const [showErrors, setShowErrors] = useState(false)
   useEffect(() => {
     if (pipeline.data) setDraft(pipeline.data)
   }, [pipeline.data])
@@ -99,7 +100,7 @@ export default function StagesPage() {
   const input = 'border-border h-10 rounded-lg border bg-white px-3 text-sm'
 
   return (
-    <div className="animate-in max-w-3xl">
+    <div className="animate-in max-w-5xl">
       <PageHeader
         title="Etapas del Tablero"
         subtitle="Las cinco columnas del tablero siguen el flujo de los ciclos y no cambian. Dentro de cada una puedes tener varias etapas: cambia su nombre, color y orden, añade nuevas o borra las que no uses. Mover un ciclo entre etapas de la misma columna no cambia su estado."
@@ -129,43 +130,53 @@ export default function StagesPage() {
         </label>
       </section>
       <ol className="grid gap-3">
-        {draft.stages.map((stage, index) => (
-          <li
-            key={stage.id}
-            className="border-border grid gap-3 rounded-xl border bg-white p-4 sm:grid-cols-[auto_1fr_auto]"
-          >
-            <div className="flex items-center gap-1 sm:flex-col">
-              <Button
-                type="button"
-                className="size-8 px-0"
-                aria-label={`Subir ${stage.name}`}
-                disabled={index === 0}
-                onClick={() => move(index, -1)}
-              >
-                <ArrowUp className="size-4" />
-              </Button>
-              <Button
-                type="button"
-                className="size-8 px-0"
-                aria-label={`Bajar ${stage.name}`}
-                disabled={index === draft.stages.length - 1}
-                onClick={() => move(index, 1)}
-              >
-                <ArrowDown className="size-4" />
-              </Button>
-            </div>
-            <div className="grid gap-2">
+        {draft.stages.map((stage, index) => {
+          const blocked =
+            stage.cycle_count > 0 || lastOfColumn(stage.system_status)
+          const nameMissing = showErrors && !stage.name.trim()
+          return (
+            <li
+              key={stage.id}
+              className="border-border grid items-start gap-3 rounded-xl border bg-white p-4 sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,1.3fr)_auto_auto]"
+            >
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  className="size-10 px-0"
+                  aria-label={`Subir ${stage.name}`}
+                  disabled={index === 0}
+                  onClick={() => move(index, -1)}
+                >
+                  <ArrowUp className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  className="size-10 px-0"
+                  aria-label={`Bajar ${stage.name}`}
+                  disabled={index === draft.stages.length - 1}
+                  onClick={() => move(index, 1)}
+                >
+                  <ArrowDown className="size-4" />
+                </Button>
+              </div>
+              <div className="grid gap-1">
+                <input
+                  className={`${input} w-full`}
+                  aria-label={`Nombre de la etapa ${index + 1}`}
+                  aria-invalid={nameMissing}
+                  placeholder="Nombre de la etapa"
+                  value={stage.name}
+                  maxLength={60}
+                  onChange={(event) =>
+                    setStage(index, { name: event.target.value })
+                  }
+                />
+                {nameMissing && (
+                  <p className="text-xs text-red-700">Campo requerido.</p>
+                )}
+              </div>
               <input
-                className={input}
-                aria-label={`Nombre de la etapa ${index + 1}`}
-                value={stage.name}
-                maxLength={60}
-                onChange={(event) =>
-                  setStage(index, { name: event.target.value })
-                }
-              />
-              <input
-                className={input}
+                className={`${input} w-full`}
                 aria-label={`Descripción de la etapa ${index + 1}`}
                 placeholder="Descripción (Opcional)"
                 value={stage.description ?? ''}
@@ -174,31 +185,23 @@ export default function StagesPage() {
                   setStage(index, { description: event.target.value })
                 }
               />
-            </div>
-            <div className="flex flex-col items-start gap-1 text-xs">
-              <input
-                type="color"
-                aria-label={`Color de la etapa ${index + 1}`}
-                value={stage.color}
-                onChange={(event) =>
-                  setStage(index, { color: event.target.value })
-                }
-                className="h-10 w-14 rounded-lg"
-              />
-              <span className="text-muted">
-                {boardColumnLabels[
-                  stage.system_status as keyof typeof boardColumnLabels
-                ] ?? stage.system_status}{' '}
-                · {stage.cycle_count} ciclos
-              </span>
+              <div className="flex h-10 items-center gap-3">
+                <input
+                  type="color"
+                  aria-label={`Color de la etapa ${index + 1}`}
+                  value={stage.color}
+                  onChange={(event) =>
+                    setStage(index, { color: event.target.value })
+                  }
+                  className="border-border h-10 w-14 cursor-pointer rounded-lg border bg-white p-1"
+                />
+              </div>
               <Button
                 type="button"
                 variant="danger"
-                className="h-8 px-2 text-xs"
+                className="size-10 px-0"
                 aria-label={`Borrar ${stage.name || 'etapa nueva'}`}
-                disabled={
-                  stage.cycle_count > 0 || lastOfColumn(stage.system_status)
-                }
+                disabled={blocked}
                 title={
                   stage.cycle_count > 0
                     ? 'Tiene ciclos: muévelos a otra etapa primero'
@@ -208,11 +211,11 @@ export default function StagesPage() {
                 }
                 onClick={() => remove(index)}
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-4" />
               </Button>
-            </div>
-          </li>
-        ))}
+            </li>
+          )
+        })}
       </ol>
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <select
@@ -246,10 +249,15 @@ export default function StagesPage() {
       <div className="mt-4 flex justify-end">
         <Button
           variant="primary"
-          disabled={
-            save.isPending || draft.stages.some((stage) => !stage.name.trim())
-          }
-          onClick={() => save.mutate(draft)}
+          disabled={save.isPending}
+          onClick={() => {
+            if (draft.stages.some((stage) => !stage.name.trim())) {
+              setShowErrors(true)
+              return
+            }
+            setShowErrors(false)
+            save.mutate(draft)
+          }}
         >
           Guardar cambios
         </Button>

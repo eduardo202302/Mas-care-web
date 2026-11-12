@@ -1,7 +1,15 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Activity, Building2, Plus, Search } from 'lucide-react'
+import {
+  Activity,
+  AtSign,
+  Building2,
+  MapPin,
+  Phone,
+  Plus,
+  Search,
+} from 'lucide-react'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
@@ -48,6 +56,44 @@ const statusOptions: { value: CompanyStatusFilter; label: string }[] = [
   { value: 'active', label: 'Activas' },
   { value: 'inactive', label: 'Inactivas' },
 ]
+type CompanyFilters = {
+  status: CompanyStatusFilter
+  name: string
+  email: string
+  phone: string
+  city: string
+}
+
+const emptyFilters: CompanyFilters = {
+  status: '',
+  name: '',
+  email: '',
+  phone: '',
+  city: '',
+}
+
+type CompanyTextKey = 'name' | 'email' | 'phone' | 'city'
+
+function uniqueSorted(
+  values: (string | null | undefined)[],
+  ...selected: string[]
+) {
+  const set = new Set(values.filter((value): value is string => !!value))
+  for (const value of selected) if (value) set.add(value)
+  return [...set].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+}
+
+const textFilters: {
+  key: CompanyTextKey
+  label: string
+  icon: ReactNode
+}[] = [
+  { key: 'name', label: 'Compañía', icon: <Building2 className="size-4" /> },
+  { key: 'email', label: 'Correo', icon: <AtSign className="size-4" /> },
+  { key: 'phone', label: 'Teléfono', icon: <Phone className="size-4" /> },
+  { key: 'city', label: 'Ciudad', icon: <MapPin className="size-4" /> },
+]
+
 const columnHeaders = [
   'ID',
   'Estado',
@@ -75,10 +121,8 @@ export default function CompaniesPage() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   // El servidor no filtra por estado: se aplica sobre la página cargada.
-  const [status, setStatus] = useState<CompanyStatusFilter>('')
-  const [filterDraft, setFilterDraft] = useState<{
-    status: CompanyStatusFilter
-  } | null>(null)
+  const [applied, setApplied] = useState<CompanyFilters>(emptyFilters)
+  const [filterDraft, setFilterDraft] = useState<CompanyFilters | null>(null)
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [editing, setEditing] = useState<Company | null>(null)
@@ -160,9 +204,24 @@ export default function CompaniesPage() {
     }
   }
 
-  const visibleCompanies = (companies.data?.data ?? []).filter(
+  const loadedCompanies = companies.data?.data ?? []
+  const textOptions = Object.fromEntries(
+    textFilters.map(({ key }) => [
+      key,
+      uniqueSorted(
+        loadedCompanies.map((company) => company[key]),
+        applied[key],
+        filterDraft?.[key] ?? '',
+      ),
+    ]),
+  ) as Record<CompanyTextKey, string[]>
+  const visibleCompanies = loadedCompanies.filter(
     (company) =>
-      !status || (status === 'active') === (company.status === 'active'),
+      (!applied.status ||
+        (applied.status === 'active') === (company.status === 'active')) &&
+      textFilters.every(
+        ({ key }) => !applied[key] || (company[key] ?? '') === applied[key],
+      ),
   )
   const sortedCompanies = applyColumnSort(
     visibleCompanies,
@@ -230,16 +289,32 @@ export default function CompaniesPage() {
     company.city || '',
     `Registro: ${company.registrationLink} | Login: ${company.loginLink}`,
   ])
-  const filterCount = status ? 1 : 0
-  const chips: ActiveFilterChip[] = status
-    ? [
-        {
-          key: 'status',
-          label: 'Estado',
-          value: statusOptions.find((option) => option.value === status)!.label,
-        },
-      ]
-    : []
+  const chips: ActiveFilterChip[] = [
+    ...(applied.status
+      ? [
+          {
+            key: 'status',
+            label: 'Estado',
+            value: statusOptions.find(
+              (option) => option.value === applied.status,
+            )!.label,
+          },
+        ]
+      : []),
+    ...(applied.name
+      ? [{ key: 'name', label: 'Compañía', value: applied.name }]
+      : []),
+    ...(applied.email
+      ? [{ key: 'email', label: 'Correo', value: applied.email }]
+      : []),
+    ...(applied.phone
+      ? [{ key: 'phone', label: 'Teléfono', value: applied.phone }]
+      : []),
+    ...(applied.city
+      ? [{ key: 'city', label: 'Ciudad', value: applied.city }]
+      : []),
+  ]
+  const filterCount = chips.length
 
   return (
     <div className="animate-in flex h-full min-h-0 flex-col">
@@ -275,7 +350,7 @@ export default function CompaniesPage() {
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
-          onClick={() => setFilterDraft({ status })}
+          onClick={() => setFilterDraft(applied)}
         />
         <TableToolbarActions
           title="Compañías"
@@ -286,8 +361,8 @@ export default function CompaniesPage() {
       </FilterBarRow>
       <ActiveFilterChips
         chips={chips}
-        onRemove={() => {
-          setStatus('')
+        onRemove={(key) => {
+          setApplied((current) => ({ ...current, [key]: '' }))
           setPage(1)
         }}
       />
@@ -297,13 +372,16 @@ export default function CompaniesPage() {
           description="Combina estos criterios para acotar la lista de compañías."
           onClose={() => setFilterDraft(null)}
           onClear={() => {
-            setFilterDraft({ status: '' })
-            setStatus('')
+            setFilterDraft(emptyFilters)
+            setApplied(emptyFilters)
             setPage(1)
           }}
-          clearDisabled={!filterCount && !filterDraft.status}
+          clearDisabled={
+            !filterCount &&
+            JSON.stringify(filterDraft) === JSON.stringify(emptyFilters)
+          }
           onApply={() => {
-            setStatus(filterDraft.status)
+            setApplied(filterDraft)
             setPage(1)
             setFilterDraft(null)
           }}
@@ -317,6 +395,7 @@ export default function CompaniesPage() {
               value={filterDraft.status}
               onChange={(event) =>
                 setFilterDraft({
+                  ...filterDraft,
                   status: event.target.value as CompanyStatusFilter,
                 })
               }
@@ -329,6 +408,25 @@ export default function CompaniesPage() {
               ))}
             </select>
           </FilterField>
+          {textFilters.map(({ key, label, icon }) => (
+            <FilterField key={key} label={label} icon={icon}>
+              <select
+                aria-label={label}
+                value={filterDraft[key]}
+                onChange={(event) =>
+                  setFilterDraft({ ...filterDraft, [key]: event.target.value })
+                }
+                className={`${filterControlClass} pl-11`}
+              >
+                <option value="">{key === 'city' ? 'Todas' : 'Todos'}</option>
+                {textOptions[key].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </FilterField>
+          ))}
         </AdvancedFilterDialog>
       )}
 

@@ -92,7 +92,9 @@ export function ReportChart({
     <div className="border-border shadow-card rounded-xl border bg-white p-4">
       <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h3 className="font-display text-petroleo text-base font-bold">{title}</h3>
+          <h3 className="font-display text-petroleo text-base font-bold">
+            {title}
+          </h3>
           <p id={descId} className="text-muted mt-0.5 text-xs">
             {description}
             {unit ? ` (${unit})` : ''}
@@ -109,7 +111,9 @@ export function ReportChart({
             aria-selected={view === 'chart'}
             onClick={() => setView('chart')}
             className={`flex h-7 items-center gap-1 rounded-md px-2 text-xs font-semibold ${
-              view === 'chart' ? 'text-petroleo bg-surface' : 'text-muted hover:text-ink'
+              view === 'chart'
+                ? 'text-petroleo bg-surface'
+                : 'text-muted hover:text-ink'
             }`}
           >
             <BarChartIcon className="size-3.5" />
@@ -121,7 +125,9 @@ export function ReportChart({
             aria-selected={view === 'table'}
             onClick={() => setView('table')}
             className={`flex h-7 items-center gap-1 rounded-md px-2 text-xs font-semibold ${
-              view === 'table' ? 'text-petroleo bg-surface' : 'text-muted hover:text-ink'
+              view === 'table'
+                ? 'text-petroleo bg-surface'
+                : 'text-muted hover:text-ink'
             }`}
           >
             <TableIcon className="size-3.5" />
@@ -133,7 +139,10 @@ export function ReportChart({
       {loading ? (
         <Skeleton className="h-64 w-full rounded-lg" />
       ) : data.length === 0 ? (
-        <EmptyState title="No hay datos en este periodo" description="Ajusta los filtros o elige otro rango de fechas." />
+        <EmptyState
+          title="No hay datos en este periodo"
+          description="Ajusta los filtros o elige otro rango de fechas."
+        />
       ) : view === 'table' || typeof window === 'undefined' ? (
         <div className="overflow-x-auto print:block">
           <table className="w-full border-collapse text-left text-sm">
@@ -141,7 +150,11 @@ export function ReportChart({
             <thead className="bg-surface text-muted text-xs tracking-wide uppercase">
               <tr>
                 {tableColumns.map((column) => (
-                  <th key={column} scope="col" className="px-4 py-2.5 font-semibold">
+                  <th
+                    key={column}
+                    scope="col"
+                    className="px-4 py-2.5 font-semibold"
+                  >
                     {column}
                   </th>
                 ))}
@@ -150,7 +163,9 @@ export function ReportChart({
             <tbody className="divide-border divide-y">
               {data.map((row, index) => (
                 <tr key={index}>
-                  <td className="text-ink px-4 py-2.5">{String(row[xKey] ?? '')}</td>
+                  <td className="text-ink px-4 py-2.5">
+                    {String(row[xKey] ?? '')}
+                  </td>
                   {series.map((s) => (
                     <td key={s.key} className="text-ink px-4 py-2.5">
                       {String(row[s.key] ?? '—')}
@@ -171,7 +186,11 @@ export function ReportChart({
             {kind === 'bar' ? (
               <BarChart data={data} aria-describedby={descId}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e3eef0" />
-                <XAxis dataKey={xKey} tick={{ fontSize: 12 }} stroke="#71878c" />
+                <XAxis
+                  dataKey={xKey}
+                  tick={{ fontSize: 12 }}
+                  stroke="#71878c"
+                />
                 <YAxis tick={{ fontSize: 12 }} stroke="#71878c" />
                 <Tooltip />
                 <Legend />
@@ -187,7 +206,10 @@ export function ReportChart({
                       ? data.map((row, rowIndex) => (
                           <Cell
                             key={rowIndex}
-                            fill={seriesColor(rowIndex, row[colorByCategory] as string | undefined)}
+                            fill={seriesColor(
+                              rowIndex,
+                              row[colorByCategory] as string | undefined,
+                            )}
                           />
                         ))
                       : null}
@@ -197,7 +219,11 @@ export function ReportChart({
             ) : (
               <LineChart data={data} aria-describedby={descId}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e3eef0" />
-                <XAxis dataKey={xKey} tick={{ fontSize: 12 }} stroke="#71878c" />
+                <XAxis
+                  dataKey={xKey}
+                  tick={{ fontSize: 12 }}
+                  stroke="#71878c"
+                />
                 <YAxis tick={{ fontSize: 12 }} stroke="#71878c" />
                 <Tooltip />
                 <Legend />

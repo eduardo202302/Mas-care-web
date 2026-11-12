@@ -7,7 +7,8 @@ import { cn } from '@/lib/cn'
 /**
  * Wraps the fields of a form. In read-only mode every native control inside is
  * disabled and shown muted, so the edit form doubles as a record viewer without
- * duplicating a separate read-only layout.
+ * duplicating a separate read-only layout. Inputs and selects ignore the pointer
+ * so the wheel always scrolls the dialog, even when the cursor rests on one.
  */
 export function FormFields({
   readOnly,
@@ -22,7 +23,7 @@ export function FormFields({
       className={cn(
         'm-0 grid min-w-0 gap-5 border-0 p-0',
         readOnly &&
-          '[&_input]:bg-surface [&_input]:text-muted [&_select]:bg-surface [&_select]:text-muted [&_textarea]:bg-surface [&_textarea]:text-muted [&_input]:cursor-not-allowed [&_select]:cursor-not-allowed [&_textarea]:cursor-not-allowed',
+          '[&_input]:bg-surface [&_input]:text-muted [&_select]:bg-surface [&_select]:text-muted [&_textarea]:bg-surface [&_textarea]:text-muted [&_input]:pointer-events-none [&_select]:pointer-events-none [&_textarea]:cursor-not-allowed [&_textarea]:overflow-auto',
       )}
     >
       {children}
