@@ -18,7 +18,7 @@ const doseFrequencyFields = {
   weekdayTimes: z.array(z.string()),
 }
 
-export const treatmentSchema = z.object({
+const treatmentObject = z.object({
   ...doseFrequencyFields,
   name: z
     .string()
@@ -35,6 +35,11 @@ export const treatmentSchema = z.object({
   quantityPerCycle: z
     .number({ error: 'Indica la cantidad por ciclo.' })
     .positive('Debe ser mayor a cero.'),
+  deliveredQuantity: z
+    .number({ error: 'Indica una cantidad válida.' })
+    .positive('Debe ser mayor a cero.')
+    .nullable()
+    .optional(),
   startDate: z.string().min(1, 'Campo requerido.'),
   /** Hasta qué fecha llega el tratamiento (opcional). */
   endDate: z.string().optional(),
@@ -49,7 +54,46 @@ export const treatmentSchema = z.object({
   customValues: z.record(z.string(), z.unknown()).optional(),
 })
 
-export type TreatmentFormValues = z.infer<typeof treatmentSchema>
+type DateRules = {
+  /** Hoy (AAAA-MM-DD): activa la regla "no anterior a hoy". */
+  today?: string
+  /** Inicio ya guardado: al editar se respeta aunque sea anterior a hoy. */
+  savedStartDate?: string
+}
+
+/**
+ * Esquema del formulario con las reglas de fechas: el inicio no puede ser
+ * anterior a hoy (salvo que sea el ya guardado) y el fin no puede ser anterior
+ * al inicio (ni a hoy si no hay inicio).
+ */
+export function makeTreatmentSchema({ today, savedStartDate }: DateRules = {}) {
+  return treatmentObject.superRefine((values, ctx) => {
+    const { startDate, endDate } = values
+    if (today && startDate && startDate < today && startDate !== savedStartDate)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['startDate'],
+        message: 'La fecha de inicio no puede ser anterior a hoy.',
+      })
+    if (!endDate) return
+    if (startDate && endDate < startDate)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['endDate'],
+        message: 'La fecha de fin no puede ser anterior a la fecha de inicio.',
+      })
+    else if (!startDate && today && endDate < today)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['endDate'],
+        message: 'La fecha de fin no puede ser anterior a hoy.',
+      })
+  })
+}
+
+export const treatmentSchema = makeTreatmentSchema()
+
+export type TreatmentFormValues = z.infer<typeof treatmentObject>
 
 /** Valores del formulario más la receta adjunta, que viaja aparte (no es JSON). */
 export type TreatmentSaveValues = TreatmentFormValues & {

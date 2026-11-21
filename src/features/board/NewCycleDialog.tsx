@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  CalendarClock,
   CalendarDays,
-  Package,
   PackageCheck,
-  RefreshCw,
+  Pill,
   User,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -13,200 +13,181 @@ import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { useToast } from '@/components/ui/Toast'
 import { api } from '@/lib/http'
+import type { BoardColumnKey } from '@/lib/board'
+import { DoseScheduleCard } from '@/features/treatments/DoseTracking'
 import {
-  boardColumnLabels,
-  boardColumns,
-  type BoardColumnKey,
-} from '@/lib/board'
-import { usePipeline } from '@/lib/pipeline'
-import { useMe } from '@/lib/permissions'
-import { formatDate, medicationName, type Medication } from '@/lib/treatments'
+  coveragePreview,
+  dosesPerDayFromSchedule,
+  formatDate,
+  formatDurationYMD,
+  type DoseScheduleFrequency,
+} from '@/lib/treatments'
 import { formatPhone } from '@/lib/phone'
 import type { components } from '@/lib/api-types'
 
 type Eligible = {
   id: string
+  name: string | null
   patient: { id: string; name: string }
   medication: string
   branch_id: string
+  branch_name: string | null
+  prescriber_name: string | null
+  dose_unit: string
   quantity_per_cycle: string
   coverage_end_on: string | null
   responsible: { id: string; name: string } | null
 }
 
 type Patient = components['schemas']['Patient']
-const stageOptions = boardColumns.filter((key) => key !== 'closed')
-
-const cycleTypeOptions = [
-  { value: 'regular', label: 'Regular' },
-  { value: 'urgent', label: 'Urgente' },
-  { value: 'special', label: 'Especial' },
-] as const
-
-const cyclePriorityOptions = [
-  { value: 'low', label: 'Baja' },
-  { value: 'medium', label: 'Media' },
-  { value: 'high', label: 'Alta' },
-  { value: 'urgent', label: 'Urgente' },
-] as const
 
 const fieldClass =
   'border-border focus:border-tealmax h-10 w-full min-w-0 truncate rounded-lg border bg-white px-3 text-sm outline-none'
-const readOnlyFieldClass =
-  'border-border h-10 w-full min-w-0 truncate rounded-lg border bg-white px-3 text-sm text-ink placeholder:text-muted'
+
+const treatmentOptionLabel = (option: Eligible) =>
+  option.name ? `${option.name} · ${option.medication}` : option.medication
+
+function Fact({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
+        {label}
+      </dt>
+      <dd className="text-ink truncate font-medium">{children}</dd>
+    </div>
+  )
+}
+
+type ActiveSchedule = DoseScheduleFrequency & {
+  dosePerIntake: string
+  effectiveTo: string | null
+}
+
+function CoverageSection({ treatment }: { treatment: Eligible }) {
+  const schedules = useQuery({
+    queryKey: ['treatments', treatment.id, 'dose-schedules'],
+    queryFn: () =>
+      api<{ data: ActiveSchedule[] }>(
+        `/api/v1/treatments/${encodeURIComponent(treatment.id)}/dose-schedules`,
+      ),
+  })
+  const active = schedules.data?.data.find((row) => !row.effectiveTo)
+  const preview = active
+    ? coveragePreview({
+        quantityPerCycle: Number(treatment.quantity_per_cycle),
+        dosePerIntake: Number(active.dosePerIntake),
+        intakesPerDay: dosesPerDayFromSchedule(active),
+        startDate: new Date().toISOString().slice(0, 10),
+      })
+    : null
+  return (
+    <ModalSection
+      icon={<CalendarClock className="size-4" />}
+      title="Cantidad Y Cobertura"
+      defaultCollapsed={false}
+    >
+      <div className="flex max-w-xs items-center justify-between gap-3">
+        <span className="text-ink text-sm font-medium">
+          Unidades por Envase
+        </span>
+        <span className="h-10 w-28 rounded-lg border border-emerald-300 bg-emerald-100 px-3 text-sm leading-10 text-emerald-700">
+          {treatment.quantity_per_cycle}
+        </span>
+      </div>
+      <div className="border-border rounded-lg border bg-white p-3">
+        <div className="text-muted flex items-center gap-2 text-xs font-semibold tracking-wide uppercase">
+          <CalendarDays className="size-4" />
+          Cobertura estimada
+        </div>
+        {preview ? (
+          <>
+            <p className="text-petroleo font-display mt-1 text-xl font-bold tracking-tight">
+              {formatDurationYMD(preview.days)}
+            </p>
+            <p className="text-ink text-sm">
+              Cubre {formatDurationYMD(preview.days)}
+            </p>
+          </>
+        ) : (
+          <p className="text-muted mt-1 text-sm leading-6">
+            Define la programación de dosis del tratamiento para ver la
+            cobertura estimada.
+          </p>
+        )}
+      </div>
+    </ModalSection>
+  )
+}
 
 /**
- * Cycles are always born from an existing treatment. Only active treatments
- * without an open cycle are offered, and the new cycle lands in the chosen stage.
+ * Una reposición (ciclo) siempre nace de un tratamiento activo que no tiene
+ * otra reposición abierta. Medicamento, sucursal, cantidad y fecha vienen del
+ * tratamiento y solo se muestran; la reposición nace en la etapa inicial
+ * del tablero.
  */
 export function NewCycleDialog({
   initialStatus,
+  initialTreatment,
   onClose,
 }: {
   initialStatus?: BoardColumnKey
+  initialTreatment?: { patientId: string; treatmentId: string }
   onClose: () => void
 }) {
   const queryClient = useQueryClient()
   const toast = useToast()
-  const { data: pipeline } = usePipeline()
-  const { data: me } = useMe()
-  const [status, setStatus] = useState<BoardColumnKey>(
-    initialStatus ?? 'to_notify',
+  const status: BoardColumnKey = initialStatus ?? 'to_notify'
+  const [patientId, setPatientId] = useState(initialTreatment?.patientId ?? '')
+  const [treatmentId, setTreatmentId] = useState(
+    initialTreatment?.treatmentId ?? '',
   )
-  const [treatmentId, setTreatmentId] = useState('')
-  const [patientId, setPatientId] = useState('')
-  const [type, setType] = useState('')
-  const [priority, setPriority] = useState('')
-  const [branchOverride, setBranchOverride] = useState<string | null>(null)
-  const [medicationOverride, setMedicationOverride] = useState<string | null>(
-    null,
-  )
-  const [responsibleOverride, setResponsibleOverride] = useState<string | null>(
-    null,
-  )
-  const [treatmentNameOverride, setTreatmentNameOverride] = useState<
-    string | null
-  >(null)
-  const [quantity, setQuantity] = useState('')
-  const [coverageEndOn, setCoverageEndOn] = useState('')
+  const [showErrors, setShowErrors] = useState(false)
 
+  // Se pide por paciente: la lista global se corta en 50 y podía dejar fuera
+  // tratamientos válidos del paciente elegido.
   const eligible = useQuery({
-    queryKey: ['eligible-treatments'],
+    queryKey: ['eligible-treatments', patientId],
     queryFn: () =>
-      api<{ data: Eligible[] }>('/api/v1/cycles/eligible-treatments'),
+      api<{ data: Eligible[] }>(
+        `/api/v1/cycles/eligible-treatments?patient_id=${encodeURIComponent(patientId)}`,
+      ),
+    enabled: Boolean(patientId),
   })
   const patients = useQuery({
     queryKey: ['patients', { limit: 100 }],
     queryFn: () => api<{ data: Patient[] }>('/api/v1/patients?limit=100'),
   })
-  const medications = useQuery({
-    queryKey: ['medications', { archived: 'false', limit: 100 }],
-    queryFn: () =>
-      api<{ data: Medication[] }>(
-        '/api/v1/medications?archived=false&limit=100',
-      ),
-  })
-  const users = useQuery({
-    queryKey: ['users', { limit: 100 }],
-    queryFn: () =>
-      api<{ data: { id: string; name: string }[] }>('/api/v1/users?limit=100'),
-  })
   const eligibleOptions = eligible.data?.data ?? []
-  const selected = eligibleOptions.find((option) => option.id === treatmentId)
-  // El tratamiento siempre se elige entre los del paciente seleccionado.
   const patientTreatments = eligibleOptions.filter(
     (option) => option.patient.id === patientId,
   )
-  const stageName = (key: BoardColumnKey) =>
-    pipeline?.stages.find((s) => s.system_status === key)?.name ??
-    boardColumnLabels[key]
-  // La API nombra el producto como "genérico|marca presentación"; hay que
-  // compararlo así, o el select de Producto nunca se precarga y el formulario
-  // queda deshabilitado.
-  const eligibleMedicationLabel = (medication: Medication) =>
-    `${medication.genericName ?? medication.brandName ?? medication.presentation} ${medication.presentation}`.trim()
-  const matchedMedication = medications.data?.data.find(
-    (medication) =>
-      eligibleMedicationLabel(medication) === selected?.medication ||
-      medicationName(medication) === selected?.medication,
-  )
-  const branchId = branchOverride ?? selected?.branch_id ?? ''
-  const medicationId = medicationOverride ?? matchedMedication?.id ?? ''
-  const responsibleUserId =
-    responsibleOverride ?? selected?.responsible?.id ?? ''
-  const treatmentName = treatmentNameOverride ?? selected?.medication ?? ''
-  // Con un tratamiento elegido, producto y sucursal ya vienen de él: el ciclo
-  // se crea solo con treatment_id. Exigirlos aquí bloqueaba el botón cuando el
-  // nombre del producto del catálogo no coincidía con el del tratamiento.
-  const formComplete = Boolean(
-    patientId && treatmentId && quantity.trim() && coverageEndOn,
-  )
-  const [showErrors, setShowErrors] = useState(false)
-
-  function submitWith(again: boolean) {
-    if (create.isPending) return
-    if (!formComplete) {
-      setShowErrors(true)
-      return
-    }
-    create.mutate({ again })
-  }
-
-  function selectTreatment(option: Eligible) {
-    setTreatmentId(option.id)
-    setBranchOverride(null)
-    setMedicationOverride(null)
-    setResponsibleOverride(null)
-    setTreatmentNameOverride(null)
-    setQuantity(option.quantity_per_cycle)
-    setCoverageEndOn(option.coverage_end_on ?? '')
-  }
-
-  function clearTreatment() {
-    setTreatmentId('')
-    setBranchOverride(null)
-    setMedicationOverride(null)
-    setResponsibleOverride(null)
-    setTreatmentNameOverride(null)
-    setQuantity('')
-    setCoverageEndOn('')
-  }
+  const noEligible =
+    Boolean(patientId) && eligible.isSuccess && !patientTreatments.length
+  const activeTreatments = useQuery({
+    queryKey: ['treatments', { patientId, status: 'active' }],
+    queryFn: () =>
+      api<{ data: unknown[] }>(
+        `/api/v1/treatments?patient_id=${encodeURIComponent(patientId)}&status=active&limit=1`,
+      ),
+    enabled: noEligible,
+  })
+  // Con un solo tratamiento disponible se toma directo; con varios se elige.
+  const selected =
+    patientTreatments.find((option) => option.id === treatmentId) ??
+    (patientTreatments.length === 1 ? patientTreatments[0] : undefined)
 
   function selectPatient(id: string) {
     setPatientId(id)
-    // Con un solo tratamiento disponible se toma directo; con varios se elige.
-    const options = eligibleOptions.filter((o) => o.patient.id === id)
-    if (options.length === 1) selectTreatment(options[0]!)
-    else clearTreatment()
-  }
-
-  const resetForm = () => {
-    setPatientId('')
-    clearTreatment()
-    setType('')
-    setPriority('')
-    setShowErrors(false)
+    setTreatmentId('')
   }
 
   const create = useMutation({
-    mutationFn: (variables: { again: boolean }) =>
+    mutationFn: () =>
       api<{ cycle_id: string; treatment_id: string }>('/api/v1/cycles', {
         method: 'POST',
-        body: JSON.stringify({
-          treatment_id: treatmentId || undefined,
-          patient_id: !treatmentId ? patientId || undefined : undefined,
-          status,
-          type: type || undefined,
-          priority: priority || undefined,
-          branch_id: branchId || undefined,
-          medication_id: medicationId || undefined,
-          responsible_user_id: responsibleUserId || undefined,
-          quantity_per_cycle: quantity || undefined,
-          coverage_end_on: coverageEndOn || undefined,
-          name: treatmentName || undefined,
-        }),
-      }).then(() => variables),
-    onSuccess: async (variables) => {
+        body: JSON.stringify({ treatment_id: selected?.id, status }),
+      }),
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['board'] })
       await queryClient.invalidateQueries({ queryKey: ['cycles'] })
       await queryClient.invalidateQueries({ queryKey: ['eligible-treatments'] })
@@ -214,22 +195,24 @@ export function NewCycleDialog({
       await queryClient.invalidateQueries({ queryKey: ['patients'] })
       await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.push('Reposición registrada.', 'success')
-      if (variables.again) {
-        resetForm()
-      } else {
-        onClose()
-      }
+      onClose()
     },
     onError: (error) => toast.push(error.message, 'error'),
   })
 
-  const creatingAgain = create.isPending && create.variables?.again === true
-  const creatingFinal = create.isPending && create.variables?.again === false
+  function submit() {
+    if (create.isPending) return
+    if (!patientId || !selected) {
+      setShowErrors(true)
+      return
+    }
+    create.mutate()
+  }
 
   return (
     <Dialog
-      title="Nueva Reposición"
-      description="La reposición es el ciclo: elige el paciente y su tratamiento, y registra dónde compró el medicamento."
+      title="Crear Reposición"
+      description="La reposición es el ciclo de compra de un tratamiento: se programa para cuando termina su cobertura."
       icon={<PackageCheck className="size-6" />}
       compactHeader
       bodyClassName="pt-3"
@@ -241,63 +224,45 @@ export function NewCycleDialog({
         className="grid gap-4"
         onSubmit={(event) => {
           event.preventDefault()
-          submitWith(false)
+          submit()
         }}
       >
-        <ModalSection icon={<User className="size-4" />} title="Paciente">
-          <label className="grid gap-1.5">
-            <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
-              Paciente
-            </span>
-            <select
-              value={patientId}
-              onChange={(event) => selectPatient(event.target.value)}
-              className={fieldClass}
-            >
-              <option value="">Seleccione Un Paciente…</option>
-              {(patients.data?.data ?? []).map((patient) => (
-                <option key={patient.id} value={patient.id}>
-                  {patient.fullName}
-                  {patient.phone ? ` - ${formatPhone(patient.phone)}` : ''}
-                </option>
-              ))}
-            </select>
-            {showErrors && !patientId && (
-              <p className="text-xs text-red-700">Campo requerido.</p>
-            )}
-          </label>
-          {patients.isError && (
-            <p role="alert" className="text-sm text-red-700">
-              No pudimos cargar los pacientes.{' '}
-              {(patients.error as Error).message}
-            </p>
-          )}
-          {!patientId && (
-            <p className="text-muted text-xs">
-              Elige primero al paciente para ver los tratamientos que lleva.
-            </p>
-          )}
-        </ModalSection>
-
         <ModalSection
-          icon={<RefreshCw className="size-4" />}
-          title="Tratamiento Que Lleva"
+          icon={<User className="size-4" />}
+          title="Paciente Y Tratamiento"
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+                Paciente
+              </span>
+              <select
+                value={patientId}
+                onChange={(event) => selectPatient(event.target.value)}
+                aria-invalid={showErrors && !patientId}
+                className={fieldClass}
+              >
+                <option value="">Seleccione Un Paciente…</option>
+                {(patients.data?.data ?? []).map((patient) => (
+                  <option key={patient.id} value={patient.id}>
+                    {patient.fullName}
+                    {patient.phone ? ` - ${formatPhone(patient.phone)}` : ''}
+                  </option>
+                ))}
+              </select>
+              {showErrors && !patientId && (
+                <p className="text-xs text-red-700">Campo requerido.</p>
+              )}
+            </label>
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
                 Tratamiento
               </span>
               <select
-                value={treatmentId}
-                onChange={(event) => {
-                  const option = patientTreatments.find(
-                    (row) => row.id === event.target.value,
-                  )
-                  if (option) selectTreatment(option)
-                  else clearTreatment()
-                }}
+                value={selected?.id ?? ''}
+                onChange={(event) => setTreatmentId(event.target.value)}
                 disabled={!patientId || !patientTreatments.length}
+                aria-invalid={showErrors && Boolean(patientId) && !selected}
                 className={`${fieldClass} disabled:cursor-not-allowed disabled:bg-slate-50`}
               >
                 <option value="">
@@ -309,212 +274,73 @@ export function NewCycleDialog({
                 </option>
                 {patientTreatments.map((option) => (
                   <option key={option.id} value={option.id}>
-                    {option.medication}
+                    {treatmentOptionLabel(option)}
                   </option>
                 ))}
               </select>
-              {showErrors && !treatmentId && (
+              {showErrors && patientId && !selected && (
                 <p className="text-xs text-red-700">Campo requerido.</p>
               )}
             </label>
-            <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
-                Etapa
-              </span>
-              <select
-                value={status}
-                onChange={(event) =>
-                  setStatus(event.target.value as BoardColumnKey)
-                }
-                className={fieldClass}
-              >
-                {stageOptions.map((key) => (
-                  <option key={key} value={key}>
-                    {stageName(key)}
-                  </option>
-                ))}
-              </select>
-            </label>
           </div>
-          {patientId && !patientTreatments.length && eligible.isSuccess && (
+          {patients.isError && (
+            <p role="alert" className="text-sm text-red-700">
+              No pudimos cargar los pacientes.{' '}
+              {(patients.error as Error).message}
+            </p>
+          )}
+          {noEligible && activeTreatments.isSuccess && (
             <p
               role="alert"
               className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"
             >
-              Este paciente no tiene tratamientos activos sin ciclo abierto.
-              Crea el tratamiento o cierra el ciclo que ya tiene en el tablero.
+              {activeTreatments.data.data.length
+                ? 'Los tratamientos activos de este paciente ya tienen una reposición abierta en el tablero. Cuando se cierre o se entregue, podrás crear la siguiente.'
+                : 'Este paciente no tiene tratamientos activos. Crea primero el tratamiento y su reposición se generará automáticamente.'}
             </p>
           )}
-          {selected && (
-            <dl className="border-border grid grid-cols-2 gap-3 rounded-lg border bg-white p-3 text-sm sm:grid-cols-3">
-              <div>
-                <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
-                  Le Toca Reponer
-                </dt>
-                <dd className="text-ink font-medium">
-                  {selected.coverage_end_on
-                    ? formatDate(selected.coverage_end_on)
-                    : '—'}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
-                  Cantidad Por Ciclo
-                </dt>
-                <dd className="text-ink font-medium">
-                  {selected.quantity_per_cycle}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
-                  Responsable
-                </dt>
-                <dd className="text-ink font-medium">
-                  {selected.responsible?.name ?? 'Sin responsable'}
-                </dd>
-              </div>
+        </ModalSection>
+
+        <ModalSection
+          icon={<Pill className="size-4" />}
+          title="Datos Del Tratamiento"
+          defaultCollapsed={false}
+        >
+          {selected ? (
+            <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+              <Fact label="Medicamento">{selected.medication}</Fact>
+              <Fact label="Sucursal">{selected.branch_name ?? '—'}</Fact>
+              <Fact label="Doctor">{selected.prescriber_name ?? '—'}</Fact>
+              <Fact label="Unidades Por Envase">
+                {selected.quantity_per_cycle}
+              </Fact>
+              <Fact label="Fin De Cobertura">
+                {selected.coverage_end_on
+                  ? formatDate(selected.coverage_end_on)
+                  : 'Sin fecha'}
+              </Fact>
             </dl>
+          ) : (
+            <p className="text-muted text-sm">
+              Elige el paciente y su tratamiento para ver el medicamento, la
+              sucursal y la cobertura de los que se repone.
+            </p>
           )}
         </ModalSection>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <ModalSection icon={<RefreshCw className="size-4" />} title="Ciclo">
-            <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Embudo</span>
-              <input
-                value="Ciclo de Reposición"
-                readOnly
-                tabIndex={-1}
-                className={readOnlyFieldClass}
+        {selected && (
+          <>
+            {/* El formulario de dosis va en un portal: sin esto su submit burbujea y registraría la reposición. */}
+            <div onSubmit={(event) => event.stopPropagation()}>
+              <DoseScheduleCard
+                treatmentId={selected.id}
+                medicationLabel={selected.medication}
+                doseUnit={selected.dose_unit}
               />
-            </label>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="grid gap-1.5">
-                <span className="text-ink text-sm font-medium">
-                  Tipo de Ciclo
-                </span>
-                <select
-                  value={type}
-                  onChange={(event) => setType(event.target.value)}
-                  className={fieldClass}
-                >
-                  <option value="">Sin Definir</option>
-                  {cycleTypeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="grid gap-1.5">
-                <span className="text-ink text-sm font-medium">Prioridad</span>
-                <select
-                  value={priority}
-                  onChange={(event) => setPriority(event.target.value)}
-                  className={fieldClass}
-                >
-                  <option value="">Sin Definir</option>
-                  {cyclePriorityOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
             </div>
-          </ModalSection>
-
-          <ModalSection
-            icon={<CalendarDays className="size-4" />}
-            title="Información del Ciclo"
-          >
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="grid gap-1.5">
-                <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
-                  Cantidad
-                </span>
-                <input
-                  value={quantity}
-                  onChange={(event) => setQuantity(event.target.value)}
-                  placeholder="—"
-                  aria-invalid={showErrors && !quantity.trim()}
-                  className={fieldClass}
-                />
-                {showErrors && !quantity.trim() && (
-                  <p className="text-xs text-red-700">Campo requerido.</p>
-                )}
-              </label>
-              <label className="grid gap-1.5">
-                <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
-                  Fecha de Cierre
-                </span>
-                <input
-                  type="date"
-                  value={coverageEndOn}
-                  onChange={(event) => setCoverageEndOn(event.target.value)}
-                  aria-invalid={showErrors && !coverageEndOn}
-                  className={fieldClass}
-                />
-                {showErrors && !coverageEndOn && (
-                  <p className="text-xs text-red-700">Campo requerido.</p>
-                )}
-              </label>
-            </div>
-            <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Responsable</span>
-              <select
-                value={responsibleUserId}
-                onChange={(event) => setResponsibleOverride(event.target.value)}
-                className={fieldClass}
-              >
-                <option value="">Sin Responsable</option>
-                {(users.data?.data ?? []).map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </ModalSection>
-        </div>
-
-        <ModalSection
-          icon={<Package className="size-4" />}
-          title="Producto Y Sucursal"
-        >
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Sucursal</span>
-              <select
-                value={branchId}
-                onChange={(event) => setBranchOverride(event.target.value)}
-                className={fieldClass}
-              >
-                <option value="">Seleccione…</option>
-                {(me?.branches ?? []).map((branch) => (
-                  <option key={branch.id} value={branch.id}>
-                    {branch.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Producto</span>
-              <select
-                value={medicationId}
-                onChange={(event) => setMedicationOverride(event.target.value)}
-                className={fieldClass}
-              >
-                <option value="">Seleccione…</option>
-                {(medications.data?.data ?? []).map((medication) => (
-                  <option key={medication.id} value={medication.id}>
-                    {medicationName(medication)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </ModalSection>
+            <CoverageSection treatment={selected} />
+          </>
+        )}
 
         {create.isError && (
           <p role="alert" className="text-sm text-red-700">
@@ -523,19 +349,8 @@ export function NewCycleDialog({
         )}
 
         <FormActions>
-          <Button
-            type="button"
-            onClick={onClose}
-            className="hover:border-red-200 hover:bg-red-50 hover:text-red-800"
-          >
+          <Button type="button" onClick={onClose}>
             Cancelar
-          </Button>
-          <Button
-            type="button"
-            disabled={create.isPending}
-            onClick={() => submitWith(true)}
-          >
-            {creatingAgain ? 'Registrando…' : 'Registrar y agregar otra'}
           </Button>
           <Button
             type="submit"
@@ -543,7 +358,7 @@ export function NewCycleDialog({
             disabled={create.isPending}
             className="hover:bg-emerald-700"
           >
-            {creatingFinal ? 'Registrando…' : 'Registrar Reposición'}
+            {create.isPending ? 'Registrando…' : 'Registrar Reposición'}
           </Button>
         </FormActions>
       </form>

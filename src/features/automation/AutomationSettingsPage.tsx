@@ -316,7 +316,7 @@ export default function AutomationSettingsPage() {
               className="w-full sm:w-auto"
               disabled={save.isPending}
             >
-              {save.isPending ? 'Guardando…' : 'Guardar automatización'}
+              {save.isPending ? 'Guardando…' : 'Guardar Automatización'}
             </Button>
           </FormActions>
         </form>
@@ -343,13 +343,13 @@ export default function AutomationSettingsPage() {
           onClick={() => setKillDialogOpen(true)}
         >
           <Power className="size-4" />
-          Detener todos los envíos
+          Detener Todos Los Envíos
         </Button>
       </section>
 
       {killDialogOpen && (
         <Dialog
-          title="Detener todos los envíos"
+          title="Detener Todos Los Envíos"
           description="Esto apaga la automatización para toda la organización de inmediato."
           onClose={() => setKillDialogOpen(false)}
         >
@@ -378,7 +378,7 @@ export default function AutomationSettingsPage() {
               disabled={killSwitch.isPending}
               onClick={() => killSwitch.mutate()}
             >
-              {killSwitch.isPending ? 'Deteniendo…' : 'Sí, detener todo'}
+              {killSwitch.isPending ? 'Deteniendo…' : 'Sí, Detener Todo'}
             </Button>
           </FormActions>
         </Dialog>

@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
 import { HeartPulse } from 'lucide-react'
 import { FormFields, FormFooter } from '@/components/ui/FormMode'
+import { useStatusDraftChanged } from '@/components/ui/StatusDraft'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
@@ -30,11 +31,12 @@ export function HealthConditionForm({
   /** Desbloquea los campos desde el botón Editar del modo ver. */
   onEdit?: () => void
 }) {
+  const statusChanged = useStatusDraftChanged()
   const {
     register,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<HealthConditionFormValues>({
     resolver: zodResolver(healthConditionSchema),
     defaultValues: condition
@@ -121,6 +123,7 @@ export function HealthConditionForm({
         onEdit={onEdit}
         onClose={onCancel}
         submitting={submitting}
+        unchanged={Boolean(condition) && !isDirty && !statusChanged}
         submitLabel={condition ? 'Guardar Cambios' : 'Crear Condición'}
       />
     </form>

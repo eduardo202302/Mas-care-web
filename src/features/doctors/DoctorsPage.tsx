@@ -1,3 +1,4 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -5,15 +6,21 @@ import {
   BadgeCheck,
   Phone,
   Plus,
-  Search,
   Stethoscope,
   ToggleRight,
   UserRound,
 } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { Dialog } from '@/components/ui/Dialog'
+import { PurgeDialog } from '@/components/ui/PurgeDialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import {
   ActiveFilterChips,
   AdvancedFilterButton,
@@ -24,9 +31,11 @@ import {
   type ActiveFilterChip,
 } from '@/components/ui/AdvancedFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { MoreBubble } from '@/components/ui/MoreBubble'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
-import { api } from '@/lib/http'
+import { editTitle } from '@/lib/editTitle'
+import { api, ApiError } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { useCan } from '@/lib/permissions'
 import { formatPhone } from '@/lib/phone'
@@ -44,18 +53,21 @@ type DoctorWithLinks = components['schemas']['Doctor'] & {
 }
 type DoctorList =
   paths['/api/v1/doctors']['get']['responses'][200]['content']['application/json']
-type DoctorQuery = NonNullable<
-  paths['/api/v1/doctors']['get']['parameters']['query']
->
+type ActiveFilter = 'true' | 'false' | 'all'
+type DoctorQuery = Omit<
+  NonNullable<paths['/api/v1/doctors']['get']['parameters']['query']>,
+  'isActive'
+> & { isActive?: ActiveFilter }
 
-const DEFAULT_ACTIVE = 'true' as 'true' | 'false'
-const activeOptions: { value: 'true' | 'false'; label: string }[] = [
+const DEFAULT_ACTIVE = 'true' as ActiveFilter
+const activeOptions: { value: ActiveFilter; label: string }[] = [
   { value: 'true', label: 'Activos' },
   { value: 'false', label: 'Inactivos' },
+  { value: 'all', label: 'Todos' },
 ]
 
 type DoctorFilters = {
-  isActive: 'true' | 'false'
+  isActive: ActiveFilter
   name: string
   license: string
   phone: string
@@ -77,6 +89,15 @@ function uniqueSorted(
   const set = new Set(values.filter((value): value is string => !!value))
   for (const value of selected) if (value) set.add(value)
   return [...set].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }))
+}
+
+/** Nombres de las clínicas activas del médico. */
+function clinicNames(item: DoctorWithLinks) {
+  return (
+    item.medicalCenters
+      ?.filter((link) => link.isActive)
+      .map((link) => link.medicalCenter.name) ?? []
+  )
 }
 
 const textFilters: {
@@ -119,6 +140,8 @@ export default function DoctorsPage() {
   const [sort, toggleSort] = useColumnSort()
   const [editing, setEditing] = useState<DoctorWithLinks | null>(null)
   const [formOpen, setFormOpen] = useState(false)
+  const [purging, setPurging] = useState<DoctorWithLinks | null>(null)
+  const statusDraft = useStatusDraft(editing?.isActive ?? true)
 
   const filters = useMemo<DoctorQuery>(
     () => ({ q: search.trim() || undefined, isActive, page, rows }),
@@ -160,6 +183,11 @@ export default function DoctorsPage() {
           .map((link) => link.medicalCenterId) ?? [],
         values.medicalCenterIds,
       )
+      if (editing && statusDraft.changed)
+        await toggleActive.mutateAsync({
+          id: editing.id,
+          active: statusDraft.value,
+        })
       return doctor
     },
     onSuccess: async () => {
@@ -173,18 +201,38 @@ export default function DoctorsPage() {
         `/api/v1/doctors/${encodeURIComponent(id)}`,
         { method: 'PATCH', body: JSON.stringify({ isActive: active }) },
       ),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['doctors'] }),
+    onSuccess: (updated) => {
+      setEditing((current) =>
+        current && current.id === updated.id
+          ? { ...current, isActive: updated.isActive }
+          : current,
+      )
+      return queryClient.invalidateQueries({ queryKey: ['doctors'] })
+    },
+  })
+  const purge = useMutation({
+    mutationFn: (id: string) =>
+      api(`/api/v1/doctors/${encodeURIComponent(id)}/permanent`, {
+        method: 'DELETE',
+      }),
+    onSuccess: async () => {
+      setPurging(null)
+      await queryClient.invalidateQueries({ queryKey: ['doctors'] })
+    },
   })
 
   function closeForm() {
+    statusDraft.reset()
     setFormOpen(false)
     setEditing(null)
   }
   function openCreate() {
+    statusDraft.reset()
     setEditing(null)
     setFormOpen(true)
   }
   function openEdit(item: DoctorWithLinks) {
+    statusDraft.reset()
     setEditing(item)
     setFormOpen(true)
   }
@@ -244,9 +292,7 @@ export default function DoctorsPage() {
     <span key="id" className="text-muted font-mono text-xs">
       {item.numericId}
     </span>,
-    <span key="state" className="text-muted">
-      {item.isActive ? 'Activo' : 'Inactivo'}
-    </span>,
+    <StatusBadge key="state" active={item.isActive} />,
     <span key="name" className="text-petroleo font-semibold">
       {item.firstName} {item.lastName}
     </span>,
@@ -256,18 +302,21 @@ export default function DoctorsPage() {
     <span key="phone" className="text-muted">
       {item.phone ? formatPhone(item.phone) : ''}
     </span>,
-    <div key="specialties" className="flex flex-wrap gap-1">
-      {item.specialties?.length
-        ? item.specialties.map((link) => (
-            <span
-              key={link.specialty.id}
-              className="bg-surface text-muted rounded-full px-2 py-0.5 text-xs"
-            >
-              {link.specialty.name}
-            </span>
-          ))
-        : null}
+    <div key="specialties" className="flex items-center gap-1">
+      {specialtyNames(item)[0] && (
+        <span className="bg-surface text-muted rounded-full px-2 py-0.5 text-xs">
+          {specialtyNames(item)[0]}
+        </span>
+      )}
+      <MoreBubble
+        label="Otras especialidades"
+        items={specialtyNames(item).slice(1)}
+      />
     </div>,
+    <span key="clinic" className="text-muted inline-flex items-center gap-1">
+      {clinicNames(item)[0]}
+      <MoreBubble label="Otras clínicas" items={clinicNames(item).slice(1)} />
+    </span>,
   ])
   const exportHeaders = [
     'ID',
@@ -276,6 +325,7 @@ export default function DoctorsPage() {
     'Colegiatura',
     'Teléfono',
     'Especialidades',
+    'Clínica',
   ]
   const exportRows = items.map((item) => [
     String(item.numericId),
@@ -284,6 +334,7 @@ export default function DoctorsPage() {
     item.licenseNumber || '',
     item.phone ? formatPhone(item.phone) : '',
     item.specialties?.map((link) => link.specialty.name).join(', ') || '',
+    clinicNames(item).join(', '),
   ])
   const chips: ActiveFilterChip[] = []
   if (applied.isActive !== DEFAULT_ACTIVE)
@@ -300,11 +351,13 @@ export default function DoctorsPage() {
     <RowActions
       key={item.id}
       label={`${item.firstName} ${item.lastName}`}
-      deleteLabel={item.isActive ? 'Desactivar' : 'Activar'}
       onEdit={canWrite ? () => openEdit(item) : undefined}
-      onDelete={
+      onPurge={
         canWrite
-          ? () => toggleActive.mutate({ id: item.id, active: !item.isActive })
+          ? () => {
+              purge.reset()
+              setPurging(item)
+            }
           : undefined
       }
     />
@@ -320,26 +373,23 @@ export default function DoctorsPage() {
             {canWrite && (
               <Button variant="primary" onClick={openCreate}>
                 <Plus className="size-4" />
-                Nuevo Médico
+                Crear Médico
               </Button>
             )}
           </>
         }
       />
       <FilterBarRow aria-label="Filtros">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar Médicos"
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value)
-              setPage(1)
-            }}
-            placeholder="Nombre o colegiatura"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar Médicos"
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value)
+            setPage(1)
+          }}
+          placeholder="Nombre o colegiatura"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -389,7 +439,7 @@ export default function DoctorsPage() {
               onChange={(event) =>
                 setFilterDraft({
                   ...filterDraft,
-                  isActive: event.target.value as 'true' | 'false',
+                  isActive: event.target.value as ActiveFilter,
                 })
               }
               className={`${filterControlClass} pl-11`}
@@ -434,7 +484,7 @@ export default function DoctorsPage() {
       )}
       <div className="min-h-0 flex-1">
         {doctors.isFetching ? (
-          <TableSkeleton columns={6} />
+          <TableSkeleton columns={7} />
         ) : (
           <DataTable
             columns={[
@@ -444,6 +494,7 @@ export default function DoctorsPage() {
               'Colegiatura',
               'Teléfono',
               'Especialidades',
+              'Clínica',
             ]}
             rows={tableRows}
             actions={rowActions}
@@ -480,23 +531,58 @@ export default function DoctorsPage() {
         )}
       </div>
       {formOpen && (
-        <Dialog
-          title={editing ? 'Editar Médico' : 'Nuevo Médico'}
-          icon={<Stethoscope className="size-5" />}
-          compactHeader
-          description="Datos de contacto y colegiatura del Médico."
-          bodyClassName="pt-2"
-          onClose={closeForm}
-          size="lg"
-        >
-          <DoctorForm
-            key={editing?.id ?? 'new'}
-            doctor={editing ?? undefined}
-            onSave={(values) => save.mutateAsync(values).then(() => undefined)}
-            onCancel={closeForm}
-            submitting={save.isPending}
-          />
-        </Dialog>
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={
+              editing
+                ? editTitle(
+                    'médico',
+                    `${editing.firstName} ${editing.lastName}`,
+                  )
+                : 'Crear Médico'
+            }
+            icon={<Stethoscope className="size-5" />}
+            compactHeader
+            description="Datos de contacto y colegiatura del Médico."
+            bodyClassName="pt-2"
+            onClose={closeForm}
+            size="lg"
+            headerAction={
+              editing && canWrite ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={save.isPending}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
+            }
+          >
+            <DoctorForm
+              key={editing?.id ?? 'new'}
+              doctor={editing ?? undefined}
+              onSave={(values) =>
+                save.mutateAsync(values).then(() => undefined)
+              }
+              onCancel={closeForm}
+              submitting={save.isPending}
+            />
+          </Dialog>
+        </StatusDraftProvider>
+      )}
+      {purging && (
+        <PurgeDialog
+          name={`${purging.firstName} ${purging.lastName}`}
+          confirming={purge.isPending}
+          error={
+            purge.isError
+              ? purge.error instanceof ApiError
+                ? purge.error.message
+                : 'No pudimos borrar el médico.'
+              : undefined
+          }
+          onConfirm={() => purge.mutate(purging.id)}
+          onClose={() => setPurging(null)}
+        />
       )}
     </div>
   )

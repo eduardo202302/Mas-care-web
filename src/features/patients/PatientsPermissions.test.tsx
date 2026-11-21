@@ -124,7 +124,7 @@ describe('permisos de lectura', () => {
       expect(screen.getByText('Paciente de lectura')).toBeInTheDocument(),
     )
     expect(
-      screen.queryByRole('button', { name: 'Nuevo paciente' }),
+      screen.queryByRole('button', { name: 'Crear paciente' }),
     ).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Editar' }),
@@ -155,7 +155,7 @@ describe('permisos de lectura', () => {
       expect(screen.getByText('Marca demo')).toBeInTheDocument(),
     )
     expect(
-      screen.queryByRole('button', { name: 'Nuevo medicamento' }),
+      screen.queryByRole('button', { name: 'Crear medicamento' }),
     ).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Editar Marca demo' }),

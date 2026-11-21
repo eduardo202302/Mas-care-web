@@ -130,7 +130,7 @@ export const taskReminderOptions = [
   { value: '1440', label: '1 día antes' },
 ] as const
 
-export type TaskStatus = 'open' | 'done' | 'cancelled'
+export type TaskStatus = 'open' | 'in_progress' | 'done' | 'cancelled'
 export type Task = {
   id: string
   organizationId: string
@@ -170,20 +170,20 @@ export type TaskList = {
   rows: number
 }
 
-export const taskFilters = ['all', 'today', 'overdue', 'upcoming'] as const
-export type TaskFilter = (typeof taskFilters)[number]
+export const taskTabs = ['open', 'in_progress', 'done'] as const
+export type TaskTab = (typeof taskTabs)[number]
 
-export const taskFilterLabels: Record<TaskFilter, string> = {
-  all: 'Todas',
-  today: 'Hoy',
-  overdue: 'Vencidas',
-  upcoming: 'Próximas',
+export const taskTabLabels: Record<TaskTab, string> = {
+  open: 'Pendientes',
+  in_progress: 'En proceso',
+  done: 'Terminadas',
 }
 
 export function taskStatusLabel(status: TaskStatus): string {
-  if (status === 'done') return 'Completada'
+  if (status === 'done') return 'Terminada'
+  if (status === 'in_progress') return 'En proceso'
   if (status === 'cancelled') return 'Cancelada'
-  return 'Abierta'
+  return 'Pendiente'
 }
 
 export function isTaskDueToday(task: Task): boolean {
@@ -198,8 +198,59 @@ export function isTaskDueToday(task: Task): boolean {
 }
 
 export function isTaskOverdue(task: Task): boolean {
-  if (!task.dueAt || task.status !== 'open') return false
+  if (!task.dueAt || (task.status !== 'open' && task.status !== 'in_progress'))
+    return false
   return new Date(task.dueAt).getTime() < Date.now()
+}
+
+export type TaskEventType =
+  'comment' | 'status_changed' | 'rescheduled' | 'assigned' | 'updated'
+
+export type TaskEvent = {
+  id: string
+  taskId: string
+  type: TaskEventType
+  body: string | null
+  metadata: Record<string, unknown>
+  authorId: string | null
+  createdAt: string
+  author: { id: string; name: string } | null
+}
+
+const taskFieldLabels: Record<string, string> = {
+  type: 'tipo',
+  title: 'título',
+  description: 'descripción',
+  priority: 'prioridad',
+  reminder_minutes_before: 'recordatorio',
+  patient: 'paciente',
+}
+
+/** Texto legible de un evento del historial de la tarea (no aplica a comentarios). */
+export function taskEventLabel(event: TaskEvent): string {
+  const meta = event.metadata
+  if (event.type === 'status_changed') {
+    const from = taskStatusLabel(meta.from as TaskStatus)
+    const to = taskStatusLabel(meta.to as TaskStatus)
+    return `Estado: ${from} → ${to}`
+  }
+  if (event.type === 'rescheduled') {
+    const from = meta.from ? formatDateTime(String(meta.from)) : 'Sin fecha'
+    return `Reprogramada: ${from} → ${formatDateTime(String(meta.to))}`
+  }
+  if (event.type === 'assigned') {
+    const from = meta.from ? String(meta.from) : 'Sin asignar'
+    const to = meta.to ? String(meta.to) : 'Sin asignar'
+    return `Asignación: ${from} → ${to}`
+  }
+  if (event.type === 'updated') {
+    const fields = Array.isArray(meta.fields) ? meta.fields : []
+    const names = fields.map(
+      (field) => taskFieldLabels[String(field)] ?? String(field),
+    )
+    return names.length ? `Editó: ${names.join(', ')}` : 'Editó la tarea'
+  }
+  return event.body ?? ''
 }
 
 export type RefillCycle = {
@@ -546,7 +597,21 @@ export function formatDateTime(value: string | null | undefined): string {
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    hourCycle: 'h23',
   }).format(date)
+}
+
+/** Fecha y hora con la hora en formato de 24 horas, ej. "16/11/2026, 15:45:00". */
+export function formatTimestamp(value: string | number | Date): string {
+  return new Date(value).toLocaleString('es', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  })
 }
 
 export function taskDueLabel(task: Task): string {
@@ -577,8 +642,8 @@ const activityLabels: Record<string, string> = {
   // Paciente
   patient_created: 'Paciente Registrado',
   patient_updated: 'Datos del Paciente Actualizados',
-  patient_archived: 'Paciente Archivado',
-  patient_restored: 'Paciente Restaurado',
+  patient_archived: 'Paciente Inactivado',
+  patient_restored: 'Paciente Activado',
   consent_recorded: 'Consentimiento Registrado',
   transfer: 'Paciente Trasladado',
   // Tratamiento

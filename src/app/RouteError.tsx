@@ -79,11 +79,11 @@ export function RouteError() {
             className="w-full sm:w-auto"
           >
             <RefreshCw className="size-4" aria-hidden="true" />
-            Recargar página
+            Recargar Página
           </Button>
           <a
             href="/inicio"
-            className="border-border text-ink hover:bg-surface inline-flex h-10 w-full items-center justify-center rounded-lg border bg-white px-4 text-sm font-semibold transition sm:w-auto"
+            className="border-border text-ink bg-modulos inline-flex h-10 w-full items-center justify-center rounded-lg border px-4 text-sm font-semibold transition hover:bg-[#c3e9cf] sm:w-auto"
           >
             Volver al inicio
           </a>

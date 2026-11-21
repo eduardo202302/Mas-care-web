@@ -27,7 +27,7 @@ test('registro, pacientes, vistas guardadas y logout', async ({ page }) => {
   ).toBeVisible()
   await page.getByRole('button', { name: `Editar ${branchName}` }).click()
   await page.getByLabel('Nombre de sucursal').fill(updatedBranchName)
-  await page.getByRole('button', { name: 'Guardar cambios' }).click()
+  await page.getByRole('button', { name: 'Guardar Cambios' }).click()
   await expect(
     page.getByRole('table').getByText(updatedBranchName, { exact: true }),
   ).toBeVisible()
@@ -47,13 +47,13 @@ test('registro, pacientes, vistas guardadas y logout', async ({ page }) => {
   const patientName = `Paciente E2E ${suffix}`
   const duplicateName = `Paciente duplicado ${suffix}`
   await page.goto('/pacientes')
-  await page.getByRole('button', { name: 'Nuevo paciente' }).click()
+  await page.getByRole('button', { name: 'Crear paciente' }).click()
   await page.getByLabel('Nombre completo').fill(patientName)
   await page.getByRole('textbox', { name: 'Teléfono' }).fill(phone)
   await page.getByRole('button', { name: 'Crear paciente' }).click()
   await expect(page.getByRole('link', { name: patientName })).toBeVisible()
 
-  await page.getByRole('button', { name: 'Nuevo paciente' }).click()
+  await page.getByRole('button', { name: 'Crear paciente' }).click()
   await page.getByLabel('Nombre completo').fill(duplicateName)
   await page.getByRole('textbox', { name: 'Teléfono' }).fill(phone)
   await expect(page.getByRole('status')).toContainText(patientName)

@@ -3,12 +3,19 @@ import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
-import { ChevronDown, Pill } from 'lucide-react'
+import { ChevronDown, Pill, Printer } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 import { FormFields, FormFooter } from '@/components/ui/FormMode'
+import { useStatusDraftChanged } from '@/components/ui/StatusDraft'
+import { authClient } from '@/lib/auth-client'
+import { printTable } from '@/lib/print-table'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
-import { listMedicationAttachments } from '@/lib/medication-attachments'
+import {
+  fetchAttachmentBlob,
+  listMedicationAttachments,
+} from '@/lib/medication-attachments'
 import type { components } from '@/lib/api-types'
 import {
   medicationSchema,
@@ -56,6 +63,10 @@ export function MedicationForm({
   onEdit?: () => void
 }) {
   const [staged, setStaged] = useState<StagedAttachment[]>([])
+  const statusChanged = useStatusDraftChanged()
+  const activeOrganization = authClient.useActiveOrganization()
+  const organizations = authClient.useListOrganizations()
+  const sessionUser = authClient.useSession().data?.user
   const attachments = useQuery({
     queryKey: ['medication-attachments', medication?.id],
     queryFn: () => listMedicationAttachments(medication!.id),
@@ -67,8 +78,9 @@ export function MedicationForm({
   const {
     register,
     handleSubmit,
+    getValues,
     setError,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<MedicationFormValues>({
     resolver: zodResolver(medicationSchema),
     defaultValues: medication
@@ -89,6 +101,55 @@ export function MedicationForm({
           unitsPerPackage: undefined,
         },
   })
+
+  async function printMedication() {
+    const values = getValues()
+    let imageUrl: string | undefined
+    try {
+      const stagedImage = staged.find(
+        (item) => item.isPrimary && item.file.type.startsWith('image/'),
+      )
+      const blob = stagedImage
+        ? stagedImage.file
+        : medication && primaryImageId
+          ? await fetchAttachmentBlob(medication.id, primaryImageId)
+          : undefined
+      if (blob) {
+        imageUrl = URL.createObjectURL(blob)
+        const objectUrl = imageUrl
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000)
+      }
+    } catch {
+      imageUrl = undefined
+    }
+    printTable({
+      imageUrl,
+      company:
+        activeOrganization.data?.name ?? organizations.data?.[0]?.name ?? '',
+      user: sessionUser?.name || sessionUser?.email,
+      title: 'Medicamento',
+      headers: [
+        'Nombre Comercial',
+        'Nombre Genérico',
+        'Principio Activo',
+        'Presentación',
+        'Unidad de Dosis',
+        'Unidades por Envase',
+      ],
+      rows: [
+        [
+          values.brandName ?? '',
+          values.genericName ?? '',
+          values.activeIngredient ?? '',
+          values.presentation ?? '',
+          values.doseUnit ?? '',
+          Number.isFinite(values.unitsPerPackage)
+            ? String(values.unitsPerPackage)
+            : '',
+        ],
+      ],
+    })
+  }
 
   async function submit(values: MedicationFormValues) {
     try {
@@ -156,7 +217,7 @@ export function MedicationForm({
 
         <ModalSection
           icon={<Pill className="size-4" />}
-          title="Presentación y Dosis"
+          title="Presentación Y Dosis"
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField
@@ -236,8 +297,19 @@ export function MedicationForm({
       <FormFooter
         readOnly={readOnly}
         onEdit={onEdit}
+        extra={
+          <Button
+            type="button"
+            className="w-full bg-white hover:bg-[#c3e9cf] sm:w-auto"
+            onClick={printMedication}
+          >
+            <Printer className="size-4" />
+            Imprimir
+          </Button>
+        }
         onClose={onCancel}
         submitting={submitting}
+        unchanged={Boolean(medication) && !isDirty && !statusChanged}
         submitLabel={medication ? 'Guardar Cambios' : 'Crear Medicamento'}
       />
     </form>

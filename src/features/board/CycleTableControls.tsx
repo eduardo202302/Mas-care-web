@@ -349,7 +349,7 @@ export function ColumnPicker({
       </Button>
       {open && (
         <Dialog
-          title="Columnas de la tabla"
+          title="Columnas de la Tabla"
           description="Se guardan para tu usuario."
           onClose={() => setOpen(false)}
         >
@@ -424,9 +424,12 @@ export function ColumnPicker({
 export function SavedViewsBar({
   current,
   onApply,
+  onClear,
 }: {
   current: () => Pick<SavedView, 'filters' | 'columns' | 'sort'>
   onApply: (view: SavedView) => void
+  /** "Sin vista": back to the normal board (no filters, default sort and columns). */
+  onClear: () => void
 }) {
   const views = useSavedViews('cycles')
   const { create, remove } = useSaveView('cycles')
@@ -447,6 +450,7 @@ export function SavedViewsBar({
             setSelected(event.target.value)
             const view = list.find((item) => item.id === event.target.value)
             if (view) onApply(view)
+            else onClear()
           }}
         >
           <option value="">Sin vista</option>
@@ -458,7 +462,7 @@ export function SavedViewsBar({
         </select>
       </label>
       <Button type="button" className="h-9" onClick={() => setSaving(true)}>
-        Guardar vista actual
+        Guardar Vista Actual
       </Button>
       <Button
         type="button"
@@ -469,11 +473,11 @@ export function SavedViewsBar({
           remove.mutate(selected, { onSuccess: () => setSelected('') })
         }
       >
-        Borrar vista
+        Borrar Vista
       </Button>
       {saving && (
         <Dialog
-          title="Guardar vista"
+          title="Guardar Vista"
           description="Guarda filtros, orden y columnas actuales."
           onClose={() => setSaving(false)}
         >
@@ -520,7 +524,7 @@ export function SavedViewsBar({
                 className="w-full sm:w-auto"
                 disabled={create.isPending}
               >
-                {create.isPending ? 'Guardando…' : 'Guardar vista'}
+                {create.isPending ? 'Guardando…' : 'Guardar Vista'}
               </Button>
             </FormActions>
           </form>
@@ -536,7 +540,7 @@ const actionLabels: Record<BatchAction, string> = {
   assign_responsible: 'Asignar responsable',
   change_stage: 'Cambiar etapa',
   create_tasks: 'Crear tareas',
-  archive: 'Archivar',
+  archive: 'Cancelar ciclos',
 }
 
 /** Batch actions over the checked rows. Nothing runs until the confirmation dialog is accepted. */
@@ -684,7 +688,7 @@ export function BatchBar({
                 disabled={run.isPending}
                 onClick={() => run.mutate(true)}
               >
-                Mover igualmente {blocked.length} sin existencias
+                Mover Igualmente {blocked.length} Sin Existencias
               </Button>
             )}
             {!result && (
@@ -695,7 +699,7 @@ export function BatchBar({
                 disabled={run.isPending || needsTitle}
                 onClick={() => run.mutate(false)}
               >
-                Confirmar y aplicar a {ids.length}
+                Confirmar Y Aplicar a {ids.length}
               </Button>
             )}
           </FormActions>

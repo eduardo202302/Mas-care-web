@@ -1,3 +1,4 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Pencil, Plus, Star, Tag } from 'lucide-react'
@@ -80,7 +81,7 @@ export function LabelTemplatesTab() {
             }}
           >
             <Plus className="size-4" />
-            Nueva Etiqueta
+            Crear Etiqueta
           </Button>
         )}
       </div>
@@ -129,7 +130,7 @@ export function LabelTemplatesTab() {
                 }}
               >
                 <Plus className="size-4" />
-                Nueva Etiqueta
+                Crear Etiqueta
               </Button>
             ) : undefined
           }
@@ -172,15 +173,7 @@ export function LabelTemplatesTab() {
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span
-                    className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
-                      template.isActive
-                        ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-                        : 'border-slate-200 bg-slate-100 text-slate-700'
-                    }`}
-                  >
-                    {template.isActive ? 'Activa' : 'Inactiva'}
-                  </span>
+                  <StatusBadge active={template.isActive} feminine />
                   {branch ? (
                     <BranchTag
                       name={branch.name}

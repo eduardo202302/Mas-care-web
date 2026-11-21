@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
 import { TextField } from '@/components/ui/TextField'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { useMe } from '@/lib/permissions'
 
 export type AddressMapValue = {
@@ -281,7 +282,7 @@ function AddressMapDialog({
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <TextField
+              <TextAreaField
                 label="Dirección"
                 value={draft.address}
                 onChange={(event) =>
@@ -351,7 +352,7 @@ function AddressMapDialog({
           disabled={loading}
           onClick={() => onApply(draft)}
         >
-          Usar esta Ubicación
+          Usar Esta Ubicación
         </Button>
       </FormActions>
     </Dialog>

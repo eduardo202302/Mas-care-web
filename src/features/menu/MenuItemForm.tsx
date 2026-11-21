@@ -5,6 +5,7 @@ import { ChevronDown, ListTree, TextCursorInput } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { useStatusDraftChanged } from '@/components/ui/StatusDraft'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
 import { cn } from '@/lib/cn'
@@ -102,12 +103,14 @@ export function MenuItemForm({
     register,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<MenuItemFormValues>({
     resolver: zodResolver(menuItemFormSchema),
     defaultValues: initialValues ?? emptyValues,
   })
   const editing = mode === 'edit'
+  const statusChanged = useStatusDraftChanged()
+  const unchanged = editing && !isDirty && !statusChanged
 
   async function submit(values: MenuItemFormValues) {
     try {
@@ -141,7 +144,7 @@ export function MenuItemForm({
     <form noValidate className="grid gap-5" onSubmit={handleSubmit(submit)}>
       <ModalSection
         icon={<TextCursorInput className="size-4" />}
-        title="Datos del Ítem"
+        title="Datos Del Ítem"
       >
         <TextField
           label="Nombre"
@@ -190,7 +193,7 @@ export function MenuItemForm({
 
       <ModalSection
         icon={<ListTree className="size-4" />}
-        title="Ubicación y Visibilidad"
+        title="Ubicación Y Visibilidad"
       >
         <SelectField
           id="menu-parent"
@@ -212,16 +215,18 @@ export function MenuItemForm({
             superior.
           </p>
         )}
-        <label className="border-border flex cursor-pointer items-center gap-3 rounded-lg border p-3">
-          <input
-            type="checkbox"
-            {...register('isActive')}
-            className="accent-tealmax size-4 cursor-pointer"
-          />
-          <span className="text-ink text-sm font-medium">
-            Activo (Visible en el Menú)
-          </span>
-        </label>
+        {!editing && (
+          <label className="border-border flex cursor-pointer items-center gap-3 rounded-lg border p-3">
+            <input
+              type="checkbox"
+              {...register('isActive')}
+              className="accent-tealmax size-4 cursor-pointer"
+            />
+            <span className="text-ink text-sm font-medium">
+              Activo (Visible en el Menú)
+            </span>
+          </label>
+        )}
       </ModalSection>
       {errors.root?.server?.message && (
         <p
@@ -239,7 +244,10 @@ export function MenuItemForm({
           type="submit"
           variant="primary"
           className="w-full sm:w-auto"
-          disabled={submitting}
+          disabled={submitting || unchanged}
+          title={
+            unchanged && !submitting ? 'No hay cambios para guardar' : undefined
+          }
         >
           {submitting
             ? 'Guardando…'

@@ -77,12 +77,9 @@ export const cycleColumns: ColumnDef[] = [
   { key: 'medication', label: 'Medicamento' },
   { key: 'status', label: 'Estado del ciclo' },
   { key: 'stage', label: 'Etapa' },
-  { key: 'expected_on', label: 'Fecha prevista' },
+  { key: 'delivered_on', label: 'Fecha de entrega' },
   { key: 'derived', label: 'Estado derivado' },
-  { key: 'days', label: 'Días' },
-  { key: 'responsible', label: 'Responsable' },
   { key: 'next_action', label: 'Próxima acción' },
-  { key: 'stock', label: 'Existencias' },
 ]
 
 export type SavedView = {

@@ -52,7 +52,7 @@ test('crear tratamiento, pausar con motivo y ajustar cobertura', async ({
 
   const patient = `Paciente Tratamiento ${suffix}`
   await page.goto('/pacientes')
-  await page.getByRole('button', { name: 'Nuevo paciente' }).click()
+  await page.getByRole('button', { name: 'Crear paciente' }).click()
   await page.getByLabel('Nombre completo').fill(patient)
   await page.getByLabel('Sucursal', { exact: true }).selectOption({
     label: branch,

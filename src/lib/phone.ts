@@ -25,9 +25,9 @@ export function formatPhone(phone: string | null | undefined): string {
 /**
  * Formats a phone number while it is being typed: progressive Dominican
  * Republic NANP grouping `(809) 555-1234`, or `+1 (809) 555-1234` when the
- * user starts with `+1` / a leading `1`. Non-digit characters are dropped and
- * input is capped at 10 national digits (11 with the country code), so it can
- * be used directly as an input mask.
+ * user starts with `+1` / a leading `1`. Letters and any other non-digit
+ * characters are dropped and input is capped at 10 national digits (11 with
+ * the country code), so it can be used directly as an input mask.
  */
 export function maskPhoneInput(value: string): string {
   const raw = value.trim()

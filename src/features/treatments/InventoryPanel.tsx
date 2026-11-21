@@ -71,6 +71,7 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
   const [adjustOpen, setAdjustOpen] = useState(false)
   const [thresholdOpen, setThresholdOpen] = useState(false)
   const [thresholdValue, setThresholdValue] = useState('')
+  const [initialThreshold, setInitialThreshold] = useState('')
 
   const summary = useQuery({
     queryKey: ['treatments', treatmentId, 'inventory'],
@@ -142,6 +143,13 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
     },
   })
 
+  // El API devuelve "10.000"; el input puede tener "10": se compara como número.
+  const thresholdUnchanged =
+    thresholdValue.trim() === initialThreshold.trim() ||
+    (thresholdValue.trim() !== '' &&
+      initialThreshold.trim() !== '' &&
+      Number(thresholdValue) === Number(initialThreshold))
+
   const setThreshold = useMutation({
     mutationFn: () =>
       api(
@@ -167,17 +175,28 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
         <h2 className="text-petroleo font-semibold">Inventario</h2>
         <div className="flex flex-wrap gap-2">
           {canPurchase && (
-            <Button onClick={() => setPurchaseOpen(true)}>
+            <Button
+              className="bg-white hover:bg-[#c3e9cf]"
+              onClick={() => setPurchaseOpen(true)}
+            >
               Compra Externa
             </Button>
           )}
           {canAdjust && (
-            <Button onClick={() => setAdjustOpen(true)}>Ajustar</Button>
+            <Button
+              className="bg-white hover:bg-[#c3e9cf]"
+              onClick={() => setAdjustOpen(true)}
+            >
+              Ajustar
+            </Button>
           )}
           {canSetThreshold && (
             <Button
+              className="bg-white hover:bg-[#c3e9cf]"
               onClick={() => {
-                setThresholdValue(summary.data?.low_inventory_threshold ?? '')
+                const current = summary.data?.low_inventory_threshold ?? ''
+                setThresholdValue(current)
+                setInitialThreshold(current)
                 setThresholdOpen(true)
               }}
             >
@@ -443,7 +462,10 @@ export function InventoryPanel({ treatmentId }: { treatmentId: string }) {
                 variant="primary"
                 type="submit"
                 className="w-full sm:w-auto"
-                disabled={setThreshold.isPending}
+                disabled={setThreshold.isPending || thresholdUnchanged}
+                title={
+                  thresholdUnchanged ? 'No hay cambios para guardar' : undefined
+                }
               >
                 {setThreshold.isPending ? 'Guardando…' : 'Guardar'}
               </Button>

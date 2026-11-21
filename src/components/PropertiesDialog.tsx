@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { SlidersHorizontal } from 'lucide-react'
 import { Dialog } from '@/components/ui/Dialog'
+import { SearchField } from '@/components/ui/SearchField'
 
 export type PropertyGroup = {
   name: string
@@ -42,17 +43,14 @@ export function PropertiesDialog({
       onClose={onClose}
       size="lg"
     >
-      <label className="relative mb-3 block">
-        <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-        <input
-          type="search"
-          aria-label="Buscar propiedad"
-          placeholder="Buscar propiedad o valor"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm outline-none focus:ring-2"
-        />
-      </label>
+      <SearchField
+        wrapperClassName="mb-3"
+        aria-label="Buscar propiedad"
+        placeholder="Buscar propiedad o valor"
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none focus:ring-2"
+      />
 
       <div className="app-scroll grid max-h-[55vh] gap-3 overflow-y-auto pr-1">
         {visible.length === 0 && (

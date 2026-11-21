@@ -1,3 +1,4 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -7,13 +8,19 @@ import {
   MapPin,
   MessageCircle,
   Plus,
-  Search,
   UserRound,
 } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { TruncatedText } from '@/components/ui/MoreBubble'
 import { Dialog } from '@/components/ui/Dialog'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { PurgeDialog } from '@/components/ui/PurgeDialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import {
   ActiveFilterChips,
   AdvancedFilterButton,
@@ -28,7 +35,8 @@ import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { BranchTag } from '@/components/BranchTag'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
-import { api } from '@/lib/http'
+import { editTitle } from '@/lib/editTitle'
+import { api, ApiError } from '@/lib/http'
 import { PAGE_ROWS, pageQuery } from '@/lib/paging'
 import { formatPhone } from '@/lib/phone'
 import { useCan } from '@/lib/permissions'
@@ -61,8 +69,15 @@ function addressValues(details: BranchAddressDetails) {
   }
 }
 
+type ArchivedFilter = 'true' | 'false' | 'all'
+const archivedOptions: { value: ArchivedFilter; label: string }[] = [
+  { value: 'false', label: 'Activas' },
+  { value: 'true', label: 'Inactivas' },
+  { value: 'all', label: 'Todas' },
+]
+
 type BranchFilters = {
-  archived: 'true' | 'false'
+  archived: ArchivedFilter
   name: string
   address: string
   sector: string
@@ -150,9 +165,10 @@ export default function BranchesPage() {
   >(null)
   const [formOpen, setFormOpen] = useState(false)
   const [viewOnly, setViewOnly] = useState(false)
-  const [archiving, setArchiving] = useState<
+  const [purging, setPurging] = useState<
     components['schemas']['Branch'] | null
   >(null)
+  const statusDraft = useStatusDraft(!editing?.archivedAt)
   const [search, setSearch] = useState('')
   // El servidor solo filtra por archivadas: el resto se aplica sobre la página cargada.
   const [applied, setApplied] = useState<BranchFilters>(emptyFilters)
@@ -166,11 +182,17 @@ export default function BranchesPage() {
     queryKey: ['branches', 'table', archived, page, rows],
     queryFn: () =>
       api<BranchList>(
-        `/api/v1/branches?${pageQuery({ archived, page, rows })}`,
+        `/api/v1/branches?${pageQuery({ archived, page, rows, scope: 'organization' })}`,
       ),
   })
+  // The workspace selector reads branches from /me, so it must refresh too.
+  const refreshBranches = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['branches'] }),
+      queryClient.invalidateQueries({ queryKey: ['me'] }),
+    ])
   const save = useMutation({
-    mutationFn: (values: BranchFormValues) => {
+    mutationFn: async (values: BranchFormValues) => {
       // The address fields travel inside addressDetails, not at the top level.
       const rest = Object.fromEntries(
         Object.entries(values).filter(([key]) => !addressFields.has(key)),
@@ -187,10 +209,17 @@ export default function BranchesPage() {
       const payload = { ...rest, addressDetails: toAddressDetails(values) }
       if (editing) {
         const body: components['schemas']['BranchPatch'] = payload
-        return api<components['schemas']['Branch']>(
+        const updated = await api<components['schemas']['Branch']>(
           `/api/v1/branches/${encodeURIComponent(editing.id)}`,
           { method: 'PATCH', body: JSON.stringify(body) },
         )
+        // El estado se aplica después de guardar; un 409 al archivar llega al formulario.
+        if (statusDraft.changed)
+          await toggleActive.mutateAsync({
+            id: editing.id,
+            active: statusDraft.value,
+          })
+        return updated
       }
       const body: components['schemas']['BranchInput'] = payload
       return api<components['schemas']['Branch']>('/api/v1/branches', {
@@ -199,42 +228,64 @@ export default function BranchesPage() {
       })
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['branches'] })
+      await refreshBranches()
       closeForm()
     },
   })
-  const remove = useMutation({
-    mutationFn: (id: string) =>
-      api(`/api/v1/branches/${encodeURIComponent(id)}`, { method: 'DELETE' }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['branches'] })
-      setArchiving(null)
+  /** Interruptor del formulario de edición: archiva o restaura y refleja el estado en la sucursal abierta. */
+  const toggleActive = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      if (active) {
+        const restored = await api<components['schemas']['Branch']>(
+          `/api/v1/branches/${encodeURIComponent(id)}/restore`,
+          { method: 'POST' },
+        )
+        return restored.archivedAt
+      }
+      await api(`/api/v1/branches/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      })
+      return new Date().toISOString()
+    },
+    onSuccess: (archivedAt, { id }) => {
+      setEditing((current) =>
+        current && current.id === id
+          ? ({ ...current, archivedAt } as typeof current)
+          : current,
+      )
+      return refreshBranches()
     },
   })
-  const restore = useMutation({
+  const purge = useMutation({
     mutationFn: (id: string) =>
-      api<components['schemas']['Branch']>(
-        `/api/v1/branches/${encodeURIComponent(id)}/restore`,
-        { method: 'POST' },
-      ),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['branches'] }),
+      api(`/api/v1/branches/${encodeURIComponent(id)}/permanent`, {
+        method: 'DELETE',
+      }),
+    onSuccess: async () => {
+      setPurging(null)
+      await refreshBranches()
+    },
   })
   function closeForm() {
+    statusDraft.reset()
     setFormOpen(false)
     setEditing(null)
     setViewOnly(false)
   }
   function openCreate() {
+    statusDraft.reset()
     setEditing(null)
     setFormOpen(true)
   }
   function openEdit(branch: components['schemas']['Branch']) {
+    statusDraft.reset()
     setEditing(branch)
     setViewOnly(false)
     setFormOpen(true)
   }
   /** Doble clic en la fila: mismo formulario, pero bloqueado. */
   function openView(branch: components['schemas']['Branch']) {
+    statusDraft.reset()
     setEditing(branch)
     setViewOnly(true)
     setFormOpen(true)
@@ -293,16 +344,22 @@ export default function BranchesPage() {
       <span key="id" className="text-muted font-mono text-xs">
         {branch.numericId}
       </span>,
-      <span key="state" className="text-muted">
-        {branch.archivedAt ? 'Archivado' : 'Activo'}
-      </span>,
+      <StatusBadge key="state" active={!branch.archivedAt} />,
       <BranchTag key="branch" name={name} labelColor={color} />,
       <span
         key="location"
         className="text-muted inline-flex items-center gap-1.5"
       >
-        <MapPin className="size-3.5" />
-        {addressText(branch.addressDetails, 'address') || 'Sin dirección'}
+        <MapPin className="size-3.5 shrink-0" />
+        {addressText(branch.addressDetails, 'address') ? (
+          <TruncatedText
+            text={addressText(branch.addressDetails, 'address')}
+            max={21}
+            label="Dirección completa"
+          />
+        ) : (
+          'Sin dirección'
+        )}
       </span>,
       <span key="sector" className="text-muted">
         {addressText(branch.addressDetails, 'sector') || 'Sin sector'}
@@ -311,9 +368,7 @@ export default function BranchesPage() {
         {branch.managerName ?? 'Sin encargado'}
       </span>,
       <span key="whatsapp" className="text-muted">
-        {branch.managerPhone
-          ? formatPhone(branch.managerPhone)
-          : 'Sin WhatsApp'}
+        {branch.managerPhone ? formatPhone(branch.managerPhone) : ''}
       </span>,
     ]
   })
@@ -321,19 +376,13 @@ export default function BranchesPage() {
     <RowActions
       key={branch.id}
       label={branch.name}
-      deleteLabel="Archivar"
       onEdit={canUpdate ? () => openEdit(branch) : undefined}
-      onDelete={
-        canDelete && !branch.archivedAt
+      onPurge={
+        canDelete
           ? () => {
-              remove.reset()
-              setArchiving(branch)
+              purge.reset()
+              setPurging(branch)
             }
-          : undefined
-      }
-      onRestore={
-        canDelete && branch.archivedAt
-          ? () => restore.mutate(branch.id)
           : undefined
       }
     />
@@ -350,16 +399,24 @@ export default function BranchesPage() {
   ]
   const exportRows = data.map((branch) => [
     String(branch.numericId),
-    branch.archivedAt ? 'Archivado' : 'Activo',
+    branch.archivedAt ? 'Inactivo' : 'Activo',
     branch.name,
     addressText(branch.addressDetails, 'address') || 'Sin dirección',
     addressText(branch.addressDetails, 'sector') || 'Sin sector',
     branch.managerName ?? 'Sin encargado',
-    branch.managerPhone ? formatPhone(branch.managerPhone) : 'Sin WhatsApp',
+    branch.managerPhone ? formatPhone(branch.managerPhone) : '',
   ])
   const chips: ActiveFilterChip[] = [
-    ...(applied.archived === 'true'
-      ? [{ key: 'archived', label: 'Estado', value: 'Archivadas' }]
+    ...(applied.archived !== 'false'
+      ? [
+          {
+            key: 'archived',
+            label: 'Estado',
+            value: archivedOptions.find(
+              (option) => option.value === applied.archived,
+            )!.label,
+          },
+        ]
       : []),
     ...(applied.name
       ? [{ key: 'name', label: 'Sucursal', value: applied.name }]
@@ -389,23 +446,20 @@ export default function BranchesPage() {
             {canCreate && (
               <Button variant="primary" onClick={openCreate}>
                 <Plus className="size-4" />
-                Nueva sucursal
+                Crear Sucursal
               </Button>
             )}
           </>
         }
       />
       <FilterBarRow aria-label="Filtros">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar sucursales"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Nombre, dirección, sector o encargado"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar sucursales"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Nombre, dirección, sector o encargado"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -458,13 +512,16 @@ export default function BranchesPage() {
               onChange={(event) =>
                 setFilterDraft({
                   ...filterDraft,
-                  archived: event.target.value as 'true' | 'false',
+                  archived: event.target.value as ArchivedFilter,
                 })
               }
               className={`${filterControlClass} pl-11`}
             >
-              <option value="false">Activas</option>
-              <option value="true">Archivadas</option>
+              {archivedOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </FilterField>
           {textFilters.map(({ key, label, icon }) => (
@@ -515,7 +572,7 @@ export default function BranchesPage() {
             }}
             emptyTitle={
               archived === 'true'
-                ? 'No hay sucursales archivadas'
+                ? 'No hay sucursales inactivas'
                 : 'Todavía no hay sucursales'
             }
             emptyDescription={
@@ -539,61 +596,67 @@ export default function BranchesPage() {
         )}
       </div>
       {formOpen && (
-        <Dialog
-          title={
-            viewOnly
-              ? 'Ver Sucursal'
-              : editing
-                ? 'Editar Sucursal'
-                : 'Nueva Sucursal'
-          }
-          description="Completa los datos de este punto de atención."
-          icon={<Building2 className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          onClose={closeForm}
-        >
-          <BranchForm
-            key={editing?.id ?? 'new'}
-            initialValues={
-              editing
-                ? {
-                    name: editing.name,
-                    labelColor: editing.labelColor,
-                    ...addressValues(editing.addressDetails),
-                    description: editing.description ?? '',
-                    managerName: editing.managerName ?? '',
-                    managerPhone: editing.managerPhone ?? '',
-                    managerEmail: editing.managerEmail ?? '',
-                  }
-                : undefined
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={
+              viewOnly
+                ? 'Ver Sucursal'
+                : editing
+                  ? editTitle('sucursal', editing?.name)
+                  : 'Crear Sucursal'
             }
-            onSave={submit}
-            onCancel={closeForm}
-            submitting={save.isPending}
-            readOnly={viewOnly}
-            onEdit={() => setViewOnly(false)}
-          />
-        </Dialog>
+            description="Completa los datos de este punto de atención."
+            icon={<Building2 className="size-5" />}
+            compactHeader
+            bodyClassName="pt-3"
+            onClose={closeForm}
+            headerAction={
+              editing && canUpdate ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={save.isPending}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
+            }
+          >
+            <BranchForm
+              key={editing?.id ?? 'new'}
+              initialValues={
+                editing
+                  ? {
+                      name: editing.name,
+                      labelColor: editing.labelColor,
+                      ...addressValues(editing.addressDetails),
+                      description: editing.description ?? '',
+                      managerName: editing.managerName ?? '',
+                      managerPhone: editing.managerPhone ?? '',
+                      managerEmail: editing.managerEmail ?? '',
+                    }
+                  : undefined
+              }
+              onSave={submit}
+              onCancel={closeForm}
+              submitting={save.isPending}
+              readOnly={viewOnly}
+              onEdit={() => setViewOnly(false)}
+            />
+          </Dialog>
+        </StatusDraftProvider>
       )}
-      {archiving && (
-        <ConfirmDialog
-          title="Confirmar"
-          description={
-            <>
-              ¿Está seguro que desea archivar la sucursal{' '}
-              <strong>{archiving.name}</strong>?
-              {remove.isError && (
-                <p role="alert" className="mt-3 text-sm text-red-800">
-                  {remove.error.message}
-                </p>
-              )}
-            </>
+      {purging && (
+        <PurgeDialog
+          name={purging.name}
+          confirming={purge.isPending}
+          error={
+            purge.isError
+              ? purge.error instanceof ApiError
+                ? purge.error.message
+                : 'No pudimos borrar la sucursal.'
+              : undefined
           }
-          confirmLabel="Archivar"
-          confirming={remove.isPending}
-          onConfirm={() => remove.mutate(archiving.id)}
-          onClose={() => setArchiving(null)}
+          onConfirm={() => purge.mutate(purging.id)}
+          onClose={() => setPurging(null)}
         />
       )}
     </div>

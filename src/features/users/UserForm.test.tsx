@@ -32,6 +32,7 @@ async function fillIdentity(user: ReturnType<typeof userEvent.setup>) {
     screen.getByLabelText('Correo Electrónico'),
     'Ana@Example.com',
   )
+  await user.type(screen.getByLabelText('WhatsApp'), '8095551234')
   await user.type(
     screen.getByLabelText('Contraseña Temporal'),
     'Password-2026!',
@@ -66,7 +67,8 @@ describe('UserForm', () => {
 
     await fillIdentity(user)
     await user.selectOptions(screen.getByLabelText('Rol'), 'role-cashier')
-    await user.click(screen.getByLabelText('Centro'))
+    await user.click(screen.getByRole('button', { name: /Sucursales/ }))
+    await user.click(await screen.findByRole('option', { name: /Centro/ }))
     await user.click(screen.getByRole('button', { name: 'Crear Usuario' }))
 
     await waitFor(() =>
@@ -75,13 +77,28 @@ describe('UserForm', () => {
         username: 'ana.op',
         email: 'ana@example.com',
         password: 'Password-2026!',
-        phone: '',
+        phone: '(809) 555-1234',
         pin: screen.getByLabelText<HTMLInputElement>('PIN de Recuperación')
           .value,
         roleId: 'role-cashier',
         branchIds: ['branch-1'],
       }),
     )
+  })
+
+  it('exige el WhatsApp y lo indica en español', async () => {
+    const onSave = vi.fn(async (values: UserCreateValues) => {
+      void values
+    })
+    renderForm(onSave)
+    const user = userEvent.setup()
+
+    await user.type(screen.getByLabelText('Nombre Completo'), 'Ana Operadora')
+    await user.click(screen.getByRole('button', { name: 'Crear Usuario' }))
+
+    expect(await screen.findAllByText('Campo requerido.')).not.toHaveLength(0)
+    expect(screen.getByLabelText('WhatsApp')).toBeRequired()
+    expect(onSave).not.toHaveBeenCalled()
   })
 
   it('exige elegir un rol', async () => {
@@ -106,7 +123,7 @@ describe('UserForm', () => {
     const user = userEvent.setup()
 
     await user.type(screen.getByLabelText('Nombre Completo'), 'Ana Operadora')
-    await user.type(screen.getByLabelText('Usuario'), 'a b')
+    await user.type(screen.getByLabelText('Usuario'), 'a@b')
     await user.type(
       screen.getByLabelText('Correo Electrónico'),
       'ana@example.com',
@@ -119,7 +136,7 @@ describe('UserForm', () => {
     await user.click(screen.getByRole('button', { name: 'Crear Usuario' }))
 
     expect(
-      await screen.findByText(/Usa letras, números, punto, guion/),
+      await screen.findByText(/Usa letras, números, espacio, punto, guion/),
     ).toBeInTheDocument()
     expect(onSave).not.toHaveBeenCalled()
   })
@@ -160,5 +177,34 @@ describe('UserForm', () => {
         }),
       ),
     )
+  })
+
+  it('en edición deshabilita Guardar hasta que haya cambios', async () => {
+    render(
+      <UserForm
+        mode="edit"
+        initialValues={{
+          name: 'Ana',
+          username: 'ana',
+          email: 'ana@example.com',
+          phone: '',
+          roleId: 'role-master',
+          branchIds: ['branch-1'],
+        }}
+        branches={branches}
+        roles={roles}
+        onSave={async () => undefined}
+        onCancel={() => undefined}
+      />,
+    )
+    const user = userEvent.setup()
+    const save = screen.getByRole('button', { name: 'Guardar Cambios' })
+    expect(save).toBeDisabled()
+
+    await user.type(screen.getByLabelText('Nombre Completo'), 'x')
+    expect(save).toBeEnabled()
+
+    await user.type(screen.getByLabelText('Nombre Completo'), '{Backspace}')
+    expect(save).toBeDisabled()
   })
 })

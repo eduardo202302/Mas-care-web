@@ -104,9 +104,9 @@ function decode(
   const [kind, preset] = code.split(':') as ['hours' | 'days', string]
   if (kind === 'days')
     return { ...current, frequencyMode: 'days', daysPreset: preset }
-  // Intervalo de horas: fuera del modal de Nuevo Tratamiento, "Toma" es
+  // Intervalo de horas: fuera del modal de Crear Tratamiento, "Toma" es
   // "Según inicio" - se reparte desde medianoche, sin pedir una hora. En
-  // Nuevo Tratamiento (requireTomaTime) se conserva la hora que el usuario
+  // Crear Tratamiento (requireTomaTime) se conserva la hora que el usuario
   // ya haya elegido en "Toma".
   return {
     ...current,
@@ -139,7 +139,7 @@ export function DoseFrequencyRow({
   unit: string
   value: DoseFrequencyFormValue
   onChange: (value: DoseFrequencyFormValue) => void
-  /** Modal de Nuevo Tratamiento: "Toma" siempre pide una hora concreta, incluso en intervalo de horas. */
+  /** Modal de Crear Tratamiento: "Toma" siempre pide una hora concreta, incluso en intervalo de horas. */
   requireTomaTime?: boolean
   /** Muestra siempre el selector de hora en "Toma", sin cambiar las etiquetas del resto de campos. */
   alwaysShowToma?: boolean
@@ -149,8 +149,8 @@ export function DoseFrequencyRow({
   const needsCustomHours = code === 'hours:custom'
   const needsCustomDays = code === 'days:custom'
   const customDaysCount = Math.floor(Number(value.customDays))
-  // Fuera de Nuevo Tratamiento, un intervalo de horas siempre es "Según
-  // inicio" (sin pedir hora); en Nuevo Tratamiento (requireTomaTime) sí se pide.
+  // Fuera de Crear Tratamiento, un intervalo de horas siempre es "Según
+  // inicio" (sin pedir hora); en Crear Tratamiento (requireTomaTime) sí se pide.
   const showToma = keepTomaTime || value.frequencyMode !== 'hours'
   const isMultiTime =
     value.frequencyMode === 'weekday' || value.frequencyMode === 'monthday'
@@ -396,7 +396,7 @@ export function DoseFrequencyRow({
             }
           >
             <Plus className="size-3.5" />
-            Añadir hora
+            Añadir Hora
           </Button>
         </div>
       )}

@@ -7,6 +7,8 @@ import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextField } from '@/components/ui/TextField'
+import { TextAreaField } from '@/components/ui/TextAreaField'
+import { editTitle } from '@/lib/editTitle'
 import { ApiError, api } from '@/lib/http'
 import { useCan } from '@/lib/permissions'
 import {
@@ -28,6 +30,32 @@ export function addressText(
   if (typeof value === 'string') return value
   if (typeof value === 'number') return String(value)
   return ''
+}
+
+function formKey(values: {
+  fullName: string
+  phone: string
+  relationship: string
+  address: string
+  state: string
+  city: string
+  sector: string
+  latitude: string
+  longitude: string
+  isPrimary: boolean
+}): string {
+  return JSON.stringify([
+    values.fullName.trim(),
+    values.phone.trim(),
+    values.relationship.trim(),
+    values.address.trim(),
+    values.state.trim(),
+    values.city.trim(),
+    values.sector.trim(),
+    values.latitude.trim(),
+    values.longitude.trim(),
+    values.isPrimary,
+  ])
 }
 
 export function PatientCaregiversPanel({
@@ -53,6 +81,8 @@ export function PatientCaregiversPanel({
   const [latitude, setLatitude] = useState('')
   const [longitude, setLongitude] = useState('')
   const [isPrimary, setIsPrimary] = useState(false)
+  // Instantánea del cuidador al abrir la edición, para detectar cambios.
+  const [initialKey, setInitialKey] = useState<string | null>(null)
 
   const caregivers = useQuery({
     queryKey: ['patients', patientId, 'caregivers'],
@@ -117,6 +147,20 @@ export function PatientCaregiversPanel({
 
   function openEdit(caregiver: Caregiver) {
     setEditingId(caregiver.id)
+    setInitialKey(
+      formKey({
+        fullName: caregiver.fullName,
+        phone: maskPhoneInput(caregiver.phone),
+        relationship: caregiver.relationship,
+        address: addressText(caregiver.addressDetails, 'address'),
+        state: addressText(caregiver.addressDetails, 'region'),
+        city: addressText(caregiver.addressDetails, 'city'),
+        sector: addressText(caregiver.addressDetails, 'sector'),
+        latitude: addressText(caregiver.addressDetails, 'latitude'),
+        longitude: addressText(caregiver.addressDetails, 'longitude'),
+        isPrimary: caregiver.isPrimary,
+      }),
+    )
     setFullName(caregiver.fullName)
     setPhone(maskPhoneInput(caregiver.phone))
     setRelationship(caregiver.relationship)
@@ -131,6 +175,7 @@ export function PatientCaregiversPanel({
 
   function closeDialog() {
     setEditingId(null)
+    setInitialKey(null)
     setFullName('')
     setPhone('')
     setRelationship('')
@@ -147,6 +192,21 @@ export function PatientCaregiversPanel({
   }
 
   const items = caregivers.data?.data ?? []
+  const unchanged =
+    Boolean(editingId) &&
+    initialKey !== null &&
+    formKey({
+      fullName,
+      phone,
+      relationship,
+      address,
+      state,
+      city,
+      sector,
+      latitude,
+      longitude,
+      isPrimary,
+    }) === initialKey
   const dialogOpen = addOpen || Boolean(editingId)
   const saving = editingId ? update : add
 
@@ -220,7 +280,14 @@ export function PatientCaregiversPanel({
       )}
       {dialogOpen && (
         <Dialog
-          title={editingId ? 'Editar Cuidador' : 'Agregar Cuidador'}
+          title={
+            editingId
+              ? editTitle(
+                  'cuidador',
+                  items.find((item) => item.id === editingId)?.fullName,
+                )
+              : 'Agregar Cuidador'
+          }
           description={
             editingId
               ? 'Actualiza los datos de este cuidador.'
@@ -243,7 +310,7 @@ export function PatientCaregiversPanel({
           >
             <ModalSection
               icon={<Users className="size-4" />}
-              title="Datos del Cuidador"
+              title="Datos Del Cuidador"
             >
               <div className="grid items-start gap-3 sm:grid-cols-3">
                 <div className="grid gap-1.5">
@@ -308,7 +375,7 @@ export function PatientCaregiversPanel({
             >
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <TextField
+                  <TextAreaField
                     label="Dirección"
                     value={address}
                     onChange={(event) => setAddress(event.target.value)}
@@ -355,7 +422,8 @@ export function PatientCaregiversPanel({
               <Button
                 type="submit"
                 variant="primary"
-                disabled={saving.isPending}
+                disabled={saving.isPending || unchanged}
+                title={unchanged ? 'No hay cambios para guardar' : undefined}
               >
                 {saving.isPending
                   ? 'Guardando…'

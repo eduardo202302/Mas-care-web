@@ -204,7 +204,7 @@ export function ImportButton({
       </Button>
       {open && (
         <Dialog
-          title="Importar desde CSV"
+          title="Importar Desde CSV"
           description="Nada se guarda hasta que confirmes en la vista previa."
           icon={<Upload className="size-5" />}
           compactHeader
@@ -290,7 +290,7 @@ export function ImportButton({
               <ModalSection
                 collapsible={false}
                 icon={<ListChecks className="size-4" />}
-                title="Vista previa"
+                title="Vista Previa"
               >
                 <div className="grid gap-2 text-sm" role="status">
                   <p>
@@ -340,7 +340,7 @@ export function ImportButton({
                   disabled={busy || !file || missingRequired}
                   onClick={validate}
                 >
-                  Vista previa
+                  Vista Previa
                 </Button>
               )}
               {!done && (
@@ -351,7 +351,7 @@ export function ImportButton({
                   disabled={busy || !preview?.valid_rows}
                   onClick={confirm}
                 >
-                  Confirmar importación
+                  Confirmar Importación
                 </Button>
               )}
             </FormActions>

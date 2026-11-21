@@ -50,7 +50,7 @@ export function ResolveIncidentDialog({
 
   return (
     <Dialog
-      title="Resolver incidencia"
+      title="Resolver Incidencia"
       description={`${incidentTypeLabels[incident.type]} · ${incidentBranchName(incident)}`}
       onClose={onClose}
     >
@@ -90,7 +90,7 @@ export function ResolveIncidentDialog({
           </Button>
           <Button type="submit" variant="primary" disabled={resolve.isPending}>
             <CheckCircle2 className="size-4" />
-            {resolve.isPending ? 'Resolviendo…' : 'Resolver incidencia'}
+            {resolve.isPending ? 'Resolviendo…' : 'Resolver Incidencia'}
           </Button>
         </FormActions>
       </form>
@@ -108,6 +108,7 @@ export function AssignIncidentDialog({
   const queryClient = useQueryClient()
   const toast = useToast()
   const [assignedTo, setAssignedTo] = useState(incident.assignedTo ?? '')
+  const unchanged = assignedTo === (incident.assignedTo ?? '')
   const users = useQuery({
     queryKey: ['users', 'incidents'],
     queryFn: () => api<UserList>('/api/v1/users?limit=100'),
@@ -129,7 +130,7 @@ export function AssignIncidentDialog({
 
   return (
     <Dialog
-      title="Asignar incidencia"
+      title="Asignar Incidencia"
       description={incident.patient?.fullName ?? 'Sin paciente'}
       onClose={onClose}
     >
@@ -164,9 +165,18 @@ export function AssignIncidentDialog({
           <Button type="button" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" variant="primary" disabled={assign.isPending}>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={assign.isPending || unchanged}
+            title={
+              unchanged && !assign.isPending
+                ? 'No hay cambios para guardar'
+                : undefined
+            }
+          >
             <UserRound className="size-4" />
-            {assign.isPending ? 'Guardando…' : 'Guardar responsable'}
+            {assign.isPending ? 'Guardando…' : 'Guardar Responsable'}
           </Button>
         </FormActions>
       </form>
@@ -183,7 +193,7 @@ export function IncidentDetailDialog({
 }) {
   return (
     <Dialog
-      title="Detalle de la incidencia"
+      title="Detalle de la Incidencia"
       description={incidentTypeLabels[incident.type]}
       onClose={onClose}
     >

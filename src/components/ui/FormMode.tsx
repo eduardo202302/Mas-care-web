@@ -40,25 +40,32 @@ export function FormFooter({
   onEdit,
   onClose,
   submitting = false,
+  unchanged = false,
   submitLabel,
   savingLabel = 'Guardando…',
   closeLabel = 'Cancelar',
   readOnlyCloseLabel = 'Cerrar',
   compact = false,
+  extra,
 }: {
   readOnly?: boolean
   onEdit?: () => void
   onClose: () => void
   submitting?: boolean
+  /** Edición sin cambios: deshabilita Guardar hasta que el usuario modifique algo. */
+  unchanged?: boolean
   submitLabel: string
   savingLabel?: string
   closeLabel?: string
   readOnlyCloseLabel?: string
   compact?: boolean
+  /** Acción secundaria alineada a la izquierda (p. ej. Imprimir). */
+  extra?: ReactNode
 }) {
   if (readOnly) {
     return (
       <FormActions className={compact ? 'py-2.5' : undefined}>
+        {extra && <div className="flex sm:mr-auto">{extra}</div>}
         <Button
           type="button"
           className={compact ? 'h-9 w-full sm:w-auto' : 'w-full sm:w-auto'}
@@ -82,6 +89,7 @@ export function FormFooter({
   }
   return (
     <FormActions className={compact ? 'py-2.5' : undefined}>
+      {extra && <div className="flex sm:mr-auto">{extra}</div>}
       <Button
         type="button"
         className={compact ? 'h-9 w-full sm:w-auto' : 'w-full sm:w-auto'}
@@ -93,7 +101,10 @@ export function FormFooter({
         type="submit"
         variant="primary"
         className={compact ? 'h-9 w-full sm:w-auto' : 'w-full sm:w-auto'}
-        disabled={submitting}
+        disabled={submitting || unchanged}
+        title={
+          unchanged && !submitting ? 'No hay cambios para guardar' : undefined
+        }
       >
         {submitting ? savingLabel : submitLabel}
       </Button>

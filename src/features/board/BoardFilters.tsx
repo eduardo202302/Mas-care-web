@@ -11,7 +11,6 @@ import {
   Layers,
   ListChecks,
   Pill,
-  Search,
   SlidersHorizontal,
   Tag,
   Trash2,
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
+import { SearchField } from '@/components/ui/SearchField'
 import { api } from '@/lib/http'
 import type { paths } from '@/lib/api-types'
 import { useCustomProperties } from '@/lib/custom-properties'
@@ -83,6 +83,8 @@ const filterChipLabel: Partial<Record<keyof Filters, string>> = {
   derived_status: 'Estado',
   expected_from: 'Desde',
   expected_to: 'Hasta',
+  closed_from: 'Entrega desde',
+  closed_to: 'Entrega hasta',
 }
 
 export function BoardFilters({
@@ -283,16 +285,14 @@ export function BoardFilters({
   return (
     <section aria-label="Filtros del tablero" className="mb-4">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="relative min-w-[220px] flex-1">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar paciente"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar paciente…"
-            className={`${controlClass} pl-9`}
-          />
-        </span>
+        <SearchField
+          wrapperClassName="min-w-[220px] flex-1"
+          aria-label="Buscar paciente"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Buscar paciente…"
+          className={`${controlClass} pl-9`}
+        />
         {meId && (
           <div role="tablist" aria-label="Alcance" className="flex gap-1">
             <button
@@ -303,10 +303,10 @@ export function BoardFilters({
               className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                 !mine
                   ? 'bg-surface text-petroleo border-tealmax border'
-                  : 'border-border text-muted hover:text-ink border bg-white hover:bg-[#c3e9cf]'
+                  : 'border-border text-muted hover:text-ink bg-modulos border hover:bg-[#c3e9cf]'
               }`}
             >
-              Todos los ciclos
+              Todos Los Ciclos
             </button>
             <button
               type="button"
@@ -316,10 +316,10 @@ export function BoardFilters({
               className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                 mine
                   ? 'bg-surface text-petroleo border-tealmax border'
-                  : 'border-border text-muted hover:text-ink border bg-white hover:bg-[#c3e9cf]'
+                  : 'border-border text-muted hover:text-ink bg-modulos border hover:bg-[#c3e9cf]'
               }`}
             >
-              Asignados a mí
+              Asignados a Mí
             </button>
           </div>
         )}
@@ -344,7 +344,7 @@ export function BoardFilters({
               key={key}
               type="button"
               onClick={() => removeFilter(key)}
-              className="border-border text-ink hover:bg-surface flex items-center gap-1 rounded-full border bg-white px-2.5 py-1 text-xs font-medium"
+              className="border-border text-ink bg-modulos flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium hover:bg-[#c3e9cf]"
             >
               {filterChipLabel[key]}: {chipValue(key)}
               <X className="size-3" />
@@ -355,7 +355,7 @@ export function BoardFilters({
               key={`col:${chip.key}`}
               type="button"
               onClick={() => removeColumnChip(chip.key)}
-              className="border-border text-ink hover:bg-surface flex items-center gap-1 rounded-full border bg-white px-2.5 py-1 text-xs font-medium"
+              className="border-border text-ink bg-modulos flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium hover:bg-[#c3e9cf]"
             >
               {chip.label}: {chip.value}
               <X className="size-3" />
@@ -651,6 +651,44 @@ export function BoardFilters({
                 />
               </span>
             </label>
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">
+                Entregado/No entregado desde
+              </span>
+              <span className="relative block">
+                <FieldIcon>
+                  <CalendarDays className="size-4" />
+                </FieldIcon>
+                <input
+                  aria-label="Entregado o no entregado desde"
+                  type="date"
+                  value={draft.closed_from ?? ''}
+                  onChange={(event) =>
+                    setDraftField('closed_from', event.target.value)
+                  }
+                  className={`${controlClass} pl-11`}
+                />
+              </span>
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">
+                Entregado/No entregado hasta
+              </span>
+              <span className="relative block">
+                <FieldIcon>
+                  <CalendarDays className="size-4" />
+                </FieldIcon>
+                <input
+                  aria-label="Entregado o no entregado hasta"
+                  type="date"
+                  value={draft.closed_to ?? ''}
+                  onChange={(event) =>
+                    setDraftField('closed_to', event.target.value)
+                  }
+                  className={`${controlClass} pl-11`}
+                />
+              </span>
+            </label>
           </div>
           <div className="border-border mt-5 flex flex-col-reverse items-stretch justify-between gap-3 border-t pt-4 sm:flex-row sm:items-center">
             <Button
@@ -660,7 +698,7 @@ export function BoardFilters({
               onClick={clearDraft}
             >
               <Trash2 className="size-3.5" />
-              Limpiar filtros
+              Limpiar Filtros
             </Button>
             <div className="flex items-center gap-2">
               <Button
@@ -677,7 +715,7 @@ export function BoardFilters({
                 onClick={applyDraft}
               >
                 <Check className="size-3.5" />
-                Aplicar filtros
+                Aplicar Filtros
               </Button>
             </div>
           </div>

@@ -34,6 +34,8 @@ export function StockMarkDialog({
   const queryClient = useQueryClient()
   const toast = useToast()
   const [level, setLevel] = useState<StockLevel>(initialLevel ?? 'in_stock')
+  // Sin marca previa es una alta: solo hay "sin cambios" si ya existía una marca.
+  const unchanged = initialLevel != null && level === initialLevel
 
   const save = useMutation({
     mutationFn: () => setStockMark(branchId, medicationId, level),
@@ -53,7 +55,7 @@ export function StockMarkDialog({
 
   return (
     <Dialog
-      title="Actualizar existencias"
+      title="Actualizar Existencias"
       description={`${medicationName} · ${branchName}`}
       onClose={onClose}
     >
@@ -109,10 +111,15 @@ export function StockMarkDialog({
             type="submit"
             variant="primary"
             className="w-full sm:w-auto"
-            disabled={save.isPending}
+            disabled={save.isPending || unchanged}
+            title={
+              unchanged && !save.isPending
+                ? 'No hay cambios para guardar'
+                : undefined
+            }
           >
             <PackageSearch className="size-4" />
-            {save.isPending ? 'Guardando…' : 'Guardar existencias'}
+            {save.isPending ? 'Guardando…' : 'Guardar Existencias'}
           </Button>
         </FormActions>
       </form>

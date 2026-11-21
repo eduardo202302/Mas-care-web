@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Info, Printer, Save, Tag } from 'lucide-react'
+import { editTitle } from '@/lib/editTitle'
 import { toTitleCase } from '@/lib/titleCase'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
@@ -96,6 +97,16 @@ export function LabelTemplateFormDialog({
   const [patient, setPatient] = useState<PickerPatient | null>(null)
   const [treatmentChoice, setTreatmentChoice] = useState('')
   const [printing, setPrinting] = useState(false)
+
+  const unchanged =
+    template !== undefined &&
+    name === template.name &&
+    branchId === (template.branchId ?? '') &&
+    widthIn === Number(template.widthIn) &&
+    heightIn === Number(template.heightIn) &&
+    orientation === template.orientation &&
+    isActive === template.isActive &&
+    JSON.stringify(elements) === JSON.stringify(template.elements ?? [])
 
   const sizeChoice = labelSizeChoice(widthIn, heightIn)
   const [paperW, paperH] = labelDims(widthIn, heightIn, orientation)
@@ -250,7 +261,9 @@ export function LabelTemplateFormDialog({
 
   return (
     <Dialog
-      title={template ? 'Editar Plantilla' : 'Nueva Plantilla'}
+      title={
+        template ? editTitle('plantilla', template.name) : 'Crear Plantilla'
+      }
       titleAside={template?.numericId}
       icon={<Tag className="size-5" />}
       compactHeader
@@ -373,7 +386,12 @@ export function LabelTemplateFormDialog({
             form={FORM_ID}
             variant="primary"
             className="bg-emerald-800 text-base hover:bg-emerald-900"
-            disabled={save.isPending}
+            disabled={save.isPending || unchanged}
+            title={
+              unchanged && !save.isPending
+                ? 'No hay cambios para guardar'
+                : undefined
+            }
           >
             <Save className="size-4" />
             {save.isPending ? 'Guardando…' : 'Guardar Etiqueta'}

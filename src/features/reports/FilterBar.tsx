@@ -241,7 +241,7 @@ export function ReportFilterBar({
                       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
                         active
                           ? 'border-tealmax bg-tealmax/10 text-petroleo'
-                          : 'border-border text-muted hover:text-ink bg-white'
+                          : 'border-border text-muted hover:text-ink bg-modulos hover:bg-[#c3e9cf]'
                       }`}
                     >
                       <span

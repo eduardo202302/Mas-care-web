@@ -104,7 +104,7 @@ export function PatientTelegramPanel({
               disabled={create.isPending}
               onClick={() => create.mutate()}
             >
-              Generar enlace de vinculación
+              Generar Enlace de Vinculación
             </Button>
           )}
         </>
@@ -116,7 +116,7 @@ export function PatientTelegramPanel({
       )}
       {link && (
         <Dialog
-          title="Enlace de vinculación"
+          title="Enlace de Vinculación"
           description="Envíaselo al paciente. Es personal, sirve una sola vez y caduca en 7 días."
           onClose={() => setLink(null)}
         >
@@ -139,7 +139,7 @@ export function PatientTelegramPanel({
                   setCopied(true)
                 }}
               >
-                {copied ? 'Copiado' : 'Copiar enlace'}
+                {copied ? 'Copiado' : 'Copiar Enlace'}
               </Button>
               <Button variant="primary" onClick={() => setLink(null)}>
                 Cerrar

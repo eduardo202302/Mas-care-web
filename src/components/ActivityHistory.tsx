@@ -5,7 +5,11 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/EmptyState'
 import { api } from '@/lib/http'
-import { activityDetail, activityTitleFor } from '@/lib/operations'
+import {
+  activityDetail,
+  activityTitleFor,
+  formatTimestamp,
+} from '@/lib/operations'
 import type { paths } from '@/lib/api-types'
 
 type ActivityList =
@@ -124,7 +128,7 @@ export function ActivityHistory({
                   {activityTitleFor(activity)}
                 </p>
                 <time className="text-muted text-xs">
-                  {new Date(activity.occurredAt).toLocaleString('es')}
+                  {formatTimestamp(activity.occurredAt)}
                 </time>
               </div>
               {detail && (

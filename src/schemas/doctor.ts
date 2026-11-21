@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { requiredPhoneField } from './phone'
 
-export const LICENSE_NUMBER_LENGTH = 6
+export const LICENSE_NUMBER_LENGTH = 9
 
 export const doctorSchema = z.object({
   firstName: z.string().trim().min(1, 'Ingresa el nombre.').max(120),

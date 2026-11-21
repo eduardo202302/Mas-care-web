@@ -6,15 +6,20 @@ import {
   Check,
   ChevronDown,
   Copy,
+  Eye,
+  EyeOff,
   KeyRound,
   RefreshCw,
   ShieldCheck,
   UserRound,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { MultiSelect } from '@/components/ui/MultiSelect'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { useStatusDraftChanged } from '@/components/ui/StatusDraft'
 import { TextField } from '@/components/ui/TextField'
 import { cn } from '@/lib/cn'
 import { PHONE_INPUT_MAX_LENGTH, maskPhoneInput } from '@/lib/phone'
@@ -33,7 +38,7 @@ type Props = {
   initialValues?: Pick<
     UserCreateValues,
     'name' | 'username' | 'email' | 'phone' | 'branchIds'
-  > & { roleId?: string }
+  > & { roleId?: string; roleName?: string }
   /** Roles created in the Roles screen; the only ones that can be assigned. */
   roles?: RoleOption[]
   rolesLoading?: boolean
@@ -88,12 +93,53 @@ export function UserForm({
     },
   })
   const [copied, setCopied] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const editing = mode === 'edit'
   const selectedRoleId = watch('roleId')
   const allBranches = Boolean(
     roles.find((candidate) => candidate.id === selectedRoleId)?.allBranches,
   )
   const branchIds = watch('branchIds') ?? []
+  const [currentName, currentUsername, currentEmail, currentPhone] = watch([
+    'name',
+    'username',
+    'email',
+    'phone',
+  ])
+  const statusChanged = useStatusDraftChanged()
+  const initialBranchIds = initialValues?.branchIds ?? []
+  const unchanged =
+    editing &&
+    !statusChanged &&
+    currentName === (initialValues?.name ?? '') &&
+    currentUsername === (initialValues?.username ?? '') &&
+    currentEmail === (initialValues?.email ?? '') &&
+    (currentPhone ?? '') === (initialValues?.phone ?? '') &&
+    (selectedRoleId ?? '') === (initialValues?.roleId ?? '') &&
+    branchIds.length === initialBranchIds.length &&
+    initialBranchIds.every((id) => branchIds.includes(id))
+  const allSelected =
+    branches.length > 0 && branches.every((b) => branchIds.includes(b.id))
+  const [scopeChoice, setScopeChoice] = useState<'all' | 'some' | null>(null)
+  const branchScope = scopeChoice ?? (allSelected ? 'all' : 'some')
+  function chooseBranchScope(scope: 'all' | 'some') {
+    setScopeChoice(scope)
+    if (scope === 'all')
+      setValue(
+        'branchIds',
+        branches.map((branch) => branch.id),
+        { shouldDirty: true, shouldValidate: true },
+      )
+  }
+  // The current role may be missing from `roles` (still loading, no permission
+  // to list roles, or deactivated); keep it visible so editing does not blank it.
+  const missingCurrentRole =
+    editing &&
+    initialValues?.roleId &&
+    initialValues.roleName &&
+    !roles.some((candidate) => candidate.id === initialValues.roleId)
+      ? { id: initialValues.roleId, name: initialValues.roleName }
+      : null
   const control =
     'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2'
   const fieldClass = `${control} placeholder:text-muted/70 transition aria-[invalid=true]:border-red-400`
@@ -120,9 +166,12 @@ export function UserForm({
     }
     try {
       const { roleId, ...rest } = values
+      // Only send the role when it changed: re-sending an unchanged (possibly
+      // deactivated) role would be rejected by the API.
+      const roleChanged = !editing || roleId !== initialValues?.roleId
       await onSave({
         ...rest,
-        ...(roleId ? { roleId } : {}),
+        ...(roleId && roleChanged ? { roleId } : {}),
         email: values.email.trim().toLowerCase(),
       })
     } catch (error) {
@@ -155,7 +204,7 @@ export function UserForm({
     <form noValidate className="grid gap-5" onSubmit={handleSubmit(submit)}>
       <ModalSection
         icon={<UserRound className="size-4" />}
-        title="Datos del Usuario"
+        title="Datos Del Usuario"
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <TextField
@@ -183,6 +232,7 @@ export function UserForm({
           />
           <TextField
             label="WhatsApp"
+            required
             type="tel"
             placeholder="(809) 555-1234"
             inputMode="tel"
@@ -199,7 +249,7 @@ export function UserForm({
       {!editing && (
         <ModalSection
           icon={<KeyRound className="size-4" />}
-          title="Acceso y Credenciales"
+          title="Acceso Y Credenciales"
         >
           <div className="grid gap-1.5">
             <label
@@ -209,17 +259,58 @@ export function UserForm({
               Contraseña Temporal
             </label>
             <div className="flex gap-2">
-              <input
-                id="user-password"
-                type="text"
-                autoComplete="new-password"
-                {...register('password')}
-                aria-invalid={Boolean(errors.password)}
-                aria-describedby={
-                  errors.password ? 'user-password-error' : 'user-password-help'
+              <div className="relative min-w-0 flex-1">
+                <input
+                  id="user-password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  // El placeholder (un espacio) deja saber por CSS si el campo está vacío.
+                  placeholder=" "
+                  {...register('password')}
+                  aria-invalid={Boolean(errors.password)}
+                  aria-describedby={
+                    errors.password
+                      ? 'user-password-error'
+                      : 'user-password-help'
+                  }
+                  className={`${fieldClass} peer w-full pr-9`}
+                />
+                <button
+                  type="button"
+                  aria-label="Borrar contraseña"
+                  title="Borrar contraseña"
+                  className="text-muted hover:text-ink absolute top-1/2 right-2 grid size-6 -translate-y-1/2 place-items-center rounded-md transition peer-placeholder-shown:hidden hover:bg-slate-100"
+                  onClick={() => {
+                    const input = document.getElementById(
+                      'user-password',
+                    ) as HTMLInputElement | null
+                    if (!input) return
+                    // El setter nativo hace que react-hook-form detecte el cambio.
+                    Object.getOwnPropertyDescriptor(
+                      HTMLInputElement.prototype,
+                      'value',
+                    )?.set?.call(input, '')
+                    input.dispatchEvent(new Event('input', { bubbles: true }))
+                    input.focus()
+                  }}
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+              <Button
+                type="button"
+                className="shrink-0 px-3"
+                aria-label={
+                  showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
                 }
-                className={`${fieldClass} min-w-0 flex-1`}
-              />
+                onClick={() => setShowPassword((value) => !value)}
+              >
+                {showPassword ? (
+                  <EyeOff className="size-4" />
+                ) : (
+                  <Eye className="size-4" />
+                )}
+              </Button>
               <Button
                 type="button"
                 className="shrink-0 px-3"
@@ -307,7 +398,7 @@ export function UserForm({
       )}
       <ModalSection
         icon={<ShieldCheck className="size-4" />}
-        title="Rol y Sucursales"
+        title="Rol Y Sucursales"
       >
         <div className="grid gap-1.5">
           <label
@@ -323,6 +414,7 @@ export function UserForm({
             <select
               id="user-role"
               {...register('roleId')}
+              value={selectedRoleId ?? ''}
               aria-invalid={Boolean(errors.roleId)}
               disabled={rolesLoading}
               className={`${fieldClass} appearance-none pr-9`}
@@ -330,6 +422,11 @@ export function UserForm({
               <option value="">
                 {rolesLoading ? 'Cargando roles…' : 'Selecciona un rol'}
               </option>
+              {missingCurrentRole && (
+                <option value={missingCurrentRole.id}>
+                  {missingCurrentRole.name}
+                </option>
+              )}
               {roles.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name}
@@ -372,24 +469,56 @@ export function UserForm({
               ))}
             </div>
           ) : branches.length ? (
-            <div className="grid gap-2 sm:grid-cols-2">
-              {branches.map((branch) => (
-                <label
-                  key={branch.id}
-                  className="border-border bg-surface/50 hover:border-tealmax/40 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition"
-                >
-                  <input
-                    type="checkbox"
-                    value={branch.id}
-                    {...register('branchIds')}
-                    className="accent-tealmax size-4 shrink-0 cursor-pointer"
-                  />
-                  <span className="text-ink text-sm font-medium">
-                    {branch.name}
-                  </span>
-                </label>
-              ))}
-            </div>
+            <>
+              <div
+                role="radiogroup"
+                aria-label="Alcance de sucursales"
+                className="grid gap-2 sm:grid-cols-2"
+              >
+                {(
+                  [
+                    ['all', 'Todas las sucursales'],
+                    ['some', 'Elegir sucursales'],
+                  ] as const
+                ).map(([value, text]) => (
+                  <label
+                    key={value}
+                    className={cn(
+                      'flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition',
+                      branchScope === value
+                        ? 'border-tealmax bg-tealmax/10'
+                        : 'border-border bg-surface/50 hover:border-tealmax/40',
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="branch-scope"
+                      checked={branchScope === value}
+                      onChange={() => chooseBranchScope(value)}
+                      className="accent-tealmax size-4 shrink-0 cursor-pointer"
+                    />
+                    <span className="text-ink text-sm font-semibold">
+                      {text}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              {branchScope === 'some' && (
+                <MultiSelect
+                  label="Sucursales"
+                  placeholder="Selecciona una o más sucursales"
+                  emptyText="No hay sucursales activas."
+                  options={branches}
+                  value={branchIds}
+                  onChange={(ids) =>
+                    setValue('branchIds', ids, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                />
+              )}
+            </>
           ) : (
             <p className="text-muted text-sm">
               No hay sucursales activas. Crea una antes de asignar usuarios.
@@ -427,7 +556,10 @@ export function UserForm({
           type="submit"
           variant="primary"
           className="w-full sm:w-auto"
-          disabled={submitting}
+          disabled={submitting || unchanged}
+          title={
+            unchanged && !submitting ? 'No hay cambios para guardar' : undefined
+          }
         >
           {editing
             ? submitting

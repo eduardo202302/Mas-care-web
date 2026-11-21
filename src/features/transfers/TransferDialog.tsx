@@ -143,7 +143,7 @@ export function TransferDialog({
       >
         <ModalSection
           icon={<ArrowRightLeft className="size-4" />}
-          title="Destino y Motivo"
+          title="Destino Y Motivo"
         >
           <label className="grid gap-1.5">
             <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">

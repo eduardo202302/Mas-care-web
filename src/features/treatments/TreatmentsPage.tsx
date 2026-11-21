@@ -11,11 +11,11 @@ import {
   Pill,
   Plus,
   Printer,
-  Search,
   ShoppingBag,
   Stethoscope,
   UserRound,
 } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { BranchTag } from '@/components/BranchTag'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { ExportButton } from '@/components/ExportButton'
@@ -33,11 +33,18 @@ import {
 } from '@/components/ui/AdvancedFilter'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
+import { PurgeDialog } from '@/components/ui/PurgeDialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
+import { editTitle } from '@/lib/editTitle'
 import { useActiveBranch } from '@/lib/active-branch'
 import { authClient } from '@/lib/auth-client'
-import { api } from '@/lib/http'
+import { api, ApiError } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { printTable } from '@/lib/print-table'
 import { useCan } from '@/lib/permissions'
@@ -51,6 +58,7 @@ import {
   elapsedSinceLabel,
   formatDate,
   formatPurchaseDateTime,
+  medicationFullName,
   medicationName,
   treatmentPauta,
   treatmentStatusLabel,
@@ -59,8 +67,14 @@ import {
   type Treatment,
 } from '@/lib/treatments'
 import type { TreatmentSaveValues } from '@/schemas/treatment'
+import { PatientQuickCreateDialog } from '@/features/patients/PatientQuickCreateDialog'
 import { PatientPicker, type PickerPatient } from './PatientPicker'
 import { TreatmentForm } from './TreatmentForm'
+import {
+  invalidateTreatmentQueries,
+  setTreatmentActive,
+  useTreatmentPurge,
+} from './treatmentMutations'
 
 type MedicationList =
   paths['/api/v1/medications']['get']['responses'][200]['content']['application/json']
@@ -95,7 +109,7 @@ type TreatmentRows = {
   rows: number
 }
 
-type TreatmentStatusFilter = '' | 'active' | 'paused' | 'finished'
+type TreatmentStatusFilter = 'all' | 'active' | 'paused' | 'finished'
 type DerivedStatusFilter =
   | ''
   | 'al_dia'
@@ -105,10 +119,10 @@ type DerivedStatusFilter =
   | 'vencido'
 
 const statusOptions: { value: TreatmentStatusFilter; label: string }[] = [
-  { value: '', label: 'Todos' },
   { value: 'active', label: 'Activos' },
   { value: 'paused', label: 'Pausados' },
   { value: 'finished', label: 'Finalizados' },
+  { value: 'all', label: 'Todos' },
 ]
 const derivedOptions: { value: DerivedStatusFilter; label: string }[] = [
   { value: '', label: 'Todas' },
@@ -134,8 +148,9 @@ type TreatmentFilters = {
   coverageTo: string
 }
 
+/** Sin filtro de estado el servidor devuelve todos los estados, igual que `all`. */
 const emptyFilters: TreatmentFilters = {
-  status: '',
+  status: 'all',
   derived: '',
   branch: '',
   id: '',
@@ -181,6 +196,8 @@ function queryString(query: Record<string, string | number | undefined>) {
 
 export default function TreatmentsPage() {
   const canCreate = useCan('treatments:write')
+  const canManage = useCan('treatments:manage')
+  const [purging, setPurging] = useState<TreatmentRow | null>(null)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { branchId, ready: branchReady } = useActiveBranch()
@@ -195,12 +212,14 @@ export default function TreatmentsPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [patient, setPatient] = useState<PickerPatient | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const canCreatePatient = useCan('patients:write')
+  const [patientFormOpen, setPatientFormOpen] = useState(false)
 
   const filters = useMemo(
     () => ({
       q: search.trim() || undefined,
       branch_id: branchId,
-      status: status || undefined,
+      status: status === 'all' ? undefined : status,
       derived_status: derived || undefined,
       page,
       rows,
@@ -254,18 +273,34 @@ export default function TreatmentsPage() {
     },
   })
 
+  // Inactivo = pausado; el interruptor se aplica recién al guardar.
+  const statusDraft = useStatusDraft(editing.data?.status === 'active')
   const update = useMutation({
-    mutationFn: (values: TreatmentSaveValues) =>
-      updateTreatmentFromForm(editingId!, values),
+    mutationFn: async (values: TreatmentSaveValues) => {
+      await updateTreatmentFromForm(editingId!, values)
+      if (statusDraft.changed)
+        await setTreatmentActive(editingId!, statusDraft.value)
+    },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['treatments'] })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['treatments'] }),
+        statusDraft.changed
+          ? invalidateTreatmentQueries(queryClient)
+          : undefined,
+      ])
       closeEdit()
     },
+  })
+
+  const purge = useTreatmentPurge(() => {
+    setPurging(null)
+    setEditingId(null)
   })
 
   function closeEdit() {
     setEditingId(null)
     update.reset()
+    statusDraft.reset()
   }
 
   function closeForm() {
@@ -333,6 +368,10 @@ export default function TreatmentsPage() {
       }
     },
   )
+  const editingItem = items.find((item) => item.id === editingId)
+  const editingMedication = editingItem
+    ? medicationName(editingItem.medication)
+    : ''
   const tableRows = items.map((item) => {
     const branch = branchMap.get(item.branchId)
     const derivedLabel = derivedStatusLabel(item.derived_status)
@@ -394,12 +433,29 @@ export default function TreatmentsPage() {
   const openDetail = (item: TreatmentRow) =>
     navigate(
       `/pacientes/${encodeURIComponent(item.patientId)}/tratamientos/${encodeURIComponent(item.id)}`,
+      { state: { from: { to: '/tratamientos', label: 'Tratamientos' } } },
     )
   const rowActions = items.map((item) => (
     <RowActions
       key={item.id}
       label={`Tratamiento de ${item.patient_name}`}
-      onEdit={canCreate ? () => setEditingId(item.id) : undefined}
+      onEdit={
+        canCreate
+          ? () => {
+              update.reset()
+              statusDraft.reset()
+              setEditingId(item.id)
+            }
+          : undefined
+      }
+      onPurge={
+        canManage
+          ? () => {
+              purge.reset()
+              setPurging(item)
+            }
+          : undefined
+      }
     />
   ))
 
@@ -418,7 +474,7 @@ export default function TreatmentsPage() {
         String(item.numericId),
         treatmentStatusLabel(item.status),
         item.patient_name,
-        medicationName(item.medication),
+        medicationFullName(item.medication),
         treatmentPauta(item, item.medication, item.active_schedule),
         item.prescriberName || '',
         lastPurchaseAt(item)
@@ -441,11 +497,12 @@ export default function TreatmentsPage() {
   ) => {
     if (applied[key]) chips.push({ key, label, value })
   }
-  addChip(
-    'status',
-    'Estado',
-    statusOptions.find((option) => option.value === status)?.label ?? status,
-  )
+  if (status !== 'all')
+    addChip(
+      'status',
+      'Estado',
+      statusOptions.find((option) => option.value === status)?.label ?? status,
+    )
   addChip(
     'derived',
     'Cobertura',
@@ -476,25 +533,22 @@ export default function TreatmentsPage() {
           canCreate && (
             <Button variant="primary" onClick={() => setFormOpen(true)}>
               <Plus className="size-4" />
-              Nuevo Tratamiento
+              Crear Tratamiento
             </Button>
           )
         }
       />
       <FilterBarRow aria-label="Filtros de tratamientos">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar tratamientos"
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value)
-              setPage(1)
-            }}
-            placeholder="Paciente, medicamento o nombre del tratamiento"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar tratamientos"
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value)
+            setPage(1)
+          }}
+          placeholder="Paciente, medicamento o nombre del tratamiento"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -503,7 +557,7 @@ export default function TreatmentsPage() {
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <Button
             type="button"
-            className="hover:bg-[#c3e9cf]"
+            className="bg-white hover:bg-[#c3e9cf]"
             onClick={printList}
             disabled={!items.length}
             aria-label="Imprimir tratamientos"
@@ -513,7 +567,11 @@ export default function TreatmentsPage() {
           </Button>
           <ExportButton
             entity="treatments"
-            filters={{ q: search.trim(), branchId, status }}
+            filters={{
+              q: search.trim(),
+              branchId,
+              status: status === 'all' ? '' : status,
+            }}
             defaultFormat="xlsx"
             label="Exportar a Excel"
           />
@@ -522,7 +580,10 @@ export default function TreatmentsPage() {
       <ActiveFilterChips
         chips={chips}
         onRemove={(key) => {
-          setApplied((current) => ({ ...current, [key]: '' }))
+          setApplied((current) => ({
+            ...current,
+            [key]: key === 'status' ? 'all' : '',
+          }))
           setPage(1)
         }}
       />
@@ -781,7 +842,7 @@ export default function TreatmentsPage() {
       </div>
       {formOpen && canCreate && (
         <Dialog
-          title="Nuevo Tratamiento"
+          title="Crear Tratamiento"
           description="Elige al paciente y registra los datos del medicamento."
           icon={<Pill className="size-5" />}
           compactHeader
@@ -795,6 +856,9 @@ export default function TreatmentsPage() {
               value={patient}
               onChange={setPatient}
               branchId={branchId}
+              onCreate={
+                canCreatePatient ? () => setPatientFormOpen(true) : undefined
+              }
             />
             {patient ? (
               <TreatmentForm
@@ -818,44 +882,81 @@ export default function TreatmentsPage() {
               </p>
             )}
           </div>
+          {patientFormOpen && canCreatePatient && (
+            <PatientQuickCreateDialog
+              branches={branches.data?.data ?? []}
+              onCreated={(created) => setPatient(created as PickerPatient)}
+              onClose={() => setPatientFormOpen(false)}
+            />
+          )}
         </Dialog>
       )}
       {editingId !== null && canCreate && (
-        <Dialog
-          title="Editar Tratamiento"
-          description="Define la pauta, la cobertura y los datos de la receta."
-          icon={<Pill className="size-5" />}
-          compactHeader
-          printable
-          bodyClassName="pt-0"
-          size="lg"
-          onClose={closeEdit}
-        >
-          {editing.data ? (
-            <TreatmentForm
-              key={editing.data.id}
-              treatment={editing.data}
-              patientName={
-                items.find((item) => item.id === editingId)?.patient_name
-              }
-              medications={medications.data?.data ?? []}
-              branches={branches.data?.data ?? []}
-              doctors={doctors.data?.data ?? []}
-              doctorsLoading={doctors.isLoading}
-              onSave={(values) =>
-                update.mutateAsync(values).then(() => undefined)
-              }
-              onCancel={closeEdit}
-              submitting={update.isPending}
-            />
-          ) : editing.isError ? (
-            <p role="alert" className="text-sm text-red-700">
-              No pudimos cargar el tratamiento. {editing.error.message}
-            </p>
-          ) : (
-            <p className="text-muted text-sm">Cargando tratamiento…</p>
-          )}
-        </Dialog>
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={editTitle(
+              'Tratamiento',
+              editing.data?.name || editingMedication,
+            )}
+            description="Define la pauta, la cobertura y los datos de la receta."
+            icon={<Pill className="size-5" />}
+            compactHeader
+            printable
+            bodyClassName="pt-0"
+            size="lg"
+            onClose={closeEdit}
+            headerAction={
+              editing.data && canManage ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  disabled={editing.data.status === 'finished'}
+                  pending={update.isPending}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
+            }
+          >
+            {editing.data ? (
+              <TreatmentForm
+                key={editing.data.id}
+                treatment={editing.data}
+                patientName={
+                  items.find((item) => item.id === editingId)?.patient_name
+                }
+                medications={medications.data?.data ?? []}
+                branches={branches.data?.data ?? []}
+                doctors={doctors.data?.data ?? []}
+                doctorsLoading={doctors.isLoading}
+                onSave={(values) =>
+                  update.mutateAsync(values).then(() => undefined)
+                }
+                onCancel={closeEdit}
+                submitting={update.isPending}
+              />
+            ) : editing.isError ? (
+              <p role="alert" className="text-sm text-red-700">
+                No pudimos cargar el tratamiento. {editing.error.message}
+              </p>
+            ) : (
+              <p className="text-muted text-sm">Cargando tratamiento…</p>
+            )}
+          </Dialog>
+        </StatusDraftProvider>
+      )}
+      {purging && (
+        <PurgeDialog
+          name={`Tratamiento de ${purging.patient_name} (${medicationName(purging.medication)})`}
+          confirming={purge.isPending}
+          error={
+            purge.isError
+              ? purge.error instanceof ApiError
+                ? purge.error.message
+                : 'No pudimos borrar el tratamiento.'
+              : undefined
+          }
+          onConfirm={() => purge.mutate(purging.id)}
+          onClose={() => setPurging(null)}
+        />
       )}
     </div>
   )

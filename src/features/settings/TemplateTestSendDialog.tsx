@@ -5,6 +5,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
 import { TextField } from '@/components/ui/TextField'
 import { api } from '@/lib/http'
+import { PHONE_INPUT_MAX_LENGTH, maskPhoneInput } from '@/lib/phone'
 
 /** Sends one approved WhatsApp template to a number you type (for example your own phone) to check it. */
 export function TemplateTestSendDialog({
@@ -30,7 +31,7 @@ export function TemplateTestSendDialog({
   })
   return (
     <Dialog
-      title="Enviar prueba"
+      title="Enviar Prueba"
       description={`Envía «${templateName}» a un solo número, con datos de ejemplo. No toca a ningún paciente.`}
       onClose={onClose}
     >
@@ -50,7 +51,8 @@ export function TemplateTestSendDialog({
           required
           type="tel"
           inputMode="tel"
-          placeholder="809 555 0123"
+          maxLength={PHONE_INPUT_MAX_LENGTH}
+          placeholder="(809) 555-1234"
           value={phone}
           error={
             showShort && phone.trim() && phone.trim().length < 7
@@ -58,7 +60,7 @@ export function TemplateTestSendDialog({
               : undefined
           }
           onChange={(event) => {
-            setPhone(event.target.value)
+            setPhone(maskPhoneInput(event.target.value))
             setShowShort(false)
             send.reset()
           }}
@@ -83,7 +85,7 @@ export function TemplateTestSendDialog({
             className="w-full sm:w-auto"
             disabled={send.isPending}
           >
-            {send.isPending ? 'Enviando…' : 'Enviar prueba'}
+            {send.isPending ? 'Enviando…' : 'Enviar Prueba'}
           </Button>
         </FormActions>
       </form>

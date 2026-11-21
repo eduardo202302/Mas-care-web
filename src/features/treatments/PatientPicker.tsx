@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Search, UserRound, X } from 'lucide-react'
+import { Plus, Search, UserRound, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { api } from '@/lib/http'
@@ -25,7 +25,7 @@ function useDebounced(value: string, delay = 250) {
   return debounced
 }
 
-/** Sección "Paciente" del diálogo de Nuevo Tratamiento: busca en el servidor y fija un paciente. */
+/** Sección "Paciente" del diálogo de Crear Tratamiento: busca en el servidor y fija un paciente. */
 export function PatientPicker({
   value,
   onChange,
@@ -34,6 +34,7 @@ export function PatientPicker({
   label = 'Paciente',
   required = true,
   fieldClassName,
+  onCreate,
 }: {
   value: PickerPatient | null
   onChange: (patient: PickerPatient | null) => void
@@ -43,6 +44,8 @@ export function PatientPicker({
   label?: string
   required?: boolean
   fieldClassName?: string
+  /** Si se pasa, muestra un "+" en el encabezado de la sección para crear un paciente. */
+  onCreate?: () => void
 }) {
   const t = (text: string) => (inline ? toTitleCase(text) : text)
   const [search, setSearch] = useState('')
@@ -175,7 +178,24 @@ export function PatientPicker({
   )
   if (inline) return field
   return (
-    <ModalSection icon={<UserRound className="size-4" />} title="Paciente">
+    <ModalSection
+      icon={<UserRound className="size-4" />}
+      title="Paciente"
+      action={
+        onCreate && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="size-6 px-0"
+            aria-label="Crear paciente"
+            title="Crear paciente"
+            onClick={onCreate}
+          >
+            <Plus className="size-4" />
+          </Button>
+        )
+      }
+    >
       {field}
     </ModalSection>
   )

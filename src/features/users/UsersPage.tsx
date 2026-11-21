@@ -1,3 +1,4 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { createPortal } from 'react-dom'
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -8,15 +9,22 @@ import {
   KeyRound,
   MessageCircle,
   MessageSquare,
+  Power,
   ShieldCheck,
   Plus,
   RefreshCw,
-  Search,
   UserRound,
 } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { Dialog } from '@/components/ui/Dialog'
+import { PurgeDialog } from '@/components/ui/PurgeDialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
 import {
@@ -34,6 +42,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
+import { editTitle } from '@/lib/editTitle'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { formatPhone } from '@/lib/phone'
@@ -51,7 +60,11 @@ type UserQuery = NonNullable<
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
 
+const isUserActive = (user: object) =>
+  (user as { isActive?: boolean }).isActive !== false
+
 type UserFilters = {
+  status: '' | 'active' | 'inactive'
   role: string
   branch: string
   whatsapp: string
@@ -61,6 +74,7 @@ type UserFilters = {
 }
 
 const emptyFilters: UserFilters = {
+  status: '',
   role: '',
   branch: '',
   whatsapp: '',
@@ -158,7 +172,7 @@ function UserDetail({
 
       <ModalSection
         icon={<UserRound className="size-4" />}
-        title="Acceso y Rol"
+        title="Acceso Y Rol"
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="grid gap-0.5">
@@ -167,6 +181,11 @@ function UserDetail({
             </dt>
             <dd className="text-ink text-sm font-medium">
               {user.roleName ?? 'Sin rol'}
+              {user.roleActive === false && (
+                <span className="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">
+                  Inactivo
+                </span>
+              )}
             </dd>
           </div>
           <div className="grid gap-0.5">
@@ -316,10 +335,14 @@ export default function UsersPage() {
   const [rows, setRows] = useState(PAGE_ROWS)
   const [selectedId, setSelectedId] = useState('')
   const [formOpen, setFormOpen] = useState(false)
+  const [purging, setPurging] = useState<
+    components['schemas']['OrganizationUser'] | null
+  >(null)
   const [sort, toggleSort] = useColumnSort()
   const [editing, setEditing] = useState<
     components['schemas']['OrganizationUser'] | null
   >(null)
+  const statusDraft = useStatusDraft(editing ? isUserActive(editing) : true)
 
   const filters = useMemo<UserQuery>(
     () => ({ q: search.trim() || undefined, page, rows }),
@@ -338,8 +361,8 @@ export default function UsersPage() {
     enabled: Boolean(selectedId),
   })
   const branches = useQuery({
-    queryKey: ['branches'],
-    queryFn: () => api<BranchList>('/api/v1/branches'),
+    queryKey: ['branches', 'organization'],
+    queryFn: () => api<BranchList>('/api/v1/branches?scope=organization'),
     enabled: formOpen,
   })
   const canReadRoles = useCan('roles:read')
@@ -349,8 +372,10 @@ export default function UsersPage() {
       api<{ data: components['schemas']['Role'][] }>('/api/v1/roles'),
     enabled: formOpen && canReadRoles,
   })
+  // Only active roles can be assigned, but keep the edited user's current role
+  // in the list so opening the form does not blank it.
   const activeRoles = (roles.data?.data ?? []).filter(
-    (candidate) => candidate.isActive,
+    (candidate) => candidate.isActive || candidate.id === editing?.roleId,
   )
   const createUser = useMutation({
     mutationFn: (values: UserCreateValues) => {
@@ -388,7 +413,28 @@ export default function UsersPage() {
       ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['users'] })
-      closeForm()
+    },
+  })
+  const setActive = useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      api<components['schemas']['OrganizationUser']>(
+        `/api/v1/users/${encodeURIComponent(id)}`,
+        { method: 'PATCH', body: JSON.stringify({ isActive }) },
+      ),
+    onSuccess: async (updated) => {
+      await queryClient.invalidateQueries({ queryKey: ['users'] })
+      setEditing((current) => (current ? { ...current, ...updated } : current))
+    },
+  })
+  const purge = useMutation({
+    mutationFn: (id: string) =>
+      api<void>(`/api/v1/users/${encodeURIComponent(id)}/permanent`, {
+        method: 'DELETE',
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['users'] })
+      await queryClient.invalidateQueries({ queryKey: ['roles'] })
+      setPurging(null)
     },
   })
   const regeneratePin = useMutation({
@@ -432,6 +478,8 @@ export default function UsersPage() {
   const matchesFilters = (user: components['schemas']['OrganizationUser']) => {
     const joined = (user.memberSince || user.createdAt || '').slice(0, 10)
     return (
+      (!applied.status ||
+        isUserActive(user) === (applied.status === 'active')) &&
       (!applied.role || userRole(user) === applied.role) &&
       (!applied.branch ||
         user.branches.some((branch) => branch.name === applied.branch)) &&
@@ -448,24 +496,32 @@ export default function UsersPage() {
     (user, index) =>
       index === 0
         ? user.numericId
-        : index === 3
-          ? user.name
+        : index === 1
+          ? String(isUserActive(user))
           : index === 4
-            ? (user.username ?? '')
+            ? user.name
             : index === 5
-              ? (user.phone ?? '')
-              : user.email,
+              ? (user.username ?? '')
+              : index === 6
+                ? (user.phone ?? '')
+                : user.email,
   )
   const tableRows = sortedUsers.map((user) => [
     <span key="id" className="text-muted font-mono text-xs">
       {user.numericId}
     </span>,
+    <StatusBadge key="status" active={isUserActive(user)} />,
     <BranchesCell key="branches" branches={user.branches} />,
     <span
       key="role"
-      className="bg-surface text-petroleo inline-flex rounded-full px-2.5 py-1 text-xs font-semibold"
+      className={
+        user.roleActive === false
+          ? 'inline-flex rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700'
+          : 'bg-surface text-petroleo inline-flex rounded-full px-2.5 py-1 text-xs font-semibold'
+      }
     >
       {user.roleName ?? 'Sin rol'}
+      {user.roleActive === false ? ' · Inactivo' : ''}
     </span>,
     <span
       key="name"
@@ -491,11 +547,20 @@ export default function UsersPage() {
       key={user.id}
       label={user.name}
       onEdit={canManage ? () => openEdit(user) : undefined}
+      onPurge={
+        canManage
+          ? () => {
+              purge.reset()
+              setPurging(user)
+            }
+          : undefined
+      }
     />
   ))
 
   const columnHeaders = [
     'ID',
+    'Estado',
     'Sucursales',
     'Rol',
     'Nombre',
@@ -505,6 +570,7 @@ export default function UsersPage() {
   ]
   const exportRows = sortedUsers.map((user) => [
     String(user.numericId),
+    isUserActive(user) ? 'Activo' : 'Inactivo',
     user.branches.length
       ? user.branches.map((branch) => branch.name).join(', ')
       : 'Sin asignación',
@@ -515,6 +581,15 @@ export default function UsersPage() {
     user.email,
   ])
   const chips: ActiveFilterChip[] = [
+    ...(applied.status
+      ? [
+          {
+            key: 'status',
+            label: 'Estado',
+            value: applied.status === 'active' ? 'Activos' : 'Inactivos',
+          },
+        ]
+      : []),
     ...(applied.role
       ? [{ key: 'role', label: 'Rol', value: applied.role }]
       : []),
@@ -553,14 +628,17 @@ export default function UsersPage() {
     setPage(1)
   }
   function openForm() {
+    statusDraft.reset()
     setEditing(null)
     setFormOpen(true)
   }
   function openEdit(user: components['schemas']['OrganizationUser']) {
+    statusDraft.reset()
     setEditing(user)
     setFormOpen(true)
   }
   function closeForm() {
+    statusDraft.reset()
     setFormOpen(false)
     setEditing(null)
   }
@@ -575,23 +653,20 @@ export default function UsersPage() {
             {canManage && (
               <Button variant="primary" onClick={openForm}>
                 <Plus className="size-4" />
-                Nuevo Usuario
+                Crear Usuario
               </Button>
             )}
           </>
         }
       />
       <FilterBarRow aria-label="Filtros">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar usuarios"
-            value={search}
-            onChange={(event) => updateSearch(event.target.value)}
-            placeholder="Buscar por nombre, usuario o correo"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar usuarios"
+          value={search}
+          onChange={(event) => updateSearch(event.target.value)}
+          placeholder="Buscar por nombre, usuario o correo"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -611,6 +686,11 @@ export default function UsersPage() {
           setPage(1)
         }}
       />
+      {setActive.isError && (
+        <p role="alert" className="mb-2 text-sm text-red-700">
+          {setActive.error.message}
+        </p>
+      )}
       {filterDraft && (
         <AdvancedFilterDialog
           open
@@ -649,6 +729,23 @@ export default function UsersPage() {
                   {option}
                 </option>
               ))}
+            </select>
+          </FilterField>
+          <FilterField label="Estado" icon={<Power className="size-4" />}>
+            <select
+              aria-label="Estado del usuario"
+              value={filterDraft.status}
+              onChange={(event) =>
+                setFilterDraft({
+                  ...filterDraft,
+                  status: event.target.value as UserFilters['status'],
+                })
+              }
+              className={`${filterControlClass} pl-11`}
+            >
+              <option value="">Todos</option>
+              <option value="active">Activos</option>
+              <option value="inactive">Inactivos</option>
             </select>
           </FilterField>
           <FilterField label="Sucursal" icon={<Building2 className="size-4" />}>
@@ -737,7 +834,7 @@ export default function UsersPage() {
             columns={columnHeaders}
             rows={tableRows}
             actions={rowActions}
-            sortableColumns={[0, 3, 4, 5, 6]}
+            sortableColumns={[0, 1, 4, 5, 6, 7]}
             sort={sort}
             onSortChange={toggleSort}
             onRowDoubleClick={(index) => {
@@ -802,59 +899,102 @@ export default function UsersPage() {
         </Dialog>
       )}
       {formOpen && (
-        <Dialog
-          title={editing ? 'Editar Usuario' : 'Nuevo Usuario'}
-          description={
-            editing
-              ? 'Actualiza los datos y el acceso de este usuario.'
-              : 'Crea una cuenta con acceso a esta organización.'
-          }
-          icon={<UserRound className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          onClose={closeForm}
-        >
-          {branches.isError && (
-            <p
-              role="alert"
-              className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
-            >
-              No pudimos cargar las sucursales. {branches.error.message}
-            </p>
-          )}
-          <UserForm
-            key={editing?.id ?? 'new'}
-            mode={editing ? 'edit' : 'create'}
-            initialValues={
-              editing
-                ? {
-                    name: editing.name,
-                    username: editing.username ?? '',
-                    email: editing.email,
-                    phone: editing.phone ?? '',
-                    ...(editing.roleId ? { roleId: editing.roleId } : {}),
-                    branchIds: editing.branches.map((branch) => branch.id),
-                  }
-                : undefined
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={
+              editing ? editTitle('usuario', editing.name) : 'Crear Usuario'
             }
-            roles={activeRoles}
-            rolesLoading={roles.isLoading}
-            branches={branches.data?.data ?? []}
-            branchesLoading={branches.isLoading}
-            onSave={async (values) => {
-              if (editing) {
-                await updateUser.mutateAsync({
-                  id: editing.id,
-                  values,
-                })
-              } else {
-                await createUser.mutateAsync(values)
+            description={
+              editing
+                ? 'Actualiza los datos y el acceso de este usuario.'
+                : 'Crea una cuenta con acceso a esta organización.'
+            }
+            icon={<UserRound className="size-5" />}
+            compactHeader
+            bodyClassName="pt-3"
+            size="lg"
+            onClose={closeForm}
+            headerAction={
+              editing && canManage ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={updateUser.isPending || setActive.isPending}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
+            }
+          >
+            {branches.isError && (
+              <p
+                role="alert"
+                className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+              >
+                No pudimos cargar las sucursales. {branches.error.message}
+              </p>
+            )}
+            <UserForm
+              key={editing?.id ?? 'new'}
+              mode={editing ? 'edit' : 'create'}
+              initialValues={
+                editing
+                  ? {
+                      name: editing.name,
+                      username: editing.username ?? '',
+                      email: editing.email,
+                      phone: editing.phone ?? '',
+                      ...(editing.roleId ? { roleId: editing.roleId } : {}),
+                      ...(editing.roleName
+                        ? { roleName: editing.roleName }
+                        : {}),
+                      branchIds: editing.branches.map((branch) => branch.id),
+                    }
+                  : undefined
               }
-            }}
-            onCancel={closeForm}
-            submitting={createUser.isPending || updateUser.isPending}
-          />
-        </Dialog>
+              roles={activeRoles}
+              rolesLoading={roles.isLoading}
+              branches={branches.data?.data ?? []}
+              branchesLoading={branches.isLoading}
+              onSave={async (values) => {
+                if (editing) {
+                  await updateUser.mutateAsync({
+                    id: editing.id,
+                    values,
+                  })
+                  if (statusDraft.changed) {
+                    try {
+                      await setActive.mutateAsync({
+                        id: editing.id,
+                        isActive: statusDraft.value,
+                      })
+                    } catch (error) {
+                      // El error se muestra en el formulario, no en la página.
+                      setActive.reset()
+                      throw error
+                    }
+                  }
+                  closeForm()
+                } else {
+                  await createUser.mutateAsync(values)
+                }
+              }}
+              onCancel={closeForm}
+              submitting={
+                createUser.isPending ||
+                updateUser.isPending ||
+                setActive.isPending
+              }
+            />
+          </Dialog>
+        </StatusDraftProvider>
+      )}
+      {purging && (
+        <PurgeDialog
+          name={purging.name}
+          confirming={purge.isPending}
+          error={purge.isError ? purge.error.message : undefined}
+          onConfirm={() => purge.mutate(purging.id)}
+          onClose={() => setPurging(null)}
+        />
       )}
     </div>
   )

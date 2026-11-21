@@ -7,7 +7,7 @@ export default function ChipsPage() {
   return (
     <div className="animate-in">
       <PageHeader
-        title="Componentes de estado"
+        title="Componentes de Estado"
         subtitle="Muestra de etiquetas para revisar contraste, color y lectura."
       />
       <section className="border-border rounded-xl border bg-white p-6 md:p-8">

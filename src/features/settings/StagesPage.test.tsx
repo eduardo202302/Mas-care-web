@@ -70,8 +70,8 @@ it('adds a stage under a column, deletes only what is safe, and sends new stages
     screen.getByLabelText('Columna de la nueva etapa'),
     'confirmed',
   )
-  await user.click(screen.getByRole('button', { name: 'Añadir etapa' }))
-  const save = screen.getByRole('button', { name: 'Guardar cambios' })
+  await user.click(screen.getByRole('button', { name: 'Añadir Etapa' }))
+  const save = screen.getByRole('button', { name: 'Guardar Cambios' })
   await user.click(save)
   expect(await screen.findByText('Campo requerido.')).toBeInTheDocument()
   expect(puts).toHaveLength(0)

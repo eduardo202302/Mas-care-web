@@ -1,12 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+import {
+  CalendarClock,
   Check,
   CircleCheck,
   ListChecks,
   PackageCheck,
+  Pencil,
+  Play,
   Plus,
+  RotateCcw,
   X,
 } from 'lucide-react'
 import { BranchFilter } from '@/components/BranchFilter'
@@ -22,22 +31,33 @@ import { useCan } from '@/lib/permissions'
 import {
   isTaskOverdue,
   taskDueLabel,
-  taskFilterLabels,
-  taskFilters,
   taskStatusLabel,
+  taskTabLabels,
+  taskTabs,
   taskTypeLabels,
   type Task,
-  type TaskFilter,
   type TaskList,
+  type TaskStatus,
+  type TaskTab,
 } from '@/lib/operations'
 import { TaskFormDialog } from './TaskFormDialog'
+import { TaskDetailDialog } from './TaskDetailDialog'
+import { TaskRescheduleDialog } from './TaskRescheduleDialog'
 
 function statusClasses(task: Task): string {
   if (task.status === 'done')
     return 'border-emerald-200 bg-emerald-50 text-emerald-900'
   if (task.status === 'cancelled')
     return 'border-slate-200 bg-slate-100 text-slate-700'
+  if (task.status === 'in_progress')
+    return 'border-amber-200 bg-amber-50 text-amber-900'
   return 'border-sky-200 bg-sky-50 text-sky-900'
+}
+
+const statusFeedback: Partial<Record<TaskStatus, string>> = {
+  open: 'Tarea marcada como pendiente',
+  in_progress: 'Tarea en proceso',
+  done: 'Tarea terminada',
 }
 
 export default function TasksPage() {
@@ -45,15 +65,18 @@ export default function TasksPage() {
   const { branchId: activeBranchId, ready: branchReady } = useActiveBranch()
   const canWrite = useCan('tasks:write')
   const canOperate = useCan('treatments:write')
-  const [filter, setFilter] = useState<TaskFilter>('today')
+  const [tab, setTab] = useState<TaskTab>('open')
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState<Task | null>(null)
+  const [rescheduling, setRescheduling] = useState<Task | null>(null)
+  const [viewing, setViewing] = useState<Task | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
 
   useEffect(() => {
     setPage(1)
-  }, [filter, activeBranchId])
+  }, [tab, activeBranchId])
 
   useEffect(() => {
     if (!feedback) return
@@ -62,10 +85,10 @@ export default function TasksPage() {
   }, [feedback])
 
   const tasks = useQuery({
-    queryKey: ['tasks', filter, activeBranchId ?? 'all', page, rows],
+    queryKey: ['tasks', tab, activeBranchId ?? 'all', page, rows],
     queryFn: () => {
       const params = new URLSearchParams({
-        filter,
+        status: tab,
         page: String(page),
         rows: String(rows),
       })
@@ -75,14 +98,33 @@ export default function TasksPage() {
     enabled: branchReady,
   })
 
-  const complete = useMutation({
-    mutationFn: (task: Task) =>
+  // Conteo por pestaña: una consulta de 1 fila por estado, usando `total`.
+  const counts = useQueries({
+    queries: taskTabs.map((value) => ({
+      queryKey: ['tasks', 'count', value, activeBranchId ?? 'all'],
+      queryFn: () => {
+        const params = new URLSearchParams({
+          status: value,
+          page: '1',
+          rows: '1',
+        })
+        if (activeBranchId) params.set('branch_id', activeBranchId)
+        return api<TaskList>(`/api/v1/tasks?${params.toString()}`)
+      },
+      enabled: branchReady,
+    })),
+  })
+
+  const changeStatus = useMutation({
+    mutationFn: ({ task, status }: { task: Task; status: TaskStatus }) =>
       api<Task>(`/api/v1/tasks/${encodeURIComponent(task.id)}`, {
         method: 'PATCH',
-        body: JSON.stringify({ status: 'done' }),
+        body: JSON.stringify({ status }),
       }),
     onSuccess: async (task) => {
-      setFeedback(`Tarea completada: ${task.title}`)
+      setFeedback(
+        `${statusFeedback[task.status] ?? 'Tarea actualizada'}: ${task.title}`,
+      )
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['tasks'] }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
@@ -129,7 +171,9 @@ export default function TasksPage() {
 
   const items = tasks.data?.data ?? []
   const actionError =
-    complete.error?.message ?? cancel.error?.message ?? prepare.error?.message
+    changeStatus.error?.message ??
+    cancel.error?.message ??
+    prepare.error?.message
 
   return (
     <div className="animate-in">
@@ -143,7 +187,7 @@ export default function TasksPage() {
               {canWrite && (
                 <Button variant="primary" onClick={() => setFormOpen(true)}>
                   <Plus className="size-4" />
-                  Nueva tarea
+                  Crear Tarea
                 </Button>
               )}
             </div>
@@ -169,19 +213,20 @@ export default function TasksPage() {
       )}
 
       <div className="border-border mb-4 flex flex-wrap items-center gap-1 rounded-xl border bg-white p-1.5">
-        {taskFilters.map((value) => (
+        {taskTabs.map((value, index) => (
           <button
             key={value}
             type="button"
-            aria-pressed={filter === value}
-            onClick={() => setFilter(value)}
+            aria-pressed={tab === value}
+            onClick={() => setTab(value)}
             className={`h-9 rounded-lg px-3 text-sm font-semibold transition ${
-              filter === value
+              tab === value
                 ? 'bg-tealmax text-white shadow-sm'
                 : 'text-muted hover:text-ink hover:bg-slate-50'
             }`}
           >
-            {taskFilterLabels[value]}
+            {taskTabLabels[value]}
+            {counts[index]?.data ? ` (${counts[index].data.total})` : ''}
           </button>
         ))}
       </div>
@@ -203,17 +248,19 @@ export default function TasksPage() {
           ) : items.length === 0 ? (
             <div className="p-5">
               <EmptyState
-                title={
-                  filter === 'today'
-                    ? 'No hay tareas para hoy'
-                    : 'No hay tareas en este filtro'
-                }
-                description="Crea una tarea o cambia de filtro para ver otros pendientes del equipo."
+                title={`No hay tareas ${
+                  tab === 'open'
+                    ? 'pendientes'
+                    : tab === 'in_progress'
+                      ? 'en proceso'
+                      : 'terminadas'
+                }`}
+                description="Crea una tarea o cambia de estado para ver las demás tareas del equipo."
                 action={
                   canWrite ? (
                     <Button variant="primary" onClick={() => setFormOpen(true)}>
                       <Plus className="size-4" />
-                      Nueva tarea
+                      Crear Tarea
                     </Button>
                   ) : undefined
                 }
@@ -222,8 +269,12 @@ export default function TasksPage() {
           ) : (
             items.map((task) => {
               const overdue = isTaskOverdue(task)
-              const isCompleting =
-                complete.isPending && complete.variables?.id === task.id
+              const changing =
+                changeStatus.isPending &&
+                changeStatus.variables?.task.id === task.id
+              const changingTo = changing
+                ? changeStatus.variables?.status
+                : undefined
               const isCancelling =
                 cancel.isPending && cancel.variables?.id === task.id
               const isPreparing =
@@ -231,7 +282,9 @@ export default function TasksPage() {
               return (
                 <article
                   key={task.id}
-                  className="flex flex-col gap-3 p-5 sm:flex-row sm:items-start sm:justify-between"
+                  title="Doble clic para ver"
+                  onDoubleClick={() => setViewing(task)}
+                  className="flex cursor-pointer flex-col gap-3 p-5 select-none hover:bg-slate-50 sm:flex-row sm:items-start sm:justify-between"
                 >
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -282,47 +335,121 @@ export default function TasksPage() {
                       </span>
                     </div>
                   </div>
-                  {task.status === 'open' && canWrite && (
-                    <div className="flex shrink-0 flex-wrap gap-2">
-                      {task.type === 'prepare_delivery' &&
-                        task.cycleId &&
-                        canOperate && (
-                          <Button
-                            className="h-9 px-3 text-xs"
-                            onClick={() => prepare.mutate(task)}
-                            disabled={isPreparing}
-                            title="Marcar el ciclo como preparado"
-                          >
-                            <PackageCheck className="size-4" />
-                            {isPreparing ? 'Preparando…' : 'Preparado'}
-                          </Button>
-                        )}
+                  {task.status === 'done' && canWrite && (
+                    <div
+                      className="flex shrink-0 flex-wrap gap-2"
+                      onDoubleClick={(event) => event.stopPropagation()}
+                    >
                       <Button
-                        variant="primary"
                         className="h-9 px-3 text-xs"
-                        onClick={() => complete.mutate(task)}
-                        disabled={isCompleting || !task.patientId}
-                        title={
-                          task.patientId
-                            ? 'Completar tarea'
-                            : 'Asocia un paciente para completarla'
+                        onClick={() =>
+                          changeStatus.mutate({ task, status: 'open' })
                         }
+                        disabled={changing}
+                        title="Volver la tarea a pendiente"
                       >
-                        <Check className="size-4" />
-                        {isCompleting ? 'Completando…' : 'Completar'}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="h-9 px-3 text-xs"
-                        onClick={() => cancel.mutate(task)}
-                        disabled={isCancelling}
-                        aria-label={`Cancelar tarea ${task.title}`}
-                      >
-                        <X className="size-4" />
-                        {isCancelling ? 'Cancelando…' : 'Cancelar'}
+                        <RotateCcw className="size-4" />
+                        {changing ? 'Reabriendo…' : 'Reabrir'}
                       </Button>
                     </div>
                   )}
+                  {(task.status === 'open' || task.status === 'in_progress') &&
+                    canWrite && (
+                      <div
+                        className="flex shrink-0 flex-wrap gap-2"
+                        onDoubleClick={(event) => event.stopPropagation()}
+                      >
+                        {task.type === 'prepare_delivery' &&
+                          task.cycleId &&
+                          canOperate && (
+                            <Button
+                              className="h-9 px-3 text-xs"
+                              onClick={() => prepare.mutate(task)}
+                              disabled={isPreparing}
+                              title="Marcar el ciclo como preparado"
+                            >
+                              <PackageCheck className="size-4" />
+                              {isPreparing ? 'Preparando…' : 'Preparado'}
+                            </Button>
+                          )}
+                        {overdue && (
+                          <Button
+                            className="h-9 px-3 text-xs"
+                            onClick={() => setRescheduling(task)}
+                            title="Elegir una nueva fecha de vencimiento"
+                          >
+                            <CalendarClock className="size-4" />
+                            Reprogramar
+                          </Button>
+                        )}
+                        {task.status === 'open' ? (
+                          <Button
+                            className="h-9 px-3 text-xs"
+                            onClick={() =>
+                              changeStatus.mutate({
+                                task,
+                                status: 'in_progress',
+                              })
+                            }
+                            disabled={changing}
+                            title="Marcar la tarea como en proceso"
+                          >
+                            <Play className="size-4" />
+                            {changingTo === 'in_progress'
+                              ? 'Iniciando…'
+                              : 'Iniciar'}
+                          </Button>
+                        ) : (
+                          <Button
+                            className="h-9 px-3 text-xs"
+                            onClick={() =>
+                              changeStatus.mutate({ task, status: 'open' })
+                            }
+                            disabled={changing}
+                            title="Volver la tarea a pendiente"
+                          >
+                            <RotateCcw className="size-4" />
+                            {changingTo === 'open' ? 'Moviendo…' : 'Pendiente'}
+                          </Button>
+                        )}
+                        {task.status === 'in_progress' && (
+                          <Button
+                            variant="primary"
+                            className="h-9 px-3 text-xs"
+                            onClick={() =>
+                              changeStatus.mutate({ task, status: 'done' })
+                            }
+                            disabled={changing || !task.patientId}
+                            title={
+                              task.patientId
+                                ? 'Terminar tarea'
+                                : 'Asocia un paciente para terminarla'
+                            }
+                          >
+                            <Check className="size-4" />
+                            {changingTo === 'done' ? 'Terminando…' : 'Terminar'}
+                          </Button>
+                        )}
+                        <Button
+                          className="h-9 px-3 text-xs"
+                          onClick={() => setEditing(task)}
+                          aria-label={`Editar tarea ${task.title}`}
+                        >
+                          <Pencil className="size-4" />
+                          Editar
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="h-9 px-3 text-xs"
+                          onClick={() => cancel.mutate(task)}
+                          disabled={isCancelling}
+                          aria-label={`Cancelar tarea ${task.title}`}
+                        >
+                          <X className="size-4" />
+                          {isCancelling ? 'Cancelando…' : 'Cancelar'}
+                        </Button>
+                      </div>
+                    )}
                 </article>
               )
             })
@@ -344,14 +471,42 @@ export default function TasksPage() {
       {!items.length && !tasks.isLoading && branchReady && (
         <p className="text-muted mt-4 flex items-center gap-2 text-xs">
           <ListChecks className="size-4" />
-          Las tareas completadas se guardan en el historial del paciente.
+          Las tareas terminadas se guardan en el historial del paciente.
         </p>
       )}
 
       {formOpen && (
         <TaskFormDialog
           onClose={() => setFormOpen(false)}
-          onCreated={() => setFilter('all')}
+          onCreated={() => setTab('open')}
+        />
+      )}
+      {editing && (
+        <TaskFormDialog
+          key={editing.id}
+          task={editing}
+          onClose={() => setEditing(null)}
+          onCreated={() => setFeedback('Tarea actualizada.')}
+        />
+      )}
+      {viewing && (
+        <TaskDetailDialog
+          key={viewing.id}
+          task={viewing}
+          canWrite={canWrite}
+          onClose={() => setViewing(null)}
+          onEdit={() => {
+            setEditing(viewing)
+            setViewing(null)
+          }}
+        />
+      )}
+      {rescheduling && (
+        <TaskRescheduleDialog
+          key={rescheduling.id}
+          task={rescheduling}
+          onClose={() => setRescheduling(null)}
+          onRescheduled={() => setFeedback('Tarea reprogramada.')}
         />
       )}
     </div>

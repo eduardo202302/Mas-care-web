@@ -7,6 +7,7 @@ import { TextField } from '@/components/ui/TextField'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { editTitle } from '@/lib/editTitle'
 import { api } from '@/lib/http'
 import type { paths } from '@/lib/api-types'
 import {
@@ -16,6 +17,7 @@ import {
   taskTypeDefaultTitle,
   taskTypeLabels,
   taskTypes,
+  type Task,
   type TaskPriority,
   type TaskType,
 } from '@/lib/operations'
@@ -31,11 +33,29 @@ export type TaskTreatmentOption = {
   label: string
 }
 
+function pad(value: number) {
+  return String(value).padStart(2, '0')
+}
+
+/** Valor local para <input type="datetime-local"> (YYYY-MM-DDTHH:mm). */
+function toLocalInput(iso: string | null | undefined): string {
+  if (!iso) return ''
+  const date = new Date(iso)
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+/** Hoy a las 00:00 (hora local): mínimo permitido para el vencimiento. */
+function todayStartInput(): string {
+  const now = new Date()
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T00:00`
+}
+
 /** Mismo control que el resto de la app: ancho completo y anillo de foco. */
 const control =
   'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2'
 
 export function TaskFormDialog({
+  task,
   patientId: presetPatientId,
   patientName,
   treatmentId: presetTreatmentId,
@@ -44,6 +64,8 @@ export function TaskFormDialog({
   onClose,
   onCreated,
 }: {
+  /** Si se pasa, el diálogo edita la tarea (PATCH) en vez de crearla. */
+  task?: Task
   patientId?: string
   patientName?: string
   treatmentId?: string
@@ -54,18 +76,47 @@ export function TaskFormDialog({
 }) {
   const queryClient = useQueryClient()
   const activeBranchId = useUiStore((state) => state.activeBranchId)
-  const [type, setType] = useState<TaskType | ''>('')
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [dueAt, setDueAt] = useState('')
-  const [priority, setPriority] = useState<TaskPriority | ''>('')
-  const [reminderMinutesBefore, setReminderMinutesBefore] = useState('')
-  const [assignedTo, setAssignedTo] = useState('')
-  const [patientId, setPatientId] = useState(presetPatientId ?? '')
+  const editing = Boolean(task)
+  const initialDue = toLocalInput(task?.dueAt)
+  const [type, setType] = useState<TaskType | ''>(task?.type ?? '')
+  const [title, setTitle] = useState(task?.title ?? '')
+  const [description, setDescription] = useState(task?.description ?? '')
+  const [dueAt, setDueAt] = useState(initialDue)
+  const [priority, setPriority] = useState<TaskPriority | ''>(
+    task?.priority ?? '',
+  )
+  const [reminderMinutesBefore, setReminderMinutesBefore] = useState(
+    task?.reminderMinutesBefore != null
+      ? String(task.reminderMinutesBefore)
+      : '',
+  )
+  const [assignedTo, setAssignedTo] = useState(task?.assignedTo ?? '')
+  const [patientId, setPatientId] = useState(
+    task?.patientId ?? presetPatientId ?? '',
+  )
   const [treatmentId, setTreatmentId] = useState(presetTreatmentId ?? '')
   const [branchId, setBranchId] = useState(
     presetBranchId ?? activeBranchId ?? '',
   )
+  // En edición, Guardar queda deshabilitado mientras nada difiera de la tarea.
+  const unchanged =
+    task !== undefined &&
+    type === (task.type ?? '') &&
+    title === task.title &&
+    description === (task.description ?? '') &&
+    dueAt === initialDue &&
+    priority === (task.priority ?? '') &&
+    reminderMinutesBefore ===
+      (task.reminderMinutesBefore != null
+        ? String(task.reminderMinutesBefore)
+        : '') &&
+    assignedTo === (task.assignedTo ?? '') &&
+    patientId === (task.patientId ?? presetPatientId ?? '')
+  // Una tarea ya vencida se puede editar sin tocar su fecha original.
+  const minDue =
+    initialDue && initialDue < todayStartInput()
+      ? initialDue
+      : todayStartInput()
 
   const patients = useQuery({
     queryKey: ['patients', 'task-picker'],
@@ -78,25 +129,53 @@ export function TaskFormDialog({
     queryFn: () => api<UserList>('/api/v1/users?limit=100'),
   })
 
+  function createBody() {
+    return {
+      type: type as TaskType,
+      title: title.trim(),
+      ...(description.trim() ? { description: description.trim() } : {}),
+      due_at: new Date(dueAt).toISOString(),
+      priority: priority as TaskPriority,
+      ...(reminderMinutesBefore
+        ? { reminder_minutes_before: Number(reminderMinutesBefore) }
+        : {}),
+      ...(assignedTo ? { assigned_to: assignedTo } : {}),
+      ...(patientId ? { patient_id: patientId } : {}),
+      ...(treatmentId ? { treatment_id: treatmentId } : {}),
+      ...(branchId ? { branch_id: branchId } : {}),
+    }
+  }
+
+  function editBody() {
+    const patientChanged = patientId !== (task?.patientId ?? '')
+    return {
+      type: type as TaskType,
+      title: title.trim(),
+      description: description.trim() || null,
+      // Solo se envía si cambió: el backend rechaza fechas anteriores a hoy.
+      ...(dueAt !== initialDue
+        ? { due_at: new Date(dueAt).toISOString() }
+        : {}),
+      priority: priority as TaskPriority,
+      reminder_minutes_before: reminderMinutesBefore
+        ? Number(reminderMinutesBefore)
+        : null,
+      assigned_to: assignedTo || null,
+      ...(patientChanged
+        ? { patient_id: patientId || null, treatment_id: null }
+        : {}),
+    }
+  }
+
   const create = useMutation({
     mutationFn: () =>
-      api('/api/v1/tasks', {
-        method: 'POST',
-        body: JSON.stringify({
-          type: type as TaskType,
-          title: title.trim(),
-          ...(description.trim() ? { description: description.trim() } : {}),
-          ...(dueAt ? { due_at: new Date(dueAt).toISOString() } : {}),
-          priority: priority as TaskPriority,
-          ...(reminderMinutesBefore
-            ? { reminder_minutes_before: Number(reminderMinutesBefore) }
-            : {}),
-          ...(assignedTo ? { assigned_to: assignedTo } : {}),
-          ...(patientId ? { patient_id: patientId } : {}),
-          ...(treatmentId ? { treatment_id: treatmentId } : {}),
-          ...(branchId ? { branch_id: branchId } : {}),
-        }),
-      }),
+      api(
+        task ? `/api/v1/tasks/${encodeURIComponent(task.id)}` : '/api/v1/tasks',
+        {
+          method: task ? 'PATCH' : 'POST',
+          body: JSON.stringify(task ? editBody() : createBody()),
+        },
+      ),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['tasks'] }),
@@ -123,7 +202,7 @@ export function TaskFormDialog({
 
   return (
     <Dialog
-      title="Nueva Tarea"
+      title={task ? editTitle('tarea', task.title) : 'Crear Tarea'}
       description={
         patientName
           ? `Para ${patientName}`
@@ -138,7 +217,8 @@ export function TaskFormDialog({
         className="grid gap-5"
         onSubmit={(event) => {
           event.preventDefault()
-          if (!title.trim() || !type || !priority || create.isPending) return
+          if (!title.trim() || !type || !priority || !dueAt || create.isPending)
+            return
           create.mutate()
         }}
       >
@@ -177,12 +257,14 @@ export function TaskFormDialog({
               </select>
             </label>
             <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">
-                Vence <span className="text-muted font-normal">(Opcional)</span>
+              <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
+                Vence
               </span>
               <input
                 type="datetime-local"
                 value={dueAt}
+                min={minDue}
+                required
                 onChange={(event) => setDueAt(event.target.value)}
                 className={control}
               />
@@ -272,6 +354,14 @@ export function TaskFormDialog({
                 className={control}
               >
                 <option value="">Sin paciente</option>
+                {task?.patient &&
+                  !patients.data?.data.some(
+                    (item) => item.id === task.patient?.id,
+                  ) && (
+                    <option value={task.patient.id}>
+                      {task.patient.fullName}
+                    </option>
+                  )}
                 {(patients.data?.data ?? []).map((patient) => (
                   <option key={patient.id} value={patient.id}>
                     {patient.fullName}
@@ -330,7 +420,8 @@ export function TaskFormDialog({
 
         {create.isError && (
           <p role="alert" className="text-sm text-red-700">
-            No pudimos crear la tarea. {create.error.message}
+            No pudimos {editing ? 'guardar' : 'crear'} la tarea.{' '}
+            {create.error.message}
           </p>
         )}
 
@@ -338,8 +429,23 @@ export function TaskFormDialog({
           <Button type="button" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" variant="primary" disabled={create.isPending}>
-            {create.isPending ? 'Creando…' : 'Crear Tarea'}
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={create.isPending || unchanged}
+            title={
+              unchanged && !create.isPending
+                ? 'No hay cambios para guardar'
+                : undefined
+            }
+          >
+            {create.isPending
+              ? editing
+                ? 'Guardando…'
+                : 'Creando…'
+              : editing
+                ? 'Guardar Cambios'
+                : 'Crear Tarea'}
           </Button>
         </FormActions>
       </form>

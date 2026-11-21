@@ -67,7 +67,7 @@ export function ActiveFilterChips({
           key={chip.key}
           type="button"
           onClick={() => onRemove(chip.key)}
-          className="border-border text-ink hover:bg-surface flex items-center gap-1 rounded-full border bg-white px-2.5 py-1 text-xs font-medium"
+          className="border-border text-ink bg-modulos flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium hover:bg-[#c3e9cf]"
         >
           {chip.label}: {chip.value}
           <X className="size-3" />
@@ -95,7 +95,10 @@ export function AdvancedFilterButton({
       variant={count > 0 ? 'primary' : 'secondary'}
       aria-haspopup="dialog"
       aria-expanded={open}
-      className={cn('h-10 gap-1.5', count === 0 && 'hover:bg-[#c3e9cf]')}
+      className={cn(
+        'h-10 gap-1.5',
+        count === 0 && 'bg-white hover:bg-[#c3e9cf]',
+      )}
       onClick={onClick}
     >
       <SlidersHorizontal className="size-3.5" />
@@ -150,7 +153,7 @@ export function AdvancedFilterDialog({
           onClick={onClear}
         >
           <Trash2 className="size-3.5" />
-          Limpiar filtros
+          Limpiar Filtros
         </Button>
         <div className="flex items-center gap-2">
           <Button
@@ -168,7 +171,7 @@ export function AdvancedFilterDialog({
             onClick={onApply}
           >
             <Check className="size-3.5" />
-            Aplicar filtros
+            Aplicar Filtros
           </Button>
         </div>
       </div>

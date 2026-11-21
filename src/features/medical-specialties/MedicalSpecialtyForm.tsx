@@ -3,7 +3,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
 import { Stethoscope } from 'lucide-react'
 import { FormFields, FormFooter } from '@/components/ui/FormMode'
+import { useStatusDraftChanged } from '@/components/ui/StatusDraft'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
 import type { components } from '@/lib/api-types'
@@ -29,11 +31,12 @@ export function MedicalSpecialtyForm({
   /** Desbloquea los campos desde el botón Editar del modo ver. */
   onEdit?: () => void
 }) {
+  const statusChanged = useStatusDraftChanged()
   const {
     register,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<MedicalSpecialtyFormValues>({
     resolver: zodResolver(medicalSpecialtySchema),
     defaultValues: specialty
@@ -89,25 +92,12 @@ export function MedicalSpecialtyForm({
             {...register('name')}
             error={errors.name?.message}
           />
-          <div className="grid gap-1.5">
-            <label
-              htmlFor="specialty-description"
-              className="text-ink text-sm font-medium"
-            >
-              Descripción
-            </label>
-            <textarea
-              id="specialty-description"
-              rows={1}
-              {...register('description')}
-              className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 resize-none rounded-lg border bg-white px-3 py-2 text-sm transition outline-none focus:ring-2"
-            />
-            {errors.description?.message && (
-              <p className="text-xs text-red-700">
-                {errors.description.message}
-              </p>
-            )}
-          </div>
+          <TextAreaField
+            label="Descripción"
+            id="specialty-description"
+            {...register('description')}
+            error={errors.description?.message}
+          />
         </ModalSection>
         {errors.root?.server?.message && (
           <p
@@ -123,7 +113,8 @@ export function MedicalSpecialtyForm({
         onEdit={onEdit}
         onClose={onCancel}
         submitting={submitting}
-        submitLabel={specialty ? 'Guardar cambios' : 'Crear especialidad'}
+        unchanged={Boolean(specialty) && !isDirty && !statusChanged}
+        submitLabel={specialty ? 'Guardar Cambios' : 'Crear Especialidad'}
         compact
       />
     </form>

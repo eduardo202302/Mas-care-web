@@ -112,7 +112,7 @@ export default function DashboardPage() {
   return (
     <div className="animate-in">
       <PageHeader
-        title="Panel del Día"
+        title="Panel Del Día"
         subtitle="Prioriza los avisos, entregas y recetas que necesitan atención hoy."
         meta={today}
         actions={

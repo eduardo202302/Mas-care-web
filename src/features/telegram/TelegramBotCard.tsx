@@ -89,7 +89,7 @@ export function TelegramBotCard() {
           />
         </label>
         <Button type="submit" variant="primary" disabled={connect.isPending}>
-          {account.data?.connected ? 'Reemplazar' : 'Conectar bot'}
+          {account.data?.connected ? 'Reemplazar' : 'Conectar Bot'}
         </Button>
       </form>
       {connect.isError && (

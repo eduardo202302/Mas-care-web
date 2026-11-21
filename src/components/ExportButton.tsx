@@ -10,7 +10,12 @@ import { useCan } from '@/lib/permissions'
 const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
 export type ExportEntity = 'patients' | 'medications' | 'cycles' | 'treatments'
-export type ExportFilters = { q?: string; branchId?: string; status?: string }
+export type ExportFilters = {
+  q?: string
+  branchId?: string
+  status?: string
+  archived?: string
+}
 
 type Format = 'csv' | 'xlsx'
 
@@ -92,7 +97,7 @@ export function ExportButton({
     <>
       <Button
         type="button"
-        className="hover:bg-[#c3e9cf]"
+        className="bg-white hover:bg-[#c3e9cf]"
         onClick={() => setOpen(true)}
       >
         <Download className="size-4" />

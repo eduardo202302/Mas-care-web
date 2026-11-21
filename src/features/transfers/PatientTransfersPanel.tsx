@@ -1,3 +1,4 @@
+import { formatTimestamp } from '@/lib/operations'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRightLeft } from 'lucide-react'
@@ -49,9 +50,7 @@ export function PatientTransfersPanel({ patientId }: { patientId: string }) {
         <span key="id" className="text-muted font-mono text-xs">
           #{row.numeric_id}
         </span>,
-        <span key="date">
-          {new Date(row.occurred_at).toLocaleString('es')}
-        </span>,
+        <span key="date">{formatTimestamp(row.occurred_at)}</span>,
         <span key="from">{row.from_branch.name}</span>,
         <span key="to" className="inline-flex items-center gap-1.5">
           <ArrowRightLeft className="text-tealmax size-3.5" />

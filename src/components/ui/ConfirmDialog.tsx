@@ -8,6 +8,7 @@ export function ConfirmDialog({
   confirmLabel = 'Eliminar',
   cancelLabel = 'Atrás',
   confirming = false,
+  confirmPrimary = false,
   onConfirm,
   onClose,
 }: {
@@ -16,6 +17,8 @@ export function ConfirmDialog({
   confirmLabel?: string
   cancelLabel?: string
   confirming?: boolean
+  /** Pinta el botón de confirmar con el mismo color que Guardar. */
+  confirmPrimary?: boolean
   onConfirm: () => void
   onClose: () => void
 }) {
@@ -63,7 +66,11 @@ export function ConfirmDialog({
             type="button"
             disabled={confirming}
             onClick={onConfirm}
-            className="border-border text-ink hover:bg-surface h-9 rounded-full border px-5 text-sm font-semibold transition disabled:opacity-50"
+            className={
+              confirmPrimary
+                ? 'bg-tealmax hover:bg-petroleo h-9 rounded-full px-5 text-sm font-semibold text-white shadow-sm transition disabled:opacity-50'
+                : 'border-border text-ink hover:bg-surface h-9 rounded-full border px-5 text-sm font-semibold transition disabled:opacity-50'
+            }
           >
             {confirming ? 'Procesando…' : confirmLabel}
           </button>

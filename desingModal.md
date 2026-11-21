@@ -16,7 +16,7 @@ on `<Dialog>`, never a bespoke overlay.**
 import { Dialog } from '@/components/ui/Dialog'
 
 <Dialog
-  title="Nuevo médico"
+  title="Crear médico"
   description="Datos de contacto y colegiatura del médico."
   onClose={closeForm}
   size="lg" // omit for the default 'md'

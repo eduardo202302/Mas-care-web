@@ -9,6 +9,7 @@ import {
   FileText,
   Paperclip,
   Pill,
+  Plus,
   Search,
   Timer,
   X,
@@ -24,6 +25,7 @@ import { ModalSection } from '@/components/ui/ModalSection'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { TextField } from '@/components/ui/TextField'
 import { api, ApiError } from '@/lib/http'
+import { useCan } from '@/lib/permissions'
 import type { components } from '@/lib/api-types'
 import {
   coveragePreview,
@@ -33,6 +35,7 @@ import {
   formatDurationYMD,
   isDoseFrequencyValid,
   medicationName,
+  suggestedDeliveredQuantity,
   todayInputValue,
   type DoseScheduleFrequency,
   type FrequencyMode,
@@ -40,13 +43,17 @@ import {
   type Treatment,
 } from '@/lib/treatments'
 import {
-  treatmentSchema,
+  makeTreatmentSchema,
   type TreatmentFormValues,
   type TreatmentSaveValues,
 } from '@/schemas/treatment'
 import { todayDateOnly } from '@/lib/prescription'
+import { useStatusDraftChanged } from '@/components/ui/StatusDraft'
 import { DoseFrequencyRow } from './DoseFrequencyRow'
-import { DoseScheduleCard, downloadFile } from './DoseTracking'
+import { MedicationImage } from '@/features/medications/MedicationImage'
+import { DoseScheduleCard, openFile } from './DoseTracking'
+import { MedicationQuickCreateDialog } from '@/features/medications/MedicationQuickCreateDialog'
+import { NewDoctorButton } from '@/features/doctors/NewDoctorButton'
 
 const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -80,12 +87,26 @@ const serverFields: Record<string, FieldPath<TreatmentFormValues>> = {
 const fieldClass =
   'border-border text-ink placeholder:text-muted/70 focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm transition outline-none focus:ring-2 aria-[invalid=true]:border-red-400'
 
+/** Serializa de forma estable ignorando valores vacíos, para comparar cambios. */
+function normalizeCustom(values: Record<string, unknown>): string {
+  const entries = Object.entries(values)
+    .filter(
+      ([, v]) =>
+        v !== undefined &&
+        v !== null &&
+        v !== '' &&
+        !(Array.isArray(v) && v.length === 0),
+    )
+    .sort(([a], [b]) => a.localeCompare(b))
+  return JSON.stringify(entries)
+}
+
 export function TreatmentForm({
   treatment,
   patientName,
-  medications,
+  medications: medicationsProp,
   branches,
-  doctors = [],
+  doctors: doctorsProp = [],
   doctorsLoading = false,
   defaultBranchId,
   defaultResponsibleUserId,
@@ -107,6 +128,41 @@ export function TreatmentForm({
   onCancel: () => void
   submitting?: boolean
 }) {
+  // Medicamentos y médicos recién creados desde los botones "+": se suman a las
+  // listas por si la caché del selector aún no los trae.
+  const statusChanged = useStatusDraftChanged()
+  const [createdMedications, setCreatedMedications] = useState<Medication[]>([])
+  const [createdDoctors, setCreatedDoctors] = useState<DoctorOption[]>([])
+  const [medicationFormOpen, setMedicationFormOpen] = useState(false)
+  const canCreateMedication = useCan('medications:write')
+  const medications = useMemo(
+    () => [
+      ...medicationsProp,
+      ...createdMedications.filter(
+        (created) => !medicationsProp.some((item) => item.id === created.id),
+      ),
+    ],
+    [medicationsProp, createdMedications],
+  )
+  const doctors = useMemo(
+    () => [
+      ...doctorsProp,
+      ...createdDoctors.filter(
+        (created) => !doctorsProp.some((item) => item.id === created.id),
+      ),
+    ],
+    [doctorsProp, createdDoctors],
+  )
+  const today = todayDateOnly()
+  const dateSchema = useMemo(
+    () =>
+      makeTreatmentSchema({
+        today,
+        // Al editar, un inicio ya guardado (aunque sea pasado) no se rechaza.
+        savedStartDate: treatment?.startDate.slice(0, 10),
+      }),
+    [today, treatment?.startDate],
+  )
   const selectedAtOpen = treatment
     ? medications.find((medication) => medication.id === treatment.medicationId)
     : undefined
@@ -118,6 +174,11 @@ export function TreatmentForm({
   // Texto crudo del input de dosis: con `Number()` en cada tecla, "0." se
   // volvía 0 y no se podían escribir decimales.
   const [doseInput, setDoseInput] = useState('')
+  const [deliveredQuantity, setDeliveredQuantity] = useState(
+    treatment?.deliveredQuantity != null
+      ? String(Number(treatment.deliveredQuantity))
+      : '1',
+  )
   const [showFrequencyError, setShowFrequencyError] = useState(false)
   const {
     register,
@@ -125,9 +186,9 @@ export function TreatmentForm({
     watch,
     setValue,
     setError,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<TreatmentFormValues>({
-    resolver: zodResolver(treatmentSchema),
+    resolver: zodResolver(dateSchema),
     defaultValues: treatment
       ? {
           name: treatment.name ?? '',
@@ -135,6 +196,10 @@ export function TreatmentForm({
           dosePerIntake: Number(treatment.dosePerIntake),
           intakesPerDay: Number(treatment.intakesPerDay),
           quantityPerCycle: Number(treatment.quantityPerCycle),
+          deliveredQuantity:
+            treatment.deliveredQuantity != null
+              ? Number(treatment.deliveredQuantity)
+              : 1,
           startDate: treatment.startDate.slice(0, 10),
           endDate: treatment.endDate?.slice(0, 10) ?? '',
           // Si el tratamiento es antiguo y no tiene médico vinculado, el
@@ -155,6 +220,7 @@ export function TreatmentForm({
           dosePerIntake: NaN,
           intakesPerDay: 1,
           quantityPerCycle: 30,
+          deliveredQuantity: 1,
           startDate: todayInputValue(),
           endDate: '',
           prescriberId: '',
@@ -172,7 +238,10 @@ export function TreatmentForm({
     (treatment as { prescriptionDocumentPath?: string | null } | undefined)
       ?.prescriptionDocumentPath,
   )
-  const today = todayDateOnly()
+  // Al editar, un inicio ya guardado en el pasado se respeta; el resto no puede
+  // ser anterior a hoy.
+  const savedStart = treatment?.startDate.slice(0, 10) ?? ''
+  const minStartDate = savedStart && savedStart < today ? savedStart : today
   const savedExpiry = treatment?.prescriptionExpiresOn?.slice(0, 10) ?? ''
   // Una vigencia ya guardada que quedó en el pasado se respeta al editar; las
   // fechas nuevas no pueden ser anteriores a hoy.
@@ -212,18 +281,22 @@ export function TreatmentForm({
   }, [medications, search])
 
   const quantityPerCycle = Number(watch('quantityPerCycle'))
+  const deliveredValue = watch('deliveredQuantity')
   const dosePerIntake = Number(watch('dosePerIntake'))
   const intakesPerDay = Number(watch('intakesPerDay'))
   const startDate = watch('startDate')
 
   function chooseMedication(medication: Medication) {
-    setValue('medicationId', medication.id, { shouldValidate: true })
+    setValue('medicationId', medication.id, {
+      shouldValidate: true,
+      shouldDirty: true,
+    })
     setSearch(medicationName(medication))
     setListOpen(false)
   }
 
   function clearMedication() {
-    setValue('medicationId', '', { shouldValidate: false })
+    setValue('medicationId', '', { shouldValidate: false, shouldDirty: true })
     setSearch('')
     setListOpen(true)
     searchRef.current?.focus()
@@ -249,6 +322,7 @@ export function TreatmentForm({
   const legacyPrescriberName =
     !selectedIsDoctor && prescriberId !== savedDoctorId ? prescriberId : ''
 
+  const [initialCustomValues] = useState(customValues)
   const [customErrors, setCustomErrors] = useState<Record<string, string>>({})
   const customDefs = useCustomProperties('treatment').data?.data ?? []
 
@@ -308,7 +382,7 @@ export function TreatmentForm({
   // manda fijo al crear la dosis): la cobertura estimada debe salir de la
   // programación real que se eligió arriba, no de ese campo legado.
   const preview = coveragePreview({
-    quantityPerCycle,
+    quantityPerCycle: quantityPerCycle * (deliveredValue ?? 1),
     dosePerIntake: activeDoseSchedule
       ? Number(activeDoseSchedule.dosePerIntake)
       : dosePerIntake,
@@ -319,6 +393,29 @@ export function TreatmentForm({
         : intakesPerDay,
     startDate: startDate ?? '',
   })
+
+  const endDate = watch('endDate') ?? ''
+  const suggestion = suggestedDeliveredQuantity({
+    startDate: startDate ?? '',
+    endDate,
+    dosePerIntake: activeDoseSchedule
+      ? Number(activeDoseSchedule.dosePerIntake)
+      : dosePerIntake,
+    dosesPerDay: !treatment
+      ? dosesPerDayFromFrequency(frequencyValue)
+      : activeDoseSchedule
+        ? dosesPerDayFromSchedule(activeDoseSchedule)
+        : intakesPerDay,
+    unitsPerPackage: quantityPerCycle,
+  })
+  const suggestedPackages = suggestion?.packages
+  const [deliveredEdited, setDeliveredEdited] = useState(Boolean(treatment))
+  useEffect(() => {
+    if (deliveredEdited || suggestedPackages === undefined) return
+    setDeliveredQuantity(String(suggestedPackages))
+    setValue('deliveredQuantity', suggestedPackages, { shouldValidate: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestedPackages, deliveredEdited])
 
   async function submit(values: TreatmentFormValues) {
     if (!isFrequencyValid) {
@@ -395,6 +492,14 @@ export function TreatmentForm({
     }
   }
 
+  // Edición sin cambios: campos, propiedades personalizadas y receta adjunta.
+  const unchanged =
+    Boolean(treatment) &&
+    !isDirty &&
+    !statusChanged &&
+    prescriptionFile === null &&
+    normalizeCustom(customValues) === normalizeCustom(initialCustomValues)
+
   return (
     <form
       noValidate
@@ -419,12 +524,26 @@ export function TreatmentForm({
           </div>
           <div className="flex min-w-0 flex-col gap-3 sm:col-span-2 sm:flex-row sm:flex-wrap sm:items-start">
             <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)] content-start gap-1.5 sm:min-w-64">
-              <label
-                htmlFor="treatment-medication"
-                className="text-ink text-sm font-medium"
-              >
-                Medicamento <span className="text-red-700">*</span>
-              </label>
+              <div className="flex items-center gap-1">
+                <label
+                  htmlFor="treatment-medication"
+                  className="text-ink text-sm font-medium"
+                >
+                  Medicamento <span className="text-red-700">*</span>
+                </label>
+                {canCreateMedication && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="size-6 px-0"
+                    aria-label="Crear medicamento"
+                    title="Crear medicamento"
+                    onClick={() => setMedicationFormOpen(true)}
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                )}
+              </div>
               {selectedMedication ? (
                 <div className="border-border flex items-center justify-between gap-3 rounded-lg border bg-white px-3 py-2">
                   <div className="min-w-0">
@@ -464,7 +583,7 @@ export function TreatmentForm({
                       value={search}
                       onChange={(event) => {
                         setSearch(event.target.value)
-                        setValue('medicationId', '')
+                        setValue('medicationId', '', { shouldDirty: true })
                         setListOpen(true)
                       }}
                       onFocus={() => setListOpen(true)}
@@ -622,9 +741,8 @@ export function TreatmentForm({
                     type="button"
                     className="text-tealmax w-fit text-xs hover:underline"
                     onClick={() =>
-                      downloadFile(
+                      openFile(
                         `${API_URL}/api/v1/treatments/${encodeURIComponent(treatment.id)}/prescription-document`,
-                        `receta-${treatment.id}`,
                       ).catch((error: unknown) =>
                         setError(
                           'root.server' as FieldPath<TreatmentFormValues>,
@@ -633,13 +751,13 @@ export function TreatmentForm({
                             message:
                               error instanceof Error
                                 ? error.message
-                                : 'No se pudo descargar la receta',
+                                : 'No se pudo abrir la receta',
                           },
                         ),
                       )
                     }
                   >
-                    Ver receta
+                    Ver Receta
                   </button>
                 )}
               </div>
@@ -654,22 +772,35 @@ export function TreatmentForm({
             label="Fecha de inicio"
             type="date"
             required
+            min={minStartDate}
             {...register('startDate')}
             error={errors.startDate?.message}
           />
           <TextField
             label="Fecha de fin"
             type="date"
+            min={startDate || today}
             {...register('endDate')}
             error={errors.endDate?.message}
           />
           <div className="grid gap-1.5">
-            <label
-              htmlFor="treatment-prescriber"
-              className="text-ink text-sm font-medium"
-            >
-              Doctor
-            </label>
+            <div className="flex items-center gap-1">
+              <label
+                htmlFor="treatment-prescriber"
+                className="text-ink text-sm font-medium"
+              >
+                Doctor
+              </label>
+              <NewDoctorButton
+                onCreated={(created) => {
+                  setCreatedDoctors((current) => [...current, created])
+                  setValue('prescriberId', created.id, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }}
+              />
+            </div>
             <select
               id="treatment-prescriber"
               {...register('prescriberId')}
@@ -709,7 +840,7 @@ export function TreatmentForm({
                   {doctorFullName(doctor)}
                   {doctor.licenseNumber ? ` · ${doctor.licenseNumber}` : ''}
                   {doctor.specialties?.length
-                    ? ` · ${doctor.specialties.map((link) => link.specialty.name).join(', ')}`
+                    ? ` · ${doctor.specialties[0]?.specialty.name}`
                     : ''}
                 </option>
               ))}
@@ -757,7 +888,7 @@ export function TreatmentForm({
       ) : (
         <ModalSection
           icon={<Timer className="size-4" />}
-          title="Dosis del Tratamiento"
+          title="Dosis Del Tratamiento"
         >
           <DoseFrequencyRow
             quantity={doseInput}
@@ -796,24 +927,104 @@ export function TreatmentForm({
 
       <ModalSection
         icon={<CalendarClock className="size-4" />}
-        title="Cantidad y Cobertura"
+        title="Cantidad Y Cobertura"
       >
-        <div className="flex max-w-xs items-center justify-between gap-3">
-          <label
-            htmlFor="treatment-quantity-per-cycle"
-            className="text-ink text-sm font-medium"
-          >
-            Unidades por Envase
-          </label>
-          <input
-            id="treatment-quantity-per-cycle"
-            type="number"
-            disabled
-            readOnly
-            value={quantityPerCycle || ''}
-            className="h-10 w-28 rounded-lg border border-emerald-300 bg-emerald-100 px-3 text-sm text-emerald-700 outline-none"
-          />
+        <div className="flex flex-wrap items-start justify-between gap-x-10 gap-y-3">
+          <div className="grid gap-0">
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="treatment-quantity-per-cycle"
+                className="text-ink text-sm font-medium whitespace-nowrap"
+              >
+                Unidades por Envase
+              </label>
+              <input
+                id="treatment-quantity-per-cycle"
+                type="number"
+                disabled
+                readOnly
+                value={quantityPerCycle || ''}
+                className="h-10 w-20 rounded-lg border border-emerald-300 bg-emerald-100 px-3 text-sm text-emerald-700 outline-none"
+              />
+              {selectedMedication?.doseUnit && (
+                <span className="text-ink text-sm whitespace-nowrap">
+                  {selectedMedication.doseUnit}
+                </span>
+              )}
+            </div>
+            {selectedMedication?.presentation && (
+              <p className="text-muted -mt-1.5 text-xs leading-none">
+                {selectedMedication.presentation}
+              </p>
+            )}
+          </div>
+          <div className="grid gap-0">
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="treatment-delivered-quantity"
+                className="text-ink text-sm font-medium whitespace-nowrap"
+              >
+                Cantidad Entregada
+              </label>
+              <input
+                id="treatment-delivered-quantity"
+                type="number"
+                min={0}
+                step="any"
+                inputMode="decimal"
+                value={deliveredQuantity}
+                onChange={(event) => {
+                  const raw = event.target.value
+                  setDeliveredEdited(true)
+                  setDeliveredQuantity(raw)
+                  setValue(
+                    'deliveredQuantity',
+                    raw === '' ? null : Number(raw),
+                    { shouldDirty: true, shouldValidate: true },
+                  )
+                }}
+                className="border-border text-ink focus:border-petroleo h-10 w-24 rounded-lg border bg-white px-3 text-sm outline-none"
+              />
+            </div>
+            {selectedMedication?.presentation && (
+              <p className="text-muted -mt-1.5 text-xs leading-none">
+                {selectedMedication.presentation}
+              </p>
+            )}
+          </div>
         </div>
+        {suggestion && (
+          <p className="text-muted text-xs">
+            Sugerido: {suggestion.packages}{' '}
+            {selectedMedication?.presentation ||
+              (suggestion.packages === 1 ? 'envase' : 'envases')}{' '}
+            para cubrir {suggestion.days}{' '}
+            {suggestion.days === 1 ? 'día' : 'días'} de tratamiento.
+            {String(suggestion.packages) !== deliveredQuantity && (
+              <>
+                {' '}
+                <button
+                  type="button"
+                  className="text-petroleo font-medium underline"
+                  onClick={() => {
+                    setDeliveredQuantity(String(suggestion.packages))
+                    setValue('deliveredQuantity', suggestion.packages, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }}
+                >
+                  Usar sugerido
+                </button>
+              </>
+            )}
+          </p>
+        )}
+        {errors.deliveredQuantity?.message && (
+          <p className="text-xs text-red-700">
+            {errors.deliveredQuantity.message}
+          </p>
+        )}
         {errors.quantityPerCycle?.message && (
           <p className="text-xs text-red-700">
             {errors.quantityPerCycle.message}
@@ -868,6 +1079,17 @@ export function TreatmentForm({
         errors={customErrors}
         onChange={setCustomValues}
       />
+      {selectedMedication?.primaryImageId && (
+        // Solo en papel: la foto del medicamento sola, en su propia página.
+        <div className="hidden break-before-page print:flex print:justify-center">
+          <MedicationImage
+            medicationId={selectedMedication.id}
+            attachmentId={selectedMedication.primaryImageId}
+            alt={`Foto de ${medicationName(selectedMedication)}`}
+            className="max-h-[240mm] max-w-full object-contain"
+          />
+        </div>
+      )}
       <FormActions>
         <Button type="button" className="w-full sm:w-auto" onClick={onCancel}>
           Cancelar
@@ -876,15 +1098,25 @@ export function TreatmentForm({
           type="submit"
           variant="primary"
           className="w-full sm:w-auto"
-          disabled={submitting}
+          disabled={submitting || unchanged}
+          title={unchanged ? 'No hay cambios para guardar' : undefined}
         >
           {submitting
             ? 'Guardando…'
             : treatment
-              ? 'Guardar cambios'
-              : 'Crear tratamiento'}
+              ? 'Guardar Cambios'
+              : 'Crear Tratamiento'}
         </Button>
       </FormActions>
+      {medicationFormOpen && canCreateMedication && (
+        <MedicationQuickCreateDialog
+          onCreated={(created) => {
+            setCreatedMedications((current) => [...current, created])
+            chooseMedication(created)
+          }}
+          onClose={() => setMedicationFormOpen(false)}
+        />
+      )}
     </form>
   )
 }

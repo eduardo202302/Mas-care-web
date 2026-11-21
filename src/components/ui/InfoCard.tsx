@@ -14,7 +14,7 @@ export function InfoCard({
 }: {
   icon: ReactNode
   title: string
-  badge?: string
+  badge?: ReactNode
   action?: ReactNode
   children: ReactNode
   className?: string
@@ -29,11 +29,14 @@ export function InfoCard({
         </span>
         <h3 className="text-petroleo flex-1 text-sm font-semibold">{title}</h3>
         {action}
-        {badge && (
-          <span className="bg-surface text-muted rounded-full px-2 py-0.5 text-xs font-semibold">
-            {badge}
-          </span>
-        )}
+        {badge &&
+          (typeof badge === 'string' ? (
+            <span className="bg-surface text-muted rounded-full px-2 py-0.5 text-xs font-semibold">
+              {badge}
+            </span>
+          ) : (
+            badge
+          ))}
       </header>
       <div className="bg-surface flex flex-1 flex-col gap-3 p-4">
         {children}

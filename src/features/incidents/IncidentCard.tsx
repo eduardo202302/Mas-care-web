@@ -42,9 +42,11 @@ export function IncidentCard({
     >
       <div className="flex items-start justify-between gap-1">
         <div className="min-w-0 flex-1">
-          <span className="border-border inline-flex items-center rounded-full border bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
-            {incidentTypeLabels[incident.type]}
-          </span>
+          {incident.type !== 'out_of_stock' && (
+            <span className="border-border inline-flex items-center rounded-full border bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+              {incidentTypeLabels[incident.type]}
+            </span>
+          )}
           {incident.patient ? (
             <Link
               to={`/pacientes/${incident.patient.id}`}
@@ -161,7 +163,7 @@ function IncidentCardMenu({
             }}
           >
             <ChevronDown className="size-4 rotate-[-90deg]" />
-            Ver detalle
+            Ver Detalle
           </button>
           <button
             type="button"
@@ -173,7 +175,7 @@ function IncidentCardMenu({
             }}
           >
             <UserRound className="size-4" />
-            Asignar responsable
+            Asignar Responsable
           </button>
           {canResolve && incident.status !== 'resolved' && (
             <button

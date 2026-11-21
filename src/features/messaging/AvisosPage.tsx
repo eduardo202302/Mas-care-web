@@ -14,9 +14,9 @@ import {
   FileText,
   Mail,
   MessageSquare,
-  Search,
   UserRound,
 } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
 import {
   ActiveFilterChips,
@@ -239,16 +239,13 @@ function Queue() {
   return (
     <section aria-label="Cola de envíos">
       <FilterBarRow aria-label="Filtros de avisos">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar avisos"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Paciente, canal, plantilla o estado"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar avisos"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Paciente, canal, plantilla o estado"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -530,7 +527,7 @@ function Queue() {
             onClick={() => list.fetchNextPage()}
             disabled={list.isFetchingNextPage}
           >
-            {list.isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
+            {list.isFetchingNextPage ? 'Cargando…' : 'Cargar Más'}
           </Button>
         </div>
       )}
@@ -569,7 +566,7 @@ function AssignDialog({
   })
   return (
     <Dialog
-      title="Asignar respuesta a un paciente"
+      title="Asignar Respuesta a un Paciente"
       description="Se procesará con las reglas de siempre: botones, bajas o texto libre para revisar."
       onClose={onClose}
     >
@@ -687,7 +684,7 @@ function UnassignedReplies() {
                 className="h-8 px-2 text-xs"
                 onClick={() => setSelected(reply)}
               >
-                Asignar a un paciente
+                Asignar a un Paciente
               </Button>
             </li>
           ))}
@@ -722,7 +719,7 @@ export default function AvisosPage() {
           className={tabClass('queue')}
           onClick={() => setTab('queue')}
         >
-          Cola de envíos
+          Cola de Envíos
         </button>
         {canAssign && (
           <button
@@ -731,7 +728,7 @@ export default function AvisosPage() {
             className={tabClass('unassigned')}
             onClick={() => setTab('unassigned')}
           >
-            Respuestas sin asignar
+            Respuestas Sin Asignar
           </button>
         )}
       </div>

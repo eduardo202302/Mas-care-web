@@ -17,7 +17,9 @@ import { AddressMapPicker } from '@/components/AddressMapPicker'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { useStatusDraftChanged } from '@/components/ui/StatusDraft'
 import { TextField } from '@/components/ui/TextField'
+import { TextAreaField } from '@/components/ui/TextAreaField'
 import { ApiError } from '@/lib/http'
 import { PHONE_INPUT_MAX_LENGTH, maskPhoneInput } from '@/lib/phone'
 import {
@@ -36,7 +38,6 @@ type Props = {
   mode?: 'create' | 'edit'
   initialValues?: CompanyFormValues
   linkToken?: string
-  onLogoChange?: (logo: string | null) => Promise<void>
   onSave: (values: CompanyFormValues) => Promise<void>
   onCancel: () => void
   submitting?: boolean
@@ -76,7 +77,6 @@ export function CompanyForm({
   mode = 'create',
   initialValues,
   linkToken,
-  onLogoChange,
   onSave,
   onCancel,
   submitting = false,
@@ -88,7 +88,7 @@ export function CompanyForm({
     getValues,
     setError,
     watch,
-    formState: { errors },
+    formState: { errors, dirtyFields },
   } = useForm<CompanyFormValues>({
     resolver: zodResolver(companyFormSchema),
     defaultValues: initialValues ?? {
@@ -121,6 +121,11 @@ export function CompanyForm({
   const domain = watch('domain')
   const logo = watch('logo')
   const links = companyLinks(domain, linkToken ?? '')
+  const statusChanged = useStatusDraftChanged()
+  const unchanged =
+    mode === 'edit' &&
+    !statusChanged &&
+    !Object.values(dirtyFields).some(Boolean)
 
   async function handleLogoFile(file: File | undefined) {
     if (!file) return
@@ -133,7 +138,6 @@ export function CompanyForm({
       setLogoError('La imagen supera los 5 MB.')
       return
     }
-    const previous = logo
     setProcessingLogo(true)
     try {
       const dataUrl = await imageFileToLogo(file)
@@ -144,17 +148,6 @@ export function CompanyForm({
         return
       }
       setValue('logo', dataUrl, { shouldDirty: true, shouldValidate: true })
-      if (onLogoChange) {
-        try {
-          await onLogoChange(dataUrl)
-        } catch {
-          setValue('logo', previous, {
-            shouldDirty: true,
-            shouldValidate: true,
-          })
-          setLogoError('No pudimos guardar el logo. Inténtalo de nuevo.')
-        }
-      }
     } catch {
       setLogoError('No pudimos procesar la imagen. Prueba con otro archivo.')
     } finally {
@@ -162,20 +155,9 @@ export function CompanyForm({
     }
   }
 
-  async function handleRemoveLogo() {
-    const previous = logo
+  function handleRemoveLogo() {
     setLogoError(null)
     setValue('logo', '', { shouldDirty: true, shouldValidate: true })
-    if (!onLogoChange) return
-    setProcessingLogo(true)
-    try {
-      await onLogoChange(null)
-    } catch {
-      setValue('logo', previous, { shouldDirty: true, shouldValidate: true })
-      setLogoError('No pudimos quitar el logo. Inténtalo de nuevo.')
-    } finally {
-      setProcessingLogo(false)
-    }
   }
 
   async function submit(values: CompanyFormValues) {
@@ -216,7 +198,7 @@ export function CompanyForm({
     <form noValidate className="grid gap-4" onSubmit={handleSubmit(submit)}>
       <ModalSection
         icon={<Building2 className="size-4" />}
-        title="Información básica"
+        title="Información Básica"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
           <div className="border-border bg-surface grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl border">
@@ -251,16 +233,14 @@ export function CompanyForm({
                 {processingLogo
                   ? 'Procesando…'
                   : logo
-                    ? 'Cambiar logo'
-                    : 'Subir logo'}
+                    ? 'Cambiar Logo'
+                    : 'Subir Logo'}
               </Button>
               {logo && (
                 <Button
                   type="button"
                   disabled={processingLogo}
-                  onClick={() => {
-                    void handleRemoveLogo()
-                  }}
+                  onClick={handleRemoveLogo}
                 >
                   <Trash2 className="size-4" />
                   Quitar
@@ -269,9 +249,9 @@ export function CompanyForm({
             </div>
             <p className="text-muted mt-2 text-xs">
               PNG, JPG o WebP. Máximo 5 MB.{' '}
-              {onLogoChange
-                ? 'El logo se guarda al seleccionarlo.'
-                : 'Se guarda al pulsar Guardar cambios.'}
+              {mode === 'edit'
+                ? 'El logo se guarda al pulsar Guardar Cambios.'
+                : 'El logo se guarda al pulsar Crear Compañía.'}
             </p>
             {(logoError || errors.logo?.message) && (
               <p role="alert" className="mt-1 text-xs text-red-700">
@@ -310,32 +290,34 @@ export function CompanyForm({
             error={errors.phone?.message}
           />
         </div>
-        <div className="grid gap-1.5">
-          <label
-            htmlFor="company-status"
-            className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
-          >
-            Estado
-          </label>
-          <div className="relative">
-            <select
-              id="company-status"
-              {...register('status')}
-              aria-invalid={Boolean(errors.status)}
-              className={`${fieldClass} h-10 appearance-none pr-9`}
+        {mode !== 'edit' && (
+          <div className="grid gap-1.5">
+            <label
+              htmlFor="company-status"
+              className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
             >
-              {companyStatuses.map((value) => (
-                <option key={value} value={value}>
-                  {statusLabels[value]}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
-              aria-hidden="true"
-            />
+              Estado
+            </label>
+            <div className="relative">
+              <select
+                id="company-status"
+                {...register('status')}
+                aria-invalid={Boolean(errors.status)}
+                className={`${fieldClass} h-10 appearance-none pr-9`}
+              >
+                {companyStatuses.map((value) => (
+                  <option key={value} value={value}>
+                    {statusLabels[value]}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
+                aria-hidden="true"
+              />
+            </div>
           </div>
-        </div>
+        )}
         <div className="grid gap-1.5">
           <label
             htmlFor="company-pin"
@@ -383,12 +365,12 @@ export function CompanyForm({
 
       <ModalSection
         icon={<Briefcase className="size-4" />}
-        title="Perfil de la empresa"
+        title="Perfil de la Empresa"
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <TextField
             label="Propietario de la empresa"
-            placeholder="Eduardo Vallejo"
+            placeholder="Nombre completo del propietario"
             {...register('ownerName')}
             error={errors.ownerName?.message}
           />
@@ -493,7 +475,7 @@ export function CompanyForm({
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <TextField
+            <TextAreaField
               label="Dirección"
               placeholder="G5CJ+2X Santo Domingo Este"
               {...register('address')}
@@ -583,15 +565,18 @@ export function CompanyForm({
           type="submit"
           variant="primary"
           className="w-full sm:w-auto"
-          disabled={submitting}
+          disabled={submitting || unchanged}
+          title={
+            unchanged && !submitting ? 'No hay cambios para guardar' : undefined
+          }
         >
           {submitting
             ? mode === 'edit'
               ? 'Guardando…'
               : 'Creando…'
             : mode === 'edit'
-              ? 'Guardar cambios'
-              : 'Crear compañía'}
+              ? 'Guardar Cambios'
+              : 'Crear Compañía'}
         </Button>
       </FormActions>
     </form>

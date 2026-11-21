@@ -1,4 +1,5 @@
 const LOWERCASE_WORDS = new Set([
+  'a',
   'de',
   'en',
   'al',
@@ -9,7 +10,7 @@ const LOWERCASE_WORDS = new Set([
   'un',
 ])
 
-/** Mayúscula inicial en cada palabra, salvo "de", "en", "al", "el", "la", "con", "para" y "un" (excepto al inicio). */
+/** Mayúscula inicial en cada palabra, salvo "a", "de", "en", "al", "el", "la", "con", "para" y "un" (excepto al inicio). */
 export function toTitleCase(text: string): string {
   return text
     .split(' ')

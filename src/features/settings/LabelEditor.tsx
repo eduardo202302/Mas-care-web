@@ -525,7 +525,7 @@ export function LabelEditor({
             type="button"
             onClick={() => setShowGrid((value) => !value)}
             className={cn(
-              'text-muted hover:text-ink rounded-xl bg-white p-2.5 shadow-sm',
+              'text-muted hover:text-ink bg-modulos rounded-xl p-2.5 shadow-sm hover:bg-[#c3e9cf]',
               showGrid &&
                 'bg-[#D3F0DE] text-emerald-800 hover:text-emerald-800',
             )}
@@ -878,14 +878,14 @@ export function LabelEditor({
           <button
             type="button"
             onClick={() => addElement({ type: 'text' }, 8, 80)}
-            className="border-border flex items-center gap-2 rounded-lg border bg-white px-3 py-2.5 text-base shadow-sm hover:border-slate-400"
+            className="border-border bg-modulos flex items-center gap-2 rounded-lg border px-3 py-2.5 text-base shadow-sm hover:bg-[#c3e9cf]"
           >
             <Type className="size-3.5" /> Texto Fijo
           </button>
           <button
             type="button"
             onClick={() => addElement({ type: 'line' }, 5, 90)}
-            className="border-border flex items-center gap-2 rounded-lg border bg-white px-3 py-2.5 text-base shadow-sm hover:border-slate-400"
+            className="border-border bg-modulos flex items-center gap-2 rounded-lg border px-3 py-2.5 text-base shadow-sm hover:bg-[#c3e9cf]"
           >
             <Minus className="size-3.5" /> Línea Separadora
           </button>

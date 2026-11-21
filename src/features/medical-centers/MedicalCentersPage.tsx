@@ -1,18 +1,18 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  Activity,
-  Building2,
-  Hash,
-  Landmark,
-  MapPin,
-  Plus,
-  Search,
-} from 'lucide-react'
+import { Activity, Building2, Hash, Landmark, MapPin, Plus } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { Dialog } from '@/components/ui/Dialog'
+import { PurgeDialog } from '@/components/ui/PurgeDialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import {
   ActiveFilterChips,
   AdvancedFilterButton,
@@ -25,7 +25,8 @@ import {
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
-import { api } from '@/lib/http'
+import { editTitle } from '@/lib/editTitle'
+import { api, ApiError } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { useCan } from '@/lib/permissions'
 import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
@@ -36,12 +37,20 @@ import { MedicalCenterForm } from './MedicalCenterForm'
 
 type MedicalCenterList =
   paths['/api/v1/medical-centers']['get']['responses'][200]['content']['application/json']
-type MedicalCenterQuery = NonNullable<
-  paths['/api/v1/medical-centers']['get']['parameters']['query']
->
+type ActiveFilter = 'true' | 'false' | 'all'
+type MedicalCenterQuery = Omit<
+  NonNullable<paths['/api/v1/medical-centers']['get']['parameters']['query']>,
+  'isActive'
+> & { isActive?: ActiveFilter }
+
+const activeLabels: Record<ActiveFilter, string> = {
+  true: 'Activos',
+  false: 'Inactivos',
+  all: 'Todos',
+}
 
 type CenterFilters = {
-  isActive: 'true' | 'false'
+  isActive: ActiveFilter
   id: string
   name: string
   centerType: string
@@ -98,6 +107,10 @@ export default function MedicalCentersPage() {
   >(null)
   const [formOpen, setFormOpen] = useState(false)
   const [viewOnly, setViewOnly] = useState(false)
+  const [purging, setPurging] = useState<
+    components['schemas']['MedicalCenter'] | null
+  >(null)
+  const statusDraft = useStatusDraft(editing?.isActive ?? true)
 
   const filters = useMemo<MedicalCenterQuery>(
     () => ({ q: search.trim() || undefined, isActive, page, rows }),
@@ -109,7 +122,7 @@ export default function MedicalCentersPage() {
       api<MedicalCenterList>(`/api/v1/medical-centers?${queryString(filters)}`),
   })
   const save = useMutation({
-    mutationFn: (values: MedicalCenterFormValues) => {
+    mutationFn: async (values: MedicalCenterFormValues) => {
       const body = {
         name: values.name,
         centerType: values.centerType,
@@ -127,10 +140,16 @@ export default function MedicalCentersPage() {
         notes: values.notes || null,
       }
       if (editing) {
-        return api<components['schemas']['MedicalCenter']>(
+        const updated = await api<components['schemas']['MedicalCenter']>(
           `/api/v1/medical-centers/${encodeURIComponent(editing.id)}`,
           { method: 'PATCH', body: JSON.stringify(body) },
         )
+        if (statusDraft.changed)
+          return await toggleActive.mutateAsync({
+            id: editing.id,
+            active: statusDraft.value,
+          })
+        return updated
       }
       return api<components['schemas']['MedicalCenter']>(
         '/api/v1/medical-centers',
@@ -148,26 +167,46 @@ export default function MedicalCentersPage() {
         `/api/v1/medical-centers/${encodeURIComponent(id)}`,
         { method: 'PATCH', body: JSON.stringify({ isActive: active }) },
       ),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['medical-centers'] }),
+    onSuccess: (updated) => {
+      setEditing((current) =>
+        current && current.id === updated.id
+          ? { ...current, isActive: updated.isActive }
+          : current,
+      )
+      return queryClient.invalidateQueries({ queryKey: ['medical-centers'] })
+    },
+  })
+  const purge = useMutation({
+    mutationFn: (id: string) =>
+      api(`/api/v1/medical-centers/${encodeURIComponent(id)}/permanent`, {
+        method: 'DELETE',
+      }),
+    onSuccess: async () => {
+      setPurging(null)
+      await queryClient.invalidateQueries({ queryKey: ['medical-centers'] })
+    },
   })
 
   function closeForm() {
+    statusDraft.reset()
     setFormOpen(false)
     setEditing(null)
     setViewOnly(false)
   }
   function openCreate() {
+    statusDraft.reset()
     setEditing(null)
     setFormOpen(true)
   }
   function openEdit(item: components['schemas']['MedicalCenter']) {
+    statusDraft.reset()
     setEditing(item)
     setViewOnly(false)
     setFormOpen(true)
   }
   /** Doble clic en la fila: mismo formulario, pero bloqueado. */
   function openView(item: components['schemas']['MedicalCenter']) {
+    statusDraft.reset()
     setEditing(item)
     setViewOnly(true)
     setFormOpen(true)
@@ -226,9 +265,7 @@ export default function MedicalCentersPage() {
     <span key="id" className="text-muted font-mono text-xs">
       {item.numericId}
     </span>,
-    <span key="state" className="text-muted">
-      {item.isActive ? 'Activo' : 'Inactivo'}
-    </span>,
+    <StatusBadge key="state" active={item.isActive} />,
     <span key="name" className="text-petroleo font-semibold">
       {item.name}
     </span>,
@@ -248,11 +285,13 @@ export default function MedicalCentersPage() {
     <RowActions
       key={item.id}
       label={item.name}
-      deleteLabel={item.isActive ? 'Desactivar' : 'Activar'}
       onEdit={canWrite ? () => openEdit(item) : undefined}
-      onDelete={
+      onPurge={
         canWrite
-          ? () => toggleActive.mutate({ id: item.id, active: !item.isActive })
+          ? () => {
+              purge.reset()
+              setPurging(item)
+            }
           : undefined
       }
     />
@@ -272,8 +311,14 @@ export default function MedicalCentersPage() {
       .join(', ') || '',
   ])
   const chips: ActiveFilterChip[] = [
-    ...(applied.isActive === 'false'
-      ? [{ key: 'isActive', label: 'Estado', value: 'Inactivos' }]
+    ...(applied.isActive !== 'true'
+      ? [
+          {
+            key: 'isActive',
+            label: 'Estado',
+            value: activeLabels[applied.isActive],
+          },
+        ]
       : []),
     ...(applied.id ? [{ key: 'id', label: 'ID', value: applied.id }] : []),
     ...(applied.name
@@ -307,26 +352,23 @@ export default function MedicalCentersPage() {
             {canWrite && (
               <Button variant="primary" onClick={openCreate}>
                 <Plus className="size-4" />
-                Nuevo centro médico
+                Crear Centro Médico
               </Button>
             )}
           </>
         }
       />
       <FilterBarRow aria-label="Filtros">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar centros médicos"
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value)
-              setPage(1)
-            }}
-            placeholder="Nombre o RNC"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar centros médicos"
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value)
+            setPage(1)
+          }}
+          placeholder="Nombre o RNC"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -386,6 +428,7 @@ export default function MedicalCentersPage() {
             >
               <option value="true">Activos</option>
               <option value="false">Inactivos</option>
+              <option value="all">Todos</option>
             </select>
           </FilterField>
           <FilterField label="ID" icon={<Hash className="size-4" />}>
@@ -510,30 +553,58 @@ export default function MedicalCentersPage() {
         )}
       </div>
       {formOpen && (
-        <Dialog
-          title={
-            viewOnly
-              ? 'Ver Centro Médico'
-              : editing
-                ? 'Editar Centro Médico'
-                : 'Nuevo Centro Médico'
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={
+              viewOnly
+                ? 'Ver Centro Médico'
+                : editing
+                  ? editTitle('centro médico', editing?.name)
+                  : 'Crear Centro Médico'
+            }
+            icon={<Building2 className="size-5" />}
+            compactHeader
+            description="Datos del centro donde atienden los médicos."
+            onClose={closeForm}
+            size="lg"
+            headerAction={
+              editing && canWrite ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={save.isPending}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
+            }
+          >
+            <MedicalCenterForm
+              key={editing?.id ?? 'new'}
+              center={editing ?? undefined}
+              onSave={(values) =>
+                save.mutateAsync(values).then(() => undefined)
+              }
+              onCancel={closeForm}
+              submitting={save.isPending}
+              readOnly={viewOnly}
+              onEdit={() => setViewOnly(false)}
+            />
+          </Dialog>
+        </StatusDraftProvider>
+      )}
+      {purging && (
+        <PurgeDialog
+          name={purging.name}
+          confirming={purge.isPending}
+          error={
+            purge.isError
+              ? purge.error instanceof ApiError
+                ? purge.error.message
+                : 'No pudimos borrar el centro médico.'
+              : undefined
           }
-          icon={<Building2 className="size-5" />}
-          compactHeader
-          description="Datos del centro donde atienden los médicos."
-          onClose={closeForm}
-          size="lg"
-        >
-          <MedicalCenterForm
-            key={editing?.id ?? 'new'}
-            center={editing ?? undefined}
-            onSave={(values) => save.mutateAsync(values).then(() => undefined)}
-            onCancel={closeForm}
-            submitting={save.isPending}
-            readOnly={viewOnly}
-            onEdit={() => setViewOnly(false)}
-          />
-        </Dialog>
+          onConfirm={() => purge.mutate(purging.id)}
+          onClose={() => setPurging(null)}
+        />
       )}
     </div>
   )

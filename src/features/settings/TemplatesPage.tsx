@@ -1,3 +1,4 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -129,7 +130,7 @@ function AlertTemplatesTab() {
             }}
           >
             <Plus className="size-4" />
-            Nueva plantilla
+            Crear Plantilla
           </Button>
         )}
       </div>
@@ -183,7 +184,7 @@ function AlertTemplatesTab() {
                 }}
               >
                 <Plus className="size-4" />
-                Nueva plantilla
+                Crear Plantilla
               </Button>
             ) : undefined
           }
@@ -229,15 +230,7 @@ function AlertTemplatesTab() {
                             <h3 className="text-ink text-sm font-semibold">
                               {template.name}
                             </h3>
-                            <span
-                              className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
-                                template.isActive
-                                  ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-                                  : 'border-slate-200 bg-slate-100 text-slate-700'
-                              }`}
-                            >
-                              {template.isActive ? 'Activa' : 'Inactiva'}
-                            </span>
+                            <StatusBadge active={template.isActive} feminine />
                             {branch ? (
                               <BranchTag
                                 name={branch.name}
@@ -313,7 +306,7 @@ function AlertTemplatesTab() {
                                       })
                                     }
                                   >
-                                    Enviar prueba
+                                    Enviar Prueba
                                   </Button>
                                 )}
                             </div>

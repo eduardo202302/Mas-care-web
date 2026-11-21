@@ -16,8 +16,6 @@ import {
   cycleStatusLabels,
   isOpenCycle,
   openCycleStatuses,
-  stockLevelDot,
-  stockLevelLabels,
   type BoardCard,
   type BoardFilters,
   type CycleStatus,
@@ -41,6 +39,14 @@ import {
   matchesCycleColumnFilters,
   type CycleColumnFilters,
 } from './cycleColumnFilters'
+
+/** Día local de un instante ISO (closed_at viene en UTC). */
+function localDateOnly(iso: string): string {
+  const date = new Date(iso)
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
 
 /** Column keys that map to a backend-sortable field; columns without an entry sort client-side (current page only). */
 const columnSortField: Record<string, string> = {
@@ -156,18 +162,14 @@ export function CycleTable({
           : undefined
         return stage?.name ?? ''
       }
-      case 'days':
-        return card.days_remaining
-      case 'responsible':
-        return card.responsible?.name ?? ''
+      case 'delivered_on':
+        return card.closed_at ?? ''
       case 'next_action':
         return card.status === 'to_notify'
           ? 'Avisar'
           : isOpenCycle(card)
             ? 'Marcar entregado'
             : ''
-      case 'stock':
-        return card.stock_level ? stockLevelLabels[card.stock_level] : ''
       default: {
         const property = properties.find((item) => `custom:${item.key}` === key)
         if (!property) return ''
@@ -292,22 +294,14 @@ export function CycleTable({
           </span>
         ) : null
       }
-      case 'expected_on':
+      case 'delivered_on':
         return (
           <span className="font-medium">
-            {card.expected_on ? formatDate(card.expected_on) : ''}
+            {card.closed_at ? formatDate(localDateOnly(card.closed_at)) : ''}
           </span>
         )
       case 'derived':
         return derived ? <StatusChip status={derived} /> : null
-      case 'days':
-        return card.days_remaining === null
-          ? ''
-          : card.days_remaining < 0
-            ? `${Math.abs(card.days_remaining)} d. vencido`
-            : card.days_remaining === 0
-              ? 'Hoy'
-              : `${card.days_remaining} d.`
       case 'branch':
         return (
           <BranchTag
@@ -315,31 +309,12 @@ export function CycleTable({
             labelColor={card.branch.label_color}
           />
         )
-      case 'responsible':
-        return card.responsible?.name ?? ''
       case 'next_action':
         return card.status === 'to_notify'
           ? 'Avisar'
           : open
             ? 'Marcar entregado'
             : ''
-      case 'stock':
-        return (
-          <span className="inline-flex items-center gap-1.5 text-xs">
-            <span
-              aria-hidden="true"
-              className={cn(
-                'size-2 rounded-full',
-                card.stock_level
-                  ? stockLevelDot[card.stock_level]
-                  : 'bg-slate-300',
-              )}
-            />
-            {card.stock_level
-              ? stockLevelLabels[card.stock_level]
-              : 'Sin marca'}
-          </span>
-        )
       default: {
         const property = properties.find((item) => `custom:${item.key}` === key)
         if (!property) return null
@@ -368,6 +343,14 @@ export function CycleTable({
           setFiltersAndResetPage(view.filters.table ?? emptyTableFilters)
           setSort(view.sort.parts ?? [])
           if (view.columns.length) columns.save(view.columns)
+          setSelected([])
+        }}
+        onClear={() => {
+          onBoardFiltersChange?.({})
+          setFiltersAndResetPage(emptyTableFilters)
+          setSort([])
+          setClientSort(null)
+          columns.save(cycleColumns.map((column) => column.key))
           setSelected([])
         }}
       />

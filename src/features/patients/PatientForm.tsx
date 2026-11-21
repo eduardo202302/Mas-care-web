@@ -1,20 +1,16 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react'
-import { Link } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
 import {
-  AlertTriangle,
   ChevronDown,
   HeartPulse,
   MapPin,
   Phone,
   Pill,
-  Plus,
   Stethoscope,
   UserRound,
-  X,
 } from 'lucide-react'
 import { AddressMapPicker } from '@/components/AddressMapPicker'
 import { CustomFields } from '@/components/CustomFields'
@@ -23,15 +19,15 @@ import {
   validateCustomValues,
 } from '@/lib/custom-properties'
 import { Button } from '@/components/ui/Button'
-import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { useStatusDraftChanged } from '@/components/ui/StatusDraft'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError, api } from '@/lib/http'
 import { useCan } from '@/lib/permissions'
-import type { components, paths } from '@/lib/api-types'
+import type { components } from '@/lib/api-types'
 import { DOCUMENT_INPUT_MAX_LENGTH, maskDocumentInput } from '@/lib/document'
 import { PHONE_INPUT_MAX_LENGTH, maskPhoneInput } from '@/lib/phone'
 import {
@@ -40,24 +36,21 @@ import {
   todayISO,
   type PatientFormValues,
 } from '@/schemas/patient'
-import type { DoctorFormValues } from '@/schemas/doctor'
-import type { HealthConditionFormValues } from '@/schemas/healthCondition'
-import { DoctorForm } from '@/features/doctors/DoctorForm'
-import {
-  syncDoctorMedicalCenters,
-  syncDoctorSpecialties,
-} from '@/features/doctors/doctorLinks'
-import { HealthConditionForm } from '@/features/health-conditions/HealthConditionForm'
-import { createTreatmentFromForm, medicationName } from '@/lib/treatments'
+import { createTreatmentFromForm } from '@/lib/treatments'
 import { newIdempotencyKey } from '@/lib/operations'
-import type { TreatmentSaveValues } from '@/schemas/treatment'
-import { TreatmentForm } from '@/features/treatments/TreatmentForm'
+import { useUiStore } from '@/stores/ui-store'
 import { PatientDoctorsPanel } from './PatientDoctorsPanel'
-import {
-  PatientConditionsPanel,
-  conditionStatusLabels,
-} from './PatientConditionsPanel'
+import { PatientConditionsPanel } from './PatientConditionsPanel'
 import { PatientTreatmentsPanel } from './PatientTreatmentsPanel'
+import {
+  PendingConditionsPanel,
+  PendingDoctorsPanel,
+  PendingTreatmentsPanel,
+  type PendingCondition,
+  type PendingDoctor,
+  type PendingTreatment,
+} from './PendingRelationPanels'
+import { RelationTabHeader } from './RelationParts'
 
 function addressText(
   details: components['schemas']['Patient']['addressDetails'],
@@ -67,593 +60,26 @@ function addressText(
   return typeof value === 'string' ? value : ''
 }
 
-type BranchOption = Pick<components['schemas']['Branch'], 'id' | 'name'>
-type ConditionStatus = components['schemas']['PatientConditionLink']['status']
-type DoctorList =
-  paths['/api/v1/doctors']['get']['responses'][200]['content']['application/json']
-type HealthConditionList =
-  paths['/api/v1/health-conditions']['get']['responses'][200]['content']['application/json']
-type MedicationList =
-  paths['/api/v1/medications']['get']['responses'][200]['content']['application/json']
-type BranchList =
-  paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
+/** Serializa de forma estable ignorando valores vacíos, para comparar cambios. */
+function normalizeCustom(values: Record<string, unknown>): string {
+  const entries = Object.entries(values)
+    .filter(
+      ([, v]) =>
+        v !== undefined &&
+        v !== null &&
+        v !== '' &&
+        !(Array.isArray(v) && v.length === 0),
+    )
+    .sort(([a], [b]) => a.localeCompare(b))
+  return JSON.stringify(entries)
+}
 
-type PendingDoctor = {
-  doctorId: string
-  name: string
-  isPrimary: boolean
-  notes: string
-}
-type PendingCondition = {
-  healthConditionId: string
-  name: string
-  status: ConditionStatus
-  diagnosedOn: string
-  notes: string
-}
-type PendingTreatment = {
-  values: TreatmentSaveValues
-  medicationLabel: string
-}
-type DoctorPickerList = {
-  data: {
-    id: string
-    firstName: string
-    lastName: string
-    licenseNumber?: string | null
-  }[]
-}
+type BranchOption = Pick<components['schemas']['Branch'], 'id' | 'name'>
 
 type PatientTab = 'datos' | 'medicos' | 'tratamientos' | 'condiciones'
 
 const controlClass =
   'border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400'
-
-function PendingDoctorsEditor({
-  pending,
-  setPending,
-}: {
-  pending: PendingDoctor[]
-  setPending: Dispatch<SetStateAction<PendingDoctor[]>>
-}) {
-  const queryClient = useQueryClient()
-  const canWriteDoctors = useCan('doctors:write')
-  const [doctorId, setDoctorId] = useState('')
-  const [isPrimary, setIsPrimary] = useState(false)
-  const [notes, setNotes] = useState('')
-  const [doctorFormOpen, setDoctorFormOpen] = useState(false)
-
-  const doctorOptions = useQuery({
-    queryKey: ['doctors', 'picker'],
-    queryFn: () => api<DoctorList>('/api/v1/doctors?isActive=true&rows=100'),
-  })
-  const createDoctor = useMutation({
-    mutationFn: async (values: DoctorFormValues) => {
-      const doctor = await api<components['schemas']['Doctor']>(
-        '/api/v1/doctors',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            firstName: values.firstName,
-            lastName: values.lastName,
-            licenseNumber: values.licenseNumber || null,
-            phone: values.phone || null,
-            email: values.email || null,
-            notes: values.notes || null,
-          }),
-        },
-      )
-      await syncDoctorSpecialties(doctor.id, [], values.specialtyIds)
-      await syncDoctorMedicalCenters(doctor.id, [], values.medicalCenterIds)
-      return doctor
-    },
-    onSuccess: async (doctor) => {
-      await queryClient.invalidateQueries({ queryKey: ['doctors'] })
-      setDoctorFormOpen(false)
-      setDoctorId(doctor.id)
-    },
-  })
-
-  const hasPrimary = pending.some((item) => item.isPrimary)
-  const pendingIds = new Set(pending.map((item) => item.doctorId))
-  const availableDoctors = (doctorOptions.data?.data ?? []).filter(
-    (doctor) => !pendingIds.has(doctor.id),
-  )
-
-  function addPending() {
-    const doctor = (doctorOptions.data?.data ?? []).find(
-      (item) => item.id === doctorId,
-    )
-    if (!doctor) return
-    setPending((current) => [
-      ...current,
-      {
-        doctorId,
-        name: `${doctor.firstName} ${doctor.lastName}`,
-        isPrimary: hasPrimary ? false : isPrimary,
-        notes: notes.trim(),
-      },
-    ])
-    setDoctorId('')
-    setIsPrimary(false)
-    setNotes('')
-  }
-
-  return (
-    <div className="grid gap-4">
-      {pending.length > 0 && (
-        <ul className="grid gap-2">
-          {pending.map((item) => (
-            <li
-              key={item.doctorId}
-              className="border-border flex items-center justify-between gap-2 rounded-lg border px-3 py-2"
-            >
-              <div>
-                <p className="text-ink text-sm font-medium">
-                  {item.name}
-                  {item.isPrimary && (
-                    <span className="bg-tealmax/10 text-tealmax ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold">
-                      Principal
-                    </span>
-                  )}
-                </p>
-                {item.notes && (
-                  <p className="text-muted text-xs">{item.notes}</p>
-                )}
-              </div>
-              <button
-                type="button"
-                title="Quitar"
-                onClick={() =>
-                  setPending((current) =>
-                    current.filter((d) => d.doctorId !== item.doctorId),
-                  )
-                }
-                className="text-muted shrink-0 hover:text-red-600"
-              >
-                <X className="size-4" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="grid gap-1.5 sm:col-span-2">
-          <label
-            htmlFor="pending-doctor"
-            className="text-ink text-sm font-medium"
-          >
-            Médico
-          </label>
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              id="pending-doctor"
-              value={doctorId}
-              onChange={(event) => setDoctorId(event.target.value)}
-              disabled={doctorOptions.isPending}
-              className={`${controlClass} min-w-0 flex-1`}
-            >
-              <option value="">
-                {doctorOptions.isPending
-                  ? 'Cargando médicos…'
-                  : availableDoctors.length
-                    ? 'Selecciona un médico existente'
-                    : 'No hay médicos disponibles'}
-              </option>
-              {availableDoctors.map((doctor) => (
-                <option key={doctor.id} value={doctor.id}>
-                  {doctor.firstName} {doctor.lastName}
-                </option>
-              ))}
-            </select>
-            {canWriteDoctors && (
-              <Button
-                type="button"
-                className="shrink-0"
-                onClick={() => setDoctorFormOpen(true)}
-              >
-                <Plus className="size-4" />
-                Nuevo Médico
-              </Button>
-            )}
-          </div>
-        </div>
-        <label
-          className={
-            hasPrimary
-              ? 'text-muted flex items-center gap-2 text-sm'
-              : 'text-ink flex items-center gap-2 text-sm'
-          }
-        >
-          <input
-            type="checkbox"
-            checked={hasPrimary ? false : isPrimary}
-            disabled={hasPrimary}
-            onChange={(event) => setIsPrimary(event.target.checked)}
-          />
-          Médico Principal
-        </label>
-        <div className="sm:col-span-2">
-          <TextAreaField
-            label="Notas (Opcional)"
-            className="min-h-8 py-1.5 text-xs"
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-          />
-        </div>
-        <div className="sm:col-span-2">
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={!doctorId}
-            onClick={addPending}
-          >
-            Agregar a la Lista
-          </Button>
-        </div>
-      </div>
-      {doctorFormOpen && (
-        <Dialog
-          title="Nuevo Médico"
-          icon={<Stethoscope className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          size="lg"
-          onClose={() => setDoctorFormOpen(false)}
-        >
-          <DoctorForm
-            onSave={(values) =>
-              createDoctor.mutateAsync(values).then(() => undefined)
-            }
-            onCancel={() => setDoctorFormOpen(false)}
-            submitting={createDoctor.isPending}
-          />
-        </Dialog>
-      )}
-    </div>
-  )
-}
-
-function PendingConditionsEditor({
-  pending,
-  setPending,
-}: {
-  pending: PendingCondition[]
-  setPending: Dispatch<SetStateAction<PendingCondition[]>>
-}) {
-  const queryClient = useQueryClient()
-  const canWriteConditions = useCan('health-conditions:write')
-  const [healthConditionId, setHealthConditionId] = useState('')
-  const [status, setStatus] = useState<ConditionStatus>('active')
-  const [diagnosedOn, setDiagnosedOn] = useState('')
-  const [notes, setNotes] = useState('')
-  const [conditionFormOpen, setConditionFormOpen] = useState(false)
-
-  const conditionOptions = useQuery({
-    queryKey: ['health-conditions', 'picker'],
-    queryFn: () =>
-      api<HealthConditionList>(
-        '/api/v1/health-conditions?isActive=true&rows=100',
-      ),
-  })
-  const createCondition = useMutation({
-    mutationFn: (values: HealthConditionFormValues) =>
-      api<components['schemas']['HealthCondition']>(
-        '/api/v1/health-conditions',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            name: values.name,
-            description: values.description || null,
-          }),
-        },
-      ),
-    onSuccess: async (created) => {
-      await queryClient.invalidateQueries({ queryKey: ['health-conditions'] })
-      setConditionFormOpen(false)
-      setHealthConditionId(created.id)
-    },
-  })
-
-  const pendingIds = new Set(pending.map((item) => item.healthConditionId))
-  const availableConditions = (conditionOptions.data?.data ?? []).filter(
-    (condition) => !pendingIds.has(condition.id),
-  )
-
-  function addPending() {
-    const condition = (conditionOptions.data?.data ?? []).find(
-      (item) => item.id === healthConditionId,
-    )
-    if (!condition) return
-    setPending((current) => [
-      ...current,
-      {
-        healthConditionId,
-        name: condition.name,
-        status,
-        diagnosedOn,
-        notes: notes.trim(),
-      },
-    ])
-    setHealthConditionId('')
-    setStatus('active')
-    setDiagnosedOn('')
-    setNotes('')
-  }
-
-  return (
-    <div className="grid gap-4">
-      {pending.length > 0 && (
-        <ul className="grid gap-2">
-          {pending.map((item) => (
-            <li
-              key={item.healthConditionId}
-              className="border-border flex items-center justify-between gap-2 rounded-lg border px-3 py-2"
-            >
-              <div>
-                <p className="text-ink text-sm font-medium">
-                  {item.name}{' '}
-                  <span className="text-muted text-xs">
-                    · {conditionStatusLabels[item.status]}
-                  </span>
-                </p>
-                {item.notes && (
-                  <p className="text-muted text-xs">{item.notes}</p>
-                )}
-              </div>
-              <button
-                type="button"
-                title="Quitar"
-                onClick={() =>
-                  setPending((current) =>
-                    current.filter(
-                      (c) => c.healthConditionId !== item.healthConditionId,
-                    ),
-                  )
-                }
-                className="text-muted shrink-0 hover:text-red-600"
-              >
-                <X className="size-4" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="grid gap-1.5 sm:col-span-2">
-          <label
-            htmlFor="pending-condition"
-            className="text-ink text-sm font-medium"
-          >
-            Condición
-          </label>
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              id="pending-condition"
-              value={healthConditionId}
-              onChange={(event) => setHealthConditionId(event.target.value)}
-              disabled={conditionOptions.isPending}
-              className={`${controlClass} min-w-0 flex-1`}
-            >
-              <option value="">
-                {conditionOptions.isPending
-                  ? 'Cargando condiciones…'
-                  : availableConditions.length
-                    ? 'Selecciona una condición existente'
-                    : 'No hay condiciones disponibles'}
-              </option>
-              {availableConditions.map((condition) => (
-                <option key={condition.id} value={condition.id}>
-                  {condition.name}
-                </option>
-              ))}
-            </select>
-            {canWriteConditions && (
-              <Button
-                type="button"
-                className="shrink-0"
-                onClick={() => setConditionFormOpen(true)}
-              >
-                <Plus className="size-4" />
-                Nueva Condición
-              </Button>
-            )}
-          </div>
-        </div>
-        <div className="grid gap-1.5">
-          <label
-            htmlFor="pending-condition-status"
-            className="text-ink text-sm font-medium"
-          >
-            Estado
-          </label>
-          <select
-            id="pending-condition-status"
-            value={status}
-            onChange={(event) =>
-              setStatus(event.target.value as ConditionStatus)
-            }
-            className={controlClass}
-          >
-            {Object.entries(conditionStatusLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="grid gap-1.5">
-          <label
-            htmlFor="pending-condition-diagnosed"
-            className="text-ink text-sm font-medium"
-          >
-            Fecha de Diagnóstico (Opcional)
-          </label>
-          <input
-            id="pending-condition-diagnosed"
-            type="date"
-            value={diagnosedOn}
-            onChange={(event) => setDiagnosedOn(event.target.value)}
-            className={controlClass}
-          />
-        </div>
-        <div className="sm:col-span-2">
-          <TextAreaField
-            label="Notas (Opcional)"
-            className="min-h-8 py-1.5 text-xs"
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-          />
-        </div>
-        <div className="sm:col-span-2">
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={!healthConditionId}
-            onClick={addPending}
-          >
-            Agregar a la Lista
-          </Button>
-        </div>
-      </div>
-      {conditionFormOpen && (
-        <Dialog
-          title="Nueva Condición de Salud"
-          icon={<HeartPulse className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          onClose={() => setConditionFormOpen(false)}
-        >
-          <HealthConditionForm
-            onSave={(values) =>
-              createCondition.mutateAsync(values).then(() => undefined)
-            }
-            onCancel={() => setConditionFormOpen(false)}
-            submitting={createCondition.isPending}
-          />
-        </Dialog>
-      )}
-    </div>
-  )
-}
-
-function PendingTreatmentsEditor({
-  pending,
-  setPending,
-  patientName,
-  defaultBranchId,
-}: {
-  pending: PendingTreatment[]
-  setPending: Dispatch<SetStateAction<PendingTreatment[]>>
-  patientName?: string
-  defaultBranchId?: string
-}) {
-  const canWriteTreatments = useCan('treatments:write')
-  const [formOpen, setFormOpen] = useState(false)
-
-  const medications = useQuery({
-    queryKey: ['medications', { archived: 'false', rows: 100 }],
-    queryFn: () =>
-      api<MedicationList>('/api/v1/medications?archived=false&rows=100'),
-  })
-  const branches = useQuery({
-    queryKey: ['branches'],
-    queryFn: () => api<BranchList>('/api/v1/branches'),
-  })
-  const canReadDoctors = useCan('doctors:read')
-  const doctors = useQuery({
-    queryKey: ['doctors', 'picker'],
-    queryFn: () =>
-      api<DoctorPickerList>('/api/v1/doctors?isActive=true&rows=100'),
-    enabled: canReadDoctors,
-  })
-
-  function removePending(index: number) {
-    setPending((current) => current.filter((_, i) => i !== index))
-  }
-
-  async function addPending(values: TreatmentSaveValues) {
-    const medication = (medications.data?.data ?? []).find(
-      (item) => item.id === values.medicationId,
-    )
-    setPending((current) => [
-      ...current,
-      {
-        values,
-        medicationLabel: medication ? medicationName(medication) : '',
-      },
-    ])
-    setFormOpen(false)
-  }
-
-  return (
-    <div className="grid gap-4">
-      {pending.length > 0 && (
-        <ul className="grid gap-2">
-          {pending.map((item, index) => {
-            const treatmentName = item.values.name?.trim()
-            return (
-              <li
-                key={`${item.values.medicationId}-${index}`}
-                className="border-border flex items-center justify-between gap-2 rounded-lg border px-3 py-2"
-              >
-                <div>
-                  <p className="text-ink text-sm font-medium">
-                    {treatmentName || item.medicationLabel}
-                  </p>
-                  <p className="text-muted text-xs">
-                    {treatmentName ? `${item.medicationLabel} · ` : ''}
-                    Inicio {item.values.startDate}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  title="Quitar"
-                  onClick={() => removePending(index)}
-                  className="text-muted shrink-0 hover:text-red-600"
-                >
-                  <X className="size-4" />
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      )}
-      {canWriteTreatments && (
-        <Button
-          type="button"
-          className="w-fit"
-          onClick={() => setFormOpen(true)}
-        >
-          <Plus className="size-4" />
-          Nuevo
-        </Button>
-      )}
-      {formOpen && (
-        <Dialog
-          title="Nuevo Tratamiento"
-          description="Registra los datos del medicamento."
-          icon={<Pill className="size-5" />}
-          compactHeader
-          bodyClassName="pt-0"
-          size="lg"
-          onClose={() => setFormOpen(false)}
-        >
-          <TreatmentForm
-            patientName={patientName}
-            medications={medications.data?.data ?? []}
-            branches={branches.data?.data ?? []}
-            doctors={doctors.data?.data ?? []}
-            doctorsLoading={doctors.isLoading}
-            defaultBranchId={defaultBranchId}
-            onSave={addPending}
-            onCancel={() => setFormOpen(false)}
-          />
-        </Dialog>
-      )}
-    </div>
-  )
-}
 
 export function PatientForm({
   branches,
@@ -669,6 +95,13 @@ export function PatientForm({
   submitting?: boolean
 }) {
   const canWrite = useCan('patients:write')
+  const activeBranchId = useUiStore((state) => state.activeBranchId)
+  // Sucursal recomendada al crear: la del usuario (la que tiene activa) si puede
+  // asignarla; si no, la primera a la que tiene acceso.
+  const recommendedBranchId =
+    branches.find((branch) => branch.id === activeBranchId)?.id ??
+    branches[0]?.id ??
+    ''
   const [activeTab, setActiveTab] = useState<PatientTab>('datos')
   const [medicosAddOpen, setMedicosAddOpen] = useState(false)
   const [condicionesAddOpen, setCondicionesAddOpen] = useState(false)
@@ -681,6 +114,33 @@ export function PatientForm({
     PendingTreatment[]
   >([])
   const [createdPatientId, setCreatedPatientId] = useState<string | null>(null)
+  // Al editar, los contadores de las pestañas salen de las mismas consultas
+  // (y la misma caché) que usan los paneles de cada pestaña.
+  const patientId = patient?.id ?? ''
+  const linkedDoctors = useQuery({
+    queryKey: ['patients', patientId, 'doctors'],
+    queryFn: () =>
+      api<{ data: unknown[] }>(
+        `/api/v1/patients/${encodeURIComponent(patientId)}/doctors`,
+      ),
+    enabled: Boolean(patientId),
+  })
+  const linkedConditions = useQuery({
+    queryKey: ['patients', patientId, 'conditions'],
+    queryFn: () =>
+      api<{ data: unknown[] }>(
+        `/api/v1/patients/${encodeURIComponent(patientId)}/conditions`,
+      ),
+    enabled: Boolean(patientId),
+  })
+  const linkedTreatments = useQuery({
+    queryKey: ['treatments', { patientId }],
+    queryFn: () =>
+      api<{ data: unknown[] }>(
+        `/api/v1/treatments?patient_id=${encodeURIComponent(patientId)}&limit=15`,
+      ),
+    enabled: Boolean(patientId),
+  })
 
   const {
     register,
@@ -689,7 +149,7 @@ export function PatientForm({
     setValue,
     getValues,
     setError,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<PatientFormValues>({
     resolver: zodResolver(
       (patient ? patientSchema : patientCreateSchema) as typeof patientSchema,
@@ -716,7 +176,7 @@ export function PatientForm({
         }
       : {
           fullName: '',
-          primaryBranchId: branches[0]?.id ?? '',
+          primaryBranchId: recommendedBranchId,
           documentId: '',
           birthDate: '',
           phone: '',
@@ -738,6 +198,7 @@ export function PatientForm({
     (patient as { customValues?: Record<string, unknown> } | undefined)
       ?.customValues ?? {},
   )
+  const [initialCustomValues] = useState(customValues)
   const [customErrors, setCustomErrors] = useState<Record<string, string>>({})
   const customDefs = useCustomProperties('patient').data?.data ?? []
 
@@ -775,17 +236,25 @@ export function PatientForm({
           ? { phone: debouncedDuplicateInput.phone }
           : {}),
       }
-      type DuplicateResponse =
-        paths['/api/v1/patients/check-duplicates']['post']['responses'][200]['content']['application/json']
-      return api<DuplicateResponse>('/api/v1/patients/check-duplicates', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      })
+      return api<{ fields: ('documentId' | 'phone')[] }>(
+        '/api/v1/patients/check-duplicates',
+        {
+          method: 'POST',
+          body: JSON.stringify(body),
+        },
+      )
     },
   })
-  const possibleDuplicates = (duplicateCheck.data?.data ?? []).filter(
-    (duplicate) => duplicate.id !== patient?.id,
+  // Al editar, el documento y teléfono que ya son del propio paciente no cuentan como duplicado.
+  const duplicateFields = (duplicateCheck.data?.fields ?? []).filter(
+    (field) =>
+      !patient ||
+      (field === 'documentId'
+        ? debouncedDuplicateInput.documentId !== (patient.documentId ?? '')
+        : debouncedDuplicateInput.phone !== (patient.phone ?? '')),
   )
+  const documentDuplicate = duplicateFields.includes('documentId')
+  const phoneDuplicate = duplicateFields.includes('phone')
 
   async function commitPending(patientId: string) {
     const doctors = [...pendingDoctors]
@@ -813,6 +282,7 @@ export function PatientForm({
             status: item.status,
             diagnosedOn: item.diagnosedOn || null,
             notes: item.notes || null,
+            isPrimary: item.isPrimary,
           }),
         },
       )
@@ -827,6 +297,15 @@ export function PatientForm({
       setPendingTreatments((current) => current.filter((t) => t !== item))
     }
   }
+
+  // Edición sin cambios en la pestaña Datos (campos + propiedades personalizadas).
+  // Las demás pestañas se guardan por su cuenta vía API.
+  const statusChanged = useStatusDraftChanged()
+  const unchanged =
+    Boolean(patient) &&
+    !isDirty &&
+    !statusChanged &&
+    normalizeCustom(customValues) === normalizeCustom(initialCustomValues)
 
   async function submit(values: PatientFormValues) {
     const check = validateCustomValues(customDefs, customValues)
@@ -850,7 +329,10 @@ export function PatientForm({
         setCreatedPatientId(result)
       }
     } catch (error) {
-      if (error instanceof ApiError && error.status === 400) {
+      if (
+        error instanceof ApiError &&
+        (error.status === 400 || error.status === 409)
+      ) {
         const fields = error.fields
         if (fields && typeof fields === 'object') {
           for (const [key, message] of Object.entries(fields)) {
@@ -897,19 +379,23 @@ export function PatientForm({
       value: 'medicos',
       label: 'Médicos',
       icon: <Stethoscope className="size-4" />,
-      badge: patient ? undefined : pendingDoctors.length,
+      badge: patient ? linkedDoctors.data?.data.length : pendingDoctors.length,
     },
     {
       value: 'tratamientos',
       label: 'Tratamientos',
       icon: <Pill className="size-4" />,
-      badge: patient ? undefined : pendingTreatments.length,
+      badge: patient
+        ? linkedTreatments.data?.data.length
+        : pendingTreatments.length,
     },
     {
       value: 'condiciones',
       label: 'Condiciones',
       icon: <HeartPulse className="size-4" />,
-      badge: patient ? undefined : pendingConditions.length,
+      badge: patient
+        ? linkedConditions.data?.data.length
+        : pendingConditions.length,
     },
   ]
 
@@ -918,43 +404,16 @@ export function PatientForm({
       <Tabs tabs={tabs} value={activeTab} onChange={setActiveTab} />
       {activeTab === 'datos' && (
         <>
-          {possibleDuplicates.length > 0 && (
-            <aside
-              className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-sm text-amber-950"
-              role="status"
-            >
-              <AlertTriangle
-                className="mt-0.5 size-4 shrink-0 text-amber-600"
-                aria-hidden="true"
-              />
-              <div>
-                <p className="font-semibold">Posible Paciente Duplicado</p>
-                <p className="mt-0.5 text-xs text-amber-900/80">
-                  Revisa estas fichas antes de continuar.
-                </p>
-                <ul className="mt-2 grid gap-1">
-                  {possibleDuplicates.map((duplicate) => (
-                    <li key={duplicate.id}>
-                      <Link
-                        className="font-medium underline underline-offset-2"
-                        to={`/pacientes/${encodeURIComponent(duplicate.id)}`}
-                        target="_blank"
-                      >
-                        {duplicate.fullName} · revisar ficha
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </aside>
-          )}
           <ModalSection
             icon={<UserRound className="size-4" />}
             title="Identificación"
             collapsible
             defaultCollapsed
             forceOpen={Boolean(
-              errors.fullName || errors.documentId || errors.birthDate,
+              errors.fullName ||
+              errors.documentId ||
+              errors.birthDate ||
+              documentDuplicate,
             )}
           >
             <div className="grid gap-3 sm:grid-cols-2">
@@ -977,11 +436,15 @@ export function PatientForm({
                     e.target.value = maskDocumentInput(e.target.value)
                   },
                 })}
-                error={errors.documentId?.message}
+                error={
+                  errors.documentId?.message ??
+                  (documentDuplicate
+                    ? 'Ya existe un paciente con este documento.'
+                    : undefined)
+                }
               />
               <TextField
                 label="Fecha de Nacimiento"
-                required={!patient}
                 type="date"
                 min="1900-01-01"
                 max={todayISO()}
@@ -996,7 +459,7 @@ export function PatientForm({
             title="Contacto"
             collapsible
             defaultCollapsed
-            forceOpen={Boolean(errors.phone || errors.email)}
+            forceOpen={Boolean(errors.phone || errors.email || phoneDuplicate)}
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <TextField
@@ -1010,11 +473,15 @@ export function PatientForm({
                     e.target.value = maskPhoneInput(e.target.value)
                   },
                 })}
-                error={errors.phone?.message}
+                error={
+                  errors.phone?.message ??
+                  (phoneDuplicate
+                    ? 'Ya existe un paciente con este teléfono.'
+                    : undefined)
+                }
               />
               <TextField
                 label="Correo Electrónico"
-                required={!patient}
                 type="email"
                 placeholder="paciente@correo.com"
                 {...register('email')}
@@ -1061,9 +528,8 @@ export function PatientForm({
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <TextField
+                <TextAreaField
                   label="Dirección"
-                  required={!patient}
                   placeholder="G5CJ+2X Santo Domingo Este"
                   {...register('address')}
                   error={errors.address?.message}
@@ -1071,32 +537,27 @@ export function PatientForm({
               </div>
               <TextField
                 label="Región"
-                required={!patient}
                 {...register('state')}
                 error={errors.state?.message}
               />
               <TextField
                 label="Ciudad"
-                required={!patient}
                 {...register('city')}
                 error={errors.city?.message}
               />
               <TextField
                 label="Sector"
-                required={!patient}
                 {...register('sector')}
                 error={errors.sector?.message}
               />
               <TextField
                 label="Latitud"
-                required={!patient}
                 placeholder="14.6349"
                 {...register('latitude')}
                 error={errors.latitude?.message}
               />
               <TextField
                 label="Longitud"
-                required={!patient}
                 placeholder="-90.5069"
                 {...register('longitude')}
                 error={errors.longitude?.message}
@@ -1147,6 +608,13 @@ export function PatientForm({
                     {errors.primaryBranchId.message}
                   </p>
                 )}
+                {!patient &&
+                  recommendedBranchId &&
+                  primaryBranchId === recommendedBranchId && (
+                    <p className="text-muted text-xs">
+                      Sucursal recomendada: la tuya.
+                    </p>
+                  )}
               </div>
               <div className="grid gap-1.5 sm:col-span-2">
                 <label
@@ -1179,55 +647,40 @@ export function PatientForm({
         </>
       )}
 
-      {activeTab === 'medicos' &&
-        (patient ? (
-          <div className="grid gap-3">
-            <div className="flex items-center justify-between">
-              <p className="text-muted text-sm">
-                Médicos asociados a este paciente.
-              </p>
-              {canWrite && (
-                <Button
-                  type="button"
-                  className="shrink-0"
-                  onClick={() => setMedicosAddOpen(true)}
-                >
-                  <Plus className="size-4" />
-                  Agregar Médico
-                </Button>
-              )}
-            </div>
+      {activeTab === 'medicos' && (
+        <div className="grid gap-3">
+          <RelationTabHeader
+            description="Médicos asociados a este paciente."
+            addLabel="Agregar Médico"
+            canWrite={canWrite}
+            onAdd={() => setMedicosAddOpen(true)}
+          />
+          {patient ? (
             <PatientDoctorsPanel
               patientId={patient.id}
               addOpen={medicosAddOpen}
               onCloseAdd={() => setMedicosAddOpen(false)}
             />
-          </div>
-        ) : (
-          <PendingDoctorsEditor
-            pending={pendingDoctors}
-            setPending={setPendingDoctors}
-          />
-        ))}
+          ) : (
+            <PendingDoctorsPanel
+              pending={pendingDoctors}
+              setPending={setPendingDoctors}
+              addOpen={medicosAddOpen}
+              onCloseAdd={() => setMedicosAddOpen(false)}
+            />
+          )}
+        </div>
+      )}
 
-      {activeTab === 'tratamientos' &&
-        (patient ? (
-          <div className="grid gap-3">
-            <div className="flex items-center justify-between">
-              <p className="text-muted text-sm">
-                Tratamientos de este paciente.
-              </p>
-              {canWrite && (
-                <Button
-                  type="button"
-                  className="shrink-0"
-                  onClick={() => setTratamientosAddOpen(true)}
-                >
-                  <Plus className="size-4" />
-                  Agregar Tratamiento
-                </Button>
-              )}
-            </div>
+      {activeTab === 'tratamientos' && (
+        <div className="grid gap-3">
+          <RelationTabHeader
+            description="Tratamientos de este paciente."
+            addLabel="Agregar Tratamiento"
+            canWrite={canWrite}
+            onAdd={() => setTratamientosAddOpen(true)}
+          />
+          {patient ? (
             <PatientTreatmentsPanel
               patientId={patient.id}
               patientName={patient.fullName}
@@ -1236,46 +689,43 @@ export function PatientForm({
               addOpen={tratamientosAddOpen}
               onCloseAdd={() => setTratamientosAddOpen(false)}
             />
-          </div>
-        ) : (
-          <PendingTreatmentsEditor
-            pending={pendingTreatments}
-            setPending={setPendingTreatments}
-            patientName={watch('fullName')}
-            defaultBranchId={primaryBranchId}
-          />
-        ))}
+          ) : (
+            <PendingTreatmentsPanel
+              pending={pendingTreatments}
+              setPending={setPendingTreatments}
+              patientName={watch('fullName')}
+              defaultBranchId={primaryBranchId}
+              addOpen={tratamientosAddOpen}
+              onCloseAdd={() => setTratamientosAddOpen(false)}
+            />
+          )}
+        </div>
+      )}
 
-      {activeTab === 'condiciones' &&
-        (patient ? (
-          <div className="grid gap-3">
-            <div className="flex items-center justify-between">
-              <p className="text-muted text-sm">
-                Condiciones de salud de este paciente.
-              </p>
-              {canWrite && (
-                <Button
-                  type="button"
-                  className="shrink-0"
-                  onClick={() => setCondicionesAddOpen(true)}
-                >
-                  <Plus className="size-4" />
-                  Agregar Condición
-                </Button>
-              )}
-            </div>
+      {activeTab === 'condiciones' && (
+        <div className="grid gap-3">
+          <RelationTabHeader
+            description="Condiciones de salud de este paciente."
+            addLabel="Agregar Condición"
+            canWrite={canWrite}
+            onAdd={() => setCondicionesAddOpen(true)}
+          />
+          {patient ? (
             <PatientConditionsPanel
               patientId={patient.id}
               addOpen={condicionesAddOpen}
               onCloseAdd={() => setCondicionesAddOpen(false)}
             />
-          </div>
-        ) : (
-          <PendingConditionsEditor
-            pending={pendingConditions}
-            setPending={setPendingConditions}
-          />
-        ))}
+          ) : (
+            <PendingConditionsPanel
+              pending={pendingConditions}
+              setPending={setPendingConditions}
+              addOpen={condicionesAddOpen}
+              onCloseAdd={() => setCondicionesAddOpen(false)}
+            />
+          )}
+        </div>
+      )}
 
       {errors.root?.server?.message && (
         <p
@@ -1293,7 +743,10 @@ export function PatientForm({
           type="submit"
           variant="primary"
           className="w-full sm:w-auto"
-          disabled={submitting}
+          disabled={
+            submitting || unchanged || documentDuplicate || phoneDuplicate
+          }
+          title={unchanged ? 'No hay cambios para guardar' : undefined}
         >
           {submitting
             ? 'Guardando…'

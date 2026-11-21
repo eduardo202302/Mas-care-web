@@ -315,7 +315,7 @@ export function CompanyActivityPanel({ companyId }: { companyId: string }) {
         <div className="p-4">
           <InfoCard
             icon={<CalendarClock className="size-4" />}
-            title="Interacciones recientes"
+            title="Interacciones Recientes"
             action={
               <button
                 type="button"
@@ -327,7 +327,7 @@ export function CompanyActivityPanel({ companyId }: { companyId: string }) {
                 }
                 className="text-tealmax text-xs font-semibold hover:underline"
               >
-                Programar una reunión
+                Programar Una Reunión
               </button>
             }
           >

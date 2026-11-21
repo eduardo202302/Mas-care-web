@@ -19,13 +19,19 @@ import {
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { Dialog } from '@/components/ui/Dialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { InfoFact } from '@/components/ui/InfoCard'
+import { editTitle } from '@/lib/editTitle'
 import { api } from '@/lib/http'
 import { authClient } from '@/lib/auth-client'
 import { formatPhone } from '@/lib/phone'
-import { useCan } from '@/lib/permissions'
+import { useAccessibleBranches, useCan } from '@/lib/permissions'
 import { useUiStore } from '@/stores/ui-store'
 import type { components, paths } from '@/lib/api-types'
 import type { CompanyFormValues } from '@/schemas/company'
@@ -134,7 +140,7 @@ const PROPERTY_CATALOG: PropertyDef[] = [
   },
   {
     key: 'phone',
-    label: 'Teléfono',
+    label: 'WhatsApp',
     group: 'Contacto',
     value: (r) => formatPhone(r.phone) || '--',
   },
@@ -290,7 +296,7 @@ function BehaviorMenu({
               onCustomizeProperties()
             }}
           >
-            Personalizar propiedades
+            Personalizar Propiedades
           </button>
           <button
             type="button"
@@ -301,7 +307,7 @@ function BehaviorMenu({
               onViewAllProperties()
             }}
           >
-            Ver todas las propiedades
+            Ver Todas Las Propiedades
           </button>
         </div>
       )}
@@ -338,6 +344,7 @@ export default function CompanyDetailPage() {
     queryFn: () => api<BranchList>('/api/v1/branches'),
     enabled: addingPatient,
   })
+  const accessibleBranches = useAccessibleBranches(branches.data?.data ?? [])
   const createPatient = useMutation({
     mutationFn: (values: PatientFormValues) =>
       api<PatientCreateResult>('/api/v1/patients', {
@@ -352,6 +359,7 @@ export default function CompanyDetailPage() {
     },
   })
 
+  const statusDraft = useStatusDraft(company.data?.status === 'active')
   const update = useMutation({
     mutationFn: (values: CompanyFormValues) =>
       api<CompanyDetail>(`/api/v1/companies/${encodeURIComponent(id)}`, {
@@ -360,18 +368,19 @@ export default function CompanyDetailPage() {
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['companies'] })
-      setEditing(false)
     },
   })
 
-  const updateLogo = useMutation({
-    mutationFn: (logo: string | null) =>
+  const toggleStatus = useMutation({
+    mutationFn: (active: boolean) =>
       api<CompanyDetail>(`/api/v1/companies/${encodeURIComponent(id)}`, {
         method: 'PATCH',
-        body: JSON.stringify({ logo }),
+        body: JSON.stringify({ status: active ? 'active' : 'inactive' }),
       }),
     onSuccess: async () => {
+      // El registro se vuelve a pedir, así el interruptor refleja el estado real.
       await queryClient.invalidateQueries({ queryKey: ['companies'] })
+      await queryClient.invalidateQueries({ queryKey: ['my-organizations'] })
     },
   })
 
@@ -403,6 +412,16 @@ export default function CompanyDetailPage() {
 
   const record = company.data
 
+  function openEdit() {
+    statusDraft.reset()
+    setEditing(true)
+  }
+
+  function closeEdit() {
+    statusDraft.reset()
+    setEditing(false)
+  }
+
   async function activateCompany() {
     setSwitching(true)
     const result = await authClient.organization.setActive({
@@ -410,10 +429,7 @@ export default function CompanyDetailPage() {
     })
     if (!result.error) {
       setActiveBranchId(null)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['branches'] }),
-        queryClient.invalidateQueries({ queryKey: ['me'] }),
-      ])
+      await queryClient.invalidateQueries()
     }
     setSwitching(false)
   }
@@ -448,7 +464,7 @@ export default function CompanyDetailPage() {
         size="large"
         actions={
           canManage ? (
-            <Button variant="primary" onClick={() => setEditing(true)}>
+            <Button variant="primary" onClick={openEdit}>
               Editar
             </Button>
           ) : undefined
@@ -478,7 +494,7 @@ export default function CompanyDetailPage() {
                   {canManage && (
                     <button
                       type="button"
-                      onClick={() => setEditing(true)}
+                      onClick={openEdit}
                       aria-label="Editar compañía"
                       className="text-muted hover:text-petroleo shrink-0"
                     >
@@ -513,31 +529,31 @@ export default function CompanyDetailPage() {
                 icon={FileText}
                 label="Nota"
                 tone="border-amber-200 bg-amber-50 text-amber-700"
-                onClick={() => setEditing(true)}
+                onClick={openEdit}
               />
               <QuickAction
                 icon={Mail}
                 label="Correo"
                 tone="border-sky-200 bg-sky-50 text-sky-700"
-                onClick={() => setEditing(true)}
+                onClick={openEdit}
               />
               <QuickAction
                 icon={Phone}
                 label="Llamar"
                 tone="border-emerald-200 bg-emerald-50 text-emerald-700"
-                onClick={() => setEditing(true)}
+                onClick={openEdit}
               />
               <QuickAction
                 icon={ClipboardList}
                 label="Tarea"
                 tone="border-violet-200 bg-violet-50 text-violet-700"
-                onClick={() => setEditing(true)}
+                onClick={openEdit}
               />
               <QuickAction
                 icon={Users}
                 label="Reunión"
                 tone="border-teal-200 bg-teal-50 text-teal-700"
-                onClick={() => setEditing(true)}
+                onClick={openEdit}
               />
             </div>
           </div>
@@ -588,7 +604,7 @@ export default function CompanyDetailPage() {
 
       {addingPatient && (
         <Dialog
-          title="Nuevo Paciente"
+          title="Crear Paciente"
           description="Registra sus datos de contacto y atención."
           icon={<UserRound className="size-5" />}
           compactHeader
@@ -597,7 +613,7 @@ export default function CompanyDetailPage() {
           size="lg"
         >
           <PatientForm
-            branches={branches.data?.data ?? []}
+            branches={accessibleBranches}
             onSave={(values) =>
               createPatient
                 .mutateAsync(values)
@@ -610,55 +626,74 @@ export default function CompanyDetailPage() {
       )}
 
       {editing && (
-        <Dialog
-          title="Editar Compañía"
-          description="Actualiza los datos de la compañía."
-          icon={<Building2 className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          size="lg"
-          onClose={() => setEditing(false)}
-        >
-          <CompanyForm
-            mode="edit"
-            initialValues={{
-              name: record.name,
-              email: record.email,
-              logo: record.logo ?? '',
-              status: record.status,
-              pin: record.pin,
-              domain: record.domain,
-              phone: record.phone ?? '',
-              ownerName: record.ownerName ?? '',
-              industry: record.industry ?? '',
-              type: record.type ?? '',
-              city: record.city ?? '',
-              state: record.state ?? '',
-              address: record.address ?? '',
-              sector: record.sector ?? '',
-              latitude: record.latitude ?? '',
-              longitude: record.longitude ?? '',
-              employeeCount: record.employeeCount?.toString() ?? '',
-              description: record.description ?? '',
-              linkedinUrl: record.linkedinUrl ?? '',
-              googleMapsApiKey: record.googleMapsApiKey ?? '',
-            }}
-            linkToken={record.linkToken}
-            onLogoChange={async (logo) => {
-              await updateLogo.mutateAsync(logo)
-            }}
-            onSave={(values) =>
-              update.mutateAsync(values).then(() => undefined)
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={editTitle('compañía', record?.name)}
+            description="Actualiza los datos de la compañía."
+            icon={<Building2 className="size-5" />}
+            compactHeader
+            bodyClassName="pt-3"
+            size="lg"
+            onClose={closeEdit}
+            headerAction={
+              canManage ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={update.isPending || toggleStatus.isPending}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
             }
-            onCancel={() => setEditing(false)}
-            submitting={update.isPending}
-          />
-        </Dialog>
+          >
+            <CompanyForm
+              key={record.status}
+              mode="edit"
+              initialValues={{
+                name: record.name,
+                email: record.email,
+                logo: record.logo ?? '',
+                status: record.status,
+                pin: record.pin,
+                domain: record.domain,
+                phone: record.phone ?? '',
+                ownerName: record.ownerName ?? '',
+                industry: record.industry ?? '',
+                type: record.type ?? '',
+                city: record.city ?? '',
+                state: record.state ?? '',
+                address: record.address ?? '',
+                sector: record.sector ?? '',
+                latitude: record.latitude ?? '',
+                longitude: record.longitude ?? '',
+                employeeCount: record.employeeCount?.toString() ?? '',
+                description: record.description ?? '',
+                linkedinUrl: record.linkedinUrl ?? '',
+                googleMapsApiKey: record.googleMapsApiKey ?? '',
+              }}
+              linkToken={record.linkToken}
+              onSave={async (values) => {
+                await update.mutateAsync(values)
+                if (canManage && statusDraft.changed) {
+                  try {
+                    await toggleStatus.mutateAsync(statusDraft.value)
+                  } catch (error) {
+                    // El error se muestra en el formulario.
+                    toggleStatus.reset()
+                    throw error
+                  }
+                }
+                closeEdit()
+              }}
+              onCancel={closeEdit}
+              submitting={update.isPending || toggleStatus.isPending}
+            />
+          </Dialog>
+        </StatusDraftProvider>
       )}
 
       {viewingProperties && (
         <Dialog
-          title="Todas las propiedades"
+          title="Todas Las Propiedades"
           description="Todos los datos disponibles de esta compañía."
           icon={<ClipboardList className="size-5" />}
           compactHeader
@@ -679,7 +714,7 @@ export default function CompanyDetailPage() {
 
       {customizingProperties && (
         <Dialog
-          title="Personalizar propiedades"
+          title="Personalizar Propiedades"
           description="Elige qué propiedades mostrar en Información Clave."
           icon={<ClipboardList className="size-5" />}
           compactHeader

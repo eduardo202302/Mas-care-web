@@ -280,6 +280,34 @@ input {
     border-radius: 0 !important;
     break-inside: avoid;
   }
+  /* Encabezado de cada card (ModalSection y secciones de la ficha impresa):
+     se conserva el título con el mismo fondo verde que en pantalla. */
+  body.printing-dialog [data-print-dialog] .print-card-header {
+    background: var(--fondo-modulos) !important;
+    color: var(--petroleo) !important;
+    break-after: avoid;
+  }
+  /* Con 2+ secciones el título vive dentro de un botón (para contraer): se
+     muestra como texto; el botón de contraer/expandir sigue oculto. */
+  body.printing-dialog
+    [data-print-dialog]
+    [data-modal-section]
+    > .print-card-header
+    > button[aria-expanded]:not([aria-label]) {
+    display: flex !important;
+  }
+}
+
+/*
+ * Encabezado de card al imprimir: fondo verde del módulo (los navegadores
+ * quitan los fondos al imprimir salvo con print-color-adjust: exact).
+ */
+@media print {
+  .print-card-header {
+    background: var(--fondo-modulos);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
 
 /*

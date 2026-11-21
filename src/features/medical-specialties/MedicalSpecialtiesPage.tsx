@@ -1,17 +1,18 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  FileText,
-  Hash,
-  Plus,
-  Search,
-  Stethoscope,
-  ToggleRight,
-} from 'lucide-react'
+import { FileText, Hash, Plus, Stethoscope, ToggleRight } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { Dialog } from '@/components/ui/Dialog'
+import { PurgeDialog } from '@/components/ui/PurgeDialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import {
   ActiveFilterChips,
   AdvancedFilterButton,
@@ -22,8 +23,10 @@ import {
   type ActiveFilterChip,
 } from '@/components/ui/AdvancedFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { TruncatedText } from '@/components/ui/MoreBubble'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
+import { editTitle } from '@/lib/editTitle'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { useCan } from '@/lib/permissions'
@@ -34,18 +37,23 @@ import { MedicalSpecialtyForm } from './MedicalSpecialtyForm'
 
 type SpecialtyList =
   paths['/api/v1/medical-specialties']['get']['responses'][200]['content']['application/json']
-type SpecialtyQuery = NonNullable<
-  paths['/api/v1/medical-specialties']['get']['parameters']['query']
->
+type ActiveFilter = 'true' | 'false' | 'all'
+type SpecialtyQuery = Omit<
+  NonNullable<
+    paths['/api/v1/medical-specialties']['get']['parameters']['query']
+  >,
+  'isActive'
+> & { isActive?: ActiveFilter }
 
-const DEFAULT_ACTIVE = 'true' as 'true' | 'false'
-const activeOptions: { value: 'true' | 'false'; label: string }[] = [
+const DEFAULT_ACTIVE = 'true' as ActiveFilter
+const activeOptions: { value: ActiveFilter; label: string }[] = [
   { value: 'true', label: 'Activas' },
   { value: 'false', label: 'Inactivas' },
+  { value: 'all', label: 'Todas' },
 ]
 
 type SpecialtyFilters = {
-  isActive: 'true' | 'false'
+  isActive: ActiveFilter
   id: string
   name: string
   description: string
@@ -90,6 +98,10 @@ export default function MedicalSpecialtiesPage() {
   >(null)
   const [formOpen, setFormOpen] = useState(false)
   const [viewOnly, setViewOnly] = useState(false)
+  const [purging, setPurging] = useState<
+    components['schemas']['MedicalSpecialty'] | null
+  >(null)
+  const statusDraft = useStatusDraft(editing ? editing.isActive : true)
 
   const filters = useMemo<SpecialtyQuery>(
     () => ({ q: search.trim() || undefined, isActive, page, rows }),
@@ -101,16 +113,26 @@ export default function MedicalSpecialtiesPage() {
       api<SpecialtyList>(`/api/v1/medical-specialties?${queryString(filters)}`),
   })
   const save = useMutation({
-    mutationFn: (values: MedicalSpecialtyFormValues) => {
+    mutationFn: async (values: MedicalSpecialtyFormValues) => {
       const body = {
         name: values.name,
         description: values.description || null,
       }
       if (editing) {
-        return api<components['schemas']['MedicalSpecialty']>(
+        const updated = await api<components['schemas']['MedicalSpecialty']>(
           `/api/v1/medical-specialties/${encodeURIComponent(editing.id)}`,
           { method: 'PATCH', body: JSON.stringify(body) },
         )
+        // El interruptor Activo/Inactivo se aplica al guardar, no al instante.
+        if (statusDraft.changed)
+          return api<components['schemas']['MedicalSpecialty']>(
+            `/api/v1/medical-specialties/${encodeURIComponent(editing.id)}`,
+            {
+              method: 'PATCH',
+              body: JSON.stringify({ isActive: statusDraft.value }),
+            },
+          )
+        return updated
       }
       return api<components['schemas']['MedicalSpecialty']>(
         '/api/v1/medical-specialties',
@@ -122,32 +144,38 @@ export default function MedicalSpecialtiesPage() {
       closeForm()
     },
   })
-  const toggleActive = useMutation({
-    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
-      api<components['schemas']['MedicalSpecialty']>(
-        `/api/v1/medical-specialties/${encodeURIComponent(id)}`,
-        { method: 'PATCH', body: JSON.stringify({ isActive: active }) },
+  const purge = useMutation({
+    mutationFn: (id: string) =>
+      api<void>(
+        `/api/v1/medical-specialties/${encodeURIComponent(id)}/permanent`,
+        { method: 'DELETE' },
       ),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['medical-specialties'] }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['medical-specialties'] })
+      setPurging(null)
+    },
   })
 
   function closeForm() {
+    statusDraft.reset()
     setFormOpen(false)
     setEditing(null)
     setViewOnly(false)
   }
   function openCreate() {
+    statusDraft.reset()
     setEditing(null)
     setFormOpen(true)
   }
   function openEdit(item: components['schemas']['MedicalSpecialty']) {
+    statusDraft.reset()
     setEditing(item)
     setViewOnly(false)
     setFormOpen(true)
   }
   /** Doble clic en la fila: mismo formulario, pero bloqueado. */
   function openView(item: components['schemas']['MedicalSpecialty']) {
+    statusDraft.reset()
     setEditing(item)
     setViewOnly(true)
     setFormOpen(true)
@@ -191,14 +219,16 @@ export default function MedicalSpecialtiesPage() {
     <span key="id" className="text-muted font-mono text-xs">
       {item.numericId}
     </span>,
-    <span key="state" className="text-muted">
-      {item.isActive ? 'Activa' : 'Inactiva'}
-    </span>,
+    <StatusBadge key="state" active={item.isActive} feminine />,
     <span key="name" className="text-petroleo font-semibold">
       {item.name}
     </span>,
     <span key="description" className="text-muted">
-      {item.description || ''}
+      <TruncatedText
+        text={item.description}
+        max={15}
+        label="Descripción completa"
+      />
     </span>,
   ])
   const exportHeaders = ['ID', 'Estado', 'Nombre', 'Descripción']
@@ -230,11 +260,13 @@ export default function MedicalSpecialtiesPage() {
     <RowActions
       key={item.id}
       label={item.name}
-      deleteLabel={item.isActive ? 'Desactivar' : 'Activar'}
       onEdit={canWrite ? () => openEdit(item) : undefined}
-      onDelete={
+      onPurge={
         canWrite
-          ? () => toggleActive.mutate({ id: item.id, active: !item.isActive })
+          ? () => {
+              purge.reset()
+              setPurging(item)
+            }
           : undefined
       }
     />
@@ -250,26 +282,23 @@ export default function MedicalSpecialtiesPage() {
             {canWrite && (
               <Button variant="primary" onClick={openCreate}>
                 <Plus className="size-4" />
-                Nueva especialidad
+                Crear Especialidad
               </Button>
             )}
           </>
         }
       />
       <FilterBarRow aria-label="Filtros">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar especialidades"
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value)
-              setPage(1)
-            }}
-            placeholder="Nombre de la especialidad"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar especialidades"
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value)
+            setPage(1)
+          }}
+          placeholder="Nombre de la especialidad"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -439,29 +468,51 @@ export default function MedicalSpecialtiesPage() {
         )}
       </div>
       {formOpen && (
-        <Dialog
-          title={
-            viewOnly
-              ? 'Ver Especialidad'
-              : editing
-                ? 'Editar Especialidad'
-                : 'Nueva Especialidad'
-          }
-          icon={<Stethoscope className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          onClose={closeForm}
-        >
-          <MedicalSpecialtyForm
-            key={editing?.id ?? 'new'}
-            specialty={editing ?? undefined}
-            onSave={(values) => save.mutateAsync(values).then(() => undefined)}
-            onCancel={closeForm}
-            submitting={save.isPending}
-            readOnly={viewOnly}
-            onEdit={() => setViewOnly(false)}
-          />
-        </Dialog>
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={
+              viewOnly
+                ? 'Ver Especialidad'
+                : editing
+                  ? editTitle('especialidad', editing?.name)
+                  : 'Crear Especialidad'
+            }
+            icon={<Stethoscope className="size-5" />}
+            compactHeader
+            bodyClassName="pt-3"
+            onClose={closeForm}
+            headerAction={
+              editing && canWrite ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={save.isPending}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
+            }
+          >
+            <MedicalSpecialtyForm
+              key={editing?.id ?? 'new'}
+              specialty={editing ?? undefined}
+              onSave={(values) =>
+                save.mutateAsync(values).then(() => undefined)
+              }
+              onCancel={closeForm}
+              submitting={save.isPending}
+              readOnly={viewOnly}
+              onEdit={() => setViewOnly(false)}
+            />
+          </Dialog>
+        </StatusDraftProvider>
+      )}
+      {purging && (
+        <PurgeDialog
+          name={purging.name}
+          confirming={purge.isPending}
+          error={purge.isError ? purge.error.message : undefined}
+          onConfirm={() => purge.mutate(purging.id)}
+          onClose={() => setPurging(null)}
+        />
       )}
     </div>
   )

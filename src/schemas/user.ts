@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { phoneField } from '@/schemas/phone'
+import { requiredPhoneField } from '@/schemas/phone'
 
 export const userCreateSchema = z.object({
   name: z
@@ -14,8 +14,8 @@ export const userCreateSchema = z.object({
     .min(3, 'Mínimo 3 caracteres.')
     .max(40, 'Máximo 40 caracteres.')
     .regex(
-      /^[A-Za-z0-9._-]+$/,
-      'Usa letras, números, punto, guion o guion bajo.',
+      /^[A-Za-z0-9._ -]+$/,
+      'Usa letras, números, espacio, punto, guion o guion bajo.',
     ),
   email: z
     .string()
@@ -23,7 +23,7 @@ export const userCreateSchema = z.object({
     .min(1, 'Campo requerido.')
     .email('Ingresa un correo válido.')
     .max(254, 'Máximo 254 caracteres.'),
-  phone: phoneField.optional(),
+  phone: requiredPhoneField,
   password: z
     .string()
     .min(1, 'Campo requerido.')

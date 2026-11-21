@@ -203,12 +203,12 @@ describe('CycleTable', () => {
       screen.getByRole('checkbox', { name: 'Seleccionar ciclo de Paciente a' }),
     )
     expect(screen.getByText('1 seleccionados')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Archivar' }))
+    await user.click(screen.getByRole('button', { name: 'Cancelar ciclos' }))
     expect(calls.some((call) => call.url.includes('/cycles/batch'))).toBe(false)
 
     const dialog = await screen.findByRole('dialog')
     await user.click(
-      within(dialog).getByRole('button', { name: /Confirmar y aplicar a 1/ }),
+      within(dialog).getByRole('button', { name: /Confirmar Y Aplicar a 1/ }),
     )
     await waitFor(() =>
       expect(

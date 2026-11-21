@@ -102,7 +102,7 @@ export default function StagesPage() {
   return (
     <div className="animate-in max-w-5xl">
       <PageHeader
-        title="Etapas del Tablero"
+        title="Etapas Del Tablero"
         subtitle="Las cinco columnas del tablero siguen el flujo de los ciclos y no cambian. Dentro de cada una puedes tener varias etapas: cambia su nombre, color y orden, añade nuevas o borra las que no uses. Mover un ciclo entre etapas de la misma columna no cambia su estado."
       />
       <section className="border-border mb-5 grid gap-3 rounded-xl border bg-white p-5">
@@ -233,7 +233,7 @@ export default function StagesPage() {
           ))}
         </select>
         <Button type="button" onClick={add}>
-          Añadir etapa
+          Añadir Etapa
         </Button>
       </div>
       {save.isError && (
@@ -259,7 +259,7 @@ export default function StagesPage() {
             save.mutate(draft)
           }}
         >
-          Guardar cambios
+          Guardar Cambios
         </Button>
       </div>
     </div>

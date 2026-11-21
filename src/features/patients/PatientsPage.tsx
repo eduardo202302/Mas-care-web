@@ -1,3 +1,4 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState, type ReactNode } from 'react'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { useNavigate } from 'react-router-dom'
@@ -10,19 +11,25 @@ import {
   Hash,
   MapPin,
   Plus,
-  Search,
   Stethoscope,
   Tag,
   UserRound,
 } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { BranchTag } from '@/components/BranchTag'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { CustomPropertyFilter } from '@/components/CustomFields'
+import { editTitle } from '@/lib/editTitle'
 import { type ColumnDef, type SortPart } from '@/lib/cycle-table'
 import { Pagination } from '@/components/Pagination'
 import { formatPhone } from '@/lib/phone'
 import { Dialog } from '@/components/ui/Dialog'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { PurgeDialog } from '@/components/ui/PurgeDialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import {
   ActiveFilterChips,
   AdvancedFilterButton,
@@ -36,28 +43,35 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { useActiveBranch } from '@/lib/active-branch'
-import { api } from '@/lib/http'
+import { api, ApiError } from '@/lib/http'
 import { formatCustomValue, useCustomProperties } from '@/lib/custom-properties'
 import { PAGE_ROWS } from '@/lib/paging'
-import { useCan, useMe } from '@/lib/permissions'
+import { useAccessibleBranches, useCan, useMe } from '@/lib/permissions'
 import { compareValues } from '@/lib/table-sort'
 import type { components, paths } from '@/lib/api-types'
 import type { PatientFormValues } from '@/schemas/patient'
 import { PatientForm } from './PatientForm'
-import {
-  buildPatientCreateBody,
-  type PatientCreateResult,
-} from './patientPayload'
+import { createPatientFromForm } from './createPatient'
 
 type PatientList =
   paths['/api/v1/patients']['get']['responses'][200]['content']['application/json']
 type PatientRow = PatientList['data'][number]
 type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
-type PatientQuery = NonNullable<
-  paths['/api/v1/patients']['get']['parameters']['query']
-> &
-  Record<string, string | number | boolean | undefined>
+type ArchivedFilter = 'true' | 'false' | 'all'
+type PatientQuery = Omit<
+  NonNullable<paths['/api/v1/patients']['get']['parameters']['query']>,
+  'archived'
+> & { archived?: ArchivedFilter } & Record<
+    string,
+    string | number | boolean | undefined
+  >
+
+const archivedOptions: { value: ArchivedFilter; label: string }[] = [
+  { value: 'false', label: 'Activos' },
+  { value: 'true', label: 'Inactivos' },
+  { value: 'all', label: 'Todos' },
+]
 
 const patientColumns: ColumnDef[] = [
   { key: 'branch', label: 'Sucursal' },
@@ -151,7 +165,7 @@ function activeFilterCount(
   ).length
   return (
     (responsibleUserId ? 1 : 0) +
-    (archived === 'true' ? 1 : 0) +
+    (archived !== 'false' ? 1 : 0) +
     dateCount +
     columnFilterCount(columns)
   )
@@ -165,14 +179,15 @@ export default function PatientsPage() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [responsibleUserId, setResponsibleUserId] = useState('')
-  const [archived, setArchived] = useState<'true' | 'false'>('false')
+  const [archived, setArchived] = useState<ArchivedFilter>('false')
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<
     components['schemas']['Patient'] | null
   >(null)
-  const [archiving, setArchiving] = useState<
+  const statusDraft = useStatusDraft(editing ? !editing.archivedAt : true)
+  const [purging, setPurging] = useState<
     components['schemas']['Patient'] | null
   >(null)
   const [dates, setDates] = useState<Record<string, string>>({})
@@ -207,7 +222,7 @@ export default function PatientsPage() {
   }
   const [filterDraft, setFilterDraft] = useState<{
     responsibleUserId: string
-    archived: 'true' | 'false'
+    archived: ArchivedFilter
     dates: Record<string, string>
     sort: SortPart[]
     columns: PatientColumnFilters
@@ -274,13 +289,7 @@ export default function PatientsPage() {
     enabled: branchReady,
   })
   const create = useMutation({
-    mutationFn: (values: PatientFormValues) => {
-      const body = buildPatientCreateBody(values)
-      return api<PatientCreateResult>('/api/v1/patients', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      })
-    },
+    mutationFn: createPatientFromForm,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['patients'] })
       setPage(1)
@@ -317,34 +326,44 @@ export default function PatientsPage() {
       await queryClient.invalidateQueries({ queryKey: ['patients'] })
     },
   })
-  const archivePatient = useMutation({
-    mutationFn: (id: string) =>
+  /** Interruptor del formulario de edición: archiva o restaura y refleja el estado en la ficha abierta. */
+  const toggleActive = useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
       api<components['schemas']['Patient']>(
-        `/api/v1/patients/${encodeURIComponent(id)}/archive`,
+        `/api/v1/patients/${encodeURIComponent(id)}/${active ? 'restore' : 'archive'}`,
         { method: 'POST' },
       ),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['patients'] })
-      setArchiving(null)
+    onSuccess: (updated) => {
+      setEditing((current) =>
+        current && current.id === updated.id
+          ? { ...current, archivedAt: updated.archivedAt }
+          : current,
+      )
+      return queryClient.invalidateQueries({ queryKey: ['patients'] })
     },
   })
-  const restorePatient = useMutation({
+  const purge = useMutation({
     mutationFn: (id: string) =>
-      api<components['schemas']['Patient']>(
-        `/api/v1/patients/${encodeURIComponent(id)}/restore`,
-        { method: 'POST' },
-      ),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['patients'] }),
+      api(`/api/v1/patients/${encodeURIComponent(id)}/permanent`, {
+        method: 'DELETE',
+      }),
+    onSuccess: async () => {
+      setPurging(null)
+      await queryClient.invalidateQueries({ queryKey: ['patients'] })
+    },
   })
   function openCreate() {
+    statusDraft.reset()
     setEditing(null)
     setFormOpen(true)
   }
   function openEdit(patient: components['schemas']['Patient']) {
+    statusDraft.reset()
     setEditing(patient)
     setFormOpen(true)
   }
   function closeForm() {
+    statusDraft.reset()
     setFormOpen(false)
     setEditing(null)
   }
@@ -423,7 +442,7 @@ export default function PatientsPage() {
         </span>
       ),
       contact: (
-        <span key="contact" className="text-muted">
+        <span key="contact" className="text-muted whitespace-nowrap">
           {patient.phone ? formatPhone(patient.phone) : 'Sin WhatsApp'}
         </span>
       ),
@@ -448,11 +467,7 @@ export default function PatientsPage() {
           Sucursal
         </span>
       ),
-      status: (
-        <span key="archive" className="text-muted">
-          {patient.archivedAt ? 'Archivado' : 'Activo'}
-        </span>
-      ),
+      status: <StatusBadge key="archive" active={!patient.archivedAt} />,
       primaryCondition: (
         <span key="primaryCondition" className="text-muted">
           {patient.primaryConditionName || ''}
@@ -490,7 +505,7 @@ export default function PatientsPage() {
     const cells: Record<string, string> = {
       branch: branchMap.get(patient.primaryBranchId)?.name ?? '',
       document: String(patient.numericId),
-      status: patient.archivedAt ? 'Archivado' : 'Activo',
+      status: patient.archivedAt ? 'Inactivo' : 'Activo',
       name: patient.fullName,
       treatmentsCount: patient.treatmentsCount
         ? String(patient.treatmentsCount)
@@ -514,19 +529,13 @@ export default function PatientsPage() {
     <RowActions
       key={patient.id}
       label={patient.fullName}
-      deleteLabel="Archivar"
       onEdit={canUpdate ? () => openEdit(patient) : undefined}
-      onDelete={
-        canUpdate && !patient.archivedAt
+      onPurge={
+        canUpdate
           ? () => {
-              archivePatient.reset()
-              setArchiving(patient)
+              purge.reset()
+              setPurging(patient)
             }
-          : undefined
-      }
-      onRestore={
-        canUpdate && patient.archivedAt
-          ? () => restorePatient.mutate(patient.id)
           : undefined
       }
     />
@@ -547,6 +556,7 @@ export default function PatientsPage() {
       )
     : 0
   const branchOptions = branchesQuery.data?.data ?? []
+  const formBranches = useAccessibleBranches(branchOptions)
   const setDraftColumn = (patch: Partial<PatientColumnFilters>) =>
     filterDraft &&
     setFilterDraft({
@@ -561,8 +571,13 @@ export default function PatientsPage() {
         label: 'Responsable',
         value: responsibleUserId,
       })
-    if (archived === 'true')
-      chips.push({ key: 'archived', label: 'Estado', value: 'Archivados' })
+    if (archived !== 'false')
+      chips.push({
+        key: 'archived',
+        label: 'Estado',
+        value: archivedOptions.find((option) => option.value === archived)!
+          .label,
+      })
     for (const [from, to, label] of dateFilterLabels) {
       if (dates[from])
         chips.push({ key: from, label: `${label} desde`, value: dates[from] })
@@ -663,7 +678,7 @@ export default function PatientsPage() {
               {canCreate && (
                 <Button variant="primary" onClick={openCreate}>
                   <Plus className="size-4" />
-                  Nuevo paciente
+                  Crear Paciente
                 </Button>
               )}
             </div>
@@ -671,19 +686,16 @@ export default function PatientsPage() {
         }
       />
       <FilterBarRow aria-label="Filtros de pacientes">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar pacientes"
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value)
-              setPage(1)
-            }}
-            placeholder="Nombre, documento o teléfono"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar pacientes"
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value)
+            setPage(1)
+          }}
+          placeholder="Nombre, documento o teléfono"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -752,13 +764,16 @@ export default function PatientsPage() {
               onChange={(event) =>
                 setFilterDraft({
                   ...filterDraft,
-                  archived: event.target.value as 'true' | 'false',
+                  archived: event.target.value as ArchivedFilter,
                 })
               }
               className={`${filterControlClass} pl-11`}
             >
-              <option value="false">Activos</option>
-              <option value="true">Archivados</option>
+              {archivedOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </FilterField>
           <FilterField label="Sucursal" icon={<Building2 className="size-4" />}>
@@ -1005,7 +1020,7 @@ export default function PatientsPage() {
             }}
             emptyTitle={
               archived === 'true'
-                ? 'No hay pacientes archivados'
+                ? 'No hay pacientes inactivos'
                 : 'Todavía no hay pacientes'
             }
             emptyDescription={
@@ -1029,51 +1044,78 @@ export default function PatientsPage() {
         )}
       </div>
       {formOpen && (editing ? canUpdate : canCreate) && (
-        <Dialog
-          title={editing ? 'Editar Paciente' : 'Nuevo Paciente'}
-          description={
-            editing
-              ? 'Actualiza los datos de la ficha.'
-              : 'Registra sus datos de contacto y atención.'
-          }
-          icon={<UserRound className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          onClose={closeForm}
-          size="lg"
-        >
-          <PatientForm
-            key={editing?.id ?? 'new'}
-            patient={editing ?? undefined}
-            branches={branchesQuery.data?.data ?? []}
-            onSave={(values) =>
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={
               editing
-                ? update.mutateAsync(values).then(() => undefined)
-                : create.mutateAsync(values).then((result) => result.patient.id)
+                ? editTitle('paciente', editing.fullName)
+                : 'Crear Paciente'
             }
-            submitting={editing ? update.isPending : create.isPending}
-            onCancel={closeForm}
-          />
-        </Dialog>
+            description={
+              editing
+                ? 'Actualiza los datos de la ficha.'
+                : 'Registra sus datos de contacto y atención.'
+            }
+            icon={<UserRound className="size-5" />}
+            compactHeader
+            bodyClassName="pt-3"
+            onClose={closeForm}
+            size="lg"
+            headerAction={
+              editing && canUpdate ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={update.isPending || toggleActive.isPending}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
+            }
+          >
+            <PatientForm
+              key={editing?.id ?? 'new'}
+              patient={editing ?? undefined}
+              branches={formBranches}
+              onSave={async (values) => {
+                if (!editing)
+                  return create.mutateAsync(values).then((r) => r.patient.id)
+                await update.mutateAsync(values)
+                if (statusDraft.changed) {
+                  try {
+                    await toggleActive.mutateAsync({
+                      id: editing.id,
+                      active: statusDraft.value,
+                    })
+                  } catch (error) {
+                    // El error se muestra en el formulario.
+                    toggleActive.reset()
+                    throw error
+                  }
+                }
+                return undefined
+              }}
+              submitting={
+                editing
+                  ? update.isPending || toggleActive.isPending
+                  : create.isPending
+              }
+              onCancel={closeForm}
+            />
+          </Dialog>
+        </StatusDraftProvider>
       )}
-      {archiving && (
-        <ConfirmDialog
-          title="Confirmar"
-          description={
-            <>
-              ¿Está seguro que desea archivar a{' '}
-              <strong>{archiving.fullName}</strong>?
-              {archivePatient.isError && (
-                <p role="alert" className="mt-3 text-sm text-red-800">
-                  {archivePatient.error.message}
-                </p>
-              )}
-            </>
+      {purging && (
+        <PurgeDialog
+          name={purging.fullName}
+          confirming={purge.isPending}
+          error={
+            purge.isError
+              ? purge.error instanceof ApiError
+                ? purge.error.message
+                : 'No pudimos borrar el paciente.'
+              : undefined
           }
-          confirmLabel="Archivar"
-          confirming={archivePatient.isPending}
-          onConfirm={() => archivePatient.mutate(archiving.id)}
-          onClose={() => setArchiving(null)}
+          onConfirm={() => purge.mutate(purging.id)}
+          onClose={() => setPurging(null)}
         />
       )}
     </div>

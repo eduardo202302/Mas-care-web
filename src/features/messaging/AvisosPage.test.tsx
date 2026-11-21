@@ -164,7 +164,7 @@ describe('AvisosPage', () => {
       screen.queryByRole('button', { name: /Cancelar el aviso/ }),
     ).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('tab', { name: 'Respuestas sin asignar' }),
+      screen.queryByRole('tab', { name: 'Respuestas Sin Asignar' }),
     ).not.toBeInTheDocument()
   })
 
@@ -194,11 +194,11 @@ describe('AvisosPage', () => {
     const user = userEvent.setup()
     await screen.findByText('Paciente a')
     await user.click(
-      await screen.findByRole('tab', { name: 'Respuestas sin asignar' }),
+      await screen.findByRole('tab', { name: 'Respuestas Sin Asignar' }),
     )
     expect(await screen.findByText('Hola, soy el hijo')).toBeInTheDocument()
     await user.click(
-      screen.getByRole('button', { name: 'Asignar a un paciente' }),
+      screen.getByRole('button', { name: 'Asignar a un Paciente' }),
     )
     const dialog = await screen.findByRole('dialog')
     const assign = within(dialog).getByRole('button', { name: 'Asignar' })

@@ -143,7 +143,7 @@ export function PatientInfoPackPanel({
     <div className="grid gap-4 lg:grid-cols-2">
       <InfoCard
         icon={<Stethoscope className="size-4" />}
-        title="Médico principal"
+        title="Médico Principal"
         badge={
           doctorLinks.length > 1 ? `${doctorLinks.length} médicos` : undefined
         }
@@ -207,7 +207,7 @@ export function PatientInfoPackPanel({
 
       <InfoCard
         icon={<Users className="size-4" />}
-        title="Cuidador principal"
+        title="Cuidador Principal"
         badge={
           caregiverList.length > 1
             ? `${caregiverList.length} cuidadores`
@@ -299,7 +299,7 @@ export function PatientInfoPackPanel({
 
       <InfoCard
         icon={<Pill className="size-4" />}
-        title="Tratamiento en curso"
+        title="Tratamiento en Curso"
         className="lg:col-span-2"
       >
         {activeTreatment ? (
@@ -377,7 +377,7 @@ export function PatientInfoPackPanel({
       {patient && (
         <InfoCard
           icon={<UserRound className="size-4" />}
-          title="Datos del paciente"
+          title="Datos Del Paciente"
           className="lg:col-span-2"
         >
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">

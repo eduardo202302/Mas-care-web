@@ -4,28 +4,25 @@ import {
   ChevronUp,
   ChevronsUpDown,
   Pencil,
-  RotateCcw,
   Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import type { ColumnSort } from '@/lib/table-sort'
 import { EmptyState } from './EmptyState'
 
-/** Compact edit / delete icon buttons for the first column of a table row. */
+/**
+ * Compact edit / delete icon buttons for the first column of a table row. El
+ * estado Activo/Inactivo se cambia solo desde el formulario de edición.
+ */
 export function RowActions({
   label,
   onEdit,
-  onDelete,
-  onRestore,
-  deleteLabel = 'Eliminar',
-  restoreLabel = 'Restaurar',
+  onPurge,
 }: {
   label: string
   onEdit?: () => void
-  onDelete?: () => void
-  onRestore?: () => void
-  deleteLabel?: string
-  restoreLabel?: string
+  /** Borra el registro definitivamente de la base de datos. */
+  onPurge?: () => void
 }) {
   return (
     <div className="flex items-center gap-0.5">
@@ -40,23 +37,12 @@ export function RowActions({
           <Pencil className="size-4" />
         </button>
       )}
-      {onRestore && (
+      {onPurge && (
         <button
           type="button"
-          aria-label={`${restoreLabel} ${label}`}
-          title={restoreLabel}
-          onClick={onRestore}
-          className="text-muted hover:bg-surface hover:text-petroleo grid size-7 place-items-center rounded-md transition"
-        >
-          <RotateCcw className="size-4" />
-        </button>
-      )}
-      {onDelete && (
-        <button
-          type="button"
-          aria-label={`${deleteLabel} ${label}`}
-          title={deleteLabel}
-          onClick={onDelete}
+          aria-label={`Borrar ${label}`}
+          title="Borrar"
+          onClick={onPurge}
           className="grid size-7 place-items-center rounded-md text-red-600 transition hover:bg-red-50 hover:text-red-700"
         >
           <Trash2 className="size-4" />

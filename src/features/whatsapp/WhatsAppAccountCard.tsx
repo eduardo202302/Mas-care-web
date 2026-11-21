@@ -99,7 +99,9 @@ export function WhatsAppAccountCard() {
             required
             placeholder="109876543210987"
             value={phoneNumberId}
-            onChange={(event) => setPhoneNumberId(event.target.value)}
+            onChange={(event) =>
+              setPhoneNumberId(event.target.value.replace(/D/g, ''))
+            }
             className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
           />
           {attempted && phoneNumberId.trim() && idShort && (
@@ -125,7 +127,7 @@ export function WhatsAppAccountCard() {
           )}
         </label>
         <Button type="submit" variant="primary" disabled={connect.isPending}>
-          {account.data?.connected ? 'Reemplazar' : 'Conectar número'}
+          {account.data?.connected ? 'Reemplazar' : 'Conectar Número'}
         </Button>
       </form>
       {connect.isError && (

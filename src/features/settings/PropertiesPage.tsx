@@ -1,3 +1,4 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Layers, SlidersHorizontal, Tag } from 'lucide-react'
@@ -6,7 +7,9 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { StatusToggle } from '@/components/ui/StatusToggle'
 import { TextAreaField } from '@/components/ui/TextAreaField'
+import { editTitle } from '@/lib/editTitle'
 import { api, ApiError } from '@/lib/http'
 import {
   propertyTypes,
@@ -26,6 +29,8 @@ type Draft = {
   required: boolean
   optionsText: string
   groupName: string
+  /** Activa (true) o inactiva (false); se aplica al guardar. */
+  active: boolean
 }
 
 const slug = (label: string) =>
@@ -58,32 +63,47 @@ function PropertyDialog({
   const [value, setValue] = useState(draft)
   const [keyTouched, setKeyTouched] = useState(Boolean(draft.id))
   const editing = Boolean(draft.id)
+  // Clave y tipo no se pueden editar: solo cuentan los campos modificables.
+  const unchanged =
+    editing &&
+    value.label === draft.label &&
+    value.required === draft.required &&
+    value.groupName === draft.groupName &&
+    value.active === draft.active &&
+    (!typeNeedsOptions(value.type) || value.optionsText === draft.optionsText)
   const options = value.optionsText
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
   const save = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const body = {
         label: value.label.trim(),
         required: value.required,
         groupName: value.groupName.trim() || 'General',
         ...(typeNeedsOptions(value.type) ? { options } : {}),
       }
-      return editing
-        ? api(`/api/v1/custom-properties/${draft.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify(body),
-          })
-        : api('/api/v1/custom-properties', {
-            method: 'POST',
-            body: JSON.stringify({
-              ...body,
-              entity: value.entity,
-              key: value.key,
-              type: value.type,
-            }),
-          })
+      if (!editing) {
+        return api('/api/v1/custom-properties', {
+          method: 'POST',
+          body: JSON.stringify({
+            ...body,
+            entity: value.entity,
+            key: value.key,
+            type: value.type,
+          }),
+        })
+      }
+      await api(`/api/v1/custom-properties/${draft.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      })
+      if (value.active !== draft.active) {
+        await api(
+          `/api/v1/custom-properties/${draft.id}/${value.active ? 'restore' : 'archive'}`,
+          { method: 'POST' },
+        )
+      }
     },
     onSuccess: onSaved,
   })
@@ -94,7 +114,7 @@ function PropertyDialog({
 
   return (
     <Dialog
-      title={editing ? 'Editar Propiedad' : 'Nueva Propiedad'}
+      title={editing ? editTitle('propiedad', draft.label) : 'Crear Propiedad'}
       description={
         editing
           ? 'La clave y el tipo no cambian para no invalidar los datos guardados.'
@@ -104,6 +124,16 @@ function PropertyDialog({
       compactHeader
       bodyClassName="pt-3"
       onClose={onClose}
+      headerAction={
+        editing ? (
+          <StatusToggle
+            active={value.active}
+            onChange={(active) =>
+              setValue((current) => ({ ...current, active }))
+            }
+          />
+        ) : undefined
+      }
     >
       <form
         className="grid gap-5"
@@ -234,7 +264,12 @@ function PropertyDialog({
             type="submit"
             variant="primary"
             className="w-full sm:w-auto"
-            disabled={save.isPending}
+            disabled={save.isPending || unchanged}
+            title={
+              unchanged && !save.isPending
+                ? 'No hay cambios para guardar'
+                : undefined
+            }
           >
             {save.isPending
               ? 'Guardando…'
@@ -248,7 +283,7 @@ function PropertyDialog({
   )
 }
 
-/** Create, edit, archive and delete the custom properties of patients and treatments. */
+/** Create, edit and delete the custom properties of patients and treatments. */
 export default function PropertiesPage() {
   const queryClient = useQueryClient()
   const [entity, setEntity] = useState<PropertyEntity>('patient')
@@ -257,16 +292,8 @@ export default function PropertiesPage() {
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: ['custom-properties'] })
   const act = useMutation({
-    mutationFn: ({
-      id,
-      action,
-    }: {
-      id: string
-      action: 'archive' | 'restore' | 'delete'
-    }) =>
-      action === 'delete'
-        ? api(`/api/v1/custom-properties/${id}`, { method: 'DELETE' })
-        : api(`/api/v1/custom-properties/${id}/${action}`, { method: 'POST' }),
+    mutationFn: ({ id }: { id: string }) =>
+      api(`/api/v1/custom-properties/${id}`, { method: 'DELETE' }),
     onSuccess: refresh,
   })
   const rows = properties.data?.data ?? []
@@ -296,12 +323,13 @@ export default function PropertiesPage() {
       required: property.required,
       optionsText: property.options.join('\n'),
       groupName: property.groupName,
+      active: !property.archivedAt,
     })
 
   return (
     <div className="animate-in max-w-4xl">
       <PageHeader
-        title="Propiedades personalizadas"
+        title="Propiedades Personalizadas"
         subtitle="Campos propios de tu organización. Aparecen en la ficha, en el formulario y como filtro de las tablas."
         actions={
           <>
@@ -316,10 +344,11 @@ export default function PropertiesPage() {
                   required: false,
                   optionsText: '',
                   groupName: 'General',
+                  active: true,
                 })
               }
             >
-              Nueva Propiedad
+              Crear Propiedad
             </Button>
           </>
         }
@@ -380,7 +409,7 @@ export default function PropertiesPage() {
                   <td className="px-4 py-3">{typeLabels[property.type]}</td>
                   <td className="px-4 py-3">{property.groupName}</td>
                   <td className="px-4 py-3">
-                    {property.archivedAt ? 'Archivada' : 'Activa'}
+                    <StatusBadge active={!property.archivedAt} feminine />
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap justify-end gap-1">
@@ -408,28 +437,16 @@ export default function PropertiesPage() {
                         Editar
                       </Button>
                       <Button
-                        className="h-8 px-2 text-xs"
-                        aria-label={`${property.archivedAt ? 'Restaurar' : 'Archivar'} ${property.label}`}
-                        onClick={() =>
-                          act.mutate({
-                            id: property.id,
-                            action: property.archivedAt ? 'restore' : 'archive',
-                          })
-                        }
-                      >
-                        {property.archivedAt ? 'Restaurar' : 'Archivar'}
-                      </Button>
-                      <Button
                         variant="danger"
                         className="h-8 px-2 text-xs"
                         aria-label={`Borrar ${property.label}`}
                         onClick={() => {
                           if (
                             window.confirm(
-                              `¿Borrar «${property.label}»? Se eliminarán también los valores guardados en todos los registros. Para conservarlos, archívala.`,
+                              `¿Borrar «${property.label}»? Se eliminarán también los valores guardados en todos los registros. Para conservarlos, márcala como inactiva.`,
                             )
                           )
-                            act.mutate({ id: property.id, action: 'delete' })
+                            act.mutate({ id: property.id })
                         }}
                       >
                         Borrar

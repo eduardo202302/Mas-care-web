@@ -70,6 +70,7 @@ export function KanbanBoard<T>({
   getId,
   getLabel,
   canDragItem = () => true,
+  canDropItem = () => true,
   renderCard,
   onMove,
   testIdPrefix,
@@ -79,6 +80,8 @@ export function KanbanBoard<T>({
   getId: (item: T) => string
   getLabel: (item: T) => string
   canDragItem?: (item: T, columnKey: string) => boolean
+  /** Restringe a qué columnas se puede soltar una tarjeta. */
+  canDropItem?: (item: T, fromColumn: string, toColumn: string) => boolean
   renderCard: (
     item: T,
     options: { dragHandleProps?: DragHandleProps; isDragging?: boolean },
@@ -133,6 +136,7 @@ export function KanbanBoard<T>({
     const targetColumn = columns.find((column) => column.key === targetKey)
     if (!targetColumn || targetColumn.droppable === false) return
     if (!canDragItem(source.item, source.column)) return
+    if (!canDropItem(source.item, source.column, targetKey)) return
 
     const overIsCard = overData?.type === 'card'
     const targetCards = targetColumn.cards.filter(
@@ -311,7 +315,7 @@ function KanbanColumnView<T>({
             onClick={column.onLoadMore}
             disabled={column.loadingMore}
           >
-            {column.loadingMore ? 'Cargando…' : 'Cargar más'}
+            {column.loadingMore ? 'Cargando…' : 'Cargar Más'}
           </Button>
         )}
       </div>

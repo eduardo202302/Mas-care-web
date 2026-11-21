@@ -3,14 +3,16 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, Check, Plus, Stethoscope, User, X } from 'lucide-react'
+import { Building2, Plus, Stethoscope, User, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { MultiSelect } from '@/components/ui/MultiSelect'
 import { TextField } from '@/components/ui/TextField'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { useStatusDraftChanged } from '@/components/ui/StatusDraft'
 import { ApiError, api } from '@/lib/http'
 import { maskPhoneInput, PHONE_INPUT_MAX_LENGTH } from '@/lib/phone'
 import type { components, paths } from '@/lib/api-types'
@@ -46,44 +48,6 @@ function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
   )
 }
 
-function OptionChecklist({
-  label,
-  emptyText,
-  options,
-  onToggle,
-}: {
-  label: string
-  emptyText: string
-  options: { id: string; name: string; assigned: boolean }[]
-  onToggle: (id: string, assigned: boolean) => void
-}) {
-  if (!options.length) return <p className="text-muted text-sm">{emptyText}</p>
-  return (
-    <ul
-      aria-label={label}
-      className="app-scroll flex max-h-40 min-w-0 flex-1 flex-wrap gap-2 overflow-y-auto"
-    >
-      {options.map((option) => (
-        <li key={option.id}>
-          <button
-            type="button"
-            aria-pressed={option.assigned}
-            onClick={() => onToggle(option.id, option.assigned)}
-            className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition ${
-              option.assigned
-                ? 'border-tealmax bg-tealmax/10 text-petroleo font-medium'
-                : 'border-border text-ink bg-white hover:bg-[#c3e9cf]'
-            }`}
-          >
-            {option.assigned && <Check className="size-3.5" />}
-            {option.name}
-          </button>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
 function SelectedList({
   items,
   onRemove,
@@ -100,7 +64,7 @@ function SelectedList({
       {items.map((item) => (
         <li
           key={item.id}
-          className="bg-surface text-ink flex items-center gap-1.5 rounded-full px-3 py-1 text-sm"
+          className="border-tealmax/40 bg-tealmax/10 text-petroleo flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium"
         >
           {item.name}
           <button
@@ -133,7 +97,7 @@ export function DoctorForm({
     handleSubmit,
     setError,
     setValue,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<DoctorBaseFormValues>({
     resolver: zodResolver(doctorSchema),
     defaultValues: doctor
@@ -154,14 +118,28 @@ export function DoctorForm({
           notes: '',
         },
   })
-  const [specialtyIds, setSpecialtyIds] = useState<string[]>(
-    doctor?.specialties?.map((link) => link.specialty.id) ?? [],
+  const [initialSpecialtyIds] = useState<string[]>(
+    () => doctor?.specialties?.map((link) => link.specialty.id) ?? [],
   )
-  const [medicalCenterIds, setMedicalCenterIds] = useState<string[]>(
-    doctor?.medicalCenters
-      ?.filter((link) => link.isActive)
-      .map((link) => link.medicalCenterId) ?? [],
+  const [initialCenterIds] = useState<string[]>(
+    () =>
+      doctor?.medicalCenters
+        ?.filter((link) => link.isActive)
+        .map((link) => link.medicalCenterId) ?? [],
   )
+  const [specialtyIds, setSpecialtyIds] =
+    useState<string[]>(initialSpecialtyIds)
+  const [medicalCenterIds, setMedicalCenterIds] =
+    useState<string[]>(initialCenterIds)
+  const sameIds = (a: string[], b: string[]) =>
+    a.length === b.length && a.every((id) => b.includes(id))
+  const statusChanged = useStatusDraftChanged()
+  const unchanged =
+    Boolean(doctor) &&
+    !isDirty &&
+    !statusChanged &&
+    sameIds(specialtyIds, initialSpecialtyIds) &&
+    sameIds(medicalCenterIds, initialCenterIds)
   const specialtyOptions = useQuery({
     queryKey: ['medical-specialties', { isActive: 'true', rows: 100 }],
     queryFn: () =>
@@ -177,8 +155,6 @@ export function DoctorForm({
   const canWriteCenters = useCan('medical-centers:write')
   const [specialtyFormOpen, setSpecialtyFormOpen] = useState(false)
   const [centerFormOpen, setCenterFormOpen] = useState(false)
-  const [specialtyPickerOpen, setSpecialtyPickerOpen] = useState(false)
-  const [centerPickerOpen, setCenterPickerOpen] = useState(false)
   const [createdSpecialties, setCreatedSpecialties] = useState<
     { id: string; name: string }[]
   >([])
@@ -247,18 +223,8 @@ export function DoctorForm({
     },
   })
 
-  function addSpecialty(id: string) {
-    setSpecialtyIds((current) =>
-      current.includes(id) ? current : [...current, id],
-    )
-  }
   function removeSpecialty(id: string) {
     setSpecialtyIds((current) => current.filter((value) => value !== id))
-  }
-  function addMedicalCenter(id: string) {
-    setMedicalCenterIds((current) =>
-      current.includes(id) ? current : [...current, id],
-    )
   }
   function removeMedicalCenter(id: string) {
     setMedicalCenterIds((current) => current.filter((value) => value !== id))
@@ -318,18 +284,16 @@ export function DoctorForm({
       (specialtyOptions.data?.data ?? []).map((item) => ({
         id: item.id,
         name: item.name,
-        assigned: specialtyIds.includes(item.id),
       })),
-    [specialtyIds, specialtyOptions.data],
+    [specialtyOptions.data],
   )
   const centerPickerOptions = useMemo(
     () =>
       (centerOptions.data?.data ?? []).map((item) => ({
         id: item.id,
         name: item.name,
-        assigned: medicalCenterIds.includes(item.id),
       })),
-    [centerOptions.data, medicalCenterIds],
+    [centerOptions.data],
   )
   const selectedSpecialties = useMemo(
     () =>
@@ -353,7 +317,7 @@ export function DoctorForm({
       <form noValidate onSubmit={handleSubmit(submit)} className="grid gap-5">
         <ModalSection
           icon={<User className="size-4" />}
-          title="Datos del Médico"
+          title="Datos Del Médico"
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <TextField
@@ -373,7 +337,7 @@ export function DoctorForm({
               required
               inputMode="numeric"
               maxLength={LICENSE_NUMBER_LENGTH}
-              placeholder="123456"
+              placeholder="123456789"
               {...register('licenseNumber')}
               onChange={(event) =>
                 setValue(
@@ -421,49 +385,27 @@ export function DoctorForm({
         <ModalSection
           icon={<Stethoscope className="size-4" />}
           title="Especialidades"
-          action={
-            <Button
-              type="button"
-              variant="ghost"
-              className="size-6 px-0"
-              aria-expanded={specialtyPickerOpen}
-              aria-label={
-                specialtyPickerOpen
-                  ? 'Ocultar selector de especialidad'
-                  : 'Mostrar selector de especialidad'
-              }
-              onClick={() => setSpecialtyPickerOpen((open) => !open)}
-            >
-              {specialtyPickerOpen ? (
-                <X className="size-4" />
-              ) : (
-                <Plus className="size-4" />
-              )}
-            </Button>
-          }
         >
           {specialtyOptions.isLoading ? (
             <Skeleton className="h-9 w-full" />
           ) : (
             <>
-              {specialtyPickerOpen && (
-                <div className="flex flex-wrap items-start gap-2">
-                  <OptionChecklist
-                    label="Especialidades disponibles"
-                    emptyText="Sin especialidades registradas."
-                    options={specialtyPickerOptions}
-                    onToggle={(id, assigned) =>
-                      assigned ? removeSpecialty(id) : addSpecialty(id)
-                    }
+              <div className="flex flex-wrap items-start gap-2">
+                <MultiSelect
+                  label="Especialidades disponibles"
+                  placeholder="Seleccionar especialidades"
+                  emptyText="Sin especialidades registradas."
+                  options={specialtyPickerOptions}
+                  value={specialtyIds}
+                  onChange={setSpecialtyIds}
+                />
+                {canWriteSpecialties && (
+                  <AddButton
+                    label="Crear Especialidad"
+                    onClick={() => setSpecialtyFormOpen(true)}
                   />
-                  {canWriteSpecialties && (
-                    <AddButton
-                      label="Nueva Especialidad"
-                      onClick={() => setSpecialtyFormOpen(true)}
-                    />
-                  )}
-                </div>
-              )}
+                )}
+              </div>
               {specialtyOptions.isError && (
                 <p role="alert" className="text-sm text-red-700">
                   No pudimos cargar las especialidades.{' '}
@@ -482,49 +424,27 @@ export function DoctorForm({
         <ModalSection
           icon={<Building2 className="size-4" />}
           title="Centros Médicos"
-          action={
-            <Button
-              type="button"
-              variant="ghost"
-              className="size-6 px-0"
-              aria-expanded={centerPickerOpen}
-              aria-label={
-                centerPickerOpen
-                  ? 'Ocultar selector de centro médico'
-                  : 'Mostrar selector de centro médico'
-              }
-              onClick={() => setCenterPickerOpen((open) => !open)}
-            >
-              {centerPickerOpen ? (
-                <X className="size-4" />
-              ) : (
-                <Plus className="size-4" />
-              )}
-            </Button>
-          }
         >
           {centerOptions.isLoading ? (
             <Skeleton className="h-9 w-full" />
           ) : (
             <>
-              {centerPickerOpen && (
-                <div className="flex flex-wrap items-start gap-2">
-                  <OptionChecklist
-                    label="Centros médicos disponibles"
-                    emptyText="Sin centros médicos registrados."
-                    options={centerPickerOptions}
-                    onToggle={(id, assigned) =>
-                      assigned ? removeMedicalCenter(id) : addMedicalCenter(id)
-                    }
+              <div className="flex flex-wrap items-start gap-2">
+                <MultiSelect
+                  label="Centros médicos disponibles"
+                  placeholder="Seleccionar centros médicos"
+                  emptyText="Sin centros médicos registrados."
+                  options={centerPickerOptions}
+                  value={medicalCenterIds}
+                  onChange={setMedicalCenterIds}
+                />
+                {canWriteCenters && (
+                  <AddButton
+                    label="Crear Centro Médico"
+                    onClick={() => setCenterFormOpen(true)}
                   />
-                  {canWriteCenters && (
-                    <AddButton
-                      label="Nuevo Centro Médico"
-                      onClick={() => setCenterFormOpen(true)}
-                    />
-                  )}
-                </div>
-              )}
+                )}
+              </div>
               {centerOptions.isError && (
                 <p role="alert" className="text-sm text-red-700">
                   No pudimos cargar los centros médicos.{' '}
@@ -556,19 +476,24 @@ export function DoctorForm({
             type="submit"
             variant="primary"
             className="w-full sm:w-auto"
-            disabled={submitting}
+            disabled={submitting || unchanged}
+            title={
+              unchanged && !submitting
+                ? 'No hay cambios para guardar'
+                : undefined
+            }
           >
             {submitting
               ? 'Guardando…'
               : doctor
-                ? 'Guardar cambios'
-                : 'Crear médico'}
+                ? 'Guardar Cambios'
+                : 'Crear Médico'}
           </Button>
         </FormActions>
       </form>
       {specialtyFormOpen && (
         <Dialog
-          title="Nueva Especialidad"
+          title="Crear Especialidad"
           icon={<Stethoscope className="size-5" />}
           compactHeader
           bodyClassName="pt-3"
@@ -585,7 +510,7 @@ export function DoctorForm({
       )}
       {centerFormOpen && (
         <Dialog
-          title="Nuevo Centro Médico"
+          title="Crear Centro Médico"
           icon={<Building2 className="size-5" />}
           compactHeader
           bodyClassName="pt-3"

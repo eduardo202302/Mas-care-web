@@ -11,10 +11,52 @@ import { TextField } from '@/components/ui/TextField'
 import { PasswordField } from '@/components/ui/PasswordField'
 import { authClient } from '@/lib/auth-client'
 import { queryClient } from '@/lib/query-client'
+import { authErrorMessage } from '@/lib/auth-errors'
 import { CompanyBadge } from './CompanyBadge'
 
+const REMEMBER_KEY = 'maxcare.remembered-email'
+
+function readRememberedEmail() {
+  try {
+    return window.localStorage.getItem(REMEMBER_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function writeRememberedEmail(remember: boolean, email: string) {
+  try {
+    if (remember) window.localStorage.setItem(REMEMBER_KEY, email)
+    else window.localStorage.removeItem(REMEMBER_KEY)
+  } catch {
+    // Storage can be unavailable (private mode); remembering is best-effort.
+  }
+}
+
+// The password is never kept by the app: it is handed to the browser's own
+// password manager, which offers to save it and autofills it next time.
+async function storeBrowserCredential(email: string, password: string) {
+  try {
+    const PasswordCredentialCtor = (
+      window as unknown as {
+        PasswordCredential?: new (data: {
+          id: string
+          password: string
+        }) => Credential
+      }
+    ).PasswordCredential
+    if (PasswordCredentialCtor && navigator.credentials) {
+      await navigator.credentials.store(
+        new PasswordCredentialCtor({ id: email, password }),
+      )
+    }
+  } catch {
+    // Unsupported browser or blocked by the user; saving is best-effort.
+  }
+}
+
 export default function AccessPage() {
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(readRememberedEmail)
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
   const [error, setError] = useState('')
@@ -32,15 +74,11 @@ export default function AccessPage() {
     setLoading(true)
     try {
       const result = await authClient.signIn.email({
-        email,
+        email: email.trim(),
         password,
         rememberMe,
       })
-      if (result.error)
-        setError(
-          result.error.message ??
-            'No pudimos iniciar sesión. Revisa tus datos.',
-        )
+      if (result.error) setError(authErrorMessage(result.error))
       else {
         const session = await authClient.getSession()
         if (session.error || !session.data) {
@@ -48,6 +86,8 @@ export default function AccessPage() {
             'La sesión no pudo confirmarse. Verifica que la API acepte cookies para este origen e inténtalo de nuevo.',
           )
         } else {
+          writeRememberedEmail(rememberMe, email.trim())
+          if (rememberMe) await storeBrowserCredential(email.trim(), password)
           // The session store updates asynchronously after sign-in; entering
           // /inicio before it does made RequireAuth bounce back to /acceso,
           // so the first attempt seemed to do nothing.
@@ -72,8 +112,9 @@ export default function AccessPage() {
       <form onSubmit={submit} className="grid gap-5">
         <TextField
           label="Correo electrónico"
+          name="email"
           type="email"
-          autoComplete="email"
+          autoComplete="username"
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
@@ -81,6 +122,7 @@ export default function AccessPage() {
         />
         <PasswordField
           label="Contraseña"
+          name="password"
           autoComplete="current-password"
           required
           value={password}
@@ -94,7 +136,9 @@ export default function AccessPage() {
             onChange={(event) => setRememberMe(event.target.checked)}
             className="accent-tealmax size-4 cursor-pointer"
           />
-          <span className="text-ink">Recordar mis credenciales</span>
+          <span className="text-ink">
+            Recordar mi correo y mantener la sesión
+          </span>
         </label>
         {successMessage && (
           <p

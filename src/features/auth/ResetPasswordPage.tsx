@@ -121,7 +121,7 @@ export default function ResetPasswordPage() {
           disabled={loading}
           className="mt-1 w-full"
         >
-          {loading ? 'Guardando…' : 'Cambiar contraseña'}
+          {loading ? 'Guardando…' : 'Cambiar Contraseña'}
         </Button>
       </form>
     </AuthFrame>

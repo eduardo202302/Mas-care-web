@@ -81,7 +81,7 @@ describe('WhatsAppAccountCard', () => {
     const user = userEvent.setup()
     wrap(<WhatsAppAccountCard />)
     const connect = await screen.findByRole('button', {
-      name: 'Conectar número',
+      name: 'Conectar Número',
     })
     await user.click(connect)
     expect(calls.some((call) => call.method === 'PUT')).toBe(false)
@@ -145,15 +145,15 @@ describe('TemplateTestSendDialog', () => {
         onClose={() => undefined}
       />,
     )
-    const send = screen.getByRole('button', { name: 'Enviar prueba' })
+    const send = screen.getByRole('button', { name: 'Enviar Prueba' })
     await user.click(send)
     expect(calls.some((call) => call.method === 'POST')).toBe(false)
-    await user.type(screen.getByLabelText('Teléfono de prueba'), '809 555 0123')
+    await user.type(screen.getByLabelText('Teléfono de prueba'), '8095550123')
     await user.click(send)
     await waitFor(() => {
       const post = calls.find((call) => call.method === 'POST')
       expect(post?.url).toContain('/api/v1/message-templates/t1/test-send')
-      expect(post?.body).toEqual({ phone: '809 555 0123' })
+      expect(post?.body).toEqual({ phone: '(809) 555-0123' })
     })
     expect(
       await screen.findByText(/Enviado\. Revisa ese teléfono/),

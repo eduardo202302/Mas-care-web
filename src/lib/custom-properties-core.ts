@@ -102,7 +102,7 @@ export function validateCustomValues(
   for (const [key, value] of Object.entries(provided ?? {})) {
     const def = byKey.get(key)
     if (!def) {
-      errors[key] = 'Propiedad desconocida o archivada'
+      errors[key] = 'Propiedad desconocida o inactiva'
       continue
     }
     if (isEmpty(value)) {

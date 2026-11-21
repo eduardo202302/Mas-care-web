@@ -87,7 +87,7 @@ describe('ProfilePage', () => {
     const user = userEvent.setup()
     await user.click(
       await screen.findByRole('button', {
-        name: 'Enviar enlace de verificación',
+        name: 'Enviar Enlace de Verificación',
       }),
     )
     await waitFor(() =>
@@ -96,7 +96,7 @@ describe('ProfilePage', () => {
       ),
     )
     expect(
-      await screen.findByRole('button', { name: 'Enlace enviado' }),
+      await screen.findByRole('button', { name: 'Enlace Enviado' }),
     ).toBeDisabled()
   })
 
@@ -116,7 +116,7 @@ describe('ProfilePage', () => {
     setup({ ...baseProfile, pin: '123456' })
     const user = userEvent.setup()
     const submit = await screen.findByRole('button', {
-      name: 'Cambiar contraseña',
+      name: 'Cambiar Contraseña',
     })
     await user.click(submit)
     expect(changePassword).not.toHaveBeenCalled()
@@ -162,7 +162,7 @@ describe('ProfilePage', () => {
       'clave-nueva-segura',
     )
     await user.type(screen.getByLabelText(/^Repite/), 'clave-nueva-segura')
-    await user.click(screen.getByRole('button', { name: 'Cambiar contraseña' }))
+    await user.click(screen.getByRole('button', { name: 'Cambiar Contraseña' }))
     expect(await screen.findByRole('alert')).toHaveTextContent(
       /Revisa la contraseña actual/,
     )

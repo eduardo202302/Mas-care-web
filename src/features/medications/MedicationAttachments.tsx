@@ -276,7 +276,7 @@ export function MedicationAttachments({
   return (
     <ModalSection
       icon={<Paperclip className="size-4" />}
-      title="Imágenes y Documentos"
+      title="Imágenes Y Documentos"
       action={
         !readOnly && (
           <>

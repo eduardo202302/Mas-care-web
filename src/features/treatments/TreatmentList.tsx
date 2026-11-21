@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   MessageCircle,
   PackageCheck,
+  PackagePlus,
   PauseCircle,
   Pencil,
   PlayCircle,
@@ -23,6 +24,7 @@ import {
   type Medication,
   type Treatment,
 } from '@/lib/treatments'
+import { useOriginState } from '@/lib/navigation-origin'
 import type { TreatmentActionType } from './TreatmentActionDialog'
 
 const neutralChip =
@@ -39,6 +41,7 @@ export function TreatmentList({
   onAction,
   onNotice,
   onDeliver,
+  onReplenish,
 }: {
   treatments: Treatment[]
   medications: Map<string, Medication>
@@ -55,7 +58,9 @@ export function TreatmentList({
   ) => void
   onNotice?: (treatment: Treatment) => void
   onDeliver?: (treatment: Treatment) => void
+  onReplenish?: (treatment: Treatment) => void
 }) {
+  const originState = useOriginState()
   return (
     <ul className="grid gap-3">
       {treatments.map((treatment) => {
@@ -82,6 +87,7 @@ export function TreatmentList({
               <div>
                 <Link
                   to={`/pacientes/${treatment.patientId}/tratamientos/${treatment.id}`}
+                  state={originState}
                   className="text-petroleo hover:text-tealmax text-sm font-semibold hover:underline"
                 >
                   {treatmentLabel(treatment, medication)}
@@ -218,6 +224,19 @@ export function TreatmentList({
                       Finalizar
                     </Button>
                   )}
+                {onReplenish &&
+                  canWrite &&
+                  treatment.status === 'active' &&
+                  !openCycleTreatmentIds?.has(treatment.id) && (
+                    <Button
+                      variant="ghost"
+                      className="h-8 px-2 text-xs"
+                      onClick={() => onReplenish(treatment)}
+                    >
+                      <PackagePlus className="size-3.5" />
+                      Reposición
+                    </Button>
+                  )}
                 {canManage && treatment.status === 'paused' && (
                   <Button
                     variant="ghost"
@@ -235,7 +254,7 @@ export function TreatmentList({
                     onClick={() => onAction('adjust', treatment)}
                   >
                     <CalendarClock className="size-3.5" />
-                    Ajustar cobertura
+                    Ajustar Cobertura
                   </Button>
                 )}
                 {canManage && refillReady && (
@@ -245,7 +264,7 @@ export function TreatmentList({
                     onClick={() => onAction('renew', treatment)}
                   >
                     <RefreshCw className="size-3.5" />
-                    Renovar receta
+                    Renovar Receta
                   </Button>
                 )}
               </div>

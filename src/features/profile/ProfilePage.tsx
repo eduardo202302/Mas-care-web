@@ -117,7 +117,7 @@ function ChangePassword() {
         )}
         <div>
           <Button type="submit" variant="primary" disabled={state === 'saving'}>
-            {state === 'saving' ? 'Guardando…' : 'Cambiar contraseña'}
+            {state === 'saving' ? 'Guardando…' : 'Cambiar Contraseña'}
           </Button>
         </div>
       </form>
@@ -145,7 +145,7 @@ function VerifyEmail({ email }: { email: string }) {
         onClick={() => void resend()}
         disabled={state === 'sending' || state === 'sent'}
       >
-        {state === 'sent' ? 'Enlace enviado' : 'Enviar enlace de verificación'}
+        {state === 'sent' ? 'Enlace Enviado' : 'Enviar Enlace de Verificación'}
       </Button>
       {state === 'error' && (
         <span role="alert" className="text-red-700">
@@ -188,7 +188,7 @@ export default function ProfilePage() {
   return (
     <div className="animate-in grid max-w-3xl gap-4">
       <PageHeader
-        title="Mi perfil"
+        title="Mi Perfil"
         subtitle="Tus datos de acceso. Para cambiar el nombre, el correo o el teléfono, pídeselo a un administrador."
         className="mb-0"
       />

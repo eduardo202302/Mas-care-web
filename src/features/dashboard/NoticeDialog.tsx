@@ -84,7 +84,7 @@ export function NoticeDialog({
 
   return (
     <Dialog
-      title="Avisar al paciente"
+      title="Avisar al Paciente"
       description={`${target.patientName} · ${target.medicationName}`}
       onClose={onClose}
     >
@@ -206,7 +206,7 @@ export function NoticeDialog({
                 ) : (
                   <Clipboard className="size-4" />
                 )}
-                {copied ? 'Copiado' : 'Copiar mensaje'}
+                {copied ? 'Copiado' : 'Copiar Mensaje'}
               </Button>
               <Button
                 type="button"
@@ -214,7 +214,7 @@ export function NoticeDialog({
                 disabled={log.isPending}
               >
                 <Copy className="size-4" />
-                {log.isPending ? 'Registrando…' : 'Registrar sin abrir'}
+                {log.isPending ? 'Registrando…' : 'Registrar Sin Abrir'}
               </Button>
               {canOpen ? (
                 <a
@@ -233,7 +233,7 @@ export function NoticeDialog({
                 </a>
               ) : (
                 <Button variant="primary" disabled>
-                  {channel === 'whatsapp' ? 'Abrir WhatsApp' : 'Llamar ahora'}
+                  {channel === 'whatsapp' ? 'Abrir WhatsApp' : 'Llamar Ahora'}
                 </Button>
               )}
             </div>

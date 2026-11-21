@@ -1,3 +1,4 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -6,14 +7,19 @@ import {
   Package,
   Pill,
   Plus,
-  Search,
   ToggleRight,
 } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { Dialog } from '@/components/ui/Dialog'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { PurgeDialog } from '@/components/ui/PurgeDialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import {
   ActiveFilterChips,
   AdvancedFilterButton,
@@ -26,6 +32,7 @@ import {
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
+import { editTitle } from '@/lib/editTitle'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { useCan } from '@/lib/permissions'
@@ -33,9 +40,9 @@ import { applyColumnSort, useColumnSort } from '@/lib/table-sort'
 import type { components, paths } from '@/lib/api-types'
 import type { MedicationFormValues } from '@/schemas/medication'
 import {
-  setPrimaryMedicationAttachment,
-  uploadMedicationAttachment,
-} from '@/lib/medication-attachments'
+  attachmentsFailedMessage,
+  createMedicationFromForm,
+} from './createMedication'
 import { MedicationForm } from './MedicationForm'
 import { MedicationImage } from './MedicationImage'
 import { MedicationPatientsDialog } from './MedicationPatientsDialog'
@@ -43,18 +50,21 @@ import type { StagedAttachment } from './MedicationAttachments'
 
 type MedicationList =
   paths['/api/v1/medications']['get']['responses'][200]['content']['application/json']
-type MedicationQuery = NonNullable<
-  paths['/api/v1/medications']['get']['parameters']['query']
->
+type ArchivedFilter = 'true' | 'false' | 'all'
+type MedicationQuery = Omit<
+  NonNullable<paths['/api/v1/medications']['get']['parameters']['query']>,
+  'archived'
+> & { archived?: ArchivedFilter }
 
-const DEFAULT_ARCHIVED = 'false' as 'true' | 'false'
-const archivedOptions: { value: 'true' | 'false'; label: string }[] = [
+const DEFAULT_ARCHIVED = 'false' as ArchivedFilter
+const archivedOptions: { value: ArchivedFilter; label: string }[] = [
   { value: 'false', label: 'Activos' },
-  { value: 'true', label: 'Archivados' },
+  { value: 'true', label: 'Inactivos' },
+  { value: 'all', label: 'Todos' },
 ]
 
 type MedicationFilters = {
-  archived: 'true' | 'false'
+  archived: ArchivedFilter
   id: string
   name: string
   ingredient: string
@@ -118,9 +128,10 @@ export default function MedicationsPage() {
   >(null)
   const [formOpen, setFormOpen] = useState(false)
   const [viewOnly, setViewOnly] = useState(false)
-  const [archiving, setArchiving] = useState<
+  const [purging, setPurging] = useState<
     components['schemas']['Medication'] | null
   >(null)
+  const statusDraft = useStatusDraft(editing ? !editing.archivedAt : true)
 
   const archived = applied.archived
   const filters = useMemo<MedicationQuery>(
@@ -158,52 +169,26 @@ export default function MedicationsPage() {
             ? { activeIngredient: values.activeIngredient }
             : { activeIngredient: null }),
         }
-        return api<components['schemas']['Medication']>(
+        const updated = await api<components['schemas']['Medication']>(
           `/api/v1/medications/${encodeURIComponent(editing.id)}`,
           { method: 'PATCH', body: JSON.stringify(body) },
         )
-      }
-      const body: components['schemas']['MedicationCreate'] = {
-        ...values,
-        ...(values.brandName
-          ? { brandName: values.brandName }
-          : { brandName: null }),
-        ...(values.genericName
-          ? { genericName: values.genericName }
-          : { genericName: null }),
-        ...(values.activeIngredient
-          ? { activeIngredient: values.activeIngredient }
-          : { activeIngredient: null }),
-      }
-      const created = await api<components['schemas']['Medication']>(
-        '/api/v1/medications',
-        { method: 'POST', body: JSON.stringify(body) },
-      )
-      const failed: string[] = []
-      let primaryId: string | undefined
-      for (const item of staged) {
-        try {
-          const uploaded = await uploadMedicationAttachment(
-            created.id,
-            item.file,
+        // El interruptor Activo/Inactivo se aplica al guardar, no al instante.
+        if (statusDraft.changed)
+          return api<components['schemas']['Medication']>(
+            `/api/v1/medications/${encodeURIComponent(editing.id)}/${statusDraft.value ? 'restore' : 'archive'}`,
+            { method: 'POST' },
           )
-          if (item.isPrimary) primaryId = uploaded.id
-        } catch {
-          failed.push(item.file.name)
-        }
+        return updated
       }
-      if (primaryId)
-        await setPrimaryMedicationAttachment(created.id, primaryId).catch(
-          () => undefined,
-        )
+      const { medication: created, failed } = await createMedicationFromForm(
+        values,
+        staged,
+      )
       if (failed.length) {
         await queryClient.invalidateQueries({ queryKey: ['medications'] })
         setEditing(created)
-        throw new Error(
-          'El medicamento se creó, pero no se pudieron subir: ' +
-            failed.join(', ') +
-            '. Vuelve a intentarlo desde Imágenes y Documentos.',
-        )
+        throw new Error(attachmentsFailedMessage(failed))
       }
       return created
     },
@@ -212,43 +197,37 @@ export default function MedicationsPage() {
       closeForm()
     },
   })
-  const archive = useMutation({
+  const purge = useMutation({
     mutationFn: (id: string) =>
-      api<components['schemas']['Medication']>(
-        `/api/v1/medications/${encodeURIComponent(id)}/archive`,
-        { method: 'POST' },
-      ),
+      api<void>(`/api/v1/medications/${encodeURIComponent(id)}/permanent`, {
+        method: 'DELETE',
+      }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['medications'] })
-      setArchiving(null)
+      setPurging(null)
     },
-  })
-  const restore = useMutation({
-    mutationFn: (id: string) =>
-      api<components['schemas']['Medication']>(
-        `/api/v1/medications/${encodeURIComponent(id)}/restore`,
-        { method: 'POST' },
-      ),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['medications'] }),
   })
 
   function closeForm() {
+    statusDraft.reset()
     setFormOpen(false)
     setEditing(null)
     setViewOnly(false)
   }
   function openCreate() {
+    statusDraft.reset()
     setEditing(null)
     setFormOpen(true)
   }
   function openEdit(item: components['schemas']['Medication']) {
+    statusDraft.reset()
     setEditing(item)
     setViewOnly(false)
     setFormOpen(true)
   }
   /** Doble clic en la fila: mismo formulario, pero bloqueado. */
   function openView(item: components['schemas']['Medication']) {
+    statusDraft.reset()
     setEditing(item)
     setViewOnly(true)
     setFormOpen(true)
@@ -299,9 +278,7 @@ export default function MedicationsPage() {
     <span key="id" className="text-muted font-mono text-xs">
       {item.numericId}
     </span>,
-    <span key="state" className="text-muted">
-      {item.archivedAt ? 'Archivado' : 'Activo'}
-    </span>,
+    <StatusBadge key="state" active={!item.archivedAt} />,
     <span key="name" className="flex items-center gap-3">
       <MedicationImage
         medicationId={item.id}
@@ -349,7 +326,7 @@ export default function MedicationsPage() {
   ]
   const exportRows = items.map((item) => [
     String(item.numericId),
-    item.archivedAt ? 'Archivado' : 'Activo',
+    item.archivedAt ? 'Inactivo' : 'Activo',
     item.brandName ||
       item.genericName ||
       item.activeIngredient ||
@@ -404,19 +381,13 @@ export default function MedicationsPage() {
       <RowActions
         key={item.id}
         label={label}
-        deleteLabel="Archivar"
         onEdit={canUpdate ? () => openEdit(item) : undefined}
-        onDelete={
-          canArchive && !item.archivedAt
+        onPurge={
+          canArchive
             ? () => {
-                archive.reset()
-                setArchiving(item)
+                purge.reset()
+                setPurging(item)
               }
-            : undefined
-        }
-        onRestore={
-          canArchive && item.archivedAt
-            ? () => restore.mutate(item.id)
             : undefined
         }
       />
@@ -434,7 +405,7 @@ export default function MedicationsPage() {
               {canCreate && (
                 <Button variant="primary" onClick={openCreate}>
                   <Plus className="size-4" />
-                  Nuevo medicamento
+                  Crear Medicamento
                 </Button>
               )}
             </div>
@@ -442,19 +413,16 @@ export default function MedicationsPage() {
         }
       />
       <FilterBarRow aria-label="Filtros">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar medicamentos"
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value)
-              setPage(1)
-            }}
-            placeholder="Nombre, principio activo o presentación"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar medicamentos"
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value)
+            setPage(1)
+          }}
+          placeholder="Nombre, principio activo o presentación"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -466,7 +434,7 @@ export default function MedicationsPage() {
           rows={exportRows}
           filename="medicamentos"
           exportEntity="medications"
-          exportFilters={{ q: search.trim() }}
+          exportFilters={{ q: search.trim(), archived }}
         />
       </FilterBarRow>
       <ActiveFilterChips
@@ -506,7 +474,7 @@ export default function MedicationsPage() {
               onChange={(event) =>
                 setFilterDraft({
                   ...filterDraft,
-                  archived: event.target.value as 'true' | 'false',
+                  archived: event.target.value as ArchivedFilter,
                 })
               }
               className={`${filterControlClass} pl-11`}
@@ -670,7 +638,7 @@ export default function MedicationsPage() {
             }}
             emptyTitle={
               archived === 'true'
-                ? 'No hay medicamentos archivados'
+                ? 'No hay medicamentos inactivos'
                 : 'Todavía no hay medicamentos'
             }
             emptyDescription={
@@ -706,57 +674,60 @@ export default function MedicationsPage() {
         />
       )}
       {formOpen && (
-        <Dialog
-          title={
-            viewOnly
-              ? 'Ver Medicamento'
-              : editing
-                ? 'Editar Medicamento'
-                : 'Nuevo Medicamento'
-          }
-          titleAside={editing?.brandName || undefined}
-          description="Registra los datos de presentación del producto."
-          icon={<Pill className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          onClose={closeForm}
-        >
-          <MedicationForm
-            key={editing?.id ?? 'new'}
-            medication={editing ?? undefined}
-            onSave={(values, staged) =>
-              save.mutateAsync({ values, staged }).then(() => undefined)
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={
+              viewOnly
+                ? 'Ver Medicamento'
+                : editing
+                  ? editTitle(
+                      'medicamento',
+                      editing?.brandName || editing?.genericName,
+                    )
+                  : 'Crear Medicamento'
             }
-            onCancel={closeForm}
-            submitting={save.isPending}
-            readOnly={viewOnly}
-            onEdit={() => setViewOnly(false)}
-          />
-        </Dialog>
+            titleAside={viewOnly ? editing?.brandName || undefined : undefined}
+            description="Registra los datos de presentación del producto."
+            icon={<Pill className="size-5" />}
+            compactHeader
+            bodyClassName="pt-3"
+            onClose={closeForm}
+            headerAction={
+              editing && canUpdate ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={save.isPending}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
+            }
+          >
+            <MedicationForm
+              key={editing?.id ?? 'new'}
+              medication={editing ?? undefined}
+              onSave={(values, staged) =>
+                save.mutateAsync({ values, staged }).then(() => undefined)
+              }
+              onCancel={closeForm}
+              submitting={save.isPending}
+              readOnly={viewOnly}
+              onEdit={() => setViewOnly(false)}
+            />
+          </Dialog>
+        </StatusDraftProvider>
       )}
-      {archiving && (
-        <ConfirmDialog
-          title="Confirmar"
-          description={
-            <>
-              ¿Está seguro que desea archivar el medicamento{' '}
-              <strong>
-                {archiving.brandName ||
-                  archiving.genericName ||
-                  archiving.presentation}
-              </strong>
-              ?
-              {archive.isError && (
-                <p role="alert" className="mt-3 text-sm text-red-800">
-                  {archive.error.message}
-                </p>
-              )}
-            </>
+      {purging && (
+        <PurgeDialog
+          name={
+            purging.brandName ||
+            purging.genericName ||
+            purging.activeIngredient ||
+            purging.presentation
           }
-          confirmLabel="Archivar"
-          confirming={archive.isPending}
-          onConfirm={() => archive.mutate(archiving.id)}
-          onClose={() => setArchiving(null)}
+          confirming={purge.isPending}
+          error={purge.isError ? purge.error.message : undefined}
+          onConfirm={() => purge.mutate(purging.id)}
+          onClose={() => setPurging(null)}
         />
       )}
     </div>

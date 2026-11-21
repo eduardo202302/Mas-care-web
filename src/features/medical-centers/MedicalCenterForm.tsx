@@ -5,6 +5,7 @@ import { Building2, ChevronDown, MapPin, Phone } from 'lucide-react'
 import { AddressMapPicker } from '@/components/AddressMapPicker'
 import { FormFields, FormFooter } from '@/components/ui/FormMode'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { useStatusDraftChanged } from '@/components/ui/StatusDraft'
 import { TextField } from '@/components/ui/TextField'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { ApiError } from '@/lib/http'
@@ -23,6 +24,8 @@ function addressText(
   key: string,
 ): string {
   const value = (details as Record<string, unknown> | null)?.[key]
+  // latitude/longitude se guardan como número en el JSON.
+  if (typeof value === 'number') return String(value)
   return typeof value === 'string' ? value : ''
 }
 
@@ -43,13 +46,14 @@ export function MedicalCenterForm({
   /** Desbloquea los campos desde el botón Editar del modo ver. */
   onEdit?: () => void
 }) {
+  const statusChanged = useStatusDraftChanged()
   const {
     register,
     handleSubmit,
     setValue,
     getValues,
     setError,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<MedicalCenterFormValues>({
     resolver: zodResolver(medicalCenterSchema),
     defaultValues: center
@@ -251,7 +255,7 @@ export function MedicalCenterForm({
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <TextField
+              <TextAreaField
                 label="Dirección"
                 required
                 placeholder="G5CJ+2X Santo Domingo Este"
@@ -307,7 +311,8 @@ export function MedicalCenterForm({
         onEdit={onEdit}
         onClose={onCancel}
         submitting={submitting}
-        submitLabel={center ? 'Guardar cambios' : 'Crear centro médico'}
+        unchanged={Boolean(center) && !isDirty && !statusChanged}
+        submitLabel={center ? 'Guardar Cambios' : 'Crear Centro Médico'}
       />
     </form>
   )

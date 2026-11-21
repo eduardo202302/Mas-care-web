@@ -165,7 +165,11 @@ export function MedicationPhotoViewer({
               >
                 <ZoomIn className="size-4" />
               </Button>
-              <Button type="button" onClick={() => printImage(url)}>
+              <Button
+                type="button"
+                className="bg-white hover:bg-[#c3e9cf]"
+                onClick={() => printImage(url)}
+              >
                 <Printer className="size-4" />
                 Imprimir
               </Button>

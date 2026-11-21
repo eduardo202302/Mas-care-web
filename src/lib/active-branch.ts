@@ -17,7 +17,9 @@ export function useActiveBranch() {
   const setActiveBranchId = useUiStore((state) => state.setActiveBranchId)
   const { data: me } = useMe()
   const list = me?.branches
-  const showAll = activeBranchId === 'all'
+  const showAll =
+    activeBranchId === 'all' &&
+    (Boolean(me?.allBranches) || (list?.length ?? 0) > 1)
   const current = list?.find((branch) => branch.id === activeBranchId)
   const firstBranchId = list?.[0]?.id
 

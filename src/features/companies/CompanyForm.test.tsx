@@ -85,7 +85,7 @@ describe('CompanyForm', () => {
     )
     await user.type(screen.getByLabelText('Dominio'), 'https://farmacia.com/')
     await user.selectOptions(screen.getByLabelText('Estado'), 'inactive')
-    await user.click(screen.getByRole('button', { name: 'Crear compañía' }))
+    await user.click(screen.getByRole('button', { name: 'Crear Compañía' }))
 
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith({

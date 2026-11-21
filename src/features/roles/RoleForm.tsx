@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
+import { useEffect, useRef, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
-import { KeyRound, LayoutList, ShieldCheck } from 'lucide-react'
+import { CircleAlert, LayoutList, ShieldCheck } from 'lucide-react'
 import { FormFields, FormFooter } from '@/components/ui/FormMode'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { useStatusDraftChanged } from '@/components/ui/StatusDraft'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { TextField } from '@/components/ui/TextField'
 import { ApiError } from '@/lib/http'
@@ -17,7 +18,6 @@ import {
 } from '@/schemas/role'
 import type { GrantMap } from './grants'
 import { MenuPermissionTree } from './MenuPermissionTree'
-import { permissionGroups } from './permissionCatalog'
 
 type RoleDto = components['schemas']['Role']
 
@@ -38,6 +38,24 @@ type Props = {
   onEdit?: () => void
 }
 
+/** Compara dos mapas de permisos por pantalla (solo los accesos concedidos). */
+function sameGrants(a: GrantMap, b: GrantMap): boolean {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+  for (const key of keys) {
+    const x = a[key]
+    const y = b[key]
+    if (!x || !y) return false
+    if (
+      Boolean(x.canView) !== Boolean(y.canView) ||
+      Boolean(x.canCreate) !== Boolean(y.canCreate) ||
+      Boolean(x.canEdit) !== Boolean(y.canEdit) ||
+      Boolean(x.canDelete) !== Boolean(y.canDelete)
+    )
+      return false
+  }
+  return true
+}
+
 export function RoleForm({
   readOnly = false,
   onEdit,
@@ -47,8 +65,9 @@ export function RoleForm({
   onCancel,
   submitting = false,
 }: Props) {
+  const statusChanged = useStatusDraftChanged()
   const system = role?.isSystem ?? false
-  // Master siempre tiene todos los permisos, sucursales y pantallas: solo su descripción cambia.
+  // Master siempre tiene todas las sucursales y pantallas: solo su descripción cambia.
   const locked = role?.key === 'master'
   const [grants, setGrants] = useState<GrantMap>(() =>
     Object.fromEntries(
@@ -58,34 +77,32 @@ export function RoleForm({
       ]),
     ),
   )
+  const [initialGrants] = useState(grants)
+  const grantsChanged = !sameGrants(grants, initialGrants)
+  const [screensError, setScreensError] = useState<string | null>(null)
+  const screensErrorRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (screensError)
+      screensErrorRef.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [screensError])
   const {
     register,
     handleSubmit,
     setError,
-    setValue,
-    control,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<RoleFormValues>({
     resolver: zodResolver(roleFormSchema),
     defaultValues: {
       name: role?.name ?? '',
       description: role?.description ?? '',
-      permissions: role?.permissions ?? [],
       allBranches: role?.allBranches ?? false,
       isActive: role?.isActive ?? true,
     },
   })
 
-  const permissions = useWatch({ control, name: 'permissions' })
-  const selected = new Set(permissions)
-
-  function togglePermissions(actions: string[], checked: boolean) {
-    const next = new Set(permissions)
-    for (const action of actions) {
-      if (checked) next.add(action)
-      else next.delete(action)
-    }
-    setValue('permissions', [...next], { shouldDirty: true })
+  function changeGrants(next: GrantMap) {
+    setGrants(next)
+    setScreensError(null)
   }
 
   async function submit(values: RoleFormValues) {
@@ -93,6 +110,11 @@ export function RoleForm({
       menuItemId,
       ...flags,
     }))
+    // Un rol sin pantallas no puede abrir nada: Master queda exento.
+    if (!locked && !items.some((item) => item.canView)) {
+      setScreensError('Selecciona al menos una pantalla para este rol.')
+      return
+    }
     try {
       await onSave({ values, items })
     } catch (error) {
@@ -120,16 +142,26 @@ export function RoleForm({
 
   return (
     <form noValidate className="grid gap-5" onSubmit={handleSubmit(submit)}>
+      {screensError && (
+        <div
+          ref={screensErrorRef}
+          role="alert"
+          className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800"
+        >
+          <CircleAlert className="mt-0.5 size-4 shrink-0" />
+          {screensError}
+        </div>
+      )}
       <FormFields readOnly={readOnly}>
         <ModalSection
           icon={<ShieldCheck className="size-4" />}
-          title="Datos del Rol"
+          title="Datos Del Rol"
         >
           {system ? (
             <p className="bg-surface text-muted rounded-lg px-3 py-2 text-sm">
               <strong className="text-ink">{role?.name}</strong> siempre tiene
-              todos los permisos, todas las sucursales y todas las pantallas:
-              solo puedes cambiar su descripción.
+              todas las sucursales y todas las pantallas: solo puedes cambiar su
+              descripción.
             </p>
           ) : (
             <TextField
@@ -158,7 +190,7 @@ export function RoleForm({
               </p>
             )}
           </div>
-          {!system && (
+          {!system && !role && (
             <>
               <label className="border-border flex cursor-pointer items-center gap-3 rounded-lg border p-3">
                 <input
@@ -179,70 +211,20 @@ export function RoleForm({
           )}
         </ModalSection>
 
-        <ModalSection icon={<KeyRound className="size-4" />} title="Permisos">
-          <div className="grid gap-4">
-            {permissionGroups.map((group) => {
-              const actions = group.permissions.map((item) => item.action)
-              const allOn = locked || actions.every((a) => selected.has(a))
-              return (
-                <fieldset key={group.title} className="grid gap-1.5">
-                  <legend className="mb-1 flex w-full items-center justify-between">
-                    <span className="text-ink text-sm font-semibold">
-                      {group.title}
-                    </span>
-                    {!locked && (
-                      <button
-                        type="button"
-                        className="text-tealmax text-xs hover:underline"
-                        onClick={() => togglePermissions(actions, !allOn)}
-                      >
-                        {allOn ? 'Quitar Todos' : 'Marcar Todos'}
-                      </button>
-                    )}
-                  </legend>
-                  <div className="grid gap-1 sm:grid-cols-2">
-                    {group.permissions.map((permission) => (
-                      <label
-                        key={permission.action}
-                        className="flex cursor-pointer items-center gap-2 text-sm"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={locked || selected.has(permission.action)}
-                          disabled={locked}
-                          onChange={(event) =>
-                            togglePermissions(
-                              [permission.action],
-                              event.target.checked,
-                            )
-                          }
-                          className="accent-tealmax size-4 cursor-pointer"
-                        />
-                        <span className="text-ink">{permission.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-              )
-            })}
-          </div>
-          <p className="text-muted text-xs">
-            Solo puedes otorgar permisos que tu propio rol tiene.
-          </p>
-        </ModalSection>
-
         <ModalSection
           icon={<LayoutList className="size-4" />}
           title="Pantallas Permitidas"
+          forceOpen={Boolean(screensError)}
         >
           <MenuPermissionTree
             catalog={catalog}
             value={grants}
-            onChange={setGrants}
+            onChange={changeGrants}
             disabled={locked}
           />
           <p className="text-muted text-xs">
-            Al marcar una pantalla se incluye su grupo en el menú.
+            Marca al menos una pantalla. Al marcarla se incluye su grupo en el
+            menú y se conceden los accesos que necesita para funcionar.
           </p>
         </ModalSection>
         {errors.root?.server?.message && (
@@ -259,6 +241,9 @@ export function RoleForm({
         onEdit={onEdit}
         onClose={onCancel}
         submitting={submitting}
+        unchanged={
+          Boolean(role) && !isDirty && !grantsChanged && !statusChanged
+        }
         submitLabel={role ? 'Guardar Cambios' : 'Crear Rol'}
       />
     </form>

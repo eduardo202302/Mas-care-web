@@ -7,6 +7,7 @@ import { TextField } from '@/components/ui/TextField'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { editTitle } from '@/lib/editTitle'
 import { api } from '@/lib/http'
 import type { paths } from '@/lib/api-types'
 import type { MessageChannel, MessageTemplate } from '@/lib/operations'
@@ -60,6 +61,18 @@ export function TemplateFormDialog({
   )
   const [waCategory, setWaCategory] = useState<string>(wa.waCategory ?? '')
   const [attemptNumber, setAttemptNumber] = useState(wa.attemptNumber ?? 1)
+  const unchanged =
+    template !== undefined &&
+    channel === template.channel &&
+    name === template.name &&
+    body === template.body &&
+    branchId === (template.branchId ?? '') &&
+    isActive === template.isActive &&
+    waName === (wa.waTemplateName ?? '') &&
+    waLanguage === (wa.waLanguage ?? 'es') &&
+    waStatus === (wa.waStatus ?? 'draft') &&
+    waCategory === (wa.waCategory ?? '') &&
+    attemptNumber === (wa.attemptNumber ?? 1)
   const waInvalid =
     channel === 'whatsapp' && waStatus === 'approved' && !waName.trim()
 
@@ -129,7 +142,9 @@ export function TemplateFormDialog({
 
   return (
     <Dialog
-      title={template ? 'Editar Plantilla' : 'Nueva Plantilla'}
+      title={
+        template ? editTitle('plantilla', template.name) : 'Crear Plantilla'
+      }
       icon={<MessageSquareText className="size-5" />}
       compactHeader
       bodyClassName="pt-3"
@@ -221,7 +236,7 @@ export function TemplateFormDialog({
                   type="button"
                   onClick={() => insertVariable(variable.token)}
                   title={variable.hint}
-                  className="border-border text-ink hover:border-tealmax hover:text-tealmax rounded-full border bg-white px-3 py-1 font-mono text-xs transition"
+                  className="border-border text-ink hover:border-tealmax hover:text-tealmax bg-modulos rounded-full border px-3 py-1 font-mono text-xs transition"
                 >
                   {variable.token}
                 </button>
@@ -347,7 +362,16 @@ export function TemplateFormDialog({
           <Button type="button" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" variant="primary" disabled={save.isPending}>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={save.isPending || unchanged}
+            title={
+              unchanged && !save.isPending
+                ? 'No hay cambios para guardar'
+                : undefined
+            }
+          >
             {save.isPending ? 'Guardando…' : 'Guardar Plantilla'}
           </Button>
         </FormActions>

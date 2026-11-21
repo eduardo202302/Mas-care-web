@@ -1,15 +1,9 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  Activity,
-  AtSign,
-  Building2,
-  MapPin,
-  Phone,
-  Plus,
-  Search,
-} from 'lucide-react'
+import { Activity, AtSign, Building2, MapPin, Phone, Plus } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
@@ -25,7 +19,13 @@ import {
 } from '@/components/ui/AdvancedFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
+import { editTitle } from '@/lib/editTitle'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { useCan } from '@/lib/permissions'
@@ -90,7 +90,7 @@ const textFilters: {
 }[] = [
   { key: 'name', label: 'Compañía', icon: <Building2 className="size-4" /> },
   { key: 'email', label: 'Correo', icon: <AtSign className="size-4" /> },
-  { key: 'phone', label: 'Teléfono', icon: <Phone className="size-4" /> },
+  { key: 'phone', label: 'WhatsApp', icon: <Phone className="size-4" /> },
   { key: 'city', label: 'Ciudad', icon: <MapPin className="size-4" /> },
 ]
 
@@ -98,21 +98,13 @@ const columnHeaders = [
   'ID',
   'Estado',
   'Compañía',
-  'Teléfono',
+  'WhatsApp',
   'Ciudad',
   'Links',
 ]
 
 function statusBadge(status: Company['status']) {
-  return status === 'active' ? (
-    <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-      Activa
-    </span>
-  ) : (
-    <span className="bg-surface text-muted inline-flex rounded-full px-2.5 py-1 text-xs font-semibold">
-      Inactiva
-    </span>
-  )
+  return <StatusBadge active={status === 'active'} feminine />
 }
 
 export default function CompaniesPage() {
@@ -127,6 +119,9 @@ export default function CompaniesPage() {
   const [rows, setRows] = useState(PAGE_ROWS)
   const [editing, setEditing] = useState<Company | null>(null)
   const [formOpen, setFormOpen] = useState(false)
+  const statusDraft = useStatusDraft(
+    editing ? editing.status === 'active' : true,
+  )
   const [sort, toggleSort] = useColumnSort()
 
   const filters = useMemo<CompanyQuery>(
@@ -148,6 +143,7 @@ export default function CompaniesPage() {
       }),
     onSuccess: async (company) => {
       await queryClient.invalidateQueries({ queryKey: ['companies'] })
+      await queryClient.invalidateQueries({ queryKey: ['my-organizations'] })
       closeForm()
       navigate(`/companias/${encodeURIComponent(company.id)}`)
     },
@@ -161,37 +157,41 @@ export default function CompaniesPage() {
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['companies'] })
-      closeForm()
     },
   })
 
-  const updateLogo = useMutation({
-    mutationFn: ({ id, logo }: { id: string; logo: string | null }) =>
+  const toggleStatus = useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
       api<Company>(`/api/v1/companies/${encodeURIComponent(id)}`, {
         method: 'PATCH',
-        body: JSON.stringify({ logo }),
+        body: JSON.stringify({ status: active ? 'active' : 'inactive' }),
       }),
     onSuccess: async (company) => {
-      await queryClient.invalidateQueries({ queryKey: ['companies'] })
+      // Mantiene el interruptor del formulario abierto en sincronía.
       setEditing((current) =>
         current?.id === company.id
-          ? { ...current, logo: company.logo }
+          ? { ...current, status: company.status }
           : current,
       )
+      await queryClient.invalidateQueries({ queryKey: ['companies'] })
+      await queryClient.invalidateQueries({ queryKey: ['my-organizations'] })
     },
   })
 
   function closeForm() {
+    statusDraft.reset()
     setFormOpen(false)
     setEditing(null)
   }
 
   function openCreate() {
+    statusDraft.reset()
     setEditing(null)
     setFormOpen(true)
   }
 
   function openEdit(company: Company) {
+    statusDraft.reset()
     setEditing(company)
     setFormOpen(true)
   }
@@ -199,6 +199,19 @@ export default function CompaniesPage() {
   async function submit(values: CompanyFormValues) {
     if (editing) {
       await updateCompany.mutateAsync({ id: editing.id, values })
+      if (statusDraft.changed) {
+        try {
+          await toggleStatus.mutateAsync({
+            id: editing.id,
+            active: statusDraft.value,
+          })
+        } catch (error) {
+          // El error se muestra en el formulario.
+          toggleStatus.reset()
+          throw error
+        }
+      }
+      closeForm()
     } else {
       await createCompany.mutateAsync(values)
     }
@@ -308,7 +321,7 @@ export default function CompaniesPage() {
       ? [{ key: 'email', label: 'Correo', value: applied.email }]
       : []),
     ...(applied.phone
-      ? [{ key: 'phone', label: 'Teléfono', value: applied.phone }]
+      ? [{ key: 'phone', label: 'WhatsApp', value: applied.phone }]
       : []),
     ...(applied.city
       ? [{ key: 'city', label: 'Ciudad', value: applied.city }]
@@ -326,7 +339,7 @@ export default function CompaniesPage() {
             {canManage && (
               <Button variant="primary" onClick={openCreate}>
                 <Plus className="size-4" />
-                Nueva compañía
+                Crear Compañía
               </Button>
             )}
           </>
@@ -334,19 +347,16 @@ export default function CompaniesPage() {
       />
 
       <FilterBarRow aria-label="Filtros">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar compañías"
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value)
-              setPage(1)
-            }}
-            placeholder="Buscar por nombre, correo, dominio o PIN"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar compañías"
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value)
+            setPage(1)
+          }}
+          placeholder="Buscar por nombre, correo, dominio o PIN"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -478,55 +488,65 @@ export default function CompaniesPage() {
       </div>
 
       {formOpen && (
-        <Dialog
-          title={editing ? 'Editar compañía' : 'Nueva compañía'}
-          description="Completa la información y revisa los enlaces generados."
-          icon={<Building2 className="size-6" />}
-          size="lg"
-          onClose={closeForm}
-        >
-          <CompanyForm
-            key={editing?.id ?? 'new'}
-            mode={editing ? 'edit' : 'create'}
-            initialValues={
-              editing
-                ? {
-                    name: editing.name,
-                    email: editing.email,
-                    logo: editing.logo ?? '',
-                    status: editing.status,
-                    pin: editing.pin,
-                    domain: editing.domain,
-                    phone: editing.phone ?? '',
-                    ownerName: editing.ownerName ?? '',
-                    industry: editing.industry ?? '',
-                    type: editing.type ?? '',
-                    city: editing.city ?? '',
-                    state: editing.state ?? '',
-                    address: editing.address ?? '',
-                    sector: editing.sector ?? '',
-                    latitude: editing.latitude ?? '',
-                    longitude: editing.longitude ?? '',
-                    employeeCount: editing.employeeCount?.toString() ?? '',
-                    description: editing.description ?? '',
-                    linkedinUrl: editing.linkedinUrl ?? '',
-                    googleMapsApiKey: editing.googleMapsApiKey ?? '',
-                  }
-                : undefined
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={
+              editing ? editTitle('compañía', editing.name) : 'Crear Compañía'
             }
-            linkToken={editing?.linkToken}
-            onLogoChange={
-              editing
-                ? async (logo) => {
-                    await updateLogo.mutateAsync({ id: editing.id, logo })
-                  }
-                : undefined
+            description="Completa la información y revisa los enlaces generados."
+            icon={<Building2 className="size-6" />}
+            size="lg"
+            onClose={closeForm}
+            headerAction={
+              editing && canManage ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={updateCompany.isPending || toggleStatus.isPending}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
             }
-            onSave={submit}
-            onCancel={closeForm}
-            submitting={createCompany.isPending || updateCompany.isPending}
-          />
-        </Dialog>
+          >
+            <CompanyForm
+              key={`${editing?.id ?? 'new'}:${editing?.status ?? ''}`}
+              mode={editing ? 'edit' : 'create'}
+              initialValues={
+                editing
+                  ? {
+                      name: editing.name,
+                      email: editing.email,
+                      logo: editing.logo ?? '',
+                      status: editing.status,
+                      pin: editing.pin,
+                      domain: editing.domain,
+                      phone: editing.phone ?? '',
+                      ownerName: editing.ownerName ?? '',
+                      industry: editing.industry ?? '',
+                      type: editing.type ?? '',
+                      city: editing.city ?? '',
+                      state: editing.state ?? '',
+                      address: editing.address ?? '',
+                      sector: editing.sector ?? '',
+                      latitude: editing.latitude ?? '',
+                      longitude: editing.longitude ?? '',
+                      employeeCount: editing.employeeCount?.toString() ?? '',
+                      description: editing.description ?? '',
+                      linkedinUrl: editing.linkedinUrl ?? '',
+                      googleMapsApiKey: editing.googleMapsApiKey ?? '',
+                    }
+                  : undefined
+              }
+              linkToken={editing?.linkToken}
+              onSave={submit}
+              onCancel={closeForm}
+              submitting={
+                createCompany.isPending ||
+                updateCompany.isPending ||
+                toggleStatus.isPending
+              }
+            />
+          </Dialog>
+        </StatusDraftProvider>
       )}
     </div>
   )

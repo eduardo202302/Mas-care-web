@@ -76,6 +76,7 @@ export function CycleCard({
     canMove || canEditDate || canWrite || canCreateIncident || canMarkStock
   const derived = derivedStatusLabel(card.derived_status)
   const stock = card.stock_level
+  const closed = card.status === 'delivered' || card.status === 'not_picked_up'
 
   return (
     <article
@@ -128,34 +129,6 @@ export function CycleCard({
         </div>
       </div>
 
-      <dl className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
-        <div>
-          <dt className="text-muted">Reposición</dt>
-          <dd className="text-ink mt-0.5 font-semibold">
-            {formatDate(card.expected_on)}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-muted">Días</dt>
-          <dd
-            className={cn(
-              'mt-0.5 font-semibold',
-              card.days_remaining !== null && card.days_remaining <= 0
-                ? 'text-expired-text'
-                : 'text-ink',
-            )}
-          >
-            {card.days_remaining === null
-              ? '—'
-              : card.days_remaining < 0
-                ? `${Math.abs(card.days_remaining)} d. vencido`
-                : card.days_remaining === 0
-                  ? 'Hoy'
-                  : `${card.days_remaining} d.`}
-          </dd>
-        </div>
-      </dl>
-
       <StagePicker card={card} canMove={canMove} />
 
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -176,20 +149,16 @@ export function CycleCard({
         {card.prescription_flag && <StatusChip status="Receta por renovar" />}
       </div>
 
-      <dl className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
-        <div>
-          <dt className="text-muted">Responsable</dt>
-          <dd className="text-ink mt-0.5 truncate font-semibold">
-            {card.responsible?.nombre ?? 'Sin asignar'}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-muted">Próxima acción</dt>
-          <dd className="text-ink mt-0.5 font-semibold">
-            {nextActionFor(card.status) ?? '—'}
-          </dd>
-        </div>
-      </dl>
+      {!closed && (
+        <dl className="mt-2 text-[11px]">
+          <div>
+            <dt className="text-muted">Próxima acción</dt>
+            <dd className="text-ink mt-0.5 font-semibold">
+              {nextActionFor(card.status) ?? '—'}
+            </dd>
+          </div>
+        </dl>
+      )}
 
       <div className="border-border mt-2 flex flex-wrap items-center justify-between gap-2 border-t pt-2">
         <BranchTag
@@ -197,23 +166,22 @@ export function CycleCard({
           labelColor={card.branch.label_color}
           className="text-[11px]"
         />
-        <span
-          className="text-muted inline-flex items-center gap-1.5 text-[11px]"
-          title={
-            card.stock_reviewed_at
-              ? `Revisado ${formatDate(card.stock_reviewed_at)}`
-              : 'Sin revisión de existencias'
-          }
-        >
+        {stock && (
           <span
-            aria-hidden="true"
-            className={cn(
-              'size-2 rounded-full',
-              stock ? stockLevelDot[stock] : 'bg-slate-300',
-            )}
-          />
-          {stock ? stockLevelLabels[stock] : 'Sin marca'}
-        </span>
+            className="text-muted inline-flex items-center gap-1.5 text-[11px]"
+            title={
+              card.stock_reviewed_at
+                ? `Revisado ${formatDate(card.stock_reviewed_at)}`
+                : undefined
+            }
+          >
+            <span
+              aria-hidden="true"
+              className={cn('size-2 rounded-full', stockLevelDot[stock])}
+            />
+            {stockLevelLabels[stock]}
+          </span>
+        )}
       </div>
     </article>
   )
@@ -353,7 +321,7 @@ function CycleCardMenu({
                 onClick={() => setMoveOpen((value) => !value)}
               >
                 <CalendarX2 className="size-4" />
-                Mover a…
+                Mover A…
                 <ChevronDown
                   className={`ml-auto size-3.5 transition ${moveOpen ? 'rotate-180' : ''}`}
                 />

@@ -1,13 +1,12 @@
+import { formatTimestamp } from '@/lib/operations'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   CalendarClock,
   CircleSlash,
   Clock,
-  Plus,
   RotateCcw,
   ShieldCheck,
-  Stethoscope,
   Upload,
 } from 'lucide-react'
 import { api } from '@/lib/http'
@@ -27,13 +26,8 @@ import {
   type FrequencyMode,
 } from '@/lib/treatments'
 import { DoseFrequencyRow } from './DoseFrequencyRow'
-import { DoctorForm } from '@/features/doctors/DoctorForm'
-import {
-  syncDoctorMedicalCenters,
-  syncDoctorSpecialties,
-} from '@/features/doctors/doctorLinks'
-import type { DoctorFormValues } from '@/schemas/doctor'
-import type { components, paths } from '@/lib/api-types'
+import { NewDoctorButton } from '@/features/doctors/NewDoctorButton'
+import type { paths } from '@/lib/api-types'
 
 type DoctorList =
   paths['/api/v1/doctors']['get']['responses'][200]['content']['application/json']
@@ -57,20 +51,23 @@ function elapsedSince(dateStr: string): string {
   return years > 0 ? `${years}a ${days}d` : `${days}d`
 }
 
-/** Downloads a tenant-scoped file via fetch (credentials included) rather than a plain <a href>, since the document is never served as a static/public URL. */
-export async function downloadFile(url: string, fallbackName: string) {
-  const response = await fetch(url, { credentials: 'include' })
-  if (!response.ok)
-    throw new Error(`No se pudo descargar el archivo (${response.status})`)
-  const blob = await response.blob()
-  const objectUrl = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = objectUrl
-  link.download = fallbackName
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  URL.revokeObjectURL(objectUrl)
+/** Abre un archivo protegido en una pestaña nueva (visor del navegador) en vez de descargarlo. */
+export async function openFile(url: string) {
+  // La pestaña se abre de forma síncrona (dentro del clic) para que el bloqueador de popups no la frene.
+  const tab = window.open('', '_blank')
+  try {
+    const response = await fetch(url, { credentials: 'include' })
+    if (!response.ok)
+      throw new Error(`No se pudo abrir el archivo (${response.status})`)
+    const blob = await response.blob()
+    const objectUrl = URL.createObjectURL(blob)
+    if (tab) tab.location.href = objectUrl
+    else window.location.assign(objectUrl)
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000)
+  } catch (error) {
+    tab?.close()
+    throw error
+  }
 }
 
 type DoseSchedule = {
@@ -124,6 +121,21 @@ const skipReasonLabels: Record<string, string> = {
 }
 
 /** Active (or most recent) dosing schedule, with the form to open a new version when the dose or schedule changes. */
+function scheduleFormKey(values: {
+  dosePerIntake: string
+  effectiveFrom: string
+  freq: unknown[]
+  extras: unknown[]
+}): string {
+  const dose = Number(values.dosePerIntake)
+  return JSON.stringify([
+    Number.isNaN(dose) ? values.dosePerIntake : dose,
+    values.effectiveFrom,
+    values.freq,
+    values.extras,
+  ])
+}
+
 export function DoseScheduleCard({
   treatmentId,
   medicationLabel,
@@ -139,7 +151,7 @@ export function DoseScheduleCard({
   /** Control externo del formulario (lo abre el menú de Acciones). */
   open?: boolean
   onOpenChange?: (open: boolean) => void
-  /** En `false` oculta "Cambiar dosis"/"Definir horario", para mostrar la card solo de lectura (p.ej. junto a los datos del paciente). */
+  /** En `false` oculta "Modificar dosis"/"Definir horario", para mostrar la card solo de lectura (p.ej. junto a los datos del paciente). */
   showChangeButton?: boolean
 }) {
   const queryClient = useQueryClient()
@@ -167,41 +179,14 @@ export function DoseScheduleCard({
   const [authorizedByDoctorId, setAuthorizedByDoctorId] = useState('')
   const [authorizationNote, setAuthorizationNote] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  // Instantánea del formulario tras precargarlo con el horario activo.
+  const [prefillKey, setPrefillKey] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const canWriteDoctors = useCan('doctors:write')
-  const [doctorFormOpen, setDoctorFormOpen] = useState(false)
 
   const doctorOptions = useQuery({
     queryKey: ['doctors', 'picker'],
     queryFn: () => api<DoctorList>('/api/v1/doctors?isActive=true&rows=100'),
     enabled: open,
-  })
-  const createDoctor = useMutation({
-    mutationFn: async (values: DoctorFormValues) => {
-      const doctor = await api<components['schemas']['Doctor']>(
-        '/api/v1/doctors',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            firstName: values.firstName,
-            lastName: values.lastName,
-            licenseNumber: values.licenseNumber || null,
-            phone: values.phone || null,
-            email: values.email || null,
-            notes: values.notes || null,
-          }),
-        },
-      )
-      await syncDoctorSpecialties(doctor.id, [], values.specialtyIds)
-      await syncDoctorMedicalCenters(doctor.id, [], values.medicalCenterIds)
-      return doctor
-    },
-    onSuccess: async (doctor) => {
-      await queryClient.invalidateQueries({ queryKey: ['doctors'] })
-      setDoctorFormOpen(false)
-      setAuthorizedByDoctorId(doctor.id)
-      setAuthorizedBy(`${doctor.firstName} ${doctor.lastName}`.trim())
-    },
   })
 
   const schedules = useQuery({
@@ -267,8 +252,29 @@ export function DoseScheduleCard({
       loadFrequencyFromSchedule(active)
       const today = new Date().toISOString().slice(0, 10)
       const min = addDaysToDateString(active.effectiveFrom.slice(0, 10), 1)
-      setEffectiveFrom(min > today ? min : today)
+      const from = min > today ? min : today
+      setEffectiveFrom(from)
+      const freq = loadDoseFrequencyFromSchedule(active)
+      setPrefillKey(
+        scheduleFormKey({
+          dosePerIntake: active.dosePerIntake,
+          effectiveFrom: from,
+          freq: [
+            freq.frequencyMode,
+            freq.hoursPreset,
+            freq.customHours,
+            freq.daysPreset,
+            freq.customDays,
+            freq.startTime,
+            freq.weekdays,
+            freq.monthdays,
+            freq.weekdayTimes,
+          ],
+          extras: ['', '', '', '', false],
+        }),
+      )
     } else {
+      setPrefillKey(null)
       setDosePerIntake('')
       resetFrequencyFields()
       setEffectiveFrom(new Date().toISOString().slice(0, 10))
@@ -290,6 +296,32 @@ export function DoseScheduleCard({
     prefillForm()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
+
+  const unchanged =
+    isChange &&
+    prefillKey !== null &&
+    scheduleFormKey({
+      dosePerIntake,
+      effectiveFrom,
+      freq: [
+        mode,
+        hoursPreset,
+        customHours,
+        daysPreset,
+        customDays,
+        startTime,
+        weekdays,
+        monthdays,
+        weekdayTimes,
+      ],
+      extras: [
+        reason.trim(),
+        authorizedBy.trim(),
+        authorizedByDoctorId,
+        authorizationNote.trim(),
+        file !== null,
+      ],
+    }) === prefillKey
 
   const isFrequencyValid = isDoseFrequencyValid({
     frequencyMode: mode,
@@ -352,76 +384,91 @@ export function DoseScheduleCard({
   const columns = active ? frequencyColumns(active) : null
 
   return (
-    <div className="border-border min-w-0 rounded-xl border bg-white p-5">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-petroleo font-semibold">Programación de Dosis</h3>
-        {canWrite && showChangeButton && (
-          <Button type="button" onClick={() => setOpen(true)}>
-            {isChange ? 'Cambiar dosis' : 'Definir horario'}
-          </Button>
-        )}
-      </div>
-      {active && columns ? (
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <div>
-            <dt className="text-muted">Cantidad</dt>
-            <dd className="text-ink mt-0.5 font-medium">
-              {active.dosePerIntake}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-muted">Unidad</dt>
-            <dd className="text-ink mt-0.5 font-medium">
-              {doseUnit || 'unidad'}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-muted">Frecuencia</dt>
-            <dd className="text-ink mt-0.5 font-medium">{columns.frequency}</dd>
-          </div>
-          <div>
-            <dt className="text-muted">Toma</dt>
-            <dd className="text-ink mt-0.5 font-medium">
-              {columns.whenToTake}
-            </dd>
-          </div>
-          {active.authorizationDocumentPath && (
-            <div className="col-span-2">
-              <Button
-                type="button"
-                onClick={() => {
-                  setDownloadError(null)
-                  downloadFile(
-                    `${API_URL}/api/v1/treatments/${encodeURIComponent(treatmentId)}/dose-schedules/${encodeURIComponent(active.id)}/authorization-document`,
-                    `autorizacion-${active.id}`,
-                  ).catch((error: unknown) =>
-                    setDownloadError(
-                      error instanceof Error
-                        ? error.message
-                        : 'No se pudo descargar el documento',
-                    ),
-                  )
-                }}
-              >
-                Ver documento de autorización
-              </Button>
-              {downloadError && (
-                <p role="alert" className="mt-1 text-xs text-red-700">
-                  {downloadError}
-                </p>
+    <>
+      <ModalSection
+        icon={<Clock className="size-4" />}
+        title="Programación de Dosis"
+        className="min-w-0"
+        collapsible
+        defaultCollapsed={false}
+      >
+        {active && columns ? (
+          <dl className="grid grid-cols-[1fr_1fr_auto] gap-x-4 gap-y-2 text-sm">
+            <div>
+              <dt className="text-muted">Cantidad</dt>
+              <dd className="text-ink mt-0.5 font-medium">
+                {active.dosePerIntake}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted">Unidad</dt>
+              <dd className="text-ink mt-0.5 font-medium">
+                {doseUnit || 'unidad'}
+              </dd>
+            </div>
+            <div className="justify-self-end">
+              {canWrite && showChangeButton && (
+                <Button type="button" onClick={() => setOpen(true)}>
+                  Modificar Dosis
+                </Button>
               )}
             </div>
-          )}
-        </dl>
-      ) : (
-        <p className="text-muted text-sm">
-          Este tratamiento todavía no tiene programación de dosis.
-        </p>
-      )}
+            <div>
+              <dt className="text-muted">Frecuencia</dt>
+              <dd className="text-ink mt-0.5 font-medium">
+                {columns.frequency}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted">Toma</dt>
+              <dd className="text-ink mt-0.5 font-medium">
+                {columns.whenToTake}
+              </dd>
+            </div>
+            {active.authorizationDocumentPath && (
+              <div className="col-span-3">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setDownloadError(null)
+                    openFile(
+                      `${API_URL}/api/v1/treatments/${encodeURIComponent(treatmentId)}/dose-schedules/${encodeURIComponent(active.id)}/authorization-document`,
+                    ).catch((error: unknown) =>
+                      setDownloadError(
+                        error instanceof Error
+                          ? error.message
+                          : 'No se pudo abrir el documento',
+                      ),
+                    )
+                  }}
+                >
+                  Ver Documento de Autorización
+                </Button>
+                {downloadError && (
+                  <p role="alert" className="mt-1 text-xs text-red-700">
+                    {downloadError}
+                  </p>
+                )}
+              </div>
+            )}
+          </dl>
+        ) : (
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-muted text-sm">
+              Este tratamiento todavía no tiene programación de dosis.
+            </p>
+            {canWrite && showChangeButton && (
+              <Button type="button" onClick={() => setOpen(true)}>
+                Definir Horario
+              </Button>
+            )}
+          </div>
+        )}
+      </ModalSection>
 
       {open && (
         <Dialog
-          title={isChange ? 'Cambiar Dosis' : 'Definir Programación de Dosis'}
+          title={isChange ? 'Modificar Dosis' : 'Definir Programación de Dosis'}
           description={
             isChange
               ? 'Cierra el horario activo y abre uno nuevo. Requiere autorización médica.'
@@ -512,14 +559,13 @@ export function DoseScheduleCard({
                 <div className="grid gap-1.5">
                   <label
                     htmlFor="authorized-by-doctor"
-                    className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']"
+                    className="text-ink text-sm font-medium"
                   >
                     Autorizado por
                   </label>
                   <div className="flex flex-wrap items-center gap-2">
                     <select
                       id="authorized-by-doctor"
-                      required
                       value={authorizedByDoctorId}
                       onChange={(event) => {
                         const id = event.target.value
@@ -549,16 +595,14 @@ export function DoseScheduleCard({
                         </option>
                       ))}
                     </select>
-                    {canWriteDoctors && (
-                      <Button
-                        type="button"
-                        className="shrink-0"
-                        onClick={() => setDoctorFormOpen(true)}
-                      >
-                        <Plus className="size-4" />
-                        Nuevo Médico
-                      </Button>
-                    )}
+                    <NewDoctorButton
+                      onCreated={(doctor) => {
+                        setAuthorizedByDoctorId(doctor.id)
+                        setAuthorizedBy(
+                          `${doctor.firstName} ${doctor.lastName}`.trim(),
+                        )
+                      }}
+                    />
                   </div>
                   {doctorOptions.isError && (
                     <p role="alert" className="text-xs text-red-700">
@@ -568,7 +612,6 @@ export function DoseScheduleCard({
                 </div>
                 <TextAreaField
                   label="Nota de autorización"
-                  required
                   value={authorizationNote}
                   onChange={(event) => setAuthorizationNote(event.target.value)}
                 />
@@ -590,7 +633,7 @@ export function DoseScheduleCard({
                     className="w-fit"
                   >
                     <Upload className="size-4" />
-                    {file ? file.name : 'Subir documento'}
+                    {file ? file.name : 'Subir Documento'}
                   </Button>
                 </div>
               </ModalSection>
@@ -612,7 +655,8 @@ export function DoseScheduleCard({
                 variant="primary"
                 type="submit"
                 className="w-full sm:w-auto"
-                disabled={create.isPending}
+                disabled={create.isPending || unchanged}
+                title={unchanged ? 'No hay cambios para guardar' : undefined}
               >
                 {create.isPending ? 'Guardando…' : 'Guardar'}
               </Button>
@@ -620,25 +664,7 @@ export function DoseScheduleCard({
           </form>
         </Dialog>
       )}
-      {doctorFormOpen && (
-        <Dialog
-          title="Nuevo Médico"
-          icon={<Stethoscope className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          size="lg"
-          onClose={() => setDoctorFormOpen(false)}
-        >
-          <DoctorForm
-            onSave={(values) =>
-              createDoctor.mutateAsync(values).then(() => undefined)
-            }
-            onCancel={() => setDoctorFormOpen(false)}
-            submitting={createDoctor.isPending}
-          />
-        </Dialog>
-      )}
-    </div>
+    </>
   )
 }
 
@@ -748,7 +774,7 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
           >
             <div>
               <p className="text-ink font-medium">
-                {new Date(dose.scheduledFor).toLocaleString('es')}
+                {formatTimestamp(dose.scheduledFor)}
               </p>
               {dose.status === 'scheduled' &&
               new Date(dose.scheduledFor) < new Date() ? (
@@ -882,7 +908,7 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
           >
             <ModalSection
               icon={<CalendarClock className="size-4" />}
-              title="Nuevo Horario"
+              title="Crear Horario"
             >
               <TextField
                 label="Nueva fecha y hora"

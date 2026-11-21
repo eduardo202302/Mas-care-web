@@ -1,3 +1,4 @@
+import { formatTimestamp } from '@/lib/operations'
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
@@ -7,9 +8,9 @@ import {
   CalendarDays,
   FileText,
   Hash,
-  Search,
   UserRound,
 } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { NotFoundPage } from '@/app/NotFoundPage'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
 import {
@@ -226,16 +227,13 @@ export default function TransfersPage() {
       />
 
       <FilterBarRow aria-label="Filtros de traspasos">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar traspasos"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Paciente, sucursal, motivo o responsable"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar traspasos"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Paciente, sucursal, motivo o responsable"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -248,7 +246,7 @@ export default function TransfersPage() {
           headers={transferColumns}
           rows={items.map((row) => [
             `#${row.numeric_id}`,
-            new Date(row.occurred_at).toLocaleString('es'),
+            formatTimestamp(row.occurred_at),
             row.patient.full_name,
             row.from_branch.name,
             row.to_branch.name,
@@ -443,9 +441,7 @@ export default function TransfersPage() {
               <span key="id" className="text-muted font-mono text-xs">
                 #{row.numeric_id}
               </span>,
-              <span key="date">
-                {new Date(row.occurred_at).toLocaleString('es')}
-              </span>,
+              <span key="date">{formatTimestamp(row.occurred_at)}</span>,
               <span key="patient">{row.patient.full_name}</span>,
               <span key="from">{row.from_branch.name}</span>,
               <span key="to" className="inline-flex items-center gap-1.5">

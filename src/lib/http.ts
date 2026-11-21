@@ -1,4 +1,5 @@
 import type { components } from './api-types'
+import { queryClient } from './query-client'
 
 const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -46,6 +47,10 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       : await response.json().catch(() => undefined)
   if (!response.ok) {
     const payload = data as components['schemas']['ErrorResponse'] | undefined
+    if (response.status === 403 && payload?.error.code === 'COMPANY_INACTIVE') {
+      // The workspace selector reacts by moving the user out of that company.
+      void queryClient.invalidateQueries({ queryKey: ['my-organizations'] })
+    }
     const isServerError =
       payload?.error.code === 'INTERNAL_ERROR' || response.status >= 500
     throw new ApiError(

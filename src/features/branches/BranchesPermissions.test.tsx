@@ -67,7 +67,7 @@ describe('permisos de sucursales', () => {
 
     await waitFor(() => expect(screen.getByText('Centro')).toBeInTheDocument())
     expect(
-      screen.queryByRole('button', { name: 'Nueva sucursal' }),
+      screen.queryByRole('button', { name: 'Crear sucursal' }),
     ).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Editar Centro' }),

@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { Download, Printer } from 'lucide-react'
-import { ExportButton, type ExportEntity } from '@/components/ExportButton'
+import {
+  ExportButton,
+  type ExportEntity,
+  type ExportFilters,
+} from '@/components/ExportButton'
 import { Button } from '@/components/ui/Button'
 import { authClient } from '@/lib/auth-client'
 import { api } from '@/lib/http'
@@ -33,7 +37,7 @@ export function TableToolbarActions({
   filename: string
   branchScoped?: boolean
   exportEntity?: ExportEntity
-  exportFilters?: { q?: string; branchId?: string; status?: string }
+  exportFilters?: ExportFilters
 }) {
   const canExport = useCan('export:csv')
   const activeOrganization = authClient.useActiveOrganization()
@@ -58,7 +62,7 @@ export function TableToolbarActions({
     <div className="ml-auto flex flex-wrap items-center gap-2">
       <Button
         type="button"
-        className="hover:bg-[#c3e9cf]"
+        className="bg-white hover:bg-[#c3e9cf]"
         disabled={!rows.length}
         aria-label={`Imprimir ${title}`}
         onClick={() =>
@@ -86,7 +90,7 @@ export function TableToolbarActions({
         canExport && (
           <Button
             type="button"
-            className="hover:bg-[#c3e9cf]"
+            className="bg-white hover:bg-[#c3e9cf]"
             disabled={!rows.length}
             onClick={() =>
               downloadTableXlsx({

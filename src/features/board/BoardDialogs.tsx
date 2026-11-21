@@ -24,6 +24,7 @@ export function ChangeExpectedDateDialog({
   const queryClient = useQueryClient()
   const toast = useToast()
   const [date, setDate] = useState(dateInputValue(card.expected_on))
+  const unchanged = date === dateInputValue(card.expected_on)
 
   const save = useMutation({
     mutationFn: () =>
@@ -44,7 +45,7 @@ export function ChangeExpectedDateDialog({
 
   return (
     <Dialog
-      title="Cambiar fecha prevista"
+      title="Cambiar Fecha Prevista"
       description={`${card.patient.nombre} · ${card.medication.nombre}`}
       onClose={onClose}
     >
@@ -84,10 +85,15 @@ export function ChangeExpectedDateDialog({
             type="submit"
             variant="primary"
             className="w-full sm:w-auto"
-            disabled={save.isPending}
+            disabled={save.isPending || unchanged}
+            title={
+              unchanged && !save.isPending
+                ? 'No hay cambios para guardar'
+                : undefined
+            }
           >
             <CalendarClock className="size-4" />
-            {save.isPending ? 'Guardando…' : 'Guardar fecha'}
+            {save.isPending ? 'Guardando…' : 'Guardar Fecha'}
           </Button>
         </FormActions>
       </form>
@@ -110,7 +116,7 @@ export function StockOutDialog({
 }) {
   return (
     <Dialog
-      title="No hay existencias"
+      title="No Hay Existencias"
       description={`${card.medication.nombre} · ${card.branch.nombre}`}
       onClose={onCancel}
     >
@@ -125,7 +131,7 @@ export function StockOutDialog({
           </p>
         </div>
         <Button type="button" onClick={onUpdateStock}>
-          Actualizar existencias
+          Actualizar Existencias
         </Button>
         <FormActions>
           <Button type="button" className="w-full sm:w-auto" onClick={onCancel}>
@@ -138,7 +144,7 @@ export function StockOutDialog({
             onClick={onConfirm}
             disabled={saving}
           >
-            {saving ? 'Moviendo…' : 'Mover igualmente (crea incidencia)'}
+            {saving ? 'Moviendo…' : 'Mover Igualmente (Crea Incidencia)'}
           </Button>
         </FormActions>
       </div>
@@ -165,7 +171,7 @@ export function BoardNoticeDialog({
   if (patient.isLoading) {
     return (
       <Dialog
-        title="Avisar al paciente"
+        title="Avisar al Paciente"
         description={`${card.patient.nombre} · ${card.medication.nombre}`}
         onClose={onClose}
       >
@@ -178,7 +184,7 @@ export function BoardNoticeDialog({
   }
   if (patient.isError || !patient.data) {
     return (
-      <Dialog title="Avisar al paciente" onClose={onClose}>
+      <Dialog title="Avisar al Paciente" onClose={onClose}>
         <p role="alert" className="text-sm text-red-700">
           No pudimos cargar los datos de contacto del paciente.
         </p>

@@ -181,7 +181,7 @@ export default function ConsolidatedDashboardPage() {
   return (
     <div className="animate-in">
       <PageHeader
-        title="Panel global"
+        title="Panel Global"
         subtitle="Vista consolidada de todas las sucursales para el día seleccionado."
         actions={
           <>

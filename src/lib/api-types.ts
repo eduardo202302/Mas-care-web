@@ -4605,7 +4605,7 @@ export interface paths {
             parameters: {
                 query?: {
                     filter?: string;
-                    status?: "open" | "done" | "cancelled";
+                    status?: "open" | "in_progress" | "done" | "cancelled";
                     branch_id?: string;
                     patient_id?: string;
                     treatment_id?: string;
@@ -11026,6 +11026,7 @@ export interface components {
             createdAt: string;
             roleId?: string | null;
             roleName?: string | null;
+            roleActive?: boolean | null;
             memberSince: string;
             branches: {
                 id: string;
@@ -11051,6 +11052,7 @@ export interface components {
             dosePerIntake: string | number;
             intakesPerDay: string | number;
             quantityPerCycle: string | number;
+            deliveredQuantity: string | number | null;
             startDate: string;
             endDate: string | null;
             prescriberName: string | null;
@@ -11086,6 +11088,7 @@ export interface components {
             dose_per_intake: number;
             intakes_per_day: number;
             quantity_per_cycle: number;
+            delivered_quantity?: number | null;
             /** Format: date */
             start_date: string;
             /** Format: date */
@@ -11109,6 +11112,7 @@ export interface components {
             dose_per_intake?: number;
             intakes_per_day?: number;
             quantity_per_cycle?: number;
+            delivered_quantity?: number | null;
             /** Format: date */
             start_date?: string;
             /** Format: date */
@@ -11248,12 +11252,12 @@ export interface components {
             cycle_id?: string | null;
             auto_generated?: boolean;
             /** @enum {string} */
-            status?: "open" | "done" | "cancelled";
+            status?: "open" | "in_progress" | "done" | "cancelled";
         };
         TaskListQuery: {
             filter?: string;
             /** @enum {string} */
-            status?: "open" | "done" | "cancelled";
+            status?: "open" | "in_progress" | "done" | "cancelled";
             branch_id?: string;
             patient_id?: string;
             treatment_id?: string;
@@ -11589,11 +11593,8 @@ export interface components {
         RoleCreate: {
             name: string;
             description?: string | null;
-            /** @default [] */
-            permissions: ("branches:read" | "branches:write" | "patients:read" | "patients:write" | "patients:archive" | "medications:read" | "medications:write" | "treatments:read" | "treatments:write" | "treatments:manage" | "dashboard:read" | "tasks:read" | "tasks:write" | "templates:read" | "templates:write" | "imports:write" | "settings:read" | "settings:write" | "audit:read" | "users:write" | "roles:read" | "roles:write" | "cycle:move" | "cycle:edit-date" | "stock:mark" | "incident:create" | "incident:move" | "incident:resolve" | "automation:manage" | "outbox:view" | "outbox:retry" | "inbound:assign" | "patient:transfer" | "export:csv" | "doctors:read" | "doctors:write" | "specialties:read" | "specialties:write" | "medical-centers:read" | "medical-centers:write" | "health-conditions:read" | "health-conditions:write" | "dose:log" | "dose:correct" | "inventory:purchase" | "inventory:adjust" | "inventory:settings:write")[];
             allBranches?: boolean;
             isActive?: boolean;
-            /** @default [] */
             items: {
                 menuItemId: string;
                 /** @default true */
@@ -11609,7 +11610,6 @@ export interface components {
         RolePatch: {
             name?: string;
             description?: string | null;
-            permissions?: ("branches:read" | "branches:write" | "patients:read" | "patients:write" | "patients:archive" | "medications:read" | "medications:write" | "treatments:read" | "treatments:write" | "treatments:manage" | "dashboard:read" | "tasks:read" | "tasks:write" | "templates:read" | "templates:write" | "imports:write" | "settings:read" | "settings:write" | "audit:read" | "users:write" | "roles:read" | "roles:write" | "cycle:move" | "cycle:edit-date" | "stock:mark" | "incident:create" | "incident:move" | "incident:resolve" | "automation:manage" | "outbox:view" | "outbox:retry" | "inbound:assign" | "patient:transfer" | "export:csv" | "doctors:read" | "doctors:write" | "specialties:read" | "specialties:write" | "medical-centers:read" | "medical-centers:write" | "health-conditions:read" | "health-conditions:write" | "dose:log" | "dose:correct" | "inventory:purchase" | "inventory:adjust" | "inventory:settings:write")[];
             allBranches?: boolean;
             isActive?: boolean;
             items?: {

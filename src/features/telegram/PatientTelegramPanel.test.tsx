@@ -63,7 +63,7 @@ describe('PatientTelegramPanel', () => {
     const user = userEvent.setup()
     await user.click(
       await screen.findByRole('button', {
-        name: 'Generar enlace de vinculación',
+        name: 'Generar Enlace de Vinculación',
       }),
     )
     const field = await screen.findByLabelText('Enlace de Telegram')

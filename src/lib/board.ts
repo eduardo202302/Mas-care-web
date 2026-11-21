@@ -92,6 +92,8 @@ export type BoardFilters = {
   q?: string
   expected_from?: string
   expected_to?: string
+  closed_from?: string
+  closed_to?: string
 }
 
 export const emptyBoardFilters: BoardFilters = {}
@@ -104,6 +106,8 @@ const filterKeys = [
   'q',
   'expected_from',
   'expected_to',
+  'closed_from',
+  'closed_to',
 ] as const
 
 export function boardFiltersFromSearch(params: URLSearchParams): BoardFilters {

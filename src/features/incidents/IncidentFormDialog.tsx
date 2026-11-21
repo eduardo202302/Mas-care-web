@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, TriangleAlert } from 'lucide-react'
+import { TriangleAlert } from 'lucide-react'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { TextAreaField } from '@/components/ui/TextAreaField'
-import { TextField } from '@/components/ui/TextField'
 import { useToast } from '@/components/ui/Toast'
+import {
+  PatientPicker,
+  type PickerPatient,
+} from '@/features/treatments/PatientPicker'
 import { api } from '@/lib/http'
 import type { components, paths } from '@/lib/api-types'
 import {
@@ -21,8 +24,6 @@ type BranchList =
   paths['/api/v1/branches']['get']['responses'][200]['content']['application/json']
 type UserList =
   paths['/api/v1/users']['get']['responses'][200]['content']['application/json']
-type PatientList =
-  paths['/api/v1/patients']['get']['responses'][200]['content']['application/json']
 
 /** Mismo control que el resto de la app: ancho completo y anillo de foco. */
 const control =
@@ -49,8 +50,8 @@ export function IncidentFormDialog({
   const toast = useToast()
   const [branchId, setBranchId] = useState(defaultBranchId ?? '')
   const [type, setType] = useState<IncidentType>(defaultType)
-  const [patient, setPatient] = useState(defaultPatient ?? null)
-  const [patientQuery, setPatientQuery] = useState('')
+  const [picked, setPicked] = useState<PickerPatient | null>(null)
+  const patient = defaultPatient ?? picked
   const [assignedTo, setAssignedTo] = useState('')
   const [description, setDescription] = useState('')
 
@@ -62,16 +63,6 @@ export function IncidentFormDialog({
     queryKey: ['users', 'incidents'],
     queryFn: () => api<UserList>('/api/v1/users?limit=100'),
   })
-  const patients = useQuery({
-    queryKey: ['patients', 'incident-search', patientQuery],
-    queryFn: () => {
-      const params = new URLSearchParams({ limit: '20' })
-      if (patientQuery.trim()) params.set('q', patientQuery.trim())
-      return api<PatientList>(`/api/v1/patients?${params.toString()}`)
-    },
-    enabled: !defaultPatient,
-  })
-
   const create = useMutation({
     mutationFn: () => {
       const body: components['schemas']['IncidentCreate'] = {
@@ -164,64 +155,29 @@ export function IncidentFormDialog({
 
         <ModalSection
           icon={<TriangleAlert className="size-4" />}
-          title="Paciente y Responsable"
+          title="Paciente Y Responsable"
         >
-          <div className="grid gap-1.5">
-            <span className="text-ink text-sm font-medium">
-              Paciente{' '}
-              <span className="text-muted font-normal">(Opcional)</span>
-            </span>
-            {patient ? (
-              <div className="border-border flex items-center justify-between gap-3 rounded-lg border bg-slate-50 px-3 py-2 text-sm">
-                <span>{patient.fullName}</span>
-                {!defaultPatient && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-7 px-2 text-xs"
-                    onClick={() => setPatient(null)}
-                  >
-                    Quitar
-                  </Button>
-                )}
+          {defaultPatient ? (
+            <div className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">Paciente</span>
+              <div className="border-border rounded-lg border bg-slate-50 px-3 py-2 text-sm">
+                {defaultPatient.fullName}
               </div>
-            ) : (
-              <>
-                <TextField
-                  label="Buscar Paciente"
-                  value={patientQuery}
-                  onChange={(event) => setPatientQuery(event.target.value)}
-                  placeholder="Nombre del paciente"
-                />
-                {patientQuery.trim().length >= 2 && (
-                  <ul className="app-scroll border-border max-h-40 divide-y overflow-y-auto rounded-lg border bg-white">
-                    {(patients.data?.data ?? []).map((item) => (
-                      <li key={item.id}>
-                        <button
-                          type="button"
-                          className="hover:bg-surface flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm"
-                          onClick={() => {
-                            setPatient({ id: item.id, fullName: item.fullName })
-                            if (!branchId && item.primaryBranchId) {
-                              setBranchId(item.primaryBranchId)
-                            }
-                          }}
-                        >
-                          <span>{item.fullName}</span>
-                          <Plus className="size-3.5" />
-                        </button>
-                      </li>
-                    ))}
-                    {patients.isSuccess && patients.data?.data.length === 0 && (
-                      <li className="text-muted px-3 py-2 text-xs">
-                        Sin coincidencias.
-                      </li>
-                    )}
-                  </ul>
-                )}
-              </>
-            )}
-          </div>
+            </div>
+          ) : (
+            <PatientPicker
+              inline
+              required={false}
+              label="Paciente (Opcional)"
+              value={picked}
+              onChange={(next) => {
+                setPicked(next)
+                if (next && !branchId && next.primaryBranchId) {
+                  setBranchId(next.primaryBranchId)
+                }
+              }}
+            />
+          )}
 
           <label className="grid gap-1.5">
             <span className="text-ink text-sm font-medium">

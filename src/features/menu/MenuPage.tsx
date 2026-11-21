@@ -1,16 +1,22 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ListTree, Plus } from 'lucide-react'
 import { RowActions } from '@/components/DataTable'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/Button'
-import { FormActions } from '@/components/ui/FormActions'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
+import { PurgeDialog } from '@/components/ui/PurgeDialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
-import { api } from '@/lib/http'
+import { editTitle } from '@/lib/editTitle'
+import { api, ApiError } from '@/lib/http'
 import { buildMenuTree, type MenuItemDto } from '@/lib/menu'
-import { cn } from '@/lib/cn'
 import { useMe } from '@/lib/permissions'
 import type { MenuItemFormValues } from '@/schemas/menu'
 import { MenuItemForm } from './MenuItemForm'
@@ -37,6 +43,7 @@ export default function MenuPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<MenuItemDto | null>(null)
   const [deleting, setDeleting] = useState<MenuItemDto | null>(null)
+  const statusDraft = useStatusDraft(editing?.isActive ?? true)
 
   const menu = useQuery({
     queryKey: ['menu', 'all'],
@@ -51,28 +58,23 @@ export default function MenuPage() {
     ])
 
   const save = useMutation({
-    mutationFn: (values: MenuItemFormValues) =>
-      editing
+    mutationFn: (values: MenuItemFormValues) => {
+      // El estado activo/inactivo viaja en el mismo PATCH desde el borrador del interruptor.
+      const editBody = { ...toBody(values), isActive: statusDraft.value }
+      return editing
         ? api<MenuItemDto>(`/api/v1/menu/${encodeURIComponent(editing.id)}`, {
             method: 'PATCH',
-            body: JSON.stringify(toBody(values)),
+            body: JSON.stringify(editBody),
           })
         : api<MenuItemDto>('/api/v1/menu', {
             method: 'POST',
             body: JSON.stringify({ key: values.key, ...toBody(values) }),
-          }),
+          })
+    },
     onSuccess: async () => {
       await refresh()
       closeForm()
     },
-  })
-  const toggleActive = useMutation({
-    mutationFn: (item: MenuItemDto) =>
-      api<MenuItemDto>(`/api/v1/menu/${encodeURIComponent(item.id)}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ isActive: !item.isActive }),
-      }),
-    onSuccess: refresh,
   })
   const reorder = useMutation({
     mutationFn: (items: { id: string; order: number }[]) =>
@@ -116,6 +118,7 @@ export default function MenuPage() {
     setFormOpen(false)
     setEditing(null)
     save.reset()
+    statusDraft.reset()
   }
   function reorderSiblings(orderedIds: string[]) {
     reorder.mutate(
@@ -126,31 +129,19 @@ export default function MenuPage() {
     <RowActions
       label={item.label}
       onEdit={() => {
+        save.reset()
+        statusDraft.reset()
         setEditing(item)
         setFormOpen(true)
       }}
-      onDelete={() => {
+      onPurge={() => {
         remove.reset()
         setDeleting(item)
       }}
     />
   )
   const renderState = (item: MenuItemDto) => (
-    <button
-      type="button"
-      aria-pressed={item.isActive}
-      aria-label={`${item.isActive ? 'Desactivar' : 'Activar'} ${item.label}`}
-      disabled={toggleActive.isPending}
-      onClick={() => toggleActive.mutate(item)}
-      className={cn(
-        'rounded-full px-3 py-1 text-xs font-semibold transition',
-        item.isActive
-          ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-          : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
-      )}
-    >
-      {item.isActive ? 'Activo' : 'Inactivo'}
-    </button>
+    <StatusBadge active={item.isActive} />
   )
 
   const hasChildren = (item: MenuItemDto | null) =>
@@ -170,12 +161,14 @@ export default function MenuPage() {
               <Button
                 variant="primary"
                 onClick={() => {
+                  save.reset()
+                  statusDraft.reset()
                   setEditing(null)
                   setFormOpen(true)
                 }}
               >
                 <Plus className="size-4" />
-                Nuevo ítem
+                Crear Ítem
               </Button>
             )}
           </>
@@ -197,13 +190,12 @@ export default function MenuPage() {
           No pudimos cargar el menú. {menu.error.message}
         </p>
       )}
-      {(reorder.isError || toggleActive.isError) && (
+      {reorder.isError && (
         <p
           role="alert"
           className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
         >
-          No pudimos actualizar el menú.{' '}
-          {(reorder.error ?? toggleActive.error)?.message}
+          No pudimos actualizar el menú. {reorder.error?.message}
         </p>
       )}
       {isOwner &&
@@ -224,71 +216,69 @@ export default function MenuPage() {
           />
         ))}
       {formOpen && (
-        <Dialog
-          title={editing ? 'Editar Ítem de Menú' : 'Nuevo Ítem de Menú'}
-          icon={<ListTree className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          onClose={closeForm}
-        >
-          <MenuItemForm
-            key={editing?.id ?? 'new'}
-            mode={editing ? 'edit' : 'create'}
-            initialValues={
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={
               editing
-                ? {
-                    key: editing.key,
-                    label: editing.label,
-                    path: editing.path ?? '',
-                    icon: editing.icon,
-                    order: String(editing.order),
-                    permission: editing.permission ?? '',
-                    parentId: editing.parentId ?? '',
-                    isActive: editing.isActive,
-                  }
-                : undefined
+                ? editTitle('ítem de menú', editing.label)
+                : 'Crear Ítem de Menú'
             }
-            parents={parents}
-            parentLocked={hasChildren(editing)}
-            onSave={async (values) => {
-              await save.mutateAsync(values)
-            }}
-            onCancel={closeForm}
-            submitting={save.isPending}
-          />
-        </Dialog>
+            icon={<ListTree className="size-5" />}
+            compactHeader
+            bodyClassName="pt-3"
+            onClose={closeForm}
+            headerAction={
+              editing ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={save.isPending}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
+            }
+          >
+            <MenuItemForm
+              key={editing?.id ?? 'new'}
+              mode={editing ? 'edit' : 'create'}
+              initialValues={
+                editing
+                  ? {
+                      key: editing.key,
+                      label: editing.label,
+                      path: editing.path ?? '',
+                      icon: editing.icon,
+                      order: String(editing.order),
+                      permission: editing.permission ?? '',
+                      parentId: editing.parentId ?? '',
+                      isActive: editing.isActive,
+                    }
+                  : undefined
+              }
+              parents={parents}
+              parentLocked={hasChildren(editing)}
+              onSave={async (values) => {
+                await save.mutateAsync(values)
+              }}
+              onCancel={closeForm}
+              submitting={save.isPending}
+            />
+          </Dialog>
+        </StatusDraftProvider>
       )}
       {deleting && (
-        <Dialog
-          title="Eliminar ítem de menú"
-          description={`¿Eliminar "${deleting.label}"? Se quitará también de todos los roles.`}
+        <PurgeDialog
+          name={`${deleting.label} (se quitará también de todos los roles)`}
+          confirming={remove.isPending}
+          error={
+            remove.isError
+              ? remove.error instanceof ApiError
+                ? remove.error.message
+                : 'No pudimos borrar el ítem de menú.'
+              : undefined
+          }
+          onConfirm={() => remove.mutate(deleting)}
           onClose={() => setDeleting(null)}
-        >
-          {remove.isError && (
-            <p
-              role="alert"
-              className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800"
-            >
-              {remove.error.message}
-            </p>
-          )}
-          <FormActions>
-            <Button
-              className="w-full sm:w-auto"
-              onClick={() => setDeleting(null)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="danger"
-              className="w-full sm:w-auto"
-              disabled={remove.isPending}
-              onClick={() => remove.mutate(deleting)}
-            >
-              {remove.isPending ? 'Eliminando…' : 'Eliminar'}
-            </Button>
-          </FormActions>
-        </Dialog>
+        />
       )}
     </div>
   )

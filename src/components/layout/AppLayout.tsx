@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   ChevronDown,
@@ -122,6 +122,19 @@ export function AppLayout() {
   const { sidebarOpen, toggleSidebar } = useUiStore()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const { data: me } = useMe()
+  // Reload page data when the user switches branch. The first auto-pick
+  // (null -> first branch) is skipped; it happens on load, not on a switch.
+  useEffect(() => {
+    return useUiStore.subscribe((state, previous) => {
+      if (state.activeBranchId === previous.activeBranchId) return
+      if (previous.activeBranchId === null) return
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] !== 'me' && query.queryKey[0] !== 'my-organizations',
+      })
+    })
+  }, [])
   const signOut = async () => {
     await authClient.signOut()
     // Drop cached /me so the next user never sees this user's menu.
@@ -156,10 +169,12 @@ export function AppLayout() {
           <div className="grid gap-1 border-t border-white/10 pt-3">
             <NavLink
               to="/perfil"
+              aria-label="Mi perfil"
+              title="Mi perfil"
               className="flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm text-white/70 transition hover:bg-white/8 hover:text-white"
             >
-              <UserRound className="size-[18px]" />
-              Mi perfil
+              <UserRound className="size-[18px] shrink-0" />
+              <span className="truncate">{me?.user.name || 'Mi perfil'}</span>
             </NavLink>
             <button
               type="button"
@@ -168,7 +183,7 @@ export function AppLayout() {
               onClick={signOut}
             >
               <LogOut className="size-[18px]" />
-              Cerrar sesión
+              Cerrar Sesión
             </button>
           </div>
         </div>

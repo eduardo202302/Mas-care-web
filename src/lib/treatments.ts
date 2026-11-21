@@ -138,6 +138,32 @@ export function coveragePreview(input: {
   }
 }
 
+/** Envases necesarios para cubrir desde el inicio hasta el fin (ambos inclusive). */
+export function suggestedDeliveredQuantity(input: {
+  startDate: string
+  endDate: string
+  dosePerIntake: number
+  dosesPerDay: number
+  unitsPerPackage: number
+}): { packages: number; days: number } | null {
+  const start = parseDateOnly(input.startDate)
+  const end = parseDateOnly(input.endDate)
+  const unitsPerDay = input.dosePerIntake * input.dosesPerDay
+  if (
+    !start ||
+    !end ||
+    end < start ||
+    !Number.isFinite(unitsPerDay) ||
+    unitsPerDay <= 0 ||
+    !Number.isFinite(input.unitsPerPackage) ||
+    input.unitsPerPackage <= 0
+  )
+    return null
+  const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1
+  const packages = Math.ceil((days * unitsPerDay) / input.unitsPerPackage - 1e-9)
+  return { packages: Math.max(1, packages), days }
+}
+
 /** Descompone un total de días en años, meses y días legibles (p.ej. "4 años 1 mes 10 días"), omitiendo las unidades en cero. */
 export function formatDurationYMD(totalDays: number): string {
   if (!Number.isFinite(totalDays) || totalDays <= 0) return '0 días'
@@ -187,6 +213,15 @@ export function medicationName(medication: Medication | undefined): string {
     medication?.activeIngredient ||
     'Medicamento'
   )
+}
+
+/** Nombre del medicamento con su presentación, para impresiones: "Losartán · Tabletas 50 mg". */
+export function medicationFullName(medication: Medication | undefined): string {
+  const name = medicationName(medication)
+  const presentation = medication?.presentation?.trim()
+  return presentation && !name.includes(presentation)
+    ? `${name} · ${presentation}`
+    : name
 }
 
 /** Nombre asignado al tratamiento en "Nuevo Ciclo"; si no tiene, usa el medicamento. */
@@ -270,11 +305,7 @@ export const WEEKDAY_SHORT_LABELS = [
   'Sáb',
 ] as const
 
-function formatTimeList(times: string[]): string {
-  return times.join(' y ')
-}
-
-/** Resumen legible de una frecuencia de dosis, para la tabla de medicamentos y la card de horario. */
+/** Resumen legible de una frecuencia de dosis, sin las horas: la hora de toma se muestra aparte ("Toma …"). */
 export function frequencyLabel(schedule: DoseScheduleFrequency): string {
   if (schedule.frequencyType === 'interval') {
     const hours = schedule.intervalHours ?? 0
@@ -289,25 +320,19 @@ export function frequencyLabel(schedule: DoseScheduleFrequency): string {
       .sort((a, b) => a - b)
       .map((day) => WEEKDAY_LABELS[day])
       .join(', ')
-    return schedule.times.length
-      ? `${days || 'Sin días'} a las ${formatTimeList(schedule.times)}`
-      : days || 'Sin días'
+    return days || 'Sin días'
   }
   if (schedule.frequencyType === 'monthly') {
     const days = sortedMonthdays(schedule)
-    const label = days ? `Días ${days} de cada mes` : 'Sin días'
-    return schedule.times.length
-      ? `${label} a las ${formatTimeList(schedule.times)}`
-      : label
+    return days ? `Días ${days} de cada mes` : 'Sin días'
   }
   if (!schedule.times.length) return 'Según indicación'
   if (isEvenlySpacedDaily(schedule.times)) {
     const hours = 24 / schedule.times.length
     return `Cada ${hours} ${hours === 1 ? 'hora' : 'horas'}`
   }
-  if (schedule.times.length === 1)
-    return `Una vez al día (${schedule.times[0]})`
-  return `${schedule.times.length} veces al día (${formatTimeList(schedule.times)})`
+  if (schedule.times.length === 1) return 'Una vez al día'
+  return `${schedule.times.length} veces al día`
 }
 
 function to12Hour(time: string): string {
@@ -689,6 +714,7 @@ export async function createTreatmentFromForm(
     dose_per_intake: values.dosePerIntake,
     intakes_per_day: values.intakesPerDay,
     quantity_per_cycle: values.quantityPerCycle,
+    delivered_quantity: values.deliveredQuantity ?? null,
     start_date: values.startDate,
     end_date: values.endDate || null,
     prescriber_name: values.prescriberName?.trim() || null,
@@ -735,9 +761,10 @@ async function markFirstCycleDelivered(
     await api(`/api/v1/treatments/${encodeURIComponent(treatmentId)}/deliver`, {
       method: 'POST',
       body: JSON.stringify({
-        quantity: Number(values.quantityPerCycle),
+        quantity: Number(values.quantityPerCycle) * (values.deliveredQuantity ?? 1),
         delivered_on: todayDateOnly(),
         picked_up_by: 'patient',
+        open_next_cycle: false,
       }),
     })
   } catch (error) {
@@ -762,6 +789,7 @@ export async function updateTreatmentFromForm(
         dose_per_intake: values.dosePerIntake,
         intakes_per_day: values.intakesPerDay,
         quantity_per_cycle: values.quantityPerCycle,
+        delivered_quantity: values.deliveredQuantity ?? null,
         start_date: values.startDate,
         end_date: values.endDate || null,
         prescriber_name: values.prescriberName?.trim() || null,

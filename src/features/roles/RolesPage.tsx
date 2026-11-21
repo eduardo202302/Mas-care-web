@@ -1,13 +1,8 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  Activity,
-  FileText,
-  Hash,
-  Plus,
-  Search,
-  ShieldCheck,
-} from 'lucide-react'
+import { Activity, FileText, Hash, Plus, ShieldCheck } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { DataTable, RowActions } from '@/components/DataTable'
 import { Pagination } from '@/components/Pagination'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
@@ -21,7 +16,12 @@ import {
   type ActiveFilterChip,
 } from '@/components/ui/AdvancedFilter'
 import { Button } from '@/components/ui/Button'
-import { FormActions } from '@/components/ui/FormActions'
+import { PurgeDialog } from '@/components/ui/PurgeDialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dialog } from '@/components/ui/Dialog'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
@@ -87,13 +87,14 @@ export default function RolesPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [viewOnly, setViewOnly] = useState(false)
   const [editing, setEditing] = useState<RoleDto | null>(null)
-  const [deleting, setDeleting] = useState<RoleDto | null>(null)
+  const [purging, setPurging] = useState<RoleDto | null>(null)
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   const [sort, toggleSort] = useColumnSort()
   const [search, setSearch] = useState('')
   const [applied, setApplied] = useState<RoleFilters>(emptyFilters)
   const [filterDraft, setFilterDraft] = useState<RoleFilters | null>(null)
+  const statusDraft = useStatusDraft(editing?.isActive ?? true)
 
   // Distinct key from the full list ['roles'] used by the user form.
   const roles = useQuery({
@@ -119,9 +120,15 @@ export default function RolesPage() {
     mutationFn: ({ values, items }: RoleSavePayload) => {
       const description = values.description || null
       if (editing) {
+        // El estado del interruptor del encabezado viaja en el mismo PATCH.
         const body = editing.isSystem
           ? { description }
-          : { ...values, description, items }
+          : {
+              ...values,
+              description,
+              items,
+              isActive: statusDraft.value,
+            }
         return api<RoleDto>(`/api/v1/roles/${encodeURIComponent(editing.id)}`, {
           method: 'PATCH',
           body: JSON.stringify(body),
@@ -137,12 +144,30 @@ export default function RolesPage() {
       closeForm()
     },
   })
-  const remove = useMutation({
+  const purge = useMutation({
     mutationFn: (role: RoleDto) =>
-      api(`/api/v1/roles/${encodeURIComponent(role.id)}`, { method: 'DELETE' }),
+      api<void>(`/api/v1/roles/${encodeURIComponent(role.id)}/permanent`, {
+        method: 'DELETE',
+      }),
     onSuccess: async () => {
       await refresh()
-      setDeleting(null)
+      setPurging(null)
+    },
+  })
+  const toggleActive = useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
+      api<RoleDto>(`/api/v1/roles/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive: active }),
+      }),
+    onSuccess: async (updated) => {
+      // Mantiene el interruptor del formulario abierto en sincronía.
+      setEditing((current) =>
+        current && current.id === updated.id
+          ? { ...current, isActive: updated.isActive }
+          : current,
+      )
+      await refresh()
     },
   })
 
@@ -151,9 +176,11 @@ export default function RolesPage() {
     setEditing(null)
     setViewOnly(false)
     save.reset()
+    statusDraft.reset()
   }
   function openEdit(role: RoleDto) {
     save.reset()
+    statusDraft.reset()
     setEditing(role)
     setViewOnly(false)
     setFormOpen(true)
@@ -161,6 +188,7 @@ export default function RolesPage() {
   /** Doble clic en la fila: mismo formulario, pero bloqueado. */
   function openView(role: RoleDto) {
     save.reset()
+    statusDraft.reset()
     setEditing(role)
     setViewOnly(true)
     setFormOpen(true)
@@ -205,16 +233,7 @@ export default function RolesPage() {
     <span key="id" className="text-muted font-mono text-xs">
       {role.numericId}
     </span>,
-    <span
-      key="state"
-      className={
-        role.isActive
-          ? 'rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800'
-          : 'rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600'
-      }
-    >
-      {role.isActive ? 'Activo' : 'Inactivo'}
-    </span>,
+    <StatusBadge key="state" active={role.isActive} />,
     <span key="name" className="inline-flex items-center gap-2 font-semibold">
       {role.name}
       {role.isSystem && (
@@ -271,12 +290,12 @@ export default function RolesPage() {
         key={role.id}
         label={role.name}
         onEdit={() => openEdit(role)}
-        onDelete={
+        onPurge={
           role.isSystem
             ? undefined
             : () => {
-                remove.reset()
-                setDeleting(role)
+                purge.reset()
+                setPurging(role)
               }
         }
       />
@@ -295,28 +314,26 @@ export default function RolesPage() {
                 variant="primary"
                 onClick={() => {
                   save.reset()
+                  statusDraft.reset()
                   setEditing(null)
                   setFormOpen(true)
                 }}
               >
                 <Plus className="size-4" />
-                Nuevo rol
+                Crear Rol
               </Button>
             )}
           </>
         }
       />
       <FilterBarRow aria-label="Filtros de roles">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar roles"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Nombre o descripción del rol"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar roles"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Nombre o descripción del rol"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -467,6 +484,14 @@ export default function RolesPage() {
           No pudimos cargar los roles. {roles.error.message}
         </p>
       )}
+      {toggleActive.isError && !formOpen && (
+        <p
+          role="alert"
+          className="mb-4 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+        >
+          {toggleActive.error.message}
+        </p>
+      )}
       <div className="min-h-0 flex-1">
         {roles.isPending ? (
           <TableSkeleton columns={6} />
@@ -500,78 +525,75 @@ export default function RolesPage() {
         )}
       </div>
       {formOpen && (
-        <Dialog
-          size="lg"
-          title={
-            viewOnly
-              ? `Ver Rol: ${editing?.name}`
-              : editing
-                ? `Editar Rol: ${editing.name}`
-                : 'Nuevo Rol'
-          }
-          description="Marca las pantallas que este rol puede ver."
-          icon={<ShieldCheck className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          onClose={closeForm}
-        >
-          {catalog.isError && (
-            <p
-              role="alert"
-              className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
-            >
-              No pudimos cargar el menú. {catalog.error.message}
-            </p>
-          )}
-          {catalog.isPending ? (
-            <TableSkeleton columns={5} />
-          ) : (
-            <RoleForm
-              key={editing?.id ?? 'new'}
-              role={editing ?? undefined}
-              catalog={catalog.data?.data ?? []}
-              onSave={async (payload) => {
-                await save.mutateAsync(payload)
-              }}
-              onCancel={closeForm}
-              submitting={save.isPending}
-              readOnly={viewOnly}
-              onEdit={() => setViewOnly(false)}
-            />
-          )}
-        </Dialog>
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            size="lg"
+            title={
+              viewOnly
+                ? `Ver Rol: ${editing?.name}`
+                : editing
+                  ? `Editar rol ${editing.name}`
+                  : 'Crear Rol'
+            }
+            description="Marca las pantallas que este rol puede ver."
+            icon={<ShieldCheck className="size-5" />}
+            compactHeader
+            bodyClassName="pt-3"
+            onClose={closeForm}
+            headerAction={
+              editing && canManage ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={save.isPending}
+                  disabled={editing.isSystem || viewOnly}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
+            }
+          >
+            {toggleActive.isError && (
+              <p
+                role="alert"
+                className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+              >
+                {toggleActive.error.message}
+              </p>
+            )}
+            {catalog.isError && (
+              <p
+                role="alert"
+                className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+              >
+                No pudimos cargar el menú. {catalog.error.message}
+              </p>
+            )}
+            {catalog.isPending ? (
+              <TableSkeleton columns={5} />
+            ) : (
+              <RoleForm
+                key={editing?.id ?? 'new'}
+                role={editing ?? undefined}
+                catalog={catalog.data?.data ?? []}
+                onSave={async (payload) => {
+                  await save.mutateAsync(payload)
+                }}
+                onCancel={closeForm}
+                submitting={save.isPending}
+                readOnly={viewOnly}
+                onEdit={() => setViewOnly(false)}
+              />
+            )}
+          </Dialog>
+        </StatusDraftProvider>
       )}
-      {deleting && (
-        <Dialog
-          title="Eliminar rol"
-          description={`¿Eliminar el rol "${deleting.name}"?`}
-          onClose={() => setDeleting(null)}
-        >
-          {remove.isError && (
-            <p
-              role="alert"
-              className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800"
-            >
-              {remove.error.message}
-            </p>
-          )}
-          <FormActions>
-            <Button
-              className="w-full sm:w-auto"
-              onClick={() => setDeleting(null)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="danger"
-              className="w-full sm:w-auto"
-              disabled={remove.isPending}
-              onClick={() => remove.mutate(deleting)}
-            >
-              {remove.isPending ? 'Eliminando…' : 'Eliminar'}
-            </Button>
-          </FormActions>
-        </Dialog>
+      {purging && (
+        <PurgeDialog
+          name={purging.name}
+          confirming={purge.isPending}
+          error={purge.isError ? purge.error.message : undefined}
+          onConfirm={() => purge.mutate(purging)}
+          onClose={() => setPurging(null)}
+        />
       )}
     </div>
   )

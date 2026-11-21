@@ -1,3 +1,4 @@
+import { formatTimestamp } from '@/lib/operations'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -136,7 +137,7 @@ export function ConversationDialog({
                 <p className="text-muted mt-1 text-[11px]">
                   {item.kind === 'reply' ? 'Paciente' : 'Farmacia'} ·{' '}
                   {channelLabels[item.channel] ?? item.channel} ·{' '}
-                  {new Date(item.at).toLocaleString('es')}
+                  {formatTimestamp(item.at)}
                 </p>
               </li>
             ))}

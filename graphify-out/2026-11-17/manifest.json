@@ -1,0 +1,2108 @@
+{
+  ".github/workflows/ci.yml": {
+    "mtime": 1793275447.1560242,
+    "seen": 1793289097.2749522,
+    "ast_hash": "4fcd2cebdaecf89e3d11a970df907a07",
+    "semantic_hash": ""
+  },
+  "components.json": {
+    "mtime": 1792773120.8846262,
+    "seen": 1793023599.1137152,
+    "ast_hash": "a221c49852c6e8381d722f0a3ef026e3",
+    "semantic_hash": "a221c49852c6e8381d722f0a3ef026e3"
+  },
+  "e2e/auth.spec.ts": {
+    "mtime": 1794838138.2090192,
+    "seen": 1794838170.8075073,
+    "ast_hash": "17ee48f8533584cd48b5dd3534d7809d",
+    "semantic_hash": ""
+  },
+  "e2e/daily.spec.ts": {
+    "mtime": 1794838138.2202377,
+    "seen": 1794838170.8075097,
+    "ast_hash": "e24606944a7cdfe2cf9122526428af50",
+    "semantic_hash": ""
+  },
+  "e2e/treatments.spec.ts": {
+    "mtime": 1794838138.254607,
+    "seen": 1794838170.807617,
+    "ast_hash": "009fd9e20161917670b046890d325608",
+    "semantic_hash": ""
+  },
+  "eslint.config.js": {
+    "mtime": 1793395051.318347,
+    "seen": 1793646019.7028341,
+    "ast_hash": "2ce5ac1a568cbc4261881a4be3c762a8",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1794062078.5691624,
+    "seen": 1794497392.560405,
+    "ast_hash": "598e307a4350d7f00a01deb9eaea6240",
+    "semantic_hash": ""
+  },
+  "playwright.config.ts": {
+    "mtime": 1793123416.5848207,
+    "seen": 1793190088.0428352,
+    "ast_hash": "a5fcaecc460ebd635a9621d410a1bea9",
+    "semantic_hash": ""
+  },
+  "prettier.config.js": {
+    "mtime": 1792773152.1708078,
+    "seen": 1793023599.113728,
+    "ast_hash": "a4d0bb8ebfbb2f35632549cf68f5a7b6",
+    "semantic_hash": "a4d0bb8ebfbb2f35632549cf68f5a7b6"
+  },
+  "scripts/gen-api.mjs": {
+    "mtime": 1792773244.1659856,
+    "seen": 1794923462.0903742,
+    "ast_hash": "8e9852e37becc95fea66c119f1162815",
+    "semantic_hash": "8e9852e37becc95fea66c119f1162815"
+  },
+  "src/app/App.tsx": {
+    "mtime": 1794500845.8646624,
+    "seen": 1794501226.7641544,
+    "ast_hash": "e88a3590419f04e4a05944925112115f",
+    "semantic_hash": ""
+  },
+  "src/app/RequireAuth.test.tsx": {
+    "mtime": 1794838112.9340699,
+    "seen": 1794838170.8083456,
+    "ast_hash": "e83918bfff738df69c5f6a55f09236dd",
+    "semantic_hash": "e83918bfff738df69c5f6a55f09236dd"
+  },
+  "src/app/RequireAuth.tsx": {
+    "mtime": 1792788898.6111093,
+    "seen": 1793023599.1137342,
+    "ast_hash": "80cacfd631e356ed935d0c76683c181f",
+    "semantic_hash": "80cacfd631e356ed935d0c76683c181f"
+  },
+  "src/app/RouteError.test.tsx": {
+    "mtime": 1794838112.9544039,
+    "seen": 1794838170.8085613,
+    "ast_hash": "eec2fd5ec739436c44b9bc26ac324e07",
+    "semantic_hash": "eec2fd5ec739436c44b9bc26ac324e07"
+  },
+  "src/app/RouteError.tsx": {
+    "mtime": 1794838057.5688465,
+    "seen": 1794838170.8085637,
+    "ast_hash": "196da2f03d2bf835681cb1c463e337c0",
+    "semantic_hash": ""
+  },
+  "src/app/router.tsx": {
+    "mtime": 1794509044.4262366,
+    "seen": 1794509076.4538884,
+    "ast_hash": "ab9c35f0327b8555fdac608bf79ad072",
+    "semantic_hash": ""
+  },
+  "src/components/BranchFilter.tsx": {
+    "mtime": 1794838300.838518,
+    "seen": 1794923462.0915098,
+    "ast_hash": "b6a8bad3de47e3b4309f5e1052d946f3",
+    "semantic_hash": ""
+  },
+  "src/components/BranchTag.tsx": {
+    "mtime": 1793377777.8063264,
+    "seen": 1793381098.8106043,
+    "ast_hash": "48f89311fba52ec5d1a18baa9c4ce0de",
+    "semantic_hash": ""
+  },
+  "src/components/DataTable.tsx": {
+    "mtime": 1794924267.4473178,
+    "seen": 1794924453.8993628,
+    "ast_hash": "8fbe9ab972ee842727c4e6ece9752e77",
+    "semantic_hash": ""
+  },
+  "src/components/EmptyState.tsx": {
+    "mtime": 1792773152.32622,
+    "seen": 1793023599.1137438,
+    "ast_hash": "f5ce09cd123ed4418a9d61317f5ae099",
+    "semantic_hash": "f5ce09cd123ed4418a9d61317f5ae099"
+  },
+  "src/components/StatusChip.test.tsx": {
+    "mtime": 1794838112.9649231,
+    "seen": 1794838170.809663,
+    "ast_hash": "354baab4838d83ef79c28d2fd6f3eec8",
+    "semantic_hash": "354baab4838d83ef79c28d2fd6f3eec8"
+  },
+  "src/components/StatusChip.tsx": {
+    "mtime": 1792773152.4241586,
+    "seen": 1793023599.1137466,
+    "ast_hash": "8b46e00e8874fa575f9ef119967efcc0",
+    "semantic_hash": "8b46e00e8874fa575f9ef119967efcc0"
+  },
+  "src/components/layout/AppLayout.tsx": {
+    "mtime": 1794838057.6226664,
+    "seen": 1794838170.8097656,
+    "ast_hash": "8ecf195556df4a78bebb2c325f43e8a1",
+    "semantic_hash": ""
+  },
+  "src/components/layout/AppShellSkeleton.tsx": {
+    "mtime": 1793064730.7663002,
+    "seen": 1793190088.0428667,
+    "ast_hash": "0a74e609179bc7e258293800654bc892",
+    "semantic_hash": ""
+  },
+  "src/components/layout/WorkspaceSelector.tsx": {
+    "mtime": 1794592339.937297,
+    "seen": 1794592384.2577274,
+    "ast_hash": "f7cabb2aab866ad37bbe27271ead45d9",
+    "semantic_hash": ""
+  },
+  "src/components/status-labels.ts": {
+    "mtime": 1792773152.4076226,
+    "seen": 1793023599.1137528,
+    "ast_hash": "0ecc85c094f42dd9a3238581d389d6e3",
+    "semantic_hash": "0ecc85c094f42dd9a3238581d389d6e3"
+  },
+  "src/components/ui/Button.tsx": {
+    "mtime": 1794849951.0276568,
+    "seen": 1794923462.093174,
+    "ast_hash": "cce3dd4748fb1ce28b6a18ef313aa9b0",
+    "semantic_hash": ""
+  },
+  "src/components/ui/Dialog.tsx": {
+    "mtime": 1794930547.8663032,
+    "seen": 1794931101.7157917,
+    "ast_hash": "31708261dad8eca9aff2b0108f35f00d",
+    "semantic_hash": ""
+  },
+  "src/components/ui/FormActions.tsx": {
+    "mtime": 1794501116.7647128,
+    "seen": 1794501226.7671237,
+    "ast_hash": "c59d999418c4ae7db15cdcf86d51262c",
+    "semantic_hash": ""
+  },
+  "src/components/ui/Skeleton.tsx": {
+    "mtime": 1792788831.3179007,
+    "seen": 1793023599.1137614,
+    "ast_hash": "d128e894cb53ed20ce95419419125805",
+    "semantic_hash": "d128e894cb53ed20ce95419419125805"
+  },
+  "src/components/ui/TableSkeleton.tsx": {
+    "mtime": 1792788859.2679396,
+    "seen": 1793023599.1137629,
+    "ast_hash": "ccc872205962a8bbba6f0ec23b377629",
+    "semantic_hash": "ccc872205962a8bbba6f0ec23b377629"
+  },
+  "src/components/ui/TextField.tsx": {
+    "mtime": 1794502719.684766,
+    "seen": 1794503157.2142959,
+    "ast_hash": "ffa02ad387511695e68f34f222634617",
+    "semantic_hash": ""
+  },
+  "src/features/auth/AccessPage.tsx": {
+    "mtime": 1794589977.7167559,
+    "seen": 1794589992.0273564,
+    "ast_hash": "2fc2429e423c0fdb0c6e832029f0fdcc",
+    "semantic_hash": ""
+  },
+  "src/features/auth/RegisterPage.tsx": {
+    "mtime": 1794924092.141853,
+    "seen": 1794924453.903339,
+    "ast_hash": "cc9ecb8acedb6f677c3459ddfd911985",
+    "semantic_hash": ""
+  },
+  "src/features/branches/BranchForm.test.tsx": {
+    "mtime": 1794838210.1778371,
+    "seen": 1794923462.0959744,
+    "ast_hash": "847f1ffa60f8807a4a674fd7aa6a82a3",
+    "semantic_hash": ""
+  },
+  "src/features/branches/BranchForm.tsx": {
+    "mtime": 1794597418.3467517,
+    "seen": 1794597469.0820427,
+    "ast_hash": "7a8b614fb5ac3629611963c9d7892ebe",
+    "semantic_hash": ""
+  },
+  "src/features/branches/BranchesPage.tsx": {
+    "mtime": 1794924604.0093548,
+    "seen": 1794924911.5502934,
+    "ast_hash": "d17a132eafd42ebbeeb81c6a72ead7a3",
+    "semantic_hash": ""
+  },
+  "src/features/branches/BranchesPermissions.test.tsx": {
+    "mtime": 1794838210.1798644,
+    "seen": 1794923462.0961707,
+    "ast_hash": "fa0e42e1e6c245e4b539197b3e81299f",
+    "semantic_hash": ""
+  },
+  "src/features/dashboard/DashboardPage.test.tsx": {
+    "mtime": 1794838210.184866,
+    "seen": 1794923462.096769,
+    "ast_hash": "5211457027a352572453c6710d1291e1",
+    "semantic_hash": ""
+  },
+  "src/features/dashboard/DashboardPage.tsx": {
+    "mtime": 1794838057.7457879,
+    "seen": 1794838170.8133245,
+    "ast_hash": "647b04b6cf06bd32bbb02d3f9644563c",
+    "semantic_hash": ""
+  },
+  "src/features/dashboard/DashboardTreatmentRow.tsx": {
+    "mtime": 1794501117.8768895,
+    "seen": 1794501226.771495,
+    "ast_hash": "4e165d4166eedd70728ded5ce1bce146",
+    "semantic_hash": ""
+  },
+  "src/features/dashboard/DeliveryDialog.tsx": {
+    "mtime": 1794501117.9058983,
+    "seen": 1794501226.7714999,
+    "ast_hash": "9f2f5c40337ec179f4931b09fd301989",
+    "semantic_hash": ""
+  },
+  "src/features/dashboard/NoticeDialog.tsx": {
+    "mtime": 1794838057.753306,
+    "seen": 1794838170.8135233,
+    "ast_hash": "0c10ceac16175234ae7d10a97f9317fd",
+    "semantic_hash": ""
+  },
+  "src/features/dev/ChipsPage.tsx": {
+    "mtime": 1794838057.7543018,
+    "seen": 1794838170.8135254,
+    "ast_hash": "fb31815ef75cee4a14031d067c191a76",
+    "semantic_hash": ""
+  },
+  "src/features/medications/MedicationForm.tsx": {
+    "mtime": 1794923645.0186057,
+    "seen": 1794923662.6776547,
+    "ast_hash": "398e164b7015cc82bbcc3e0d855c5a00",
+    "semantic_hash": ""
+  },
+  "src/features/medications/MedicationsPage.tsx": {
+    "mtime": 1794924396.398976,
+    "seen": 1794924453.9086094,
+    "ast_hash": "8374b1621afbc108998c7cdcbf14d03d",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PatientDetailPage.tsx": {
+    "mtime": 1794924612.8295784,
+    "seen": 1794924911.5547273,
+    "ast_hash": "f9508787692839f56e5c75e8389b23e0",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PatientDetailSkeleton.tsx": {
+    "mtime": 1793390840.4590254,
+    "seen": 1793391553.8143685,
+    "ast_hash": "b5c0d1e78159ff9acdc9c148ea0cd0c4",
+    "semantic_hash": "b5c0d1e78159ff9acdc9c148ea0cd0c4"
+  },
+  "src/features/patients/PatientForm.test.tsx": {
+    "mtime": 1794838210.202326,
+    "seen": 1794923462.1001937,
+    "ast_hash": "a3b6daabd9ea2ce27572e856ae1bb682",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PatientForm.tsx": {
+    "mtime": 1794931063.058398,
+    "seen": 1794931101.7335958,
+    "ast_hash": "05f8c01672ba70abbe923ed3808beeb7",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PatientsPage.tsx": {
+    "mtime": 1794924579.2059617,
+    "seen": 1794924911.5554929,
+    "ast_hash": "3437d2734c32e103bb1006f0753ba28f",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PatientsPermissions.test.tsx": {
+    "mtime": 1794838210.202326,
+    "seen": 1794923462.1004927,
+    "ast_hash": "c695231b70571ab0c40d6731fe3e6c09",
+    "semantic_hash": ""
+  },
+  "src/features/settings/TemplateFormDialog.tsx": {
+    "mtime": 1794837027.7507915,
+    "seen": 1794837056.0137467,
+    "ast_hash": "9093f9ec99d38287f72191ed8dd45d90",
+    "semantic_hash": ""
+  },
+  "src/features/settings/TemplatesPage.tsx": {
+    "mtime": 1794838057.9013724,
+    "seen": 1794838170.8189433,
+    "ast_hash": "c3818578c6424b6a38a3b4b7ea77961f",
+    "semantic_hash": ""
+  },
+  "src/features/settings/ThresholdsPage.tsx": {
+    "mtime": 1794501119.9214268,
+    "seen": 1794501226.777617,
+    "ast_hash": "ca48b7dc2413133fd1d80acf7132722b",
+    "semantic_hash": ""
+  },
+  "src/features/tasks/TaskFormDialog.tsx": {
+    "mtime": 1794837027.7791586,
+    "seen": 1794837056.0144093,
+    "ast_hash": "453592f775bfd3406ba50dae1fcb0363",
+    "semantic_hash": ""
+  },
+  "src/features/tasks/TasksPage.tsx": {
+    "mtime": 1794838057.9077532,
+    "seen": 1794838170.8193457,
+    "ast_hash": "c1c37c6a76ab1af0f0336cf384935828",
+    "semantic_hash": ""
+  },
+  "src/features/treatments/TreatmentActionDialog.tsx": {
+    "mtime": 1794597564.808004,
+    "seen": 1794597633.4441872,
+    "ast_hash": "2f0bbb2ede670662c7f1328ad6d1df9c",
+    "semantic_hash": ""
+  },
+  "src/features/treatments/TreatmentForm.tsx": {
+    "mtime": 1794850188.8987696,
+    "seen": 1794923462.1056397,
+    "ast_hash": "488b1732d226a34646eae910eb114222",
+    "semantic_hash": ""
+  },
+  "src/features/treatments/TreatmentList.tsx": {
+    "mtime": 1794861253.2381604,
+    "seen": 1794923462.1056411,
+    "ast_hash": "28ea73316413f88a9f62bc697cad3152",
+    "semantic_hash": ""
+  },
+  "src/features/users/UserForm.test.tsx": {
+    "mtime": 1794924755.3209894,
+    "seen": 1794924911.561561,
+    "ast_hash": "009ffdb5238fd8511d7e55e83267d235",
+    "semantic_hash": ""
+  },
+  "src/features/users/UserForm.tsx": {
+    "mtime": 1794924122.9341428,
+    "seen": 1794924453.9184308,
+    "ast_hash": "1960c0b127f390b96f8a19e974a43756",
+    "semantic_hash": ""
+  },
+  "src/features/users/UsersPage.tsx": {
+    "mtime": 1794925114.9691122,
+    "seen": 1794925149.0605786,
+    "ast_hash": "3df4189a9bd76277ec42bf0872259a39",
+    "semantic_hash": ""
+  },
+  "src/lib/api-types.ts": {
+    "mtime": 1794592473.9540215,
+    "seen": 1794592584.9644763,
+    "ast_hash": "6263debfb5bc4abc257108cbfe36c2e6",
+    "semantic_hash": ""
+  },
+  "src/lib/auth-client.ts": {
+    "mtime": 1794501120.9760213,
+    "seen": 1794501226.7792017,
+    "ast_hash": "09e1bd0c6027b05f72ca9f28fee77199",
+    "semantic_hash": ""
+  },
+  "src/lib/cn.ts": {
+    "mtime": 1792772629.3886797,
+    "seen": 1793023599.113813,
+    "ast_hash": "9a4cc6f9f3155ffdc1fa7c2c097f6429",
+    "semantic_hash": "9a4cc6f9f3155ffdc1fa7c2c097f6429"
+  },
+  "src/lib/http.ts": {
+    "mtime": 1794066209.228135,
+    "seen": 1794497392.5691543,
+    "ast_hash": "814b16081884ebd0da75ce8529eda9a3",
+    "semantic_hash": ""
+  },
+  "src/lib/operations.test.ts": {
+    "mtime": 1793020685.9961379,
+    "seen": 1793023599.1138158,
+    "ast_hash": "5ea185400e5e3dacb44f8b041aacfc46",
+    "semantic_hash": "5ea185400e5e3dacb44f8b041aacfc46"
+  },
+  "src/lib/operations.ts": {
+    "mtime": 1794850018.8114717,
+    "seen": 1794923462.107379,
+    "ast_hash": "6ea46438ce5059014f30545c0a6f4a2d",
+    "semantic_hash": ""
+  },
+  "src/lib/permissions.ts": {
+    "mtime": 1794848604.6033638,
+    "seen": 1794923462.107477,
+    "ast_hash": "ba083d69922e4217cbad5d2e9dfd34de",
+    "semantic_hash": ""
+  },
+  "src/lib/query-client.ts": {
+    "mtime": 1793064729.385147,
+    "seen": 1793190088.0429847,
+    "ast_hash": "cf73e50a1e4d065f9cb2f8c899cfc956",
+    "semantic_hash": ""
+  },
+  "src/lib/treatments.ts": {
+    "mtime": 1794850138.961568,
+    "seen": 1794923462.1085372,
+    "ast_hash": "fbd47bb75780d6e635e0f4ca99833147",
+    "semantic_hash": ""
+  },
+  "src/main.tsx": {
+    "mtime": 1792772605.2196271,
+    "seen": 1793190088.0429904,
+    "ast_hash": "cb6e47f02016f4f0a76fddf7e3cb1b30",
+    "semantic_hash": "cb6e47f02016f4f0a76fddf7e3cb1b30"
+  },
+  "src/schemas/branch.ts": {
+    "mtime": 1794498779.5061252,
+    "seen": 1794498846.8481336,
+    "ast_hash": "7012f37050b5ddfd16f6416d942f63bc",
+    "semantic_hash": ""
+  },
+  "src/schemas/medication.ts": {
+    "mtime": 1794503304.7763848,
+    "seen": 1794503365.2348146,
+    "ast_hash": "6f698329ca4a6a44d4f88b2ea5d63b40",
+    "semantic_hash": ""
+  },
+  "src/schemas/patient.ts": {
+    "mtime": 1794589130.8796613,
+    "seen": 1794589143.9947317,
+    "ast_hash": "9f421962715d3c192c3709b4265eee69",
+    "semantic_hash": ""
+  },
+  "src/schemas/settings.ts": {
+    "mtime": 1794501121.7622993,
+    "seen": 1794501226.7834692,
+    "ast_hash": "6a7a084b50b8d20089ac3d0072f04c0d",
+    "semantic_hash": ""
+  },
+  "src/schemas/treatment.ts": {
+    "mtime": 1794598570.702013,
+    "seen": 1794598762.2647014,
+    "ast_hash": "60136c8013916426f285e7ef60c9a592",
+    "semantic_hash": ""
+  },
+  "src/schemas/user.ts": {
+    "mtime": 1794924104.7308035,
+    "seen": 1794924453.9242198,
+    "ast_hash": "23f47c31204feefa55e3f7eaf7917139",
+    "semantic_hash": ""
+  },
+  "src/stores/ui-store.ts": {
+    "mtime": 1793190380.557257,
+    "seen": 1793289097.2871668,
+    "ast_hash": "b5d6b4659269dbe56f31c5e107bb8c81",
+    "semantic_hash": ""
+  },
+  "src/test/setup.ts": {
+    "mtime": 1792772708.428523,
+    "seen": 1793023599.1138356,
+    "ast_hash": "2c271435e60d9aeb6cd3a5e1e122a5c0",
+    "semantic_hash": "2c271435e60d9aeb6cd3a5e1e122a5c0"
+  },
+  "tsconfig.app.json": {
+    "mtime": 1794062078.654993,
+    "seen": 1794497392.5713723,
+    "ast_hash": "81bfa54a52742618bfc7aed991d96daf",
+    "semantic_hash": ""
+  },
+  "tsconfig.json": {
+    "mtime": 1792773152.858135,
+    "seen": 1793023599.1138387,
+    "ast_hash": "a3d39fa780ebff65444de257f291ce6c",
+    "semantic_hash": "a3d39fa780ebff65444de257f291ce6c"
+  },
+  "tsconfig.node.json": {
+    "mtime": 1792772585.2787414,
+    "seen": 1793023599.1138399,
+    "ast_hash": "518cfb2a8d1640e9c567eefe2d889f13",
+    "semantic_hash": "518cfb2a8d1640e9c567eefe2d889f13"
+  },
+  "vite.config.ts": {
+    "mtime": 1794489312.6845584,
+    "seen": 1794497392.571586,
+    "ast_hash": "2a07bc25db2cefb99f9c7785835d649b",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1793283996.6676345,
+    "seen": 1793289097.287885,
+    "ast_hash": "f80dd93ddd494ebb819cd848c2ace0af",
+    "semantic_hash": ""
+  },
+  "index.html": {
+    "mtime": 1794516016.138656,
+    "seen": 1794923462.1161385,
+    "ast_hash": "6a4153a9de5909296666b63436ac2620",
+    "semantic_hash": ""
+  },
+  "src/features/auth/CompanyBadge.tsx": {
+    "mtime": 1793390840.359728,
+    "seen": 1793391553.8142648,
+    "ast_hash": "0ead7ef330972eced54caf28e1525871",
+    "semantic_hash": ""
+  },
+  "src/features/auth/ForgotPasswordPage.tsx": {
+    "mtime": 1793390840.3612368,
+    "seen": 1793391553.814267,
+    "ast_hash": "a787558fd38958a1909e9c28350b623e",
+    "semantic_hash": ""
+  },
+  "src/features/auth/ResetPasswordPage.tsx": {
+    "mtime": 1794838057.6640651,
+    "seen": 1794838170.8122761,
+    "ast_hash": "d9c0f8fed65c161c2130d4d37ad0f4f5",
+    "semantic_hash": ""
+  },
+  "src/features/auth/VerifyPinPage.tsx": {
+    "mtime": 1794501098.310939,
+    "seen": 1794501226.7691538,
+    "ast_hash": "df403fab481b7235b965307824f881b0",
+    "semantic_hash": ""
+  },
+  "src/features/companies/CompaniesPage.tsx": {
+    "mtime": 1794924529.490806,
+    "seen": 1794924576.5334635,
+    "ast_hash": "e41876824af1673297d11e4b39dbec36",
+    "semantic_hash": ""
+  },
+  "src/features/companies/CompanyForm.test.tsx": {
+    "mtime": 1794838210.1818655,
+    "seen": 1794923462.0963876,
+    "ast_hash": "5d4db7859fb7e5b7cb298d2dce3e8b38",
+    "semantic_hash": ""
+  },
+  "src/features/companies/CompanyForm.tsx": {
+    "mtime": 1794838057.7322726,
+    "seen": 1794838170.8132172,
+    "ast_hash": "aba8bbddf17c50c5c6532fb42fc80eb0",
+    "semantic_hash": ""
+  },
+  "src/features/companies/CopyLink.tsx": {
+    "mtime": 1793390840.4114158,
+    "seen": 1793391553.81431,
+    "ast_hash": "22d2c0dba2f181a1733123c60aeefc02",
+    "semantic_hash": ""
+  },
+  "src/schemas/company.ts": {
+    "mtime": 1794500642.2572453,
+    "seen": 1794501226.7821758,
+    "ast_hash": "a72c0eaa2e101eb5b891261fe95229d1",
+    "semantic_hash": ""
+  },
+  "e2e/phase2-board.spec.ts": {
+    "mtime": 1794838138.2232435,
+    "seen": 1794838170.8076131,
+    "ast_hash": "cbde6620ce9237fa957acb90971d2a41",
+    "semantic_hash": ""
+  },
+  "src/app/NotFoundPage.tsx": {
+    "mtime": 1793062227.4096115,
+    "seen": 1793190088.0428407,
+    "ast_hash": "03f44e8025b9adebdd1f1c9c051aada5",
+    "semantic_hash": ""
+  },
+  "src/app/RequireRoute.test.tsx": {
+    "mtime": 1794838112.9435806,
+    "seen": 1794838170.808455,
+    "ast_hash": "85e035d27556c94ff8ab9989f7e230db",
+    "semantic_hash": ""
+  },
+  "src/app/RequireRoute.tsx": {
+    "mtime": 1793062228.205916,
+    "seen": 1793190088.0428467,
+    "ast_hash": "aaca309800db68deab0f0e6cd2758c8b",
+    "semantic_hash": ""
+  },
+  "src/components/Pagination.tsx": {
+    "mtime": 1794501116.6274252,
+    "seen": 1794501226.7661173,
+    "ast_hash": "49dc0e903d79888246420c416ca89198",
+    "semantic_hash": ""
+  },
+  "src/components/kanban/KanbanBoard.tsx": {
+    "mtime": 1794838057.6196542,
+    "seen": 1794838170.809764,
+    "ast_hash": "75c8603c891b2200a266815955c25c7a",
+    "semantic_hash": ""
+  },
+  "src/components/ui/PasswordField.tsx": {
+    "mtime": 1793064730.8800511,
+    "seen": 1793190088.0428767,
+    "ast_hash": "88f0f997f8abb21014777b84153a08a1",
+    "semantic_hash": ""
+  },
+  "src/components/ui/Toast.tsx": {
+    "mtime": 1793117806.7854507,
+    "seen": 1793190088.0428822,
+    "ast_hash": "cc81f317309808088074df13b0091d3e",
+    "semantic_hash": ""
+  },
+  "src/features/automation/AutomationSettingsPage.tsx": {
+    "mtime": 1794838057.670577,
+    "seen": 1794838170.8124764,
+    "ast_hash": "e1a777690d5e2b29bae64af6c9ca940f",
+    "semantic_hash": ""
+  },
+  "src/features/board/BoardDialogs.tsx": {
+    "mtime": 1794838057.6735985,
+    "seen": 1794838170.8124783,
+    "ast_hash": "aa77df233772c8e360d36f316c1ce7ff",
+    "semantic_hash": ""
+  },
+  "src/features/board/BoardFilters.tsx": {
+    "mtime": 1794838209.8758106,
+    "seen": 1794923462.0954852,
+    "ast_hash": "dab278da351be81b47a296a576976745",
+    "semantic_hash": ""
+  },
+  "src/features/board/BoardPage.tsx": {
+    "mtime": 1794837027.3362136,
+    "seen": 1794837055.9996686,
+    "ast_hash": "689ad031aab72698ce8c12d1fb17b88c",
+    "semantic_hash": ""
+  },
+  "src/features/board/CycleCard.tsx": {
+    "mtime": 1794838484.0488112,
+    "seen": 1794923462.0955808,
+    "ast_hash": "cb93ee4bdb835d7eeaa6c181818d5ca1",
+    "semantic_hash": ""
+  },
+  "src/features/board/CycleTable.tsx": {
+    "mtime": 1794838644.5892892,
+    "seen": 1794923462.09568,
+    "ast_hash": "c9f87f65afb1a7ef1fbde290dcf8b848",
+    "semantic_hash": ""
+  },
+  "src/features/board/board-api.ts": {
+    "mtime": 1794501117.1098135,
+    "seen": 1794501226.7704153,
+    "ast_hash": "073d9ab01289dc171c65d4fbc08ac5d4",
+    "semantic_hash": ""
+  },
+  "src/features/consolidated/ConsolidatedDashboardPage.tsx": {
+    "mtime": 1794838057.74279,
+    "seen": 1794838170.8133204,
+    "ast_hash": "fde00522c901aa3817b4ae8bb445eb1b",
+    "semantic_hash": ""
+  },
+  "src/features/incidents/IncidentCard.tsx": {
+    "mtime": 1794838057.7725446,
+    "seen": 1794838170.8140206,
+    "ast_hash": "9abd8f78af76149a6ce56da02c155fc0",
+    "semantic_hash": ""
+  },
+  "src/features/incidents/IncidentDialogs.tsx": {
+    "mtime": 1794838057.774546,
+    "seen": 1794838170.8140225,
+    "ast_hash": "5efba18bf6968d3b4e3a7b9397604cfd",
+    "semantic_hash": ""
+  },
+  "src/features/incidents/IncidentFormDialog.tsx": {
+    "mtime": 1794838057.7765465,
+    "seen": 1794838170.8140242,
+    "ast_hash": "e5176457bdba9bc0b3aa6b948b241f60",
+    "semantic_hash": ""
+  },
+  "src/features/incidents/IncidentsPage.tsx": {
+    "mtime": 1794850034.6471436,
+    "seen": 1794923462.0983245,
+    "ast_hash": "3f98fbfb5898e4723d808094ebe25e02",
+    "semantic_hash": ""
+  },
+  "src/features/menu/MenuItemForm.tsx": {
+    "mtime": 1794924836.4891002,
+    "seen": 1794924911.553945,
+    "ast_hash": "9fd3b7851c5327881bd654516cafa3c4",
+    "semantic_hash": ""
+  },
+  "src/features/menu/MenuPage.tsx": {
+    "mtime": 1794924836.4850318,
+    "seen": 1794924911.5540512,
+    "ast_hash": "3d85a51b43801378fc834817d733ae8a",
+    "semantic_hash": ""
+  },
+  "src/features/roles/MenuPermissionTree.tsx": {
+    "mtime": 1794500634.467669,
+    "seen": 1794501226.776453,
+    "ast_hash": "6c3a96218e1894e545c307119fd6c056",
+    "semantic_hash": ""
+  },
+  "src/features/roles/RoleForm.tsx": {
+    "mtime": 1794849873.8667555,
+    "seen": 1794923462.1031156,
+    "ast_hash": "240569b7fb85efab8f7ef251a70cb250",
+    "semantic_hash": ""
+  },
+  "src/features/roles/RolesPage.tsx": {
+    "mtime": 1794924502.6789663,
+    "seen": 1794924576.5416853,
+    "ast_hash": "a514248f37e333f8b0bbd3e47d1e858d",
+    "semantic_hash": ""
+  },
+  "src/features/roles/grants.test.ts": {
+    "mtime": 1793390840.3672647,
+    "seen": 1793391553.8144124,
+    "ast_hash": "926c7cf79e463fd0dcf399c2e1241b37",
+    "semantic_hash": ""
+  },
+  "src/features/roles/grants.ts": {
+    "mtime": 1793390840.3652575,
+    "seen": 1793391553.8144135,
+    "ast_hash": "cf333140c5e104bb4a5c72da54e3b677",
+    "semantic_hash": ""
+  },
+  "src/features/settings/StockMarkDialog.tsx": {
+    "mtime": 1794838057.895861,
+    "seen": 1794838170.8187404,
+    "ast_hash": "c907cf0e028d1bebb78df1e58bd06a18",
+    "semantic_hash": ""
+  },
+  "src/features/settings/StockPage.tsx": {
+    "mtime": 1794424382.678961,
+    "seen": 1794497392.5676975,
+    "ast_hash": "caeebbca623d35c6a72fea94be9c00b3",
+    "semantic_hash": ""
+  },
+  "src/features/transfers/PatientTransfersPanel.tsx": {
+    "mtime": 1794850039.1693084,
+    "seen": 1794923462.1052437,
+    "ast_hash": "e1804bc0c41e55de55494f7f5b57d1d8",
+    "semantic_hash": ""
+  },
+  "src/features/transfers/TransferDialog.tsx": {
+    "mtime": 1794838210.0639548,
+    "seen": 1794923462.1052456,
+    "ast_hash": "0a981efefe93a027327fa24e4feed2b0",
+    "semantic_hash": ""
+  },
+  "src/features/transfers/TransfersPage.tsx": {
+    "mtime": 1794850039.2182286,
+    "seen": 1794923462.105247,
+    "ast_hash": "156c61cd44d7bdd9836c9f689ec4ce3a",
+    "semantic_hash": ""
+  },
+  "src/lib/active-branch.ts": {
+    "mtime": 1794501120.9661982,
+    "seen": 1794501226.779018,
+    "ast_hash": "3e2aeb370e67f6240a6c676ec2261150",
+    "semantic_hash": ""
+  },
+  "src/lib/board.ts": {
+    "mtime": 1794501121.0133383,
+    "seen": 1794501226.7792041,
+    "ast_hash": "a451cfe9b2f2f72c0d5a9753603d6eb4",
+    "semantic_hash": ""
+  },
+  "src/lib/incidents.ts": {
+    "mtime": 1794598319.4074602,
+    "seen": 1794598373.5779467,
+    "ast_hash": "6b9ef49081dc4895af2400726b7fd0a5",
+    "semantic_hash": ""
+  },
+  "src/lib/menu.test.ts": {
+    "mtime": 1793062269.7613268,
+    "seen": 1793190088.0429766,
+    "ast_hash": "adb723a75af5d73b2340bcee4ea18822",
+    "semantic_hash": ""
+  },
+  "src/lib/menu.ts": {
+    "mtime": 1794504414.1483488,
+    "seen": 1794504471.6910288,
+    "ast_hash": "7740fe0f03e864f3fcb240c1292f916b",
+    "semantic_hash": ""
+  },
+  "src/lib/paging.ts": {
+    "mtime": 1793308405.4994,
+    "seen": 1793381098.831416,
+    "ast_hash": "6dfb19218935fed72366364959f0fa13",
+    "semantic_hash": ""
+  },
+  "src/lib/transfers.ts": {
+    "mtime": 1793189729.2880218,
+    "seen": 1793190088.0429876,
+    "ast_hash": "ec8dee4d4019e3db63a925c9cbf30291",
+    "semantic_hash": ""
+  },
+  "src/schemas/automation.ts": {
+    "mtime": 1793125225.7617047,
+    "seen": 1793190088.0429916,
+    "ast_hash": "6bf14e826302b3875afeeba6d131adc1",
+    "semantic_hash": ""
+  },
+  "src/schemas/menu.ts": {
+    "mtime": 1793060309.2107377,
+    "seen": 1793190088.042997,
+    "ast_hash": "fcd07be17291783f721eda064074dbf1",
+    "semantic_hash": ""
+  },
+  "src/schemas/role.ts": {
+    "mtime": 1794592488.6999073,
+    "seen": 1794592584.96944,
+    "ast_hash": "b70a5cb976bf0cba6a1cf4eb9655b21b",
+    "semantic_hash": ""
+  },
+  "docs/phase2-web.md": {
+    "mtime": 1793126717.3114393,
+    "seen": 1793190088.043015,
+    "ast_hash": "3e2b913fb364f74193c457e6f5c39889",
+    "semantic_hash": ""
+  },
+  ".github/hooks/impeccable.json": {
+    "mtime": 1793283996.3463037,
+    "seen": 1793289097.2749157,
+    "ast_hash": "36956644301030de928f1d5a95593714",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/scripts/command-metadata.json": {
+    "mtime": 1793283996.6338768,
+    "seen": 1793289097.2749264,
+    "ast_hash": "25890108c53a3cbc0cb35fe19974fbf6",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/scripts/data/font-index-failures.json": {
+    "mtime": 1793283996.636381,
+    "seen": 1793289097.274932,
+    "ast_hash": "5b4fd9d1631c390b9c5883d951b03983",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/scripts/impeccable": {
+    "mtime": 1793283996.6504476,
+    "seen": 1793289097.2749355,
+    "ast_hash": "d386c45ce10dd1e709340e3bfcd55e5b",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/scripts/live-browser-dom.js": {
+    "mtime": 1793283996.6535127,
+    "seen": 1793289097.274938,
+    "ast_hash": "b4388522022e65dc3c1da80468ae4be8",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/scripts/live-browser-ignores.js": {
+    "mtime": 1793283996.654514,
+    "seen": 1793289097.27494,
+    "ast_hash": "4dd211f0e313ef2e68ecb9cebb5139fa",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/scripts/live-browser-session.js": {
+    "mtime": 1793283996.6555133,
+    "seen": 1793289097.2749429,
+    "ast_hash": "04f86d2abf096aef2422b69ddf9f9df7",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/scripts/live-browser.js": {
+    "mtime": 1793283997.663112,
+    "seen": 1794923462.0889103,
+    "ast_hash": "32719285f69805404a00099e6479bbcb",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/scripts/modern-screenshot.umd.js": {
+    "mtime": 1793283997.6641104,
+    "seen": 1794923462.0889134,
+    "ast_hash": "c6afaf6ebceb162206f6a2e5b0ed653c",
+    "semantic_hash": ""
+  },
+  ".impeccable/design.json": {
+    "mtime": 1793287419.1502292,
+    "seen": 1793289097.2749555,
+    "ast_hash": "66b552bccf1da7817174259fc05a8446",
+    "semantic_hash": ""
+  },
+  ".impeccable/live/config.json": {
+    "mtime": 1793287461.049729,
+    "seen": 1793289097.274958,
+    "ast_hash": "db3f47aa64932b4c922bce752e0e6e0c",
+    "semantic_hash": ""
+  },
+  "e2e/phase4.spec.ts": {
+    "mtime": 1794838138.2379987,
+    "seen": 1794838170.807615,
+    "ast_hash": "8c141de39b61a4befb9c5a87bc41405c",
+    "semantic_hash": ""
+  },
+  "src/components/CustomFields.tsx": {
+    "mtime": 1794501116.3763745,
+    "seen": 1794501226.7657616,
+    "ast_hash": "6f0b5e8c7ff387cf4e283c5c2ac7d803",
+    "semantic_hash": ""
+  },
+  "src/components/ExportButton.tsx": {
+    "mtime": 1794924878.1586711,
+    "seen": 1794924911.5449524,
+    "ast_hash": "ba1b75047de7c42a4997cb73726f1435",
+    "semantic_hash": ""
+  },
+  "src/components/ImportButton.tsx": {
+    "mtime": 1794838057.612635,
+    "seen": 1794838170.8093772,
+    "ast_hash": "b242e566d7abc2360afd3731dea005d6",
+    "semantic_hash": ""
+  },
+  "src/components/PropertiesDialog.tsx": {
+    "mtime": 1794501116.6485195,
+    "seen": 1794501226.7661207,
+    "ast_hash": "268b84ca1898e30c59f373056249f2df",
+    "semantic_hash": ""
+  },
+  "src/components/RecordActionsMenu.tsx": {
+    "mtime": 1794595522.9771335,
+    "seen": 1794595814.8217707,
+    "ast_hash": "cec8b86f60f37a52be54e08bf176895b",
+    "semantic_hash": ""
+  },
+  "src/components/ui/ModalSection.tsx": {
+    "mtime": 1794837667.6988833,
+    "seen": 1794837754.0778697,
+    "ast_hash": "762076712b8962a54f0dcb026533c33f",
+    "semantic_hash": ""
+  },
+  "src/features/automation/AutomationRules.tsx": {
+    "mtime": 1794501117.051243,
+    "seen": 1794501226.7691574,
+    "ast_hash": "a9a00614ca0073e9853f23a6d444944c",
+    "semantic_hash": ""
+  },
+  "src/features/board/CycleTable.test.tsx": {
+    "mtime": 1794838210.1621854,
+    "seen": 1794923462.095678,
+    "ast_hash": "b4d0b32970edb96e00a2c1ff9be37f68",
+    "semantic_hash": ""
+  },
+  "src/features/board/CycleTableControls.tsx": {
+    "mtime": 1794838209.8968608,
+    "seen": 1794923462.095682,
+    "ast_hash": "1d1f76b56350c3d16d32047b8c81b5ff",
+    "semantic_hash": ""
+  },
+  "src/features/board/NewCycleDialog.tsx": {
+    "mtime": 1794924203.2479715,
+    "seen": 1794924453.9045799,
+    "ast_hash": "c8885b88e13149f534407f8b49ca4c58",
+    "semantic_hash": ""
+  },
+  "src/features/board/StagePicker.test.tsx": {
+    "mtime": 1794838210.1748376,
+    "seen": 1794923462.0956857,
+    "ast_hash": "4913a6db8f1cc5fe2d1c8aba92f5a3ce",
+    "semantic_hash": ""
+  },
+  "src/features/board/StagePicker.tsx": {
+    "mtime": 1793390947.1974306,
+    "seen": 1793391553.8142953,
+    "ast_hash": "a0bcc72c2a57bb057b0c5c61941c2561",
+    "semantic_hash": ""
+  },
+  "src/features/messaging/AvisosPage.test.tsx": {
+    "mtime": 1794838210.1868663,
+    "seen": 1794923462.0996852,
+    "ast_hash": "a679ed7dfe078ad0f189699c3505d0ae",
+    "semantic_hash": ""
+  },
+  "src/features/messaging/AvisosPage.tsx": {
+    "mtime": 1794838209.9728327,
+    "seen": 1794923462.0996869,
+    "ast_hash": "06b6612df07cd569161b1ec722cde589",
+    "semantic_hash": ""
+  },
+  "src/features/messaging/ConversationDialog.tsx": {
+    "mtime": 1794850034.6466386,
+    "seen": 1794923462.099689,
+    "ast_hash": "7132c2a880010817d0ee1228ecac496f",
+    "semantic_hash": ""
+  },
+  "src/features/messaging/PauseAndConversation.test.tsx": {
+    "mtime": 1794838210.1992,
+    "seen": 1794923462.0996907,
+    "ast_hash": "c565fb070ed56278d38f2260840d49d0",
+    "semantic_hash": ""
+  },
+  "src/features/messaging/PauseAutomation.tsx": {
+    "mtime": 1794501118.60459,
+    "seen": 1794501226.7742357,
+    "ast_hash": "b02f3d7fb6c53f3b3ac78c1d06d9ebf9",
+    "semantic_hash": ""
+  },
+  "src/features/profile/ProfilePage.test.tsx": {
+    "mtime": 1794838210.202326,
+    "seen": 1794923462.1011293,
+    "ast_hash": "f7cba97b8c126a2446740198d8c9f0a1",
+    "semantic_hash": ""
+  },
+  "src/features/profile/ProfilePage.tsx": {
+    "mtime": 1794838057.8565238,
+    "seen": 1794838170.81604,
+    "ast_hash": "c8231c6083a2c5a95d67b6a97444e41d",
+    "semantic_hash": ""
+  },
+  "src/features/reports/FilterBar.tsx": {
+    "mtime": 1794592332.351755,
+    "seen": 1794592384.277911,
+    "ast_hash": "58cdfe0d6dec3efba9177a5ab77a6d9b",
+    "semantic_hash": ""
+  },
+  "src/features/reports/ReportPage.tsx": {
+    "mtime": 1793391226.5475996,
+    "seen": 1793391553.814383,
+    "ast_hash": "8f0677c0960d7163e32937e5f071af79",
+    "semantic_hash": ""
+  },
+  "src/features/reports/ReportsIndexPage.tsx": {
+    "mtime": 1793391213.412429,
+    "seen": 1793391553.814385,
+    "ast_hash": "6ed4bc639e228659b9dd3e9f822cbebb",
+    "semantic_hash": ""
+  },
+  "src/features/reports/components/DefinitionHelp.tsx": {
+    "mtime": 1793390840.3789985,
+    "seen": 1793391553.8143861,
+    "ast_hash": "430c80fecc7f9c2da6c1d8ea6fa6d910",
+    "semantic_hash": ""
+  },
+  "src/features/reports/components/ExportButton.test.tsx": {
+    "mtime": 1794501119.0171618,
+    "seen": 1794501226.775777,
+    "ast_hash": "bfac346650e16cbf295f40e5db96a66f",
+    "semantic_hash": ""
+  },
+  "src/features/reports/components/ExportButton.tsx": {
+    "mtime": 1794501119.0359864,
+    "seen": 1794501226.7757802,
+    "ast_hash": "2edb243d4693d42deb0044e76da79595",
+    "semantic_hash": ""
+  },
+  "src/features/reports/components/MetricCard.test.tsx": {
+    "mtime": 1793390840.3789985,
+    "seen": 1793391553.814391,
+    "ast_hash": "d1decf548edceec625b4c0e6d1faea3c",
+    "semantic_hash": ""
+  },
+  "src/features/reports/components/MetricCard.tsx": {
+    "mtime": 1794501119.0565434,
+    "seen": 1794501226.7759495,
+    "ast_hash": "c8f86c22ca3b3119b9a891fbd5bbe675",
+    "semantic_hash": ""
+  },
+  "src/features/reports/components/ReportChart.test.tsx": {
+    "mtime": 1793390840.3789985,
+    "seen": 1793391553.814394,
+    "ast_hash": "6b8160c143e6f216089cf6619e6baf10",
+    "semantic_hash": ""
+  },
+  "src/features/reports/components/ReportChart.tsx": {
+    "mtime": 1794501119.0877244,
+    "seen": 1794501226.7761111,
+    "ast_hash": "8e1785e660754a3fe3480302aa4cb357",
+    "semantic_hash": ""
+  },
+  "src/features/reports/components/ReportErrorState.tsx": {
+    "mtime": 1793390840.3789985,
+    "seen": 1793391553.8143969,
+    "ast_hash": "346136d7ce166ec675478a0f587827d0",
+    "semantic_hash": ""
+  },
+  "src/features/reports/components/ReportTable.tsx": {
+    "mtime": 1793390840.3789985,
+    "seen": 1793391553.8143983,
+    "ast_hash": "9738dfbe12b651391ec6ac1cee3b0b5c",
+    "semantic_hash": ""
+  },
+  "src/features/reports/types/AdherenceReport.tsx": {
+    "mtime": 1794501119.1679015,
+    "seen": 1794501226.7764382,
+    "ast_hash": "3e13d8d8d0251c19340bd98154c82288",
+    "semantic_hash": ""
+  },
+  "src/features/reports/types/NoResponseReport.tsx": {
+    "mtime": 1794501119.1818557,
+    "seen": 1794501226.776441,
+    "ast_hash": "eb7175dad50353c4b4c8080b36fe82bc",
+    "semantic_hash": ""
+  },
+  "src/features/reports/types/OverdueReport.tsx": {
+    "mtime": 1794501119.2015712,
+    "seen": 1794501226.7764435,
+    "ast_hash": "1d6ad8c59efaf89b0a1a9acab1e8af93",
+    "semantic_hash": ""
+  },
+  "src/features/reports/types/RefillsReport.tsx": {
+    "mtime": 1794501119.21792,
+    "seen": 1794501226.7764456,
+    "ast_hash": "fdc07ce67dc066428c1e1d64639f5eb2",
+    "semantic_hash": ""
+  },
+  "src/features/reports/types/TransfersReport.tsx": {
+    "mtime": 1794501119.2317183,
+    "seen": 1794501226.7764482,
+    "ast_hash": "4da96c5ed9a3a8dcf6a97df765c06ef3",
+    "semantic_hash": ""
+  },
+  "src/features/reports/types/TreatmentsFlowReport.tsx": {
+    "mtime": 1794501119.2521653,
+    "seen": 1794501226.7764504,
+    "ast_hash": "0226acc67ead3bd3a9677630208f145c",
+    "semantic_hash": ""
+  },
+  "src/features/settings/NoticeTimingCard.tsx": {
+    "mtime": 1794501119.6136768,
+    "seen": 1794501226.7772284,
+    "ast_hash": "1932be982c1695216bad563d5029a8fb",
+    "semantic_hash": ""
+  },
+  "src/features/settings/PropertiesPage.test.tsx": {
+    "mtime": 1794838210.208875,
+    "seen": 1794923462.1039135,
+    "ast_hash": "9b3656eeefae822adf08cd3def04993f",
+    "semantic_hash": ""
+  },
+  "src/features/settings/PropertiesPage.tsx": {
+    "mtime": 1794838057.8918598,
+    "seen": 1794838170.8187356,
+    "ast_hash": "a86e4c36935f41792581efdcd918bda3",
+    "semantic_hash": ""
+  },
+  "src/features/settings/StagesPage.test.tsx": {
+    "mtime": 1794838210.208875,
+    "seen": 1794923462.1040106,
+    "ast_hash": "8e8a4af43b5dbdcd271c94b27bf9a239",
+    "semantic_hash": ""
+  },
+  "src/features/settings/StagesPage.tsx": {
+    "mtime": 1794838057.8938596,
+    "seen": 1794838170.818739,
+    "ast_hash": "88eeba0430880cdf3278973e6ed8aac0",
+    "semantic_hash": ""
+  },
+  "src/features/settings/TemplateTestSendDialog.tsx": {
+    "mtime": 1794924092.1821394,
+    "seen": 1794924453.9159331,
+    "ast_hash": "b3590b3ef79184b7e3befb51bfcd9a95",
+    "semantic_hash": ""
+  },
+  "src/features/telegram/PatientTelegramPanel.test.tsx": {
+    "mtime": 1794838210.208875,
+    "seen": 1794923462.1050394,
+    "ast_hash": "89d78b30779cbec3057c88e3fe06be40",
+    "semantic_hash": ""
+  },
+  "src/features/telegram/PatientTelegramPanel.tsx": {
+    "mtime": 1794838057.9092665,
+    "seen": 1794838170.8193498,
+    "ast_hash": "c8dec4a602b47179e216505f5f79d69c",
+    "semantic_hash": ""
+  },
+  "src/features/telegram/TelegramBotCard.tsx": {
+    "mtime": 1794838057.911273,
+    "seen": 1794838170.8193514,
+    "ast_hash": "9609350e8ba85b0a5567d40fb6223978",
+    "semantic_hash": ""
+  },
+  "src/features/treatments/TreatmentDetailPage.tsx": {
+    "mtime": 1794924878.4088075,
+    "seen": 1794924911.5613797,
+    "ast_hash": "c5072c78903f8d0d82550c5eae62e65e",
+    "semantic_hash": ""
+  },
+  "src/features/whatsapp/WhatsAppAccountCard.tsx": {
+    "mtime": 1794924878.4389358,
+    "seen": 1794924911.56174,
+    "ast_hash": "6725b2db71c1e3a5d9f035647d8be098",
+    "semantic_hash": ""
+  },
+  "src/features/whatsapp/WhatsAppSetup.test.tsx": {
+    "mtime": 1794924773.1990328,
+    "seen": 1794924911.5617423,
+    "ast_hash": "3a8d741ae5382eb4722ede2f370f67bf",
+    "semantic_hash": ""
+  },
+  "src/lib/custom-properties-core.ts": {
+    "mtime": 1794501121.0433815,
+    "seen": 1794501226.7793722,
+    "ast_hash": "eb89de460b8876de13af9b5ecb5b6d94",
+    "semantic_hash": ""
+  },
+  "src/lib/custom-properties.ts": {
+    "mtime": 1794501121.0581326,
+    "seen": 1794501226.779375,
+    "ast_hash": "4b1662cf942f107bd0e8bc83f1e30f2b",
+    "semantic_hash": ""
+  },
+  "src/lib/cycle-table.ts": {
+    "mtime": 1794838637.2010047,
+    "seen": 1794923462.106531,
+    "ast_hash": "7cfca8af55499c38e52330d43ee6fe66",
+    "semantic_hash": ""
+  },
+  "src/lib/pipeline.ts": {
+    "mtime": 1794501121.3241417,
+    "seen": 1794501226.7808943,
+    "ast_hash": "4387b6b9204c9b3c28bd003313b8aaa2",
+    "semantic_hash": ""
+  },
+  "src/lib/reports.test.ts": {
+    "mtime": 1793190784.6138642,
+    "seen": 1793289097.285026,
+    "ast_hash": "eb4aff5fb7e1e559ca9d7712b1106c92",
+    "semantic_hash": ""
+  },
+  "src/lib/reports.ts": {
+    "mtime": 1794501121.3852935,
+    "seen": 1794501226.7812784,
+    "ast_hash": "c2b4723bb2b3d295ead962511ef16d45",
+    "semantic_hash": ""
+  },
+  ".github/agents/impeccable-asset-producer.agent.md": {
+    "mtime": 1793283996.342299,
+    "seen": 1793289097.2877653,
+    "ast_hash": "4a33b2c9746f3d3d444b9e19abdeef78",
+    "semantic_hash": ""
+  },
+  ".github/agents/impeccable-documenter.agent.md": {
+    "mtime": 1793283996.3433015,
+    "seen": 1793289097.2877676,
+    "ast_hash": "5cbf4f2f0b19974bb15d393396712e2d",
+    "semantic_hash": ""
+  },
+  ".github/agents/impeccable-finish-reviewer.agent.md": {
+    "mtime": 1793283996.3442996,
+    "seen": 1793289097.2877703,
+    "ast_hash": "51686e805cfd5e4741e0d52b53d36b84",
+    "semantic_hash": ""
+  },
+  ".github/agents/impeccable-manual-edit-applier.agent.md": {
+    "mtime": 1793283996.3453014,
+    "seen": 1793289097.2877727,
+    "ast_hash": "73522ebc4a22bd578a8b0c6d96c4dddb",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/SKILL.md": {
+    "mtime": 1793283996.349301,
+    "seen": 1793289097.2877746,
+    "ast_hash": "f626bac7e59214e1b40239f91ad6c921",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/adapt.md": {
+    "mtime": 1793283996.3503008,
+    "seen": 1793289097.2877762,
+    "ast_hash": "d534776a789d206e1ffb0a399a659e18",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/adapt.native.md": {
+    "mtime": 1793283996.351299,
+    "seen": 1793289097.2877784,
+    "ast_hash": "e0dbfc9a2bc5f263154a07ad90586e09",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/android.md": {
+    "mtime": 1793283996.3518033,
+    "seen": 1793289097.28778,
+    "ast_hash": "23f1706399d0efe4093f98c8df19edb8",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/animate.md": {
+    "mtime": 1793283996.3528094,
+    "seen": 1793289097.2877822,
+    "ast_hash": "ca551c65d0fea883f782ad3ce9f659d3",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/audit.md": {
+    "mtime": 1793283996.3538163,
+    "seen": 1793289097.287785,
+    "ast_hash": "4291176ceb155679ae868644d0bb82a5",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/audit.native.md": {
+    "mtime": 1793283996.3538163,
+    "seen": 1793289097.2877865,
+    "ast_hash": "cf8165c02568b62547be7139efe49e43",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/bolder.md": {
+    "mtime": 1793283996.3548155,
+    "seen": 1793289097.2877889,
+    "ast_hash": "1753e09d776fa1eb47e2826124c93f70",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/clarify.md": {
+    "mtime": 1793283996.3558147,
+    "seen": 1793289097.2877913,
+    "ast_hash": "3763b3dbb5e5d9f00b4d82f00664e3b4",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/colorize.md": {
+    "mtime": 1793283996.356818,
+    "seen": 1793289097.2877932,
+    "ast_hash": "8ce0379650affa0d86fcd85c5b10379a",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/component-review.md": {
+    "mtime": 1793283996.357817,
+    "seen": 1793289097.2878063,
+    "ast_hash": "e8930cb779f1adb931b8f875332aab18",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/craft-floor.md": {
+    "mtime": 1793283996.357817,
+    "seen": 1793289097.287808,
+    "ast_hash": "1cab794e5409a8459950bff6b1438d7b",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/craft.md": {
+    "mtime": 1793283996.3593252,
+    "seen": 1793289097.2878098,
+    "ast_hash": "d27896066a5b2752e31873c3772e2803",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/critique.md": {
+    "mtime": 1793283996.3613358,
+    "seen": 1793289097.2878115,
+    "ast_hash": "3ccb6211abfdebdd95de36d6884ebde8",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/degraded/asset-producer.md": {
+    "mtime": 1793283996.3628507,
+    "seen": 1793289097.2878137,
+    "ast_hash": "4eb235efba3a50cad5ae51d6cea0da60",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/degraded/documenter.md": {
+    "mtime": 1793283996.3638506,
+    "seen": 1793289097.2878156,
+    "ast_hash": "f6584090b949535f344e8c3a0d2e3653",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/degraded/finish-reviewer.md": {
+    "mtime": 1793283996.3648493,
+    "seen": 1793289097.287818,
+    "ast_hash": "64c4b013ff3da1289063af4c93e5959f",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/degraded/manual-edit-applier.md": {
+    "mtime": 1793283996.3648493,
+    "seen": 1793289097.2878215,
+    "ast_hash": "b0c19aba2d1bc52d22f6758cef85fe49",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/delight.md": {
+    "mtime": 1793283996.3663547,
+    "seen": 1793289097.2878237,
+    "ast_hash": "a32b99a19de5c15fa3df42f6f01396d5",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/distill.md": {
+    "mtime": 1793283996.3673663,
+    "seen": 1793289097.2878265,
+    "ast_hash": "6ab16213bd7a82ad250987d4e2049452",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/doctor.md": {
+    "mtime": 1793283996.368366,
+    "seen": 1793289097.287829,
+    "ast_hash": "3dfc0f8755be325755777ee9c51291a3",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/document.md": {
+    "mtime": 1793283996.3693643,
+    "seen": 1793289097.2878308,
+    "ast_hash": "b7b3f82670e05bcdae27b2e701f99143",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/extract.md": {
+    "mtime": 1793283996.3703618,
+    "seen": 1793289097.2878325,
+    "ast_hash": "c899d1b33cb063df216ec50cbef035b8",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/generate.md": {
+    "mtime": 1793283996.3713615,
+    "seen": 1793289097.2878344,
+    "ast_hash": "752696b7c294df03264c3e97ab966a19",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/harden.md": {
+    "mtime": 1793283996.3718724,
+    "seen": 1793289097.287836,
+    "ast_hash": "523bd21a4a6de343fa4da833a716174c",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/hooks.md": {
+    "mtime": 1793283996.372877,
+    "seen": 1793289097.2878377,
+    "ast_hash": "87d5bfbca9723b93b4e6c6746ef1e6ba",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/init.md": {
+    "mtime": 1793283996.372877,
+    "seen": 1793289097.2878394,
+    "ast_hash": "55cb57bd51328fa82688185ef960d4af",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/ios.md": {
+    "mtime": 1793283996.374874,
+    "seen": 1793289097.287841,
+    "ast_hash": "91ad1ec9152100168db6ec1079c0ad6b",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/layout.md": {
+    "mtime": 1793283996.374874,
+    "seen": 1793289097.2878432,
+    "ast_hash": "aacf614007f90e952edb15980d8c8b91",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/live-setup.md": {
+    "mtime": 1793283996.375875,
+    "seen": 1793289097.2878458,
+    "ast_hash": "6805859c01734521e714c5a0c4cc8a80",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/live.md": {
+    "mtime": 1793283996.376876,
+    "seen": 1793289097.2878475,
+    "ast_hash": "ba6c0c6a7f2dcd5a3d6e6d06876e1d90",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/mode-operate.md": {
+    "mtime": 1793283996.377874,
+    "seen": 1793289097.2878494,
+    "ast_hash": "a45e62e783aba3f0e096975c87b90635",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/mode-persuade.md": {
+    "mtime": 1793283996.377874,
+    "seen": 1793289097.2878516,
+    "ast_hash": "7edde066e47e10064df70747ecd4a3d7",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/mode-read.md": {
+    "mtime": 1793283996.3793807,
+    "seen": 1793289097.2878535,
+    "ast_hash": "f79c4fea9de2c26da6d3bc7d78bc98dd",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/new-work.md": {
+    "mtime": 1793283996.3819034,
+    "seen": 1793289097.2878559,
+    "ast_hash": "6983ee8f411e47f6b34391d57c4600b4",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/onboard.md": {
+    "mtime": 1793283996.3819034,
+    "seen": 1793289097.2878573,
+    "ast_hash": "fee12fc83d62c2fcaa3b300e0742fea9",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/operate.md": {
+    "mtime": 1793283996.3829107,
+    "seen": 1793289097.287859,
+    "ast_hash": "e1c02f0c6823fef3c2a7b0c50aa9da04",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/optimize.md": {
+    "mtime": 1793283996.3839147,
+    "seen": 1793289097.2878616,
+    "ast_hash": "af1a701231da16fb6354a78ee46d9fd7",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/overdrive.md": {
+    "mtime": 1793283996.384912,
+    "seen": 1793289097.2878633,
+    "ast_hash": "0434da0568ff3593480126d9da70a89f",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/polish.md": {
+    "mtime": 1793283996.384912,
+    "seen": 1793289097.2878656,
+    "ast_hash": "4feb5292bb4a9f39d46407a97990a5af",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/quieter.md": {
+    "mtime": 1793283996.3859098,
+    "seen": 1793289097.287867,
+    "ast_hash": "2b6cf9c04322a3f2b6543c1f3a5b72ee",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/region-map.md": {
+    "mtime": 1793283996.386911,
+    "seen": 1793289097.287869,
+    "ast_hash": "847d95a4c85ab1d566ae56f31b9833a9",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/routing.md": {
+    "mtime": 1793283996.3879094,
+    "seen": 1793289097.2878704,
+    "ast_hash": "5cc7684d9e8708d509dc7a1243d1583f",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/shape.md": {
+    "mtime": 1793283996.3879094,
+    "seen": 1793289097.2878723,
+    "ast_hash": "6fdc5a047039048759c1c40d21297f37",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/typeset.md": {
+    "mtime": 1793283996.3894157,
+    "seen": 1793289097.287874,
+    "ast_hash": "b201d0c976ebb55184fcbd5c865e96b7",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/reference/visualize.md": {
+    "mtime": 1793283996.3894157,
+    "seen": 1793289097.287876,
+    "ast_hash": "e7a52ad02dfcee9e79c58def621af5d1",
+    "semantic_hash": ""
+  },
+  ".github/skills/impeccable/scripts/engine-checksums.txt": {
+    "mtime": 1793283996.649433,
+    "seen": 1793289097.2878773,
+    "ast_hash": "484ab34ed43ad92b91a0a5aa50f5585d",
+    "semantic_hash": ""
+  },
+  "DESIGN.md": {
+    "mtime": 1793287319.218642,
+    "seen": 1793289097.2878795,
+    "ast_hash": "72437ee3859d8df570c76f55b47d5836",
+    "semantic_hash": ""
+  },
+  "PRODUCT.md": {
+    "mtime": 1793283996.6661115,
+    "seen": 1793289097.2878816,
+    "ast_hash": "cee0a1def16b6bbc8b91c05efd81beae",
+    "semantic_hash": ""
+  },
+  "evidence/fase4/02-transfers-list.png": {
+    "mtime": 1793192396.5640905,
+    "seen": 1793289097.2880254,
+    "ast_hash": "8a4f8e03cc95a20ea67a779491a0247c",
+    "semantic_hash": ""
+  },
+  "evidence/fase4/05-transfer-dialog.png": {
+    "mtime": 1793192377.2514405,
+    "seen": 1793289097.2880278,
+    "ast_hash": "d5d58f6c14395b53c2eedaacaf037e8d",
+    "semantic_hash": ""
+  },
+  "evidence/fase4/06-patient-transfer-history.png": {
+    "mtime": 1793192391.0765023,
+    "seen": 1793289097.28803,
+    "ast_hash": "a550f52ad6634fb5b581571c34617ef3",
+    "semantic_hash": ""
+  },
+  "filtroAvanzadoDesing.md": {
+    "mtime": 1793291076.1361651,
+    "seen": 1793291089.3315465,
+    "ast_hash": "4181f60fb67d19f6cafa5907b03cd2db",
+    "semantic_hash": ""
+  },
+  "src/features/doctors/DoctorDetailPage.tsx": {
+    "mtime": 1794924385.198743,
+    "seen": 1794924453.9068244,
+    "ast_hash": "a6c992c73fa5f8dc2eba6e7a1f261f30",
+    "semantic_hash": ""
+  },
+  "src/features/doctors/DoctorForm.tsx": {
+    "mtime": 1794838057.7618232,
+    "seen": 1794838170.8135293,
+    "ast_hash": "fdbfa1b69b30eb916f255abf38ad8b4d",
+    "semantic_hash": ""
+  },
+  "src/features/doctors/DoctorsPage.tsx": {
+    "mtime": 1794924377.9846876,
+    "seen": 1794924453.90703,
+    "ast_hash": "48d2d61def300ca7c4a9886aa23d0640",
+    "semantic_hash": ""
+  },
+  "src/features/doctors/doctorLinks.ts": {
+    "mtime": 1793390840.4213667,
+    "seen": 1793391553.81433,
+    "ast_hash": "9b273feed78f372e31ff86b3c4a5ed35",
+    "semantic_hash": ""
+  },
+  "src/features/health-conditions/HealthConditionForm.tsx": {
+    "mtime": 1794597418.3472624,
+    "seen": 1794597469.0852664,
+    "ast_hash": "0ee01dc8e398a1bdb3ef7b1e053e4508",
+    "semantic_hash": ""
+  },
+  "src/features/health-conditions/HealthConditionsPage.tsx": {
+    "mtime": 1794924878.2727149,
+    "seen": 1794924911.552466,
+    "ast_hash": "cd2bc9e00531c8add74c94eccb441197",
+    "semantic_hash": ""
+  },
+  "src/features/medical-centers/MedicalCenterForm.tsx": {
+    "mtime": 1794838057.7840683,
+    "seen": 1794838170.8140273,
+    "ast_hash": "da77230f4660e269b98fc15cb3b047d3",
+    "semantic_hash": ""
+  },
+  "src/features/medical-centers/MedicalCentersPage.tsx": {
+    "mtime": 1794924400.5365496,
+    "seen": 1794924453.9078844,
+    "ast_hash": "18697a4fc3a540883fc005e60d166dd3",
+    "semantic_hash": ""
+  },
+  "src/features/medical-specialties/MedicalSpecialtiesPage.tsx": {
+    "mtime": 1794924878.3189032,
+    "seen": 1794924911.5530617,
+    "ast_hash": "561997db25e200580b7284e2928c9477",
+    "semantic_hash": ""
+  },
+  "src/features/medical-specialties/MedicalSpecialtyForm.tsx": {
+    "mtime": 1794838057.79302,
+    "seen": 1794838170.8140326,
+    "ast_hash": "824083da664a04204b0d3ae68374fe5b",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PatientConditionsPanel.tsx": {
+    "mtime": 1794837027.5986261,
+    "seen": 1794837056.005921,
+    "ast_hash": "6a5e53f25f72c587893cd365c58c2aea",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PatientDoctorsPanel.tsx": {
+    "mtime": 1794600818.151675,
+    "seen": 1794836874.4558659,
+    "ast_hash": "5d1585e70592c5952f8cef36b8f468ff",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PatientInfoPackPanel.tsx": {
+    "mtime": 1794838057.8400786,
+    "seen": 1794838170.8152573,
+    "ast_hash": "385c513cd088c31efb573fe39fdcaa8b",
+    "semantic_hash": ""
+  },
+  "src/lib/phone.ts": {
+    "mtime": 1794924081.6356184,
+    "seen": 1794924453.9209862,
+    "ast_hash": "d03686941e7e1144626125abd360072e",
+    "semantic_hash": ""
+  },
+  "src/lib/table-sort.ts": {
+    "mtime": 1794501121.4056027,
+    "seen": 1794501226.7812862,
+    "ast_hash": "8661525f8fd23c28bb2f7a3bd699623c",
+    "semantic_hash": ""
+  },
+  "src/schemas/doctor.ts": {
+    "mtime": 1794599306.2179682,
+    "seen": 1794836874.4693727,
+    "ast_hash": "81df96e5ce13b83194b1d41665ef6eb1",
+    "semantic_hash": ""
+  },
+  "src/schemas/healthCondition.ts": {
+    "mtime": 1793373528.0516648,
+    "seen": 1793381098.8331988,
+    "ast_hash": "227892be06f7cc898c7e5bddc0b59f11",
+    "semantic_hash": ""
+  },
+  "src/schemas/medicalCenter.ts": {
+    "mtime": 1794502797.9851813,
+    "seen": 1794503157.252922,
+    "ast_hash": "4877fb4ae6c4086017e16d810416bb2d",
+    "semantic_hash": ""
+  },
+  "src/schemas/medicalSpecialty.ts": {
+    "mtime": 1793373526.7844746,
+    "seen": 1793381098.8332052,
+    "ast_hash": "231213aa9be4553546209377fac88fbd",
+    "semantic_hash": ""
+  },
+  "desingModal.md": {
+    "mtime": 1794837036.070184,
+    "seen": 1794837056.035293,
+    "ast_hash": "79249db32d2c2759cc6bb7db552b9460",
+    "semantic_hash": ""
+  },
+  "tablasYPaginacionDesign.md": {
+    "mtime": 1793306572.3004606,
+    "seen": 1793381098.8437626,
+    "ast_hash": "08518db23846a01f10a1d680a601dd88",
+    "semantic_hash": ""
+  },
+  "src/components/ui/TextAreaField.tsx": {
+    "mtime": 1793388601.6142318,
+    "seen": 1793388709.566852,
+    "ast_hash": "d32ec7520a6c999e68ff4fc1e9dc9414",
+    "semantic_hash": ""
+  },
+  "src/components/ui/AdvancedFilter.tsx": {
+    "mtime": 1794838057.6374564,
+    "seen": 1794838170.81007,
+    "ast_hash": "323cead4e1d25d383aef6ab1790fbf52",
+    "semantic_hash": ""
+  },
+  "src/components/ui/PageHeader.tsx": {
+    "mtime": 1794501116.8398616,
+    "seen": 1794501226.7672944,
+    "ast_hash": "ba3d00c7a25774456dd71d9b1c4a381c",
+    "semantic_hash": ""
+  },
+  "src/components/ui/InfoCard.tsx": {
+    "mtime": 1793393560.3368583,
+    "seen": 1793393949.8729973,
+    "ast_hash": "3cb7d2e4613995dc9c00d52e297b1c7e",
+    "semantic_hash": ""
+  },
+  "src/components/ui/FormMode.tsx": {
+    "mtime": 1794923438.2987125,
+    "seen": 1794923462.093466,
+    "ast_hash": "3be0d2edbf20b93149035890714c0104",
+    "semantic_hash": ""
+  },
+  "src/components/ui/ConfirmDialog.tsx": {
+    "mtime": 1794930547.8663032,
+    "seen": 1794931101.7155545,
+    "ast_hash": "ab24128f1429868cc18b5bd69bf0f8e8",
+    "semantic_hash": ""
+  },
+  "src/components/ui/Tabs.tsx": {
+    "mtime": 1794501116.8756392,
+    "seen": 1794501226.7677867,
+    "ast_hash": "f80c69ba3779af93568772db2c3c59b4",
+    "semantic_hash": ""
+  },
+  "src/features/companies/CompanyDetailPage.tsx": {
+    "mtime": 1794924530.393025,
+    "seen": 1794924576.5335667,
+    "ast_hash": "cb6042e66b4c770abdcd8e9b226923b8",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PatientTreatmentsPanel.tsx": {
+    "mtime": 1794838057.8530564,
+    "seen": 1794838170.8154488,
+    "ast_hash": "14ae894283a9ba070e9d430fc684f18f",
+    "semantic_hash": ""
+  },
+  "src/components/AddressMapPicker.tsx": {
+    "mtime": 1794838057.5911484,
+    "seen": 1794838170.8087664,
+    "ast_hash": "b79085de379be83bd203acabd9d53f7f",
+    "semantic_hash": ""
+  },
+  "src/features/companies/CompanyActivityPanel.tsx": {
+    "mtime": 1794838057.7207506,
+    "seen": 1794838170.8132107,
+    "ast_hash": "cc179ca1c8edebea24fa64de62b2ad2b",
+    "semantic_hash": ""
+  },
+  "src/features/companies/CompanyRelationsPanel.tsx": {
+    "mtime": 1794838057.737274,
+    "seen": 1794838170.8132193,
+    "ast_hash": "9a2d417ff633cbad83abb9067927f007",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PatientCaregiversPanel.tsx": {
+    "mtime": 1794838057.819728,
+    "seen": 1794838170.8148572,
+    "ast_hash": "5140181cfed1836f27776a0a0df41b4b",
+    "semantic_hash": ""
+  },
+  "src/features/treatments/DoseTracking.tsx": {
+    "mtime": 1794850034.6447568,
+    "seen": 1794923462.1053479,
+    "ast_hash": "e06521df0b430c6c17a546eeb8b266af",
+    "semantic_hash": ""
+  },
+  "src/features/treatments/InventoryPanel.tsx": {
+    "mtime": 1794599109.8296118,
+    "seen": 1794836874.464236,
+    "ast_hash": "f5747fff5025fc347a7f9f75067295dd",
+    "semantic_hash": ""
+  },
+  "src/components/ActivityHistory.tsx": {
+    "mtime": 1794850034.6405866,
+    "seen": 1794923462.0913947,
+    "ast_hash": "921e4ac8940b9cb117929c930c2b694a",
+    "semantic_hash": ""
+  },
+  "src/lib/prescription.ts": {
+    "mtime": 1794501121.332544,
+    "seen": 1794501226.7808993,
+    "ast_hash": "56939719182d96b0b06b75f2d71f80e9",
+    "semantic_hash": ""
+  },
+  "src/features/board/CycleCloseDialog.tsx": {
+    "mtime": 1794501117.2575474,
+    "seen": 1794501226.7696714,
+    "ast_hash": "c0bf54b7782ceb8b5a8d8206b7d35d1b",
+    "semantic_hash": ""
+  },
+  "src/features/treatments/DoseFrequencyRow.tsx": {
+    "mtime": 1794838057.9197822,
+    "seen": 1794838170.8195503,
+    "ast_hash": "f5a59c675590cd05c99bea392d9645dc",
+    "semantic_hash": ""
+  },
+  "src/features/treatments/PatientPicker.tsx": {
+    "mtime": 1794837027.8396504,
+    "seen": 1794837056.0156024,
+    "ast_hash": "f751ab9a2b8ca086c1f849d1369024f9",
+    "semantic_hash": ""
+  },
+  "src/features/treatments/TreatmentsPage.tsx": {
+    "mtime": 1794924630.453916,
+    "seen": 1794924911.5615568,
+    "ast_hash": "9f837d58c6413296da82eead233e3079",
+    "semantic_hash": ""
+  },
+  "src/lib/print-table.ts": {
+    "mtime": 1794930588.3330417,
+    "seen": 1794931101.7536585,
+    "ast_hash": "57cd6f7648c21d166862b4715bff0251",
+    "semantic_hash": ""
+  },
+  "src/features/menu/MenuOrderTable.tsx": {
+    "mtime": 1794504430.4869022,
+    "seen": 1794504471.6750214,
+    "ast_hash": "2a1fbff46ff276208f5be4c2a435a9c2",
+    "semantic_hash": ""
+  },
+  "src/components/TableToolbarActions.tsx": {
+    "mtime": 1794924878.1897898,
+    "seen": 1794924911.5455701,
+    "ast_hash": "4ce81839bc0da58455f1ddea5e0730f6",
+    "semantic_hash": ""
+  },
+  "src/lib/xlsx-table.ts": {
+    "mtime": 1794501121.584759,
+    "seen": 1794501226.7814553,
+    "ast_hash": "9cf24408e16859b04726c0b4a4ec6685",
+    "semantic_hash": ""
+  },
+  "src/features/medications/MedicationAttachments.tsx": {
+    "mtime": 1794838057.7962787,
+    "seen": 1794838170.8140342,
+    "ast_hash": "3bd1666f8ddcfe39119b235b4b60997b",
+    "semantic_hash": ""
+  },
+  "src/features/medications/MedicationImage.tsx": {
+    "mtime": 1794501118.3773456,
+    "seen": 1794501226.7737315,
+    "ast_hash": "74eff204c2b755232bb880f2aa24c52c",
+    "semantic_hash": ""
+  },
+  "src/lib/medication-attachments.ts": {
+    "mtime": 1794501121.160154,
+    "seen": 1794501226.7798517,
+    "ast_hash": "2880bf98144fb650a308eaf0330e32b5",
+    "semantic_hash": ""
+  },
+  "e2e/helpers/roles.ts": {
+    "mtime": 1794424778.7703774,
+    "seen": 1794497392.5602758,
+    "ast_hash": "8423cb998b843643d613464537364e4d",
+    "semantic_hash": ""
+  },
+  "src/components/ui/GaugeProgress.tsx": {
+    "mtime": 1794501116.7946413,
+    "seen": 1794501226.7671292,
+    "ast_hash": "8c47f96ac2e4d8bebe07a844e5a9c496",
+    "semantic_hash": ""
+  },
+  "src/features/medications/MedicationPatientsDialog.tsx": {
+    "mtime": 1794503418.159655,
+    "seen": 1794503576.081216,
+    "ast_hash": "3cab5e946237ec9e432375ab389f962a",
+    "semantic_hash": ""
+  },
+  "src/features/medications/MedicationPhotoViewer.tsx": {
+    "mtime": 1794595341.8473823,
+    "seen": 1794595814.8342173,
+    "ast_hash": "6e0e9617d66f6cfebe4ade35c14b6ca5",
+    "semantic_hash": ""
+  },
+  "src/features/settings/LabelEditor.tsx": {
+    "mtime": 1794592336.5236506,
+    "seen": 1794592384.2826746,
+    "ast_hash": "17980aecfa0abc1a6d182f698c75e75c",
+    "semantic_hash": ""
+  },
+  "src/features/settings/LabelPrintDialog.tsx": {
+    "mtime": 1794501119.5010872,
+    "seen": 1794501226.777049,
+    "ast_hash": "e53eb1c714c53c6b91d2242031b5d2d5",
+    "semantic_hash": ""
+  },
+  "src/features/settings/LabelSheet.tsx": {
+    "mtime": 1794400978.7818022,
+    "seen": 1794497392.5674608,
+    "ast_hash": "2df74c9489f5f4a53857e40b89e5d261",
+    "semantic_hash": ""
+  },
+  "src/features/settings/LabelTemplateFormDialog.tsx": {
+    "mtime": 1794837027.7074342,
+    "seen": 1794837056.0128658,
+    "ast_hash": "09e25b7e488e3c430de186976d4d0250",
+    "semantic_hash": ""
+  },
+  "src/features/settings/LabelTemplatesTab.tsx": {
+    "mtime": 1794837027.7243593,
+    "seen": 1794837056.012869,
+    "ast_hash": "91eefdfb979f43981b8e94751882f4be",
+    "semantic_hash": ""
+  },
+  "src/features/settings/labelConfig.test.ts": {
+    "mtime": 1794501119.4006078,
+    "seen": 1794501226.777621,
+    "ast_hash": "aea3dfcf8e088a00a03ab636eee5a9a0",
+    "semantic_hash": ""
+  },
+  "src/features/settings/labelConfig.ts": {
+    "mtime": 1794501119.4263892,
+    "seen": 1794501226.7776241,
+    "ast_hash": "790089d759f9774144f1e5a35720a9df",
+    "semantic_hash": ""
+  },
+  "src/lib/document.ts": {
+    "mtime": 1794497170.462037,
+    "seen": 1794497392.569152,
+    "ast_hash": "7cd251c9c7f324d9c9e4ccbccc85c191",
+    "semantic_hash": ""
+  },
+  "src/lib/titleCase.test.ts": {
+    "mtime": 1794503420.2164493,
+    "seen": 1794503576.112928,
+    "ast_hash": "23713bbd4df6e1c0d660204500eb9b71",
+    "semantic_hash": ""
+  },
+  "src/lib/titleCase.ts": {
+    "mtime": 1794838209.5143054,
+    "seen": 1794923462.1084423,
+    "ast_hash": "453268fc281b3689362cf3ee24c07a62",
+    "semantic_hash": ""
+  },
+  "src/schemas/phone.ts": {
+    "mtime": 1794502742.4081547,
+    "seen": 1794503157.2535343,
+    "ast_hash": "a9d09707799199d4686724d607b4bd68",
+    "semantic_hash": ""
+  },
+  "src/lib/required-hints.ts": {
+    "mtime": 1794500840.2181592,
+    "seen": 1794501226.7812827,
+    "ast_hash": "ed8d7169f0f55fa85703eb1b7b7b2709",
+    "semantic_hash": ""
+  },
+  "src/features/patients/patientPayload.ts": {
+    "mtime": 1794501471.457992,
+    "seen": 1794501540.9665558,
+    "ast_hash": "0e2ff5bce0549457081cc21491ca2601",
+    "semantic_hash": ""
+  },
+  "src/features/board/cycleColumnFilters.ts": {
+    "mtime": 1794503109.7662723,
+    "seen": 1794503157.2171583,
+    "ast_hash": "04919b642ca5e00cab65884b56c63691",
+    "semantic_hash": ""
+  },
+  "src/lib/rnc.ts": {
+    "mtime": 1794502744.3275948,
+    "seen": 1794503157.250735,
+    "ast_hash": "8dd16c761264bb54d1c652a9f2936104",
+    "semantic_hash": ""
+  },
+  "src/components/ui/Dialog.test.tsx": {
+    "mtime": 1794516179.6692052,
+    "seen": 1794516232.270853,
+    "ast_hash": "377569c8617f3190e87dce9abf4b8563",
+    "semantic_hash": ""
+  },
+  "src/features/patients/createDoctor.ts": {
+    "mtime": 1794589998.0968068,
+    "seen": 1794590044.3128526,
+    "ast_hash": "7d6dd80881c19fc4f095770aba71c787",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PatientPrintView.tsx": {
+    "mtime": 1794850034.6415837,
+    "seen": 1794923462.10039,
+    "ast_hash": "4f7f385cea3f8e919df9e22c4e6fa279",
+    "semantic_hash": ""
+  },
+  "src/features/roles/RoleForm.test.tsx": {
+    "mtime": 1794838210.208875,
+    "seen": 1794923462.1031132,
+    "ast_hash": "988fa1271b58329090529040b0b69299",
+    "semantic_hash": ""
+  },
+  "src/lib/editTitle.ts": {
+    "mtime": 1794592429.7935424,
+    "seen": 1794592584.9654882,
+    "ast_hash": "ae172772e0d496b39e00377765dc10b4",
+    "semantic_hash": ""
+  },
+  "src/components/ui/MoreBubble.tsx": {
+    "mtime": 1794837687.59174,
+    "seen": 1794837754.0778756,
+    "ast_hash": "bf508df66f08a3719babdbb00c6b44bb",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PendingRelationPanels.tsx": {
+    "mtime": 1794597076.3873649,
+    "seen": 1794597116.9007134,
+    "ast_hash": "b01641b55dda4f335f02198c4d27c138",
+    "semantic_hash": ""
+  },
+  "src/features/patients/RelationParts.tsx": {
+    "mtime": 1794596813.3851666,
+    "seen": 1794597116.9007192,
+    "ast_hash": "6eed1d622363c1374173c633cda182c6",
+    "semantic_hash": ""
+  },
+  "src/features/patients/relationQueries.ts": {
+    "mtime": 1794597053.1569526,
+    "seen": 1794597116.9012141,
+    "ast_hash": "33e79014ff0c77cf91dfd56fe60355c9",
+    "semantic_hash": ""
+  },
+  "src/lib/navigation-origin.ts": {
+    "mtime": 1794598306.6210942,
+    "seen": 1794598373.5784347,
+    "ast_hash": "e522abecc5db1eb20578acddbf44fa6d",
+    "semantic_hash": ""
+  },
+  "src/features/doctors/DoctorQuickCreateDialog.tsx": {
+    "mtime": 1794837027.4547563,
+    "seen": 1794837056.0034418,
+    "ast_hash": "f5ae491f47f2b6adea3bd36c1823f620",
+    "semantic_hash": ""
+  },
+  "src/features/medications/MedicationQuickCreateDialog.tsx": {
+    "mtime": 1794837027.5536556,
+    "seen": 1794837056.0048463,
+    "ast_hash": "c0fa1381734736a4edc1226bf5f4b3f1",
+    "semantic_hash": ""
+  },
+  "src/features/medications/createMedication.ts": {
+    "mtime": 1794598625.8666072,
+    "seen": 1794598762.249635,
+    "ast_hash": "a4ed7057e151912fefdb7768f8587565",
+    "semantic_hash": ""
+  },
+  "src/features/patients/PatientQuickCreateDialog.tsx": {
+    "mtime": 1794848620.7022302,
+    "seen": 1794923462.1003916,
+    "ast_hash": "52ae96bae2165cd2cf1ee93a6ceebd3f",
+    "semantic_hash": ""
+  },
+  "src/features/patients/createPatient.ts": {
+    "mtime": 1794598625.342771,
+    "seen": 1794598762.2518742,
+    "ast_hash": "8c33e72966b02f8efbf6a316b12442e3",
+    "semantic_hash": ""
+  },
+  "src/components/ui/MultiSelect.tsx": {
+    "mtime": 1794849951.0276568,
+    "seen": 1794923462.0938425,
+    "ast_hash": "be979cb0020c92a0a1bd8f9e62efc9e5",
+    "semantic_hash": ""
+  },
+  "src/features/doctors/NewDoctorButton.tsx": {
+    "mtime": 1794837027.478781,
+    "seen": 1794837056.0034466,
+    "ast_hash": "6fde498e5198da9b2d8f4166a173d146",
+    "semantic_hash": ""
+  },
+  "src/components/ui/PurgeDialog.tsx": {
+    "mtime": 1794930547.8663032,
+    "seen": 1794931101.7174444,
+    "ast_hash": "927cd17a2af08a92574d20ea62b42b11",
+    "semantic_hash": ""
+  },
+  "src/components/ui/StatusToggle.tsx": {
+    "mtime": 1794924878.2088392,
+    "seen": 1794924911.5475876,
+    "ast_hash": "64da06cb4ceb69fc745788e0539811e2",
+    "semantic_hash": ""
+  },
+  "src/features/treatments/treatmentMutations.ts": {
+    "mtime": 1794924604.5540915,
+    "seen": 1794924911.5615587,
+    "ast_hash": "2410ef26e043817f2b23b1f95ef54929",
+    "semantic_hash": ""
+  }
+}

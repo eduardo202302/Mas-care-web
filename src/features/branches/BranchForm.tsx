@@ -6,6 +6,7 @@ import { Building2, MapPin, Palette, UserRound } from 'lucide-react'
 import { AddressMapPicker } from '@/components/AddressMapPicker'
 import { FormFields, FormFooter } from '@/components/ui/FormMode'
 import { ModalSection } from '@/components/ui/ModalSection'
+import { useStatusDraftChanged } from '@/components/ui/StatusDraft'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import { TextField } from '@/components/ui/TextField'
@@ -54,13 +55,14 @@ export function BranchForm({
   submitting = false,
 }: Props) {
   const [activeTab, setActiveTab] = useState<BranchTab>('datos')
+  const statusChanged = useStatusDraftChanged()
   const {
     register,
     handleSubmit,
     setValue,
     getValues,
     setError,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<BranchFormValues>({
     resolver: zodResolver(branchSchema),
     defaultValues: initialValues ?? {
@@ -179,7 +181,7 @@ export function BranchForm({
             >
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <TextField
+                  <TextAreaField
                     label="Dirección"
                     placeholder="G5CJ+2X Santo Domingo Este"
                     {...register('address')}
@@ -301,6 +303,7 @@ export function BranchForm({
         onEdit={onEdit}
         onClose={onCancel}
         submitting={submitting}
+        unchanged={Boolean(initialValues) && !isDirty && !statusChanged}
         submitLabel={initialValues ? 'Guardar Cambios' : 'Crear Sucursal'}
       />
     </form>

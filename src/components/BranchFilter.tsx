@@ -53,8 +53,8 @@ export function BranchFilter({ className }: { className?: string }) {
         aria-label="Filtrar por sucursal"
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          'border-border text-ink flex h-10 min-w-48 items-center gap-2 rounded-lg border bg-white pr-2 pl-3 text-sm transition-colors hover:bg-[#c3e9cf]',
-          open && 'bg-[#c3e9cf]',
+          'border-border text-ink flex h-10 min-w-48 items-center gap-2 rounded-lg border bg-white pr-2 pl-3 text-sm transition-colors hover:bg-slate-50',
+          open && 'bg-slate-50',
         )}
       >
         <Building2 className="text-muted size-4 shrink-0" />

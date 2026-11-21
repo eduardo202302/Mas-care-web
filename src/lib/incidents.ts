@@ -12,6 +12,14 @@ export const incidentColumns: readonly IncidentStatus[] = [
   'resolved',
 ]
 
+/** Una incidencia que ya salió de 'Nueva' no puede volver a ella. */
+export function canMoveIncidentTo(
+  from: IncidentStatus,
+  to: IncidentStatus,
+): boolean {
+  return !(to === 'new' && from !== 'new')
+}
+
 export const incidentColumnLabels: Record<IncidentStatus, string> = {
   new: 'Nueva',
   in_progress: 'En curso',

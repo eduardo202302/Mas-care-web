@@ -131,6 +131,11 @@ export function TreatmentActionDialog({
     }
   }
 
+  // Renovar con la misma fecha de vencimiento que ya tiene no cambia nada.
+  const savedExpiry = dateInputValue(treatment.prescriptionExpiresOn)
+  const unchanged =
+    action === 'renew' && savedExpiry !== '' && newExpiry === savedExpiry
+
   const ActionIcon = iconOf[action]
 
   return (
@@ -189,7 +194,8 @@ export function TreatmentActionDialog({
             type="submit"
             variant={action === 'finish' ? 'danger' : 'primary'}
             className="w-full sm:w-auto"
-            disabled={pending}
+            disabled={pending || unchanged}
+            title={unchanged ? 'No hay cambios para guardar' : undefined}
           >
             {pending ? 'Guardando…' : copy[action].submit}
           </Button>

@@ -34,6 +34,7 @@ export function RecordActionsMenu({ actions }: { actions: RecordAction[] }) {
     <div ref={ref} className="relative">
       <Button
         type="button"
+        className="bg-white hover:bg-[#c3e9cf]"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/TextField'
 import { PasswordField } from '@/components/ui/PasswordField'
 import { api, ApiError } from '@/lib/http'
+import { PHONE_INPUT_MAX_LENGTH, maskPhoneInput } from '@/lib/phone'
 import { authClient } from '@/lib/auth-client'
 import { queryClient } from '@/lib/query-client'
 
@@ -145,10 +146,13 @@ export default function RegisterPage() {
           autoComplete="tel"
           required
           minLength={7}
-          maxLength={20}
+          maxLength={PHONE_INPUT_MAX_LENGTH}
           value={values.phone}
-          onChange={change('phone')}
-          placeholder="+57 311 123 4567"
+          onChange={(event) => {
+            event.target.value = maskPhoneInput(event.target.value)
+            change('phone')(event)
+          }}
+          placeholder="(809) 555-1234"
           error={fieldErrors.phone}
         />
         <PasswordField
@@ -176,7 +180,7 @@ export default function RegisterPage() {
           disabled={loading}
           className="mt-1 w-full"
         >
-          {loading ? 'Creando cuenta…' : 'Crear cuenta'}
+          {loading ? 'Creando Cuenta…' : 'Crear Cuenta'}
         </Button>
       </form>
       <p className="text-muted mt-6 text-center text-sm">

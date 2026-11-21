@@ -1,3 +1,4 @@
+import { formatTimestamp } from '@/lib/operations'
 import { useEffect, useMemo, useState } from 'react'
 import {
   useInfiniteQuery,
@@ -12,11 +13,11 @@ import {
   CalendarDays,
   FileText,
   Plus,
-  Search,
   TriangleAlert,
   User,
   UserRound,
 } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/EmptyState'
@@ -36,6 +37,7 @@ import { KanbanBoard, type KanbanMove } from '@/components/kanban/KanbanBoard'
 import { api } from '@/lib/http'
 import { useCan, useMe } from '@/lib/permissions'
 import {
+  canMoveIncidentTo,
   incidentColumnLabels,
   incidentColumns,
   incidentFiltersFromSearch,
@@ -404,23 +406,20 @@ export default function IncidentsPage() {
           canCreate && (
             <Button variant="primary" onClick={() => setCreateOpen(true)}>
               <Plus className="size-4" />
-              Nueva incidencia
+              Crear Incidencia
             </Button>
           )
         }
       />
 
       <FilterBarRow aria-label="Filtros de incidencias">
-        <label className="relative w-full sm:w-[34rem]">
-          <Search className="text-muted pointer-events-none absolute top-3 left-3 size-4" />
-          <input
-            aria-label="Buscar incidencias"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Descripción, paciente, sucursal o responsable"
-            className="border-border focus:border-tealmax h-10 w-full rounded-lg border bg-white pl-9 text-sm outline-none"
-          />
-        </label>
+        <SearchField
+          wrapperClassName="w-full sm:w-[34rem]"
+          aria-label="Buscar incidencias"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Descripción, paciente, sucursal o responsable"
+        />
         <AdvancedFilterButton
           open={filterDraft !== null}
           count={filterCount}
@@ -450,7 +449,7 @@ export default function IncidentsPage() {
               incident.patient?.fullName ?? '',
               incident.branch?.name ?? '',
               incident.assignee?.name ?? '',
-              new Date(incident.createdAt).toLocaleString('es'),
+              formatTimestamp(incident.createdAt),
             ]),
           )}
         />
@@ -683,6 +682,9 @@ export default function IncidentsPage() {
             canMove &&
             incident.status !== 'resolved' &&
             (columnKey !== 'resolved' || canResolve)
+          }
+          canDropItem={(incident, _from, to) =>
+            canMoveIncidentTo(incident.status, to as IncidentStatus)
           }
           onMove={handleMove}
           testIdPrefix="incidents"

@@ -1,3 +1,4 @@
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -12,6 +13,11 @@ import {
   X,
 } from 'lucide-react'
 import { Dialog } from '@/components/ui/Dialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { TextField } from '@/components/ui/TextField'
@@ -19,6 +25,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { InfoCard, InfoFact } from '@/components/ui/InfoCard'
+import { editTitle } from '@/lib/editTitle'
 import { api, ApiError } from '@/lib/http'
 import { useCan } from '@/lib/permissions'
 import { formatPhone } from '@/lib/phone'
@@ -68,6 +75,7 @@ export default function DoctorDetailPage() {
       api<DoctorDetail>(`/api/v1/doctors/${encodeURIComponent(id)}`),
     enabled: Boolean(id),
   })
+  const statusDraft = useStatusDraft(doctor.data?.isActive ?? true)
   const specialties = useQuery({
     queryKey: ['medical-specialties', { isActive: 'true', rows: 100 }],
     queryFn: () =>
@@ -117,12 +125,22 @@ export default function DoctorDetailPage() {
           .map((link) => link.medicalCenterId) ?? [],
         values.medicalCenterIds,
       )
+      if (statusDraft.changed)
+        return await toggleActive.mutateAsync(statusDraft.value)
       return updated
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['doctors', id] })
-      setEditing(false)
+      closeEdit()
     },
+  })
+  const toggleActive = useMutation({
+    mutationFn: (active: boolean) =>
+      api<Doctor>(`/api/v1/doctors/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive: active }),
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['doctors'] }),
   })
   const addSpecialty = useMutation({
     mutationFn: (specialtyId: string) =>
@@ -179,6 +197,14 @@ export default function DoctorDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['doctors', id] }),
   })
 
+  function openEdit() {
+    statusDraft.reset()
+    setEditing(true)
+  }
+  function closeEdit() {
+    statusDraft.reset()
+    setEditing(false)
+  }
   function closeCenterDialog() {
     setCenterDialogOpen(false)
     setCenterFormError(null)
@@ -251,7 +277,7 @@ export default function DoctorDetailPage() {
         }
         actions={
           canWrite ? (
-            <Button variant="primary" onClick={() => setEditing(true)}>
+            <Button variant="primary" onClick={openEdit}>
               Editar
             </Button>
           ) : undefined
@@ -266,7 +292,7 @@ export default function DoctorDetailPage() {
         <InfoCard
           icon={<UserRound className="size-4" />}
           title="Datos de Contacto"
-          badge={record.isActive ? 'Activo' : 'Inactivo'}
+          badge={<StatusBadge active={record.isActive} />}
           className="lg:col-span-2"
         >
           <div className="flex items-center gap-4">
@@ -450,24 +476,38 @@ export default function DoctorDetailPage() {
         )}
       </div>
       {editing && (
-        <Dialog
-          title="Editar Médico"
-          description="Actualiza los datos del médico."
-          icon={<UserRound className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          onClose={() => setEditing(false)}
-          size="lg"
-        >
-          <DoctorForm
-            doctor={record}
-            onSave={(values) =>
-              update.mutateAsync(values).then(() => undefined)
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={editTitle(
+              'médico',
+              `${record.firstName} ${record.lastName}`,
+            )}
+            description="Actualiza los datos del médico."
+            icon={<UserRound className="size-5" />}
+            compactHeader
+            bodyClassName="pt-3"
+            onClose={closeEdit}
+            size="lg"
+            headerAction={
+              canWrite ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={update.isPending}
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
             }
-            onCancel={() => setEditing(false)}
-            submitting={update.isPending}
-          />
-        </Dialog>
+          >
+            <DoctorForm
+              doctor={record}
+              onSave={(values) =>
+                update.mutateAsync(values).then(() => undefined)
+              }
+              onCancel={closeEdit}
+              submitting={update.isPending}
+            />
+          </Dialog>
+        </StatusDraftProvider>
       )}
       {specialtyDialogOpen && (
         <Dialog
@@ -561,7 +601,7 @@ export default function DoctorDetailPage() {
           >
             <ModalSection
               icon={<Building2 className="size-4" />}
-              title="Centro médico"
+              title="Centro Médico"
             >
               <div className="grid gap-1.5">
                 <label

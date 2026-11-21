@@ -228,7 +228,7 @@ function MedicationItemsEditor({
         className="text-tealmax flex items-center gap-1 text-xs font-semibold hover:underline"
       >
         <Plus className="size-3.5" />
-        Agregar medicamento
+        Agregar Medicamento
       </button>
     </div>
   )
@@ -484,7 +484,7 @@ export function CompanyRelationsPanel({
               onClick={onGoToPatients}
               className="text-tealmax mt-1 text-xs font-semibold hover:underline disabled:opacity-50"
             >
-              Ver todos los pacientes asociados
+              Ver Todos Los Pacientes Asociados
             </button>
           </div>
         ) : (

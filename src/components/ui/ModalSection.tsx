@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type KeyboardEvent,
   type ReactNode,
 } from 'react'
 import { ChevronDown } from 'lucide-react'
@@ -37,7 +38,8 @@ export function DialogSections({ children }: { children: ReactNode }) {
  * Grouped field block used inside multi-section dialogs. Every section header
  * uses the same mint background so dialogs look consistent across modules.
  * Inside a `Dialog` with 2+ sections the header toggles the body and it starts
- * collapsed (override with `collapsible` / `defaultCollapsed`). The body stays
+ * collapsed, except the first one of its group (override with `collapsible` /
+ * `defaultCollapsed`). The body stays
  * mounted (only hidden) so the form keeps its values, and it reopens by itself
  * when a field inside is invalid. `forceOpen` keeps it expanded.
  */
@@ -69,7 +71,34 @@ export function ModalSection({
   )
   const open = !canCollapse || !collapsed || forceOpen
   const toggle = () => setCollapsed((value) => !value)
+  // No son <button>: en modo ver el <fieldset disabled> del formulario
+  // deshabilitaría los botones nativos y no se podrían desplegar las cards.
+  const toggleProps = {
+    role: 'button',
+    tabIndex: 0,
+    'aria-expanded': open,
+    onClick: toggle,
+    onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault()
+        toggle()
+      }
+    },
+  } as const
   const bodyRef = useRef<HTMLDivElement>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  // Inside a dialog the first section of each group starts expanded.
+  useLayoutEffect(() => {
+    if (!sections) return
+    const root = rootRef.current
+    if (
+      root?.parentElement?.querySelector(':scope > [data-modal-section]') ===
+      root
+    )
+      setCollapsed(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (collapsed && bodyRef.current?.querySelector('[aria-invalid="true"]'))
@@ -78,22 +107,22 @@ export function ModalSection({
 
   return (
     <div
+      ref={rootRef}
+      data-modal-section
       className={cn(
         'border-border overflow-hidden rounded-xl border',
         className,
       )}
     >
-      <div className="bg-modulos flex items-center gap-2 px-4 py-2.5">
+      <div className="bg-modulos print-card-header flex items-center gap-2 px-4 py-2.5">
         {canCollapse ? (
-          <button
-            type="button"
-            onClick={toggle}
-            aria-expanded={open}
-            className="flex items-center gap-2 text-left"
+          <div
+            {...toggleProps}
+            className="flex cursor-pointer items-center gap-2 text-left"
           >
             <span className="text-cuidado">{icon}</span>
             <h3 className="text-petroleo text-sm font-semibold">{title}</h3>
-          </button>
+          </div>
         ) : (
           <>
             <span className="text-cuidado">{icon}</span>
@@ -109,12 +138,10 @@ export function ModalSection({
           </div>
         )}
         {canCollapse && (
-          <button
-            type="button"
-            onClick={toggle}
+          <div
+            {...toggleProps}
             aria-label={open ? 'Contraer sección' : 'Expandir sección'}
-            aria-expanded={open}
-            className="text-petroleo ml-auto rounded p-1 hover:bg-white/60"
+            className="text-petroleo ml-auto cursor-pointer rounded p-1 hover:bg-white/60"
           >
             <ChevronDown
               className={cn(
@@ -122,7 +149,7 @@ export function ModalSection({
                 !open && '-rotate-90',
               )}
             />
-          </button>
+          </div>
         )}
       </div>
       <div

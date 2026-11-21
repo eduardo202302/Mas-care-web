@@ -13,6 +13,7 @@ import {
   Phone,
   PhoneCall,
   Pill,
+  Printer,
   StickyNote,
   Plus,
   ShieldCheck,
@@ -26,6 +27,7 @@ import {
   CustomValuesView,
   customPropertyGroups,
 } from '@/components/CustomFields'
+import { editTitle } from '@/lib/editTitle'
 import type { CycleTableResponse } from '@/lib/board'
 import { useCustomProperties } from '@/lib/custom-properties'
 import {
@@ -36,13 +38,16 @@ import {
   RecordActionsMenu,
   type RecordAction,
 } from '@/components/RecordActionsMenu'
-import { EnrollAutomationButton } from '@/features/automation/AutomationRules'
 import { PatientTelegramPanel } from '@/features/telegram/PatientTelegramPanel'
 import { ConversationDialog } from '@/features/messaging/ConversationDialog'
 import { PatientAutomationPanel } from '@/features/messaging/PauseAutomation'
 import { EmptyState } from '@/components/EmptyState'
 import { Dialog } from '@/components/ui/Dialog'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { FormActions } from '@/components/ui/FormActions'
@@ -56,8 +61,11 @@ import { useCan } from '@/lib/permissions'
 import type { components, paths } from '@/lib/api-types'
 import {
   buildDoseScheduleFields,
+  formatDate,
   isDoseFrequencyValid,
   medicationName,
+  treatmentPauta,
+  treatmentStatusLabel,
   uploadPrescriptionDocument,
   type DoseScheduleFrequency,
   type Medication,
@@ -84,6 +92,7 @@ import {
   ActiveTreatmentsPanel,
   TreatmentList,
 } from '@/features/treatments/TreatmentList'
+import { NewCycleDialog } from '@/features/board/NewCycleDialog'
 import { NoticeDialog } from '@/features/dashboard/NoticeDialog'
 import { DeliveryDialog } from '@/features/dashboard/DeliveryDialog'
 import { TaskFormDialog } from '@/features/tasks/TaskFormDialog'
@@ -92,6 +101,7 @@ import { incidentTypeLabels, type Incident } from '@/lib/incidents'
 import { TransferDialog } from '@/features/transfers/TransferDialog'
 import { PatientTransfersPanel } from '@/features/transfers/PatientTransfersPanel'
 import { PatientDoctorsPanel } from './PatientDoctorsPanel'
+import { PatientPrintView, type PrintSection } from './PatientPrintView'
 import { PatientCaregiversPanel } from './PatientCaregiversPanel'
 import { PatientConditionsPanel } from './PatientConditionsPanel'
 import { PatientInfoPackPanel } from './PatientInfoPackPanel'
@@ -142,12 +152,12 @@ function Panel({
   inlineAction?: boolean
 }) {
   return (
-    <section className="border-border rounded-xl border bg-white p-5">
+    <section className="border-border rounded-xl border bg-white p-5 print:overflow-hidden">
       <div
         className={
           inlineAction
-            ? 'mb-4 flex items-center gap-2'
-            : 'mb-4 flex items-center justify-between gap-2'
+            ? 'print-card-header mb-4 flex items-center gap-2 print:-mx-5 print:-mt-5 print:rounded-t-xl print:px-5 print:py-2.5'
+            : 'print-card-header mb-4 flex items-center justify-between gap-2 print:-mx-5 print:-mt-5 print:rounded-t-xl print:px-5 print:py-2.5'
         }
       >
         <h2 className="text-petroleo font-semibold">{title}</h2>
@@ -204,6 +214,7 @@ export default function PatientDetailPage() {
     'history' | 'treatments' | 'infopack' | 'transfers'
   >('history')
   const [transferOpen, setTransferOpen] = useState(false)
+  const [printing, setPrinting] = useState(false)
   const [doctorAddOpen, setDoctorAddOpen] = useState(false)
   const [caregiverAddOpen, setCaregiverAddOpen] = useState(false)
   const [conditionAddOpen, setConditionAddOpen] = useState(false)
@@ -235,9 +246,10 @@ export default function PatientDetailPage() {
   const [deliveryTreatment, setDeliveryTreatment] = useState<Treatment | null>(
     null,
   )
+  const [replenishTreatment, setReplenishTreatment] =
+    useState<Treatment | null>(null)
   const [taskOpen, setTaskOpen] = useState(false)
   const [incidentOpen, setIncidentOpen] = useState(false)
-  const [confirmArchive, setConfirmArchive] = useState(false)
 
   const patient = useQuery({
     queryKey: ['patients', id],
@@ -308,7 +320,7 @@ export default function PatientDetailPage() {
     queryKey: ['tasks', 'patient', id],
     queryFn: () =>
       api<TaskList>(
-        `/api/v1/tasks?patient_id=${encodeURIComponent(id)}&status=open&limit=20`,
+        `/api/v1/tasks?patient_id=${encodeURIComponent(id)}&status=open,in_progress&limit=20`,
       ),
     enabled: Boolean(id) && canReadTasks,
   })
@@ -332,6 +344,7 @@ export default function PatientDetailPage() {
       api<DoctorPickerList>('/api/v1/doctors?isActive=true&rows=100'),
     enabled: treatmentFormOpen && canReadDoctors,
   })
+  const statusDraft = useStatusDraft(!patient.data?.archivedAt)
   const update = useMutation({
     mutationFn: (values: PatientFormValues) => {
       const { address, state, city, sector, latitude, longitude, ...rest } =
@@ -361,7 +374,6 @@ export default function PatientDetailPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['patients', id] })
       await queryClient.invalidateQueries({ queryKey: ['patients'] })
-      setEditing(false)
     },
   })
   const addActivity = useMutation({
@@ -404,7 +416,6 @@ export default function PatientDetailPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['patients'] })
       await queryClient.invalidateQueries({ queryKey: ['patients', id] })
-      setConfirmArchive(false)
     },
   })
   const restore = useMutation({
@@ -620,27 +631,15 @@ export default function PatientDetailPage() {
       ? [
           {
             label: 'Editar',
-            onClick: () => setEditing(true),
+            onClick: () => {
+              statusDraft.reset()
+              setEditing(true)
+            },
           },
         ]
       : []),
     ...(canTransfer && !record.archivedAt
       ? [{ label: 'Trasladar', onClick: () => setTransferOpen(true) }]
-      : []),
-    ...(canArchive && !record.archivedAt
-      ? [
-          {
-            label: 'Archivar',
-            danger: true,
-            onClick: () => {
-              archive.reset()
-              setConfirmArchive(true)
-            },
-          },
-        ]
-      : []),
-    ...(canArchive && record.archivedAt
-      ? [{ label: 'Restaurar', onClick: () => restore.mutate() }]
       : []),
     ...(canViewMessages
       ? [
@@ -665,7 +664,7 @@ export default function PatientDetailPage() {
         { label: 'Documento', value: record.documentId },
         { label: 'Fecha de Nacimiento', value: record.birthDate?.slice(0, 10) },
         { label: 'Notas de Cuidado', value: record.careNotes },
-        { label: 'Estado', value: record.archivedAt ? 'Archivado' : 'Activo' },
+        { label: 'Estado', value: record.archivedAt ? 'Inactivo' : 'Activo' },
       ],
     },
     {
@@ -709,6 +708,65 @@ export default function PatientDetailPage() {
       items: [{ label: 'Sucursal', value: branch?.name }],
     },
     ...customPropertyGroups(patientDefs, patientValues),
+  ]
+
+  // Todo lo que muestra esta vista (todas las pestañas y paneles), para imprimir.
+  const printSections: PrintSection[] = [
+    ...propertyGroups
+      .filter(
+        (group) => group.name !== 'Tratamiento' && group.name !== 'Cobertura',
+      )
+      .map((group) => ({
+        title: group.name,
+        items: group.items.map((item) => ({
+          label: item.label,
+          value: item.value == null ? '' : String(item.value),
+        })),
+      })),
+    {
+      title: 'Tratamientos',
+      headers: [
+        'Medicamento',
+        'Estado',
+        'Pauta',
+        'Inicio',
+        'Fin de cobertura',
+        'Última entrega',
+      ],
+      rows: treatmentRows.map((treatment) => {
+        const medication = medicationsById.get(treatment.medicationId)
+        return [
+          medicationName(medication),
+          treatmentStatusLabel(treatment.status),
+          treatmentPauta(
+            treatment,
+            medication,
+            treatmentSchedules.data?.get(treatment.id),
+          ),
+          formatDate(treatment.startDate),
+          formatDate(treatment.coverageEndOn),
+          formatDate(treatment.lastDeliveryOn),
+        ]
+      }),
+    },
+    {
+      title: 'Tareas Abiertas',
+      headers: ['Tarea', 'Tipo', 'Vencimiento'],
+      rows: openTasks.map((task) => [
+        task.title,
+        taskTypeLabels[task.type],
+        taskDueLabel(task),
+      ]),
+    },
+    {
+      title: 'Incidencias Abiertas',
+      headers: ['Tipo', 'Descripción', 'Asignado'],
+      rows: openIncidents.map((incident) => [
+        incidentTypeLabels[incident.type],
+        incident.description,
+        incident.assignee?.name ?? 'Sin asignar',
+      ]),
+    },
   ]
 
   return (
@@ -774,9 +832,17 @@ export default function PatientDetailPage() {
           actions={
             <div className="grid justify-items-end gap-2">
               <div className="flex flex-wrap items-center justify-end gap-2">
-                {!record.archivedAt && (
-                  <EnrollAutomationButton patientId={record.id} />
-                )}
+                <Button
+                  type="button"
+                  className="bg-white hover:bg-[#c3e9cf]"
+                  aria-label="Imprimir ficha completa del paciente"
+                  title="Imprimir ficha completa"
+                  disabled={printing}
+                  onClick={() => setPrinting(true)}
+                >
+                  <Printer className="size-4" />
+                  Imprimir
+                </Button>
                 <RecordActionsMenu actions={recordActions} />
               </div>
               <div className="flex justify-end">
@@ -797,7 +863,7 @@ export default function PatientDetailPage() {
         />
         {record.archivedAt && (
           <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
-            Este paciente está archivado.
+            Este paciente está inactivo.
           </p>
         )}
       </div>
@@ -904,7 +970,9 @@ export default function PatientDetailPage() {
                   className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'treatments' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
                   onClick={() => setActiveTab('treatments')}
                 >
-                  Tratamientos
+                  {treatmentRows.length
+                    ? `Tratamientos (${treatmentRows.length})`
+                    : 'Tratamientos'}
                 </button>
                 <button
                   className={`rounded-md px-3 py-2 text-sm font-semibold ${activeTab === 'infopack' ? 'text-petroleo bg-white shadow-sm' : 'text-muted'}`}
@@ -943,7 +1011,7 @@ export default function PatientDetailPage() {
                           }}
                         >
                           <Plus className="size-4" />
-                          Nuevo Tratamiento
+                          Crear Tratamiento
                         </Button>
                       )
                     : null}
@@ -1000,6 +1068,7 @@ export default function PatientDetailPage() {
                     onAction={handleTreatmentAction}
                     onNotice={setNoticeTreatment}
                     onDeliver={setDeliveryTreatment}
+                    onReplenish={setReplenishTreatment}
                   />
                 ) : (
                   <EmptyState
@@ -1143,7 +1212,7 @@ export default function PatientDetailPage() {
                     variant="ghost"
                     className="size-6 px-0"
                     aria-expanded={taskOpen}
-                    aria-label="Nueva tarea"
+                    aria-label="Crear tarea"
                     onClick={() => setTaskOpen(true)}
                   >
                     <Plus className="size-4" />
@@ -1191,24 +1260,26 @@ export default function PatientDetailPage() {
                                 Preparado
                               </Button>
                             )}
-                          <Button
-                            className="h-7 px-2 text-[11px]"
-                            onClick={() => completeTask.mutate(task)}
-                            disabled={
-                              completeTask.isPending &&
-                              completeTask.variables?.id === task.id
-                            }
-                          >
-                            <Check className="size-3" />
-                            Completar
-                          </Button>
+                          {task.status === 'in_progress' && (
+                            <Button
+                              className="h-7 px-2 text-[11px]"
+                              onClick={() => completeTask.mutate(task)}
+                              disabled={
+                                completeTask.isPending &&
+                                completeTask.variables?.id === task.id
+                              }
+                            >
+                              <Check className="size-3" />
+                              Terminar
+                            </Button>
+                          )}
                         </div>
                       )}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-muted text-sm">Sin tareas abiertas.</p>
+                <p className="text-muted text-sm">Sin tareas pendientes.</p>
               )}
             </Panel>
             <Panel
@@ -1221,7 +1292,7 @@ export default function PatientDetailPage() {
                     variant="ghost"
                     className="size-6 px-0"
                     aria-expanded={incidentOpen}
-                    aria-label="Nueva incidencia"
+                    aria-label="Crear incidencia"
                     onClick={() => setIncidentOpen(true)}
                   >
                     <Plus className="size-4" />
@@ -1270,6 +1341,14 @@ export default function PatientDetailPage() {
           onClose={() => setConversationOpen(false)}
         />
       )}
+      {printing && (
+        <PatientPrintView
+          patientId={record.id}
+          patientName={record.fullName}
+          sections={printSections}
+          onDone={() => setPrinting(false)}
+        />
+      )}
       {propertiesOpen && (
         <PropertiesDialog
           title="Todas las propiedades"
@@ -1278,25 +1357,58 @@ export default function PatientDetailPage() {
         />
       )}
       {editing && (
-        <Dialog
-          title="Editar Paciente"
-          description="Actualiza los datos de la ficha."
-          icon={<UserRound className="size-5" />}
-          compactHeader
-          bodyClassName="pt-3"
-          onClose={() => setEditing(false)}
-          size="lg"
-        >
-          <PatientForm
-            patient={record}
-            branches={branches.data?.data ?? []}
-            onSave={(values) =>
-              update.mutateAsync(values).then(() => undefined)
+        <StatusDraftProvider changed={statusDraft.changed}>
+          <Dialog
+            title={editTitle('paciente', record.fullName)}
+            description="Actualiza los datos de la ficha."
+            icon={<UserRound className="size-5" />}
+            compactHeader
+            bodyClassName="pt-3"
+            onClose={() => {
+              statusDraft.reset()
+              setEditing(false)
+            }}
+            size="lg"
+            headerAction={
+              canArchive ? (
+                <StatusToggle
+                  active={statusDraft.value}
+                  pending={
+                    update.isPending || archive.isPending || restore.isPending
+                  }
+                  onChange={statusDraft.set}
+                />
+              ) : undefined
             }
-            onCancel={() => setEditing(false)}
-            submitting={update.isPending}
-          />
-        </Dialog>
+          >
+            <PatientForm
+              patient={record}
+              branches={branches.data?.data ?? []}
+              onSave={async (values) => {
+                await update.mutateAsync(values)
+                if (canArchive && statusDraft.changed) {
+                  const change = statusDraft.value ? restore : archive
+                  try {
+                    await change.mutateAsync()
+                  } catch (error) {
+                    // El error se muestra en el formulario.
+                    change.reset()
+                    throw error
+                  }
+                }
+                statusDraft.reset()
+                setEditing(false)
+              }}
+              onCancel={() => {
+                statusDraft.reset()
+                setEditing(false)
+              }}
+              submitting={
+                update.isPending || archive.isPending || restore.isPending
+              }
+            />
+          </Dialog>
+        </StatusDraftProvider>
       )}
       {activityType && canAddActivity && (
         <Dialog
@@ -1393,12 +1505,12 @@ export default function PatientDetailPage() {
                 {addActivity.isPending
                   ? 'Guardando…'
                   : activityType === 'note'
-                    ? 'Añadir nota'
+                    ? 'Añadir Nota'
                     : activityType === 'call'
-                      ? 'Guardar llamada'
+                      ? 'Guardar Llamada'
                       : activityType === 'email'
-                        ? 'Guardar correo'
-                        : 'Guardar reunión'}
+                        ? 'Guardar Correo'
+                        : 'Guardar Reunión'}
               </Button>
             </FormActions>
           </form>
@@ -1439,7 +1551,7 @@ export default function PatientDetailPage() {
             </ModalSection>
             <ModalSection
               icon={<ShieldCheck className="size-4" />}
-              title="Canal y Evidencia"
+              title="Canal Y Evidencia"
             >
               <div className="grid gap-1.5">
                 <label
@@ -1492,7 +1604,17 @@ export default function PatientDetailPage() {
       )}
       {treatmentFormOpen && (
         <Dialog
-          title={editingTreatment ? 'Editar Tratamiento' : 'Nuevo Tratamiento'}
+          title={
+            editingTreatment
+              ? editTitle(
+                  'Tratamiento',
+                  editingTreatment.name ||
+                    medicationName(
+                      medicationsById.get(editingTreatment.medicationId),
+                    ),
+                )
+              : 'Crear Tratamiento'
+          }
           description="Define la pauta, la cobertura y los datos de la receta."
           icon={<Pill className="size-5" />}
           compactHeader
@@ -1541,6 +1663,15 @@ export default function PatientDetailPage() {
               queryKey: ['patients', id, 'activities'],
             })
           }
+        />
+      )}
+      {replenishTreatment && (
+        <NewCycleDialog
+          initialTreatment={{
+            patientId: record.id,
+            treatmentId: replenishTreatment.id,
+          }}
+          onClose={() => setReplenishTreatment(null)}
         />
       )}
       {deliveryTreatment && (
@@ -1597,26 +1728,6 @@ export default function PatientDetailPage() {
               queryKey: ['patients', id, 'incidents'],
             })
           }
-        />
-      )}
-      {confirmArchive && (
-        <ConfirmDialog
-          title="Confirmar"
-          description={
-            <>
-              ¿Está seguro que desea archivar a{' '}
-              <strong>{record.fullName}</strong>?
-              {archive.isError && (
-                <p role="alert" className="mt-3 text-sm text-red-800">
-                  {archive.error.message}
-                </p>
-              )}
-            </>
-          }
-          confirmLabel="Archivar"
-          confirming={archive.isPending}
-          onConfirm={() => archive.mutate()}
-          onClose={() => setConfirmArchive(false)}
         />
       )}
     </div>

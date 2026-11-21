@@ -25,17 +25,8 @@ export function maskDocumentInput(value: string): string {
   return `${digits.slice(0, 3)}-${digits.slice(3, 10)}-${digits.slice(10)}`
 }
 
-function hasValidCedulaCheckDigit(digits: string): boolean {
-  let sum = 0
-  for (let i = 0; i < 10; i += 1) {
-    const product = Number(digits[i]) * (i % 2 === 0 ? 1 : 2)
-    sum += product > 9 ? product - 9 : product
-  }
-  return (10 - (sum % 10)) % 10 === Number(digits[10])
-}
-
 export function isValidDocument(value: string): boolean {
   const compact = value.replace(/-/g, '')
-  if (/^\d{11}$/.test(compact)) return hasValidCedulaCheckDigit(compact)
+  if (/^\d{11}$/.test(compact)) return true
   return /^[A-Z]{2}\d{7}$/.test(compact)
 }

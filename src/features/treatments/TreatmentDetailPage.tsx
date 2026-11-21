@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
@@ -17,6 +17,7 @@ import {
   CustomValuesView,
   customPropertyGroups,
 } from '@/components/CustomFields'
+import { editTitle } from '@/lib/editTitle'
 import { useCustomProperties } from '@/lib/custom-properties'
 import {
   PropertiesDialog,
@@ -31,17 +32,21 @@ import { Button } from '@/components/ui/Button'
 import { FormActions } from '@/components/ui/FormActions'
 import { ModalSection } from '@/components/ui/ModalSection'
 import { Dialog } from '@/components/ui/Dialog'
+import { PurgeDialog } from '@/components/ui/PurgeDialog'
+import { StatusToggle } from '@/components/ui/StatusToggle'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { TextField } from '@/components/ui/TextField'
 import { TextAreaField } from '@/components/ui/TextAreaField'
-import { api } from '@/lib/http'
+import { api, ApiError } from '@/lib/http'
 import { useCan } from '@/lib/permissions'
+import { readOrigin } from '@/lib/navigation-origin'
 import type { components } from '@/lib/api-types'
 import {
   derivedStatusLabel,
   formatDate,
   formatQuantity,
   frequencyColumns,
+  medicationFullName,
   medicationName,
   treatmentStatusLabel,
   type DoseScheduleFrequency,
@@ -58,6 +63,15 @@ import {
 } from '@/features/messaging/PauseAutomation'
 import { LabelPrintDialog } from '@/features/settings/LabelPrintDialog'
 import { TreatmentForm } from './TreatmentForm'
+import {
+  invalidateTreatmentQueries,
+  setTreatmentActive,
+  useTreatmentPurge,
+} from './treatmentMutations'
+import {
+  StatusDraftProvider,
+  useStatusDraft,
+} from '@/components/ui/StatusDraft'
 import {
   TreatmentActionDialog,
   type TreatmentActionType,
@@ -97,12 +111,12 @@ function Panel({
   inlineAction?: boolean
 }) {
   return (
-    <section className="border-border rounded-xl border bg-white p-5">
+    <section className="border-border rounded-xl border bg-white p-5 print:overflow-hidden">
       <div
         className={
           inlineAction
-            ? 'mb-4 flex items-center gap-2'
-            : 'mb-4 flex items-center justify-between gap-2'
+            ? 'print-card-header mb-4 flex items-center gap-2 print:-mx-5 print:-mt-5 print:rounded-t-xl print:px-5 print:py-2.5'
+            : 'print-card-header mb-4 flex items-center justify-between gap-2 print:-mx-5 print:-mt-5 print:rounded-t-xl print:px-5 print:py-2.5'
         }
       >
         <h2 className="text-petroleo font-semibold">{title}</h2>
@@ -116,8 +130,19 @@ function Panel({
 /** Treatment record: properties on the left, history/cycles in the middle, associations on the right. */
 export default function TreatmentDetailPage() {
   const { patientId = '', id = '' } = useParams()
+  const location = useLocation()
+  // Página desde la que se abrió el tratamiento (lista, ficha del paciente…).
+  const origin = readOrigin(location.state)
+  const backTo = origin?.to ?? `/pacientes/${patientId}`
+  // El estado se reenvía a los enlaces internos para que "atrás" siga
+  // apuntando a la página de origen original.
+  const originState = origin ? { from: origin } : undefined
   const queryClient = useQueryClient()
   const canWrite = useCan('treatments:write')
+  const canManage = useCan('treatments:manage')
+  const navigate = useNavigate()
+  const [purging, setPurging] = useState(false)
+  const purge = useTreatmentPurge(() => navigate(backTo, { replace: true }))
   const canWriteActivity = useCan('patients:write')
   const canReadTasks = useCan('tasks:read')
   const canReadDoctors = useCan('doctors:read')
@@ -253,14 +278,32 @@ export default function TreatmentDetailPage() {
       setBody('')
     },
   })
+  // Inactivo = pausado; el interruptor se aplica recién al guardar.
+  const statusDraft = useStatusDraft(treatment.data?.status === 'active')
   const save = useMutation({
-    mutationFn: (values: TreatmentSaveValues) =>
-      updateTreatmentFromForm(id, values),
+    mutationFn: async (values: TreatmentSaveValues) => {
+      await updateTreatmentFromForm(id, values)
+      if (statusDraft.changed) await setTreatmentActive(id, statusDraft.value)
+    },
     onSuccess: async () => {
-      await invalidate()
-      setEditing(false)
+      await Promise.all([
+        invalidate(),
+        statusDraft.changed
+          ? invalidateTreatmentQueries(queryClient)
+          : undefined,
+      ])
+      closeEdit()
     },
   })
+  function openEdit() {
+    save.reset()
+    statusDraft.reset()
+    setEditing(true)
+  }
+  function closeEdit() {
+    setEditing(false)
+    statusDraft.reset()
+  }
 
   if (treatment.isLoading)
     return <Skeleton className="h-96 w-full rounded-xl" />
@@ -268,11 +311,11 @@ export default function TreatmentDetailPage() {
     return (
       <div>
         <Link
-          to={`/pacientes/${patientId}`}
+          to={backTo}
           className="text-tealmax inline-flex items-center gap-2 text-sm"
         >
           <ArrowLeft className="size-4" />
-          Volver al paciente
+          {origin ? 'Volver' : 'Volver al paciente'}
         </Link>
         <p
           role="alert"
@@ -309,7 +352,7 @@ export default function TreatmentDetailPage() {
   }
   const actions: RecordAction[] = [
     ...(canWrite && record.status !== 'finished'
-      ? [{ label: 'Editar', onClick: () => setEditing(true) }]
+      ? [{ label: 'Editar', onClick: openEdit }]
       : []),
     ...(canWrite && isActiveOrPaused && record.status === 'active'
       ? [{ label: 'Pausar', onClick: () => setAction('pause') }]
@@ -344,6 +387,18 @@ export default function TreatmentDetailPage() {
       label: 'Ver todas las propiedades',
       onClick: () => setPropertiesOpen(true),
     },
+    ...(canManage
+      ? [
+          {
+            label: 'Borrar',
+            danger: true,
+            onClick: () => {
+              purge.reset()
+              setPurging(true)
+            },
+          },
+        ]
+      : []),
   ]
   const treatmentValues =
     (record as { customValues?: Record<string, unknown> }).customValues ?? {}
@@ -352,7 +407,7 @@ export default function TreatmentDetailPage() {
       name: 'Datos',
       items: [
         { label: 'Paciente', value: patient.data?.fullName },
-        { label: 'Medicamento', value: medicationName(medication) },
+        { label: 'Medicamento', value: medicationFullName(medication) },
         { label: 'Cantidad por Ciclo', value: String(record.quantityPerCycle) },
         { label: 'Inicio', value: formatDate(record.startDate) },
         { label: 'Notas', value: record.notes },
@@ -401,11 +456,11 @@ export default function TreatmentDetailPage() {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <Link
-              to={`/pacientes/${patientId}`}
+              to={backTo}
               className="text-muted hover:text-petroleo inline-flex items-center gap-1 text-xs"
             >
               <ArrowLeft className="size-3.5" />
-              {patient.data?.fullName ?? 'Paciente'}
+              {origin?.label ?? patient.data?.fullName ?? 'Paciente'}
             </Link>
             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="text-muted text-[11px] font-semibold tracking-wide uppercase">
@@ -434,7 +489,7 @@ export default function TreatmentDetailPage() {
           </div>
         </div>
         <div className="mt-0.5 flex min-w-0 flex-wrap items-baseline gap-x-2">
-          <h1 className="font-display text-petroleo truncate text-xl font-bold tracking-tight">
+          <h1 className="font-display text-petroleo truncate text-xl font-bold tracking-tight print:overflow-visible print:whitespace-normal">
             {medicationName(medication)}
           </h1>
           <span className="text-tealmax shrink-0 text-xs font-medium">
@@ -524,6 +579,7 @@ export default function TreatmentDetailPage() {
                               <td className="py-2 pr-3">
                                 <Link
                                   to={`/pacientes/${encodeURIComponent(patientId)}/tratamientos/${encodeURIComponent(item.id)}`}
+                                  state={originState}
                                   className="text-tealmax hover:underline"
                                 >
                                   {medicationName(itemMedication)}
@@ -557,27 +613,39 @@ export default function TreatmentDetailPage() {
                   {tabButton('doses', 'Dosis')}
                 </div>
                 <span
-                  className="text-tealmax min-w-0 truncate text-sm font-semibold"
-                  title={medicationName(medication) || undefined}
+                  className="text-tealmax min-w-0 truncate text-sm font-semibold print:overflow-visible print:whitespace-normal"
+                  title={medicationFullName(medication) || undefined}
                 >
-                  {medicationName(medication) || '—'}
+                  {medicationFullName(medication) || '—'}
                 </span>
               </div>
               {tab === 'history' && canWriteActivity && (
                 <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => setKind('note')}>
+                  <Button
+                    className="bg-white hover:bg-[#c3e9cf]"
+                    onClick={() => setKind('note')}
+                  >
                     <FileText className="size-4" />
                     Nota
                   </Button>
-                  <Button onClick={() => setKind('call')}>
+                  <Button
+                    className="bg-white hover:bg-[#c3e9cf]"
+                    onClick={() => setKind('call')}
+                  >
                     <Phone className="size-4" />
                     Llamada
                   </Button>
-                  <Button onClick={() => setKind('email')}>
+                  <Button
+                    className="bg-white hover:bg-[#c3e9cf]"
+                    onClick={() => setKind('email')}
+                  >
                     <Mail className="size-4" />
                     Correo
                   </Button>
-                  <Button onClick={() => setKind('meeting')}>
+                  <Button
+                    className="bg-white hover:bg-[#c3e9cf]"
+                    onClick={() => setKind('meeting')}
+                  >
                     <Users className="size-4" />
                     Reunión
                   </Button>
@@ -821,30 +889,60 @@ export default function TreatmentDetailPage() {
           />
         )}
         {editing && (
-          <Dialog
-            title="Editar Tratamiento"
-            description="Define la pauta, la cobertura y los datos de la receta."
-            icon={<Pill className="size-5" />}
-            compactHeader
-            printable
-            bodyClassName="pt-0"
-            onClose={() => setEditing(false)}
-            size="lg"
-          >
-            <TreatmentForm
-              treatment={record}
-              patientName={patient.data?.fullName}
-              medications={medications.data?.data ?? []}
-              branches={branches.data?.data ?? []}
-              doctors={doctorPicker.data?.data ?? []}
-              doctorsLoading={doctorPicker.isLoading}
-              onSave={(values) =>
-                save.mutateAsync(values).then(() => undefined)
+          <StatusDraftProvider changed={statusDraft.changed}>
+            <Dialog
+              title={editTitle(
+                'Tratamiento',
+                record.name || medicationName(medication),
+              )}
+              description="Define la pauta, la cobertura y los datos de la receta."
+              icon={<Pill className="size-5" />}
+              compactHeader
+              printable
+              bodyClassName="pt-0"
+              onClose={closeEdit}
+              size="lg"
+              headerAction={
+                canManage ? (
+                  <StatusToggle
+                    active={statusDraft.value}
+                    disabled={record.status === 'finished'}
+                    pending={save.isPending}
+                    onChange={statusDraft.set}
+                  />
+                ) : undefined
               }
-              onCancel={() => setEditing(false)}
-              submitting={save.isPending}
-            />
-          </Dialog>
+            >
+              <TreatmentForm
+                treatment={record}
+                patientName={patient.data?.fullName}
+                medications={medications.data?.data ?? []}
+                branches={branches.data?.data ?? []}
+                doctors={doctorPicker.data?.data ?? []}
+                doctorsLoading={doctorPicker.isLoading}
+                onSave={(values) =>
+                  save.mutateAsync(values).then(() => undefined)
+                }
+                onCancel={closeEdit}
+                submitting={save.isPending}
+              />
+            </Dialog>
+          </StatusDraftProvider>
+        )}
+        {purging && (
+          <PurgeDialog
+            name={`Tratamiento de ${patient.data?.fullName ?? 'paciente'} (${medicationName(medication)})`}
+            confirming={purge.isPending}
+            error={
+              purge.isError
+                ? purge.error instanceof ApiError
+                  ? purge.error.message
+                  : 'No pudimos borrar el tratamiento.'
+                : undefined
+            }
+            onConfirm={() => purge.mutate(id)}
+            onClose={() => setPurging(false)}
+          />
         )}
         {action && (
           <TreatmentActionDialog

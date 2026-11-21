@@ -69,29 +69,8 @@ export type PatientFormValues = z.infer<typeof patientSchema>
 
 const REQUIRED = 'Campo requerido.'
 
-const requiredDecimal = (min: number, max: number) =>
-  z
-    .string()
-    .trim()
-    .min(1, REQUIRED)
-    .max(20, 'Máximo 20 caracteres.')
-    .refine((value) => /^-?\d{1,3}(\.\d+)?$/.test(value), {
-      message: 'Ingresa un número decimal válido.',
-    })
-    .refine((value) => Number(value) >= min && Number(value) <= max, {
-      message: `Debe estar entre ${min} y ${max}.`,
-    })
-
-/** Alta de paciente: todos los campos de la pestaña Datos son obligatorios salvo las notas de cuidado. */
+/** Alta de paciente: documento y WhatsApp son obligatorios; fecha de nacimiento, correo y ubicación son opcionales. */
 export const patientCreateSchema = patientSchema.extend({
   documentId: documentField.refine((v) => v.length > 0, REQUIRED),
-  birthDate: birthDateField.refine((v) => v.length > 0, REQUIRED),
   phone: phoneField.refine((v) => v.length > 0, REQUIRED),
-  email: z.string().trim().min(1, REQUIRED).email('Ingresa un correo válido.'),
-  address: z.string().trim().min(1, REQUIRED).max(500),
-  state: z.string().trim().min(1, REQUIRED).max(120),
-  city: z.string().trim().min(1, REQUIRED).max(120),
-  sector: z.string().trim().min(1, REQUIRED).max(120),
-  latitude: requiredDecimal(-90, 90),
-  longitude: requiredDecimal(-180, 180),
 })

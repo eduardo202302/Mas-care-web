@@ -111,9 +111,14 @@ export default function BoardPage() {
   useEffect(() => {
     const wanted = lockedBranch ?? defaultBranch
     if (!me || privileged || !wanted || searchParams.get('branch_id')) return
-    const next = new URLSearchParams(searchParams)
-    next.set('branch_id', wanted)
-    setSearchParams(next, { replace: true })
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.set('branch_id', wanted)
+        return next
+      },
+      { replace: true },
+    )
   }, [
     defaultBranch,
     lockedBranch,
@@ -240,6 +245,8 @@ export default function BoardPage() {
       'q',
       'expected_from',
       'expected_to',
+      'closed_from',
+      'closed_to',
     ] as const) {
       if (next[key]) params.set(key, next[key]!)
       else params.delete(key)
@@ -314,7 +321,7 @@ export default function BoardPage() {
         droppable: key !== 'closed',
         note:
           key === 'closed'
-            ? 'Los ciclos cerrados no se mueven: la entrega o el no retiro ya quedó registrado. Para continuar el tratamiento usa «Nueva Reposición».'
+            ? 'Los ciclos cerrados no se mueven: la entrega o el no retiro ya quedó registrado. Para continuar el tratamiento usa «Crear Reposición».'
             : undefined,
         emptyText:
           key === 'closed'
@@ -409,7 +416,7 @@ export default function BoardPage() {
                 onClick={() => setNewCycleFor('top')}
               >
                 <PackageCheck className="size-4" />
-                Nueva Reposición
+                Crear Reposición
               </Button>
             )}
             <Button
