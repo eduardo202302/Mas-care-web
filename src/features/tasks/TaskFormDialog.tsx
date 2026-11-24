@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ClipboardList, UserCheck } from 'lucide-react'
@@ -240,7 +241,7 @@ export function TaskFormDialog({
               <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
                 Tipo
               </span>
-              <select
+              <Select
                 value={type}
                 onChange={(event) => changeType(event.target.value as TaskType)}
                 className={control}
@@ -254,7 +255,7 @@ export function TaskFormDialog({
                     {taskTypeLabels[value]}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
@@ -273,7 +274,7 @@ export function TaskFormDialog({
               <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
                 Prioridad
               </span>
-              <select
+              <Select
                 value={priority}
                 onChange={(event) =>
                   setPriority(event.target.value as TaskPriority)
@@ -289,11 +290,11 @@ export function TaskFormDialog({
                     {taskPriorityLabels[value]}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium">Recordatorio</span>
-              <select
+              <Select
                 value={reminderMinutesBefore}
                 onChange={(event) =>
                   setReminderMinutesBefore(event.target.value)
@@ -305,7 +306,7 @@ export function TaskFormDialog({
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           </div>
 
@@ -338,7 +339,7 @@ export function TaskFormDialog({
                 Paciente{' '}
                 <span className="text-muted font-normal">(Opcional)</span>
               </span>
-              <select
+              <Select
                 value={patientId}
                 onChange={(event) => {
                   const next = event.target.value
@@ -367,7 +368,7 @@ export function TaskFormDialog({
                     {patient.fullName}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           )}
 
@@ -377,7 +378,7 @@ export function TaskFormDialog({
                 Tratamiento{' '}
                 <span className="text-muted font-normal">(Opcional)</span>
               </span>
-              <select
+              <Select
                 value={treatmentId}
                 onChange={(event) => setTreatmentId(event.target.value)}
                 className={control}
@@ -388,7 +389,7 @@ export function TaskFormDialog({
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           )}
 
@@ -397,7 +398,7 @@ export function TaskFormDialog({
               Asignar a{' '}
               <span className="text-muted font-normal">(Opcional)</span>
             </span>
-            <select
+            <Select
               value={assignedTo}
               onChange={(event) => setAssignedTo(event.target.value)}
               className={control}
@@ -408,7 +409,7 @@ export function TaskFormDialog({
                   {user.name} · {user.email}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
 
           {selectedPatient?.primaryBranchId && !branchId && (

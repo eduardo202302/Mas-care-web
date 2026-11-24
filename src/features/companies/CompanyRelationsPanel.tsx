@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useRef, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -185,7 +186,7 @@ function MedicationItemsEditor({
           key={index}
           className="border-border grid grid-cols-[1fr_5rem_auto] gap-2 rounded-lg border p-2"
         >
-          <select
+          <Select
             aria-label="Medicamento"
             value={item.name}
             onChange={(event) => update(index, { name: event.target.value })}
@@ -197,7 +198,7 @@ function MedicationItemsEditor({
                 {medicationName(medication)} ({medication.presentation})
               </option>
             ))}
-          </select>
+          </Select>
           <input
             aria-label="Cantidad"
             type="number"
@@ -307,7 +308,7 @@ function DealCreateForm({
         >
           Tipo de oferta
         </label>
-        <select
+        <Select
           id="deal-type"
           value={dealType}
           onChange={(event) => setDealType(event.target.value as DealType)}
@@ -318,7 +319,7 @@ function DealCreateForm({
               {label}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <TextField label="Compañía" value={companyName} disabled readOnly />
@@ -368,7 +369,7 @@ function ExistingDealPicker({
         >
           Oferta existente
         </label>
-        <select
+        <Select
           id="existing-deal"
           value={dealId}
           onChange={(event) => setDealId(event.target.value)}
@@ -380,7 +381,7 @@ function ExistingDealPicker({
               {deal.name}
             </option>
           ))}
-        </select>
+        </Select>
         <p className="text-muted text-xs">
           Las ofertas de esta compañía ya están asociadas a su registro.
         </p>

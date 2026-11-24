@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
@@ -581,7 +582,7 @@ export function PatientForm({
                   Sucursal
                 </label>
                 <div className="relative">
-                  <select
+                  <Select
                     id="patient-branch"
                     {...register('primaryBranchId')}
                     aria-invalid={Boolean(errors.primaryBranchId)}
@@ -597,7 +598,7 @@ export function PatientForm({
                         {branch.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   <ChevronDown
                     className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
                     aria-hidden="true"

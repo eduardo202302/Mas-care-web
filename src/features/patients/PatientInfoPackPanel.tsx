@@ -6,10 +6,13 @@ import { api } from '@/lib/http'
 import { useCan } from '@/lib/permissions'
 import { formatPhone } from '@/lib/phone'
 import {
+  deliveredQuantityLabel,
   formatDate,
   medicationName,
   treatmentLabel,
+  treatmentPauta,
   treatmentStatusLabel,
+  type DoseScheduleFrequency,
   type Medication,
   type Treatment,
 } from '@/lib/treatments'
@@ -57,9 +60,17 @@ function Empty({ children }: { children: React.ReactNode }) {
   return <p className="text-muted text-sm">{children}</p>
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
+function Fact({
+  label,
+  value,
+  className,
+}: {
+  label: string
+  value: string
+  className?: string
+}) {
   return (
-    <div className="grid gap-0.5">
+    <div className={className ? `grid gap-0.5 ${className}` : 'grid gap-0.5'}>
       <dt className="text-muted text-[11px] font-semibold tracking-wide uppercase">
         {label}
       </dt>
@@ -74,6 +85,7 @@ export function PatientInfoPackPanel({
   branchName,
   treatments,
   medicationsById,
+  schedules,
 }: {
   patientId: string
   /** Ficha del paciente, para el resumen de datos. */
@@ -81,6 +93,8 @@ export function PatientInfoPackPanel({
   branchName?: string
   treatments: Treatment[]
   medicationsById: Map<string, Medication>
+  /** Horario de dosis activo por tratamiento, para mostrar la toma real. */
+  schedules?: Map<string, DoseScheduleFrequency | null>
 }) {
   const canReadDoctors = useCan('doctors:read')
   const doctors = useQuery({
@@ -341,7 +355,12 @@ export function PatientInfoPackPanel({
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Fact
                 label="Dosis"
-                value={`${activeTreatment.dosePerIntake} · ${activeTreatment.intakesPerDay}/día`}
+                className="col-span-2 sm:col-span-4"
+                value={treatmentPauta(
+                  activeTreatment,
+                  medicationsById.get(activeTreatment.medicationId),
+                  schedules?.get(activeTreatment.id),
+                )}
               />
               <Fact
                 label="Cobertura"
@@ -349,6 +368,15 @@ export function PatientInfoPackPanel({
                   activeTreatment.coverageEndOn
                     ? formatDate(activeTreatment.coverageEndOn)
                     : 'Sin cobertura'
+                }
+              />
+              <Fact
+                label="Cantidad entregada"
+                value={
+                  deliveredQuantityLabel(
+                    activeTreatment.deliveredQuantity,
+                    medicationsById.get(activeTreatment.medicationId)?.doseUnit,
+                  ) || '—'
                 }
               />
               <Fact

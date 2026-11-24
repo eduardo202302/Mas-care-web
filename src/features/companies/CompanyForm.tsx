@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -299,7 +300,7 @@ export function CompanyForm({
               Estado
             </label>
             <div className="relative">
-              <select
+              <Select
                 id="company-status"
                 {...register('status')}
                 aria-invalid={Boolean(errors.status)}
@@ -310,7 +311,7 @@ export function CompanyForm({
                     {statusLabels[value]}
                   </option>
                 ))}
-              </select>
+              </Select>
               <ChevronDown
                 className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
                 aria-hidden="true"
@@ -382,7 +383,7 @@ export function CompanyForm({
               Industria
             </label>
             <div className="relative">
-              <select
+              <Select
                 id="company-industry"
                 {...register('industry')}
                 aria-invalid={Boolean(errors.industry)}
@@ -394,7 +395,7 @@ export function CompanyForm({
                     {value}
                   </option>
                 ))}
-              </select>
+              </Select>
               <ChevronDown
                 className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
                 aria-hidden="true"
@@ -409,7 +410,7 @@ export function CompanyForm({
               Tipo
             </label>
             <div className="relative">
-              <select
+              <Select
                 id="company-type"
                 {...register('type')}
                 aria-invalid={Boolean(errors.type)}
@@ -421,7 +422,7 @@ export function CompanyForm({
                     {value}
                   </option>
                 ))}
-              </select>
+              </Select>
               <ChevronDown
                 className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
                 aria-hidden="true"

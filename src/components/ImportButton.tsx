@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Columns3, FileSpreadsheet, ListChecks, Upload } from 'lucide-react'
@@ -263,7 +264,7 @@ export function ImportButton({
                       >
                         {field.label}
                       </span>
-                      <select
+                      <Select
                         value={mapping[field.key] ?? ''}
                         onChange={(event) => {
                           setMapping({
@@ -280,7 +281,7 @@ export function ImportButton({
                             {column}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </label>
                   ))}
                 </div>

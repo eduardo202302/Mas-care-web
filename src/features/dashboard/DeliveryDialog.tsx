@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PackageCheck, ShieldAlert } from 'lucide-react'
@@ -61,15 +62,20 @@ export function DeliveryDialog({
   const treatment = useQuery({
     queryKey: ['treatments', 'detail', treatmentId],
     queryFn: () =>
-      api<Treatment>(`/api/v1/treatments/${encodeURIComponent(treatmentId)}`),
+      api<Treatment & { expected_quantity?: string | null }>(
+        `/api/v1/treatments/${encodeURIComponent(treatmentId)}`,
+      ),
   })
 
+  // Se precarga con la cantidad planificada de la reposición (o, en su defecto, una caja completa).
+  const defaultUnits =
+    treatment.data?.expected_quantity ??
+    treatment.data?.deliveredQuantity ??
+    treatment.data?.quantityPerCycle
   useEffect(() => {
     if (defaultQuantity !== undefined || quantity) return
-    if (treatment.data?.quantityPerCycle !== undefined) {
-      setQuantity(String(treatment.data.quantityPerCycle))
-    }
-  }, [defaultQuantity, quantity, treatment.data?.quantityPerCycle])
+    if (defaultUnits !== undefined) setQuantity(String(defaultUnits))
+  }, [defaultQuantity, quantity, defaultUnits])
 
   // La receta vencida bloquea la entrega: el backend también la rechaza.
   const prescription = useMemo(
@@ -200,7 +206,7 @@ export function DeliveryDialog({
               >
                 ¿Quién Retira?
               </label>
-              <select
+              <Select
                 id="delivery-pickup"
                 value={pickedUpBy}
                 onChange={(event) =>
@@ -214,7 +220,7 @@ export function DeliveryDialog({
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             {pickedUpBy === 'other' && (
               <TextField

@@ -19,9 +19,22 @@ export type BoardColumnData = components['schemas']['BoardColumn'] & {
   due_soon_count?: number
 }
 
+/** Carril del tablero: una columna de estado o "created" ("Creado", el estado inicial: reemplaza a la columna "Por avisar"). */
+export type BoardLaneKey = BoardColumnKey | 'created'
+
 export type BoardData = Omit<BoardResponse, 'columns'> & {
-  columns: Record<BoardColumnKey, BoardColumnData>
+  columns: Record<BoardColumnKey, BoardColumnData> &
+    Partial<Record<'created', BoardColumnData>>
 }
+
+/** Movimientos que piden registrar el aviso al paciente: Creado → Avisado y Confirmado → Preparado. */
+export const movePromptsNotice = (from: string, to: string): boolean =>
+  (from === 'to_notify' && to === 'notified') ||
+  (from === 'confirmed' && to === 'prepared')
+
+/** Estado de una reposición que vive en el carril. */
+export const statusOfLane = (lane: BoardLaneKey): BoardColumnKey =>
+  lane === 'created' ? 'to_notify' : lane
 
 export const boardColumns: readonly BoardColumnKey[] = [
   'to_notify',
@@ -32,7 +45,7 @@ export const boardColumns: readonly BoardColumnKey[] = [
 ]
 
 export const boardColumnLabels: Record<BoardColumnKey, string> = {
-  to_notify: 'Por avisar',
+  to_notify: 'Creado',
   notified: 'Avisado',
   confirmed: 'Confirmado',
   prepared: 'Preparado',
@@ -40,7 +53,7 @@ export const boardColumnLabels: Record<BoardColumnKey, string> = {
 }
 
 export const cycleStatusLabels: Record<CycleStatus, string> = {
-  to_notify: 'Por avisar',
+  to_notify: 'Creado',
   notified: 'Avisado',
   confirmed: 'Confirmado',
   prepared: 'Preparado',
@@ -92,6 +105,8 @@ export type BoardFilters = {
   q?: string
   expected_from?: string
   expected_to?: string
+  created_from?: string
+  created_to?: string
   closed_from?: string
   closed_to?: string
 }
@@ -106,6 +121,8 @@ const filterKeys = [
   'q',
   'expected_from',
   'expected_to',
+  'created_from',
+  'created_to',
   'closed_from',
   'closed_to',
 ] as const
@@ -136,7 +153,25 @@ export function boardFiltersToSearch(
     if (value) params.set(key, value)
     else params.delete(key)
   }
+  // Las fechas de creación son instantes: el servidor necesita el huso del usuario para acotar el día.
+  if (filters.created_from || filters.created_to)
+    params.set('tz_offset', String(new Date().getTimezoneOffset()))
+  else params.delete('tz_offset')
   return params
+}
+
+const pad2 = (value: number) => String(value).padStart(2, '0')
+
+/** Todo hasta ayer (calendario local): sin fecha de inicio, termina el día anterior a hoy (YYYY-MM-DD). */
+export function yesterdayRange(now: Date = new Date()) {
+  const yesterday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() - 1,
+  )
+  return {
+    to: `${yesterday.getFullYear()}-${pad2(yesterday.getMonth() + 1)}-${pad2(yesterday.getDate())}`,
+  }
 }
 
 export function boardQueryString(filters: BoardFilters): string {

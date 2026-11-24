@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState, type ReactNode } from 'react'
 import { TableToolbarActions } from '@/components/TableToolbarActions'
@@ -758,7 +759,7 @@ export default function PatientsPage() {
           }}
         >
           <FilterField label="Estado" icon={<Archive className="size-4" />}>
-            <select
+            <Select
               aria-label="Estado de la ficha"
               value={filterDraft.archived}
               onChange={(event) =>
@@ -774,10 +775,10 @@ export default function PatientsPage() {
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Sucursal" icon={<Building2 className="size-4" />}>
-            <select
+            <Select
               aria-label="Sucursal del paciente"
               value={filterDraft.columns.branch}
               onChange={(event) =>
@@ -791,7 +792,7 @@ export default function PatientsPage() {
                   {branch.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="ID" icon={<Hash className="size-4" />}>
             <input
@@ -824,7 +825,7 @@ export default function PatientsPage() {
             label="Condiciones"
             icon={<Stethoscope className="size-4" />}
           >
-            <select
+            <Select
               aria-label="Condiciones"
               value={filterDraft.columns.condition}
               onChange={(event) =>
@@ -848,10 +849,10 @@ export default function PatientsPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Ciudad" icon={<MapPin className="size-4" />}>
-            <select
+            <Select
               aria-label="Ciudad"
               value={filterDraft.columns.city}
               onChange={(event) => setDraftColumn({ city: event.target.value })}
@@ -866,7 +867,7 @@ export default function PatientsPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           {properties.map((property) => {
             const selected = filterDraft.columns.custom[property.key] ?? ''
@@ -876,7 +877,7 @@ export default function PatientsPage() {
                 label={property.label}
                 icon={<Tag className="size-4" />}
               >
-                <select
+                <Select
                   aria-label={property.label}
                   value={selected}
                   onChange={(event) =>
@@ -909,7 +910,7 @@ export default function PatientsPage() {
                       {value}
                     </option>
                   ))}
-                </select>
+                </Select>
               </FilterField>
             )
           })}

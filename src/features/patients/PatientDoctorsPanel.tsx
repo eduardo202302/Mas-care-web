@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -143,7 +144,7 @@ export function AddDoctorDialog({
     <>
       <Dialog
         title="Agregar Médico"
-        description="Asocia un médico prescriptor a este paciente."
+        description="Asocia un doctor a este paciente."
         icon={<Stethoscope className="size-5" />}
         compactHeader
         bodyClassName="pt-3"
@@ -175,7 +176,7 @@ export function AddDoctorDialog({
               >
                 Médico
               </label>
-              <select
+              <Select
                 id="doctor-picker"
                 required
                 value={doctorId}
@@ -197,7 +198,7 @@ export function AddDoctorDialog({
                     {doctorOptionLabel(doctor)}
                   </option>
                 ))}
-              </select>
+              </Select>
               {doctorOptions.isError && (
                 <p role="alert" className="text-xs text-red-700">
                   No pudimos cargar la lista de médicos.{' '}

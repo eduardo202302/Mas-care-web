@@ -1,3 +1,4 @@
+import { chooseOption } from '@/test/select'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -48,9 +49,10 @@ describe('UserForm', () => {
     ).toMatch(/^\d{6}$/)
   })
 
-  it('lista solo los roles creados, sin los roles integrados', () => {
+  it('lista solo los roles creados, sin los roles integrados', async () => {
     renderForm(vi.fn(async () => undefined))
 
+    await userEvent.setup().click(screen.getByLabelText('Rol'))
     const options = screen
       .getAllByRole('option')
       .map((option) => option.textContent)
@@ -66,7 +68,7 @@ describe('UserForm', () => {
     const user = userEvent.setup()
 
     await fillIdentity(user)
-    await user.selectOptions(screen.getByLabelText('Rol'), 'role-cashier')
+    await chooseOption(user, screen.getByLabelText('Rol'), 'role-cashier')
     await user.click(screen.getByRole('button', { name: /Sucursales/ }))
     await user.click(await screen.findByRole('option', { name: /Centro/ }))
     await user.click(screen.getByRole('button', { name: 'Crear Usuario' }))
@@ -132,7 +134,7 @@ describe('UserForm', () => {
       screen.getByLabelText('Contraseña Temporal'),
       'Password-2026!',
     )
-    await user.selectOptions(screen.getByLabelText('Rol'), 'role-master')
+    await chooseOption(user, screen.getByLabelText('Rol'), 'role-master')
     await user.click(screen.getByRole('button', { name: 'Crear Usuario' }))
 
     expect(
@@ -149,7 +151,7 @@ describe('UserForm', () => {
     const user = userEvent.setup()
 
     await fillIdentity(user)
-    await user.selectOptions(screen.getByLabelText('Rol'), 'role-cashier')
+    await chooseOption(user, screen.getByLabelText('Rol'), 'role-cashier')
     await user.click(screen.getByRole('button', { name: 'Crear Usuario' }))
 
     expect(
@@ -166,7 +168,7 @@ describe('UserForm', () => {
     const user = userEvent.setup()
 
     await fillIdentity(user)
-    await user.selectOptions(screen.getByLabelText('Rol'), 'role-master')
+    await chooseOption(user, screen.getByLabelText('Rol'), 'role-master')
     await user.click(screen.getByRole('button', { name: 'Crear Usuario' }))
 
     await waitFor(() =>

@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -342,7 +343,7 @@ export default function MedicalSpecialtiesPage() {
           }}
         >
           <FilterField label="Estado" icon={<ToggleRight className="size-4" />}>
-            <select
+            <Select
               aria-label="Estado"
               value={filterDraft.isActive}
               onChange={(event) =>
@@ -358,10 +359,10 @@ export default function MedicalSpecialtiesPage() {
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="ID" icon={<Hash className="size-4" />}>
-            <select
+            <Select
               aria-label="ID de la especialidad"
               value={filterDraft.id}
               onChange={(event) =>
@@ -375,10 +376,10 @@ export default function MedicalSpecialtiesPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Nombre" icon={<Stethoscope className="size-4" />}>
-            <select
+            <Select
               aria-label="Nombre de la especialidad"
               value={filterDraft.name}
               onChange={(event) =>
@@ -392,13 +393,13 @@ export default function MedicalSpecialtiesPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField
             label="Descripción"
             icon={<FileText className="size-4" />}
           >
-            <select
+            <Select
               aria-label="Descripción de la especialidad"
               value={filterDraft.description}
               onChange={(event) =>
@@ -415,7 +416,7 @@ export default function MedicalSpecialtiesPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
         </AdvancedFilterDialog>
       )}

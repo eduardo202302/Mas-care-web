@@ -15,6 +15,7 @@ export type TableFilters = {
   branch_ids?: string[]
   responsible_ids?: string[]
   treatment_ids?: string[]
+  /** Una o varias etapas separadas por coma. */
   stage_id?: string
   cp_key?: string
   cp_value?: string
@@ -26,11 +27,11 @@ export const emptyTableFilters: TableFilters = { match: 'and' }
 export type SortPart = { field: string; dir: 'asc' | 'desc' }
 
 export const sortFields: { value: string; label: string }[] = [
-  { value: 'derived_status', label: 'Estado derivado' },
+  { value: 'derived_status', label: 'Estado Vigencia' },
   { value: 'expected_on', label: 'Fecha prevista' },
   { value: 'coverage_end_on', label: 'Fin de cobertura' },
   { value: 'created_at', label: 'Fecha de creación' },
-  { value: 'status', label: 'Estado del ciclo' },
+  { value: 'status', label: 'Estado' },
   { value: 'patient', label: 'Paciente' },
   { value: 'medication', label: 'Medicamento' },
 ]
@@ -72,14 +73,15 @@ export function tableFiltersToSearch(
 export type ColumnDef = { key: string; label: string }
 
 export const cycleColumns: ColumnDef[] = [
+  { key: 'numeric_id', label: 'ID' },
   { key: 'branch', label: 'Sucursal' },
   { key: 'patient', label: 'Paciente' },
   { key: 'medication', label: 'Medicamento' },
-  { key: 'status', label: 'Estado del ciclo' },
-  { key: 'stage', label: 'Etapa' },
+  { key: 'status', label: 'Estado' },
+  { key: 'expected_on', label: 'Fecha de Venta' },
   { key: 'delivered_on', label: 'Fecha de entrega' },
-  { key: 'derived', label: 'Estado derivado' },
-  { key: 'next_action', label: 'Próxima acción' },
+  { key: 'derived', label: 'Estado Vigencia' },
+  { key: 'created_at', label: 'Fecha de Creación' },
 ]
 
 export type SavedView = {

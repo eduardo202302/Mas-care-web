@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { BadgeCheck, MessageSquareText, Send } from 'lucide-react'
@@ -167,7 +168,7 @@ export function TemplateFormDialog({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium">Canal</span>
-              <select
+              <Select
                 value={channel}
                 onChange={(event) =>
                   setChannel(event.target.value as MessageChannel)
@@ -177,11 +178,11 @@ export function TemplateFormDialog({
                 <option value="whatsapp">WhatsApp</option>
                 <option value="telegram">Telegram</option>
                 <option value="call">Llamada</option>
-              </select>
+              </Select>
             </label>
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium">Sucursal</span>
-              <select
+              <Select
                 value={branchId}
                 onChange={(event) => setBranchId(event.target.value)}
                 className={control}
@@ -192,7 +193,7 @@ export function TemplateFormDialog({
                     {branch.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           </div>
 
@@ -254,7 +255,7 @@ export function TemplateFormDialog({
               <span className="text-ink text-sm font-medium">
                 Aviso Automático al que Corresponde
               </span>
-              <select
+              <Select
                 value={attemptNumber}
                 onChange={(event) =>
                   setAttemptNumber(Number(event.target.value))
@@ -264,7 +265,7 @@ export function TemplateFormDialog({
                 <option value={1}>Primer Aviso</option>
                 <option value={2}>Primer Recordatorio</option>
                 <option value={3}>Último Recordatorio</option>
-              </select>
+              </Select>
             </label>
           )}
 
@@ -307,7 +308,7 @@ export function TemplateFormDialog({
                 <span className="text-ink text-sm font-medium">
                   Estado en Meta
                 </span>
-                <select
+                <Select
                   value={waStatus}
                   onChange={(event) =>
                     setWaStatus(event.target.value as typeof waStatus)
@@ -318,7 +319,7 @@ export function TemplateFormDialog({
                   <option value="pending">Pendiente de Aprobación</option>
                   <option value="approved">Aprobada</option>
                   <option value="rejected">Rechazada</option>
-                </select>
+                </Select>
               </label>
               <label className="grid gap-1.5">
                 <span className="text-ink text-sm font-medium">Idioma</span>
@@ -332,7 +333,7 @@ export function TemplateFormDialog({
               </label>
               <label className="grid gap-1.5">
                 <span className="text-ink text-sm font-medium">Categoría</span>
-                <select
+                <Select
                   value={waCategory}
                   onChange={(event) => setWaCategory(event.target.value)}
                   className={control}
@@ -341,7 +342,7 @@ export function TemplateFormDialog({
                   <option value="utility">Utilidad</option>
                   <option value="marketing">Marketing</option>
                   <option value="authentication">Autenticación</option>
-                </select>
+                </Select>
               </label>
             </div>
             {waInvalid && (

@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { CalendarDays } from 'lucide-react'
@@ -163,7 +164,7 @@ export function ReportFilterBar({
             label="Periodo"
             icon={<CalendarDays className="size-4" />}
           >
-            <select
+            <Select
               aria-label="Periodo"
               value={draftPreset}
               onChange={(event) =>
@@ -176,7 +177,7 @@ export function ReportFilterBar({
                   {label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Desde" icon={<CalendarDays className="size-4" />}>
             <input

@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { formatTimestamp } from '@/lib/operations'
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -481,7 +482,7 @@ export default function IncidentsPage() {
           }}
         >
           <FilterField label="Sucursal" icon={<Building2 className="size-4" />}>
-            <select
+            <Select
               aria-label="Sucursal"
               value={filterDraft.branch_id ?? ''}
               disabled={Boolean(lockedBranch)}
@@ -499,10 +500,10 @@ export default function IncidentsPage() {
                   {branch.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Tipo" icon={<TriangleAlert className="size-4" />}>
-            <select
+            <Select
               aria-label="Tipo de incidencia"
               value={filterDraft.type ?? ''}
               onChange={(event) =>
@@ -520,10 +521,10 @@ export default function IncidentsPage() {
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Responsable" icon={<User className="size-4" />}>
-            <select
+            <Select
               aria-label="Responsable"
               value={filterDraft.assigned_to ?? ''}
               onChange={(event) =>
@@ -540,10 +541,10 @@ export default function IncidentsPage() {
                   {user.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Estado" icon={<Activity className="size-4" />}>
-            <select
+            <Select
               aria-label="Estado de la incidencia"
               value={extraDraft.status}
               onChange={(event) =>
@@ -560,13 +561,13 @@ export default function IncidentsPage() {
                   {incidentColumnLabels[status]}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField
             label="Descripción"
             icon={<FileText className="size-4" />}
           >
-            <select
+            <Select
               aria-label="Descripción de la incidencia"
               value={extraDraft.description}
               onChange={(event) =>
@@ -583,10 +584,10 @@ export default function IncidentsPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Paciente" icon={<UserRound className="size-4" />}>
-            <select
+            <Select
               aria-label="Paciente de la incidencia"
               value={extraDraft.patient}
               onChange={(event) =>
@@ -600,7 +601,7 @@ export default function IncidentsPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField
             label="Creada desde"

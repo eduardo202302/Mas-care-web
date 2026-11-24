@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import type { ReactNode } from 'react'
 import { Check, SlidersHorizontal, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -265,7 +266,7 @@ export function FilterSelect({
   allLabel?: string
 }) {
   return (
-    <select
+    <Select
       aria-label={label}
       value={value}
       onChange={(event) => onChange(event.target.value)}
@@ -277,6 +278,6 @@ export function FilterSelect({
           {option}
         </option>
       ))}
-    </select>
+    </Select>
   )
 }

@@ -1,35 +1,50 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ExportButton } from '@/components/ExportButton'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
-  LayoutGrid,
-  List,
-  PackageCheck,
-  RefreshCw,
-  TriangleAlert,
-} from 'lucide-react'
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { LayoutGrid, List, PackageCheck, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import {
+  DateRangeFilter,
+  PRESETS as DATE_PRESETS,
+  presetRange,
+  type Preset,
+} from '@/components/ui/DateRangeFilter'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { EmptyState } from '@/components/EmptyState'
-import { usePipeline } from '@/lib/pipeline'
+import {
+  defaultStageOfColumn,
+  effectiveStage,
+  usePipeline,
+  type PipelineStage,
+} from '@/lib/pipeline'
 import { NewCycleDialog } from './NewCycleDialog'
 import { CycleCloseDialog, type CycleOutcome } from './CycleCloseDialog'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useToast } from '@/components/ui/Toast'
 import { KanbanBoard, type KanbanMove } from '@/components/kanban/KanbanBoard'
-import { ApiError } from '@/lib/http'
+import { api, ApiError } from '@/lib/http'
 import { useCan, useMe } from '@/lib/permissions'
 import {
   boardColumnLabels,
   boardColumns,
   boardFiltersFromSearch,
+  boardFiltersToSearch,
   boardQueryKey,
   isOpenCycle,
+  movePromptsNotice,
+  statusOfLane,
+  yesterdayRange,
   type BoardCard,
   type BoardColumnKey,
   type BoardData,
   type BoardFilters,
+  type BoardLaneKey,
   type CycleStatus,
 } from '@/lib/board'
 import { useUiStore, type BoardView } from '@/stores/ui-store'
@@ -65,16 +80,13 @@ export default function BoardPage() {
   const [columnFilters, setColumnFilters] = useState<CycleColumnFilters>(
     emptyCycleColumnFilters,
   )
-  const [newCycleFor, setNewCycleFor] = useState<BoardColumnKey | 'top' | null>(
-    null,
-  )
+  const [newCycleFor, setNewCycleFor] = useState<'top' | null>(null)
   const canCreateCycle = useCan('treatments:write')
   const boardView = useUiStore((state) => state.boardView)
   const setBoardView = useUiStore((state) => state.setBoardView)
-  const [tableControlsSlot, setTableControlsSlot] =
-    useState<HTMLDivElement | null>(null)
 
-  const canMove = useCan('cycle:move')
+  // Los estados no se cambian desde el tablero (arrastrar, menú, selector de etapa): se cambian con el Seguimiento del paciente.
+  const canMove = false
   const canEditDate = useCan('cycle:edit-date')
   const canWrite = useCan('treatments:write')
   const canCreateIncident = useCan('incident:create')
@@ -128,16 +140,65 @@ export default function BoardPage() {
     setSearchParams,
   ])
 
+  // Al entrar al módulo siempre se parte de la tabla y del filtro "Ayer" (por fecha de venta: todo hasta ayer, sin hoy).
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    setBoardView('table')
+    const yesterday = yesterdayRange()
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('view')
+        next.delete('expected_from')
+        next.set('expected_to', yesterday.to)
+        return next
+      },
+      { replace: true },
+    )
+    setReady(true)
+    // Solo al montar: después el usuario manda.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Conteo por atajo de fecha (Hoy, Ayer, 7 días…): mismos filtros del tablero
+  // pero con el rango de cada atajo; solo se pide el total.
+  const presetCountQueries = useQueries({
+    queries: DATE_PRESETS.map(({ key }) => {
+      const range = presetRange(key)
+      const search = boardFiltersToSearch({
+        ...effectiveFilters,
+        expected_from: range.from,
+        expected_to: range.to,
+      })
+      search.set('page', '1')
+      search.set('rows', '1')
+      return {
+        queryKey: ['cycles', 'date-preset-count', key, search.toString()],
+        queryFn: () =>
+          api<{ total: number }>(`/api/v1/cycles?${search.toString()}`),
+        enabled: branchReady && ready,
+      }
+    }),
+  })
+  const presetCounts: Partial<Record<Preset, number>> = {}
+  DATE_PRESETS.forEach(({ key }, index) => {
+    const total = presetCountQueries[index]?.data?.total
+    if (total !== undefined) presetCounts[key] = total
+  })
+
   const board = useQuery({
     queryKey: boardQueryKey(effectiveFilters),
     queryFn: () => fetchBoard(effectiveFilters),
-    enabled: branchReady,
+    enabled: branchReady && ready,
   })
 
-  const [loadingColumn, setLoadingColumn] = useState<BoardColumnKey | null>(
-    null,
-  )
-  const [noticeCard, setNoticeCard] = useState<BoardCard | null>(null)
+  const [loadingColumn, setLoadingColumn] = useState<BoardLaneKey | null>(null)
+  // `afterMove`: el aviso se abre tras pasar la reposición a otro estado, que ya decidió el usuario.
+  const [noticeCard, setNoticeCard] = useState<{
+    card: BoardCard
+    afterMove: boolean
+  } | null>(null)
+  const [editingCycle, setEditingCycle] = useState<BoardCard | null>(null)
   const [closing, setClosing] = useState<{
     card: BoardCard
     outcome: CycleOutcome
@@ -155,12 +216,21 @@ export default function BoardPage() {
     mutationFn: (variables: {
       card: BoardCard
       to: CycleStatus
+      /** Carril de destino cuando es "Creado", que comparte estado con "Por avisar". */
+      lane?: BoardLaneKey
+      /** Etapa de destino: `null` la deja en la por defecto; sin valor, la columna decide. */
+      stageId?: string | null
       afterId: string | null
       beforeId: string | null
       confirm?: boolean
+      /** No abre el aviso al terminar (lo abre quien llama). */
+      silent?: boolean
     }) =>
       moveCycle(variables.card.cycle_id, {
         to_status: variables.to,
+        ...(variables.stageId !== undefined
+          ? { stage_id: variables.stageId }
+          : {}),
         expected_version: variables.card.version,
         after_id: variables.afterId,
         before_id: variables.beforeId,
@@ -176,9 +246,10 @@ export default function BoardPage() {
           moveCardInBoard(
             previous,
             variables.card,
-            variables.to as BoardColumnKey,
+            variables.lane ?? (variables.to as BoardColumnKey),
             variables.afterId,
             variables.beforeId,
+            variables.stageId,
           ),
         )
       }
@@ -206,7 +277,16 @@ export default function BoardPage() {
       }
       toast.push(error.message, 'error')
     },
-    onSuccess: (result) => {
+    onSuccess: (result, variables) => {
+      // Solo Creado → Avisado y Confirmado → Preparado piden registrar el aviso al paciente.
+      if (
+        !variables.silent &&
+        movePromptsNotice(
+          variables.card.status,
+          statusOfLane(variables.lane ?? (variables.to as BoardColumnKey)),
+        )
+      )
+        setNoticeCard({ card: variables.card, afterMove: true })
       for (const warning of result.warnings ?? []) {
         if (warning.code === 'STOCK_LOW') {
           toast.push('Existencias bajas en esta sucursal.', 'warning')
@@ -245,6 +325,8 @@ export default function BoardPage() {
       'q',
       'expected_from',
       'expected_to',
+      'created_from',
+      'created_to',
       'closed_from',
       'closed_to',
     ] as const) {
@@ -261,7 +343,7 @@ export default function BoardPage() {
     setSearchParams(params, { replace: true })
   }
 
-  async function loadMore(status: BoardColumnKey) {
+  async function loadMore(status: BoardLaneKey) {
     const column = board.data?.columns[status]
     if (!column) return
     const cursor = column.next_cursor ?? column.cards.at(-1)?.cycle_id
@@ -285,33 +367,114 @@ export default function BoardPage() {
     }
   }
 
+  /** Una reposición en «Cancelado» no avanza a Preparado, Compra Externa ni Entregado (el servidor también lo impide). */
+  function blockedByCancelled(card: BoardCard, toStatus: string) {
+    if (
+      !pipeline ||
+      !['prepared', 'closed', 'delivered', 'not_picked_up'].includes(toStatus)
+    )
+      return false
+    const stage = effectiveStage(
+      pipeline,
+      card.status,
+      (card as { stage_id?: string | null }).stage_id,
+    )
+    if (stage?.name.trim().toLowerCase() !== 'cancelado') return false
+    toast.push(
+      'Una reposición en «Cancelado» no puede pasar a Preparado, Compra Externa ni Entregado.',
+      'warning',
+    )
+    return true
+  }
+
   function handleMove(moveRequest: KanbanMove<BoardCard>) {
+    const lane = moveRequest.to as BoardLaneKey
+    if (blockedByCancelled(moveRequest.item, statusOfLane(lane))) return
+    const initialStage = pipeline?.stages.find(
+      (stage) => stage.is_initial && stage.system_status === 'to_notify',
+    )
+    // Soltar en "Creado" fija la etapa inicial.
+    const stageId = lane === 'created' ? initialStage?.id : undefined
     move.mutate({
       card: moveRequest.item,
-      to: moveRequest.to as CycleStatus,
+      to: statusOfLane(lane) as CycleStatus,
+      lane,
+      stageId,
       afterId: moveRequest.afterId,
       beforeId: moveRequest.beforeId,
     })
   }
 
   function moveFromMenu(card: BoardCard, to: CycleStatus) {
+    if (blockedByCancelled(card, to)) return
     move.mutate({ card, to, afterId: null, beforeId: null })
+  }
+
+  /** Estado de la tabla: pasa la reposición a una etapa, moviéndola de columna si la etapa es de otra. */
+  async function setStageFromTable(card: BoardCard, stage: PipelineStage) {
+    if (blockedByCancelled(card, stage.system_status)) return
+    // Entregar pide la fecha y la cantidad en su propio diálogo.
+    if (stage.system_status === 'closed') {
+      setClosing({ card, outcome: 'delivered' })
+      return
+    }
+    if (stage.system_status !== card.status) {
+      try {
+        await move.mutateAsync({
+          card,
+          to: stage.system_status as CycleStatus,
+          afterId: null,
+          beforeId: null,
+          silent: true,
+        })
+      } catch {
+        // `move` ya avisó del error (existencias, conflicto de versión, etc.).
+        return
+      }
+    }
+    try {
+      await api(`/api/v1/cycles/${encodeURIComponent(card.cycle_id)}/stage`, {
+        method: 'PATCH',
+        body: JSON.stringify({ stage_id: stage.id }),
+      })
+      if (movePromptsNotice(card.status, stage.system_status))
+        setNoticeCard({ card, afterMove: true })
+    } catch (error) {
+      toast.push(
+        error instanceof Error ? error.message : 'No pudimos cambiar la etapa.',
+        'error',
+      )
+    }
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['board'] }),
+      queryClient.invalidateQueries({ queryKey: ['cycles'] }),
+      queryClient.invalidateQueries({ queryKey: ['pipeline'] }),
+    ])
   }
 
   const columns = useMemo(() => {
     const data = board.data
     const stages = pipeline?.stages ?? []
-    const stageOf = (key: string) => stages.find((s) => s.system_status === key)
+    // "Creado" es el carril del estado inicial y reemplaza a "Por avisar"; el resto, uno por estado.
+    const stageOf = (key: BoardLaneKey) =>
+      key === 'created'
+        ? stages.find((s) => s.is_initial && s.system_status === 'to_notify')
+        : pipeline && defaultStageOfColumn(pipeline, key)
+    const lanes: BoardLaneKey[] = data?.columns.created
+      ? ['created', ...boardColumns.filter((key) => key !== 'to_notify')]
+      : [...boardColumns]
     const ordered = stages.length
-      ? [...boardColumns].sort(
+      ? [...lanes].sort(
           (a, b) => (stageOf(a)?.position ?? 99) - (stageOf(b)?.position ?? 99),
         )
-      : boardColumns
+      : lanes
     return ordered.map((key) => {
       const column = data?.columns[key]
       return {
         key,
-        title: stageOf(key)?.name ?? boardColumnLabels[key],
+        title:
+          stageOf(key)?.name ??
+          (key === 'created' ? 'Creado' : boardColumnLabels[key]),
         color: stageOf(key)?.color,
         count: column?.count ?? 0,
         dueLabel: column
@@ -334,7 +497,7 @@ export default function BoardPage() {
     })
   }, [board.data, loadingColumn, pipeline])
 
-  if (!me) {
+  if (!me || !ready) {
     return (
       <div className="grid gap-4" aria-busy="true">
         <Skeleton className="h-9 w-72" />
@@ -348,7 +511,21 @@ export default function BoardPage() {
     <div className="animate-in -mt-4 flex h-full min-h-0 flex-col">
       <PageHeader
         title="Tablero de Reposiciones"
-        subtitle="Mueve cada ciclo por avisar, avisado, confirmado y preparado. La columna de entregados no admite arrastre."
+        actions={
+          <DateRangeFilter
+            label="Filtrar por fecha de venta"
+            chipLabel="Venta"
+            counts={presetCounts}
+            value={{ from: filters.expected_from, to: filters.expected_to }}
+            onChange={(range) =>
+              updateFilters({
+                ...filters,
+                expected_from: range.from,
+                expected_to: range.to,
+              })
+            }
+          />
+        }
       />
 
       <nav
@@ -386,10 +563,6 @@ export default function BoardPage() {
             Tabla
           </button>
         </div>
-        <div
-          ref={setTableControlsSlot}
-          className="flex items-center gap-2 pb-2"
-        />
       </nav>
 
       <BoardFilterBar
@@ -456,11 +629,8 @@ export default function BoardPage() {
             filters={effectiveFilters}
             columnFilters={columnFilters}
             canMove={canMove}
-            canWrite={canWrite}
-            onBoardFiltersChange={updateFilters}
-            onMove={(card, to) => moveFromMenu(card, to)}
+            onSetStage={(card, stage) => void setStageFromTable(card, stage)}
             onOpenCard={(card) => navigate(`/pacientes/${card.patient.id}`)}
-            controlsSlot={tableControlsSlot}
           />
         ) : board.isLoading || !branchReady ? (
           <div
@@ -513,11 +683,8 @@ export default function BoardPage() {
                 canCreateIncident={canCreateIncident}
                 canMarkStock={canMarkStock}
                 dragHandleProps={options.dragHandleProps}
-                onNotice={() => setNoticeCard(card)}
-                onDeliver={() => setClosing({ card, outcome: 'delivered' })}
-                onNotPickedUp={() =>
-                  setClosing({ card, outcome: 'not_picked_up' })
-                }
+                onEdit={() => setEditingCycle(card)}
+                onNotice={() => setNoticeCard({ card, afterMove: false })}
                 onChangeDate={() => setDateCard(card)}
                 onCreateIncident={() => setIncidentCard(card)}
                 onMoveTo={(to) => moveFromMenu(card, to)}
@@ -528,16 +695,17 @@ export default function BoardPage() {
         )}
       </div>
 
-      {!canMove && view === 'board' && board.data && (
-        <p className="text-muted mt-2 flex items-center gap-2 text-xs">
-          <TriangleAlert className="size-3.5" />
-          Tu rol permite consultar el tablero, pero no mover tarjetas.
-        </p>
+      {editingCycle && canWrite && (
+        <NewCycleDialog
+          key={`${editingCycle.cycle_id}-${editingCycle.version}`}
+          editCard={editingCycle}
+          onClose={() => setEditingCycle(null)}
+        />
       )}
-
       {noticeCard && (
         <BoardNoticeDialog
-          card={noticeCard}
+          card={noticeCard.card}
+          keepStatus={noticeCard.afterMove}
           onClose={() => setNoticeCard(null)}
         />
       )}
@@ -608,12 +776,7 @@ export default function BoardPage() {
           }}
         />
       )}
-      {newCycleFor && (
-        <NewCycleDialog
-          initialStatus={newCycleFor === 'top' ? undefined : newCycleFor}
-          onClose={() => setNewCycleFor(null)}
-        />
-      )}
+      {newCycleFor && <NewCycleDialog onClose={() => setNewCycleFor(null)} />}
     </div>
   )
 }

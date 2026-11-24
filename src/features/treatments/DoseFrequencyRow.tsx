@@ -1,8 +1,10 @@
+import { Select } from '@/components/ui/Select'
 import {
   DAY_PRESETS,
   HOUR_PRESETS,
   MONTH_DAYS,
   WEEKDAY_SHORT_LABELS,
+  nextFreeDoseTime,
   partsToTime,
   timeToParts,
   type DoseFrequencyFormValue,
@@ -15,7 +17,7 @@ const selectClass =
   'border-border text-ink h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none transition focus:border-tealmax focus:ring-2 focus:ring-tealmax/15 appearance-none'
 
 const timePartClass =
-  'border-border text-ink h-10 rounded-lg border bg-white px-1.5 text-sm outline-none transition focus:border-tealmax focus:ring-2 focus:ring-tealmax/15 appearance-none'
+  'border-border text-ink h-10 shrink-0 rounded-lg border bg-white pl-2 pr-6 text-sm outline-none transition focus:border-tealmax focus:ring-2 focus:ring-tealmax/15 appearance-none'
 
 const MINUTES = Array.from({ length: 60 }, (_, minute) => minute)
 
@@ -31,6 +33,7 @@ function TimePicker12h({
   label?: string
   required?: boolean
 }) {
+  const unset = value === ''
   const parts = timeToParts(value)
   const update = (patch: Partial<typeof parts>) =>
     onChange(partsToTime({ ...parts, ...patch }))
@@ -44,42 +47,60 @@ function TimePicker12h({
         </span>
       )}
       <div className="flex items-center gap-1">
-        <select
+        <Select
           aria-label="Hora"
-          value={parts.hour12}
+          showAll
+          value={unset ? '' : parts.hour12}
           onChange={(event) => update({ hour12: Number(event.target.value) })}
-          className={`${timePartClass} w-14`}
+          className={`${timePartClass} w-[3.75rem]`}
         >
+          {unset && (
+            <option value="" disabled hidden>
+              --
+            </option>
+          )}
           {Array.from({ length: 12 }, (_, index) => index + 1).map((hour) => (
             <option key={hour} value={hour}>
               {hour}
             </option>
           ))}
-        </select>
+        </Select>
         <span className="text-muted">:</span>
-        <select
+        <Select
           aria-label="Minutos"
-          value={parts.minute}
+          showAll
+          value={unset ? '' : parts.minute}
           onChange={(event) => update({ minute: Number(event.target.value) })}
-          className={`${timePartClass} w-16`}
+          className={`${timePartClass} w-[3.75rem]`}
         >
+          {unset && (
+            <option value="" disabled hidden>
+              --
+            </option>
+          )}
           {MINUTES.map((minute) => (
             <option key={minute} value={minute}>
               {String(minute).padStart(2, '0')}
             </option>
           ))}
-        </select>
-        <select
+        </Select>
+        <Select
           aria-label="AM o PM"
-          value={parts.period}
+          showAll
+          value={unset ? '' : parts.period}
           onChange={(event) =>
             update({ period: event.target.value as 'AM' | 'PM' })
           }
-          className={`${timePartClass} w-16`}
+          className={`${timePartClass} w-[4.25rem]`}
         >
+          {unset && (
+            <option value="" disabled hidden>
+              --
+            </option>
+          )}
           <option value="AM">AM</option>
           <option value="PM">PM</option>
-        </select>
+        </Select>
       </div>
     </div>
   )
@@ -89,6 +110,8 @@ function TimePicker12h({
 function encode(value: DoseFrequencyFormValue): string {
   if (value.frequencyMode === 'weekday') return 'weekday'
   if (value.frequencyMode === 'monthday') return 'monthday'
+  if (value.frequencyMode === 'monthend') return 'monthend'
+  if (value.frequencyMode === 'hours' && value.hoursPreset === '') return ''
   if (value.frequencyMode === 'days')
     return `days:${value.daysPreset === 'custom' ? 'custom' : value.daysPreset}`
   return `hours:${value.hoursPreset === 'custom' ? 'custom' : value.hoursPreset}`
@@ -101,6 +124,7 @@ function decode(
 ): DoseFrequencyFormValue {
   if (code === 'weekday') return { ...current, frequencyMode: 'weekday' }
   if (code === 'monthday') return { ...current, frequencyMode: 'monthday' }
+  if (code === 'monthend') return { ...current, frequencyMode: 'monthend' }
   const [kind, preset] = code.split(':') as ['hours' | 'days', string]
   if (kind === 'days')
     return { ...current, frequencyMode: 'days', daysPreset: preset }
@@ -153,7 +177,9 @@ export function DoseFrequencyRow({
   // inicio" (sin pedir hora); en Crear Tratamiento (requireTomaTime) sí se pide.
   const showToma = keepTomaTime || value.frequencyMode !== 'hours'
   const isMultiTime =
-    value.frequencyMode === 'weekday' || value.frequencyMode === 'monthday'
+    value.frequencyMode === 'weekday' ||
+    value.frequencyMode === 'monthday' ||
+    value.frequencyMode === 'monthend'
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -194,14 +220,20 @@ export function DoseFrequencyRow({
         >
           Frecuencia
         </label>
-        <select
+        <Select
           id="dose-frequency-select"
+          showAll
           value={code}
           onChange={(event) =>
             onChange(decode(event.target.value, value, keepTomaTime))
           }
           className={selectClass}
         >
+          {code === '' && (
+            <option value="" disabled hidden>
+              Selecciona
+            </option>
+          )}
           <optgroup label="Intervalo de Horas">
             {HOUR_PRESETS.map((preset) => (
               <option key={preset} value={`hours:${preset}`}>
@@ -220,7 +252,8 @@ export function DoseFrequencyRow({
           </optgroup>
           <option value="weekday">Día(s) de la Semana…</option>
           <option value="monthday">Día(s) del Mes…</option>
-        </select>
+          <option value="monthend">Fin de Mes</option>
+        </Select>
       </div>
 
       {needsCustomHours && (
@@ -313,6 +346,13 @@ export function DoseFrequencyRow({
         </div>
       )}
 
+      {value.frequencyMode === 'monthend' && (
+        <p className="text-muted text-xs sm:col-span-2">
+          Se toma el último día de cada mes: 28 o 29 en febrero, 30 o 31 en los
+          demás.
+        </p>
+      )}
+
       {value.frequencyMode === 'weekday' && (
         <div className="grid gap-1.5 sm:col-span-2">
           <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
@@ -392,7 +432,13 @@ export function DoseFrequencyRow({
             variant="ghost"
             className="h-8 w-fit px-2 text-xs"
             onClick={() =>
-              onChange({ ...value, weekdayTimes: [...value.weekdayTimes, ''] })
+              onChange({
+                ...value,
+                weekdayTimes: [
+                  ...value.weekdayTimes,
+                  nextFreeDoseTime(value.weekdayTimes),
+                ],
+              })
             }
           >
             <Plus className="size-3.5" />

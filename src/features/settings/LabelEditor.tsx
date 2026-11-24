@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import {
   useCallback,
   useEffect,
@@ -533,7 +534,7 @@ export function LabelEditor({
           >
             <Grid3x3 className="size-4" />
           </button>
-          <select
+          <Select
             value={zoomChoice}
             onChange={(event) => setZoomChoice(event.target.value)}
             aria-label="Zoom"
@@ -544,7 +545,7 @@ export function LabelEditor({
             <option value="1">100%</option>
             <option value="1.5">150%</option>
             <option value="2">200%</option>
-          </select>
+          </Select>
         </div>
 
         <div className="flex min-h-[360px] flex-1 overflow-auto p-2">

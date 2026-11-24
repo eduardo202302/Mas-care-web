@@ -15,6 +15,7 @@ import { useMe } from '@/lib/permissions'
 import { useUiStore } from '@/stores/ui-store'
 import { Button } from './Button'
 import { ConfirmDialog } from './ConfirmDialog'
+import { DialogFooterContext } from './dialog-footer'
 import { DialogSections } from './ModalSection'
 
 /** Encabezado que solo aparece al imprimir: empresa, título, sucursal, quién imprime y fecha. */
@@ -175,7 +176,7 @@ export function Dialog({
   printable?: boolean
   onClose: () => void
   children: ReactNode
-  size?: 'md' | 'lg' | 'xl' | 'full'
+  size?: 'md' | 'lg' | 'xl' | '2xl' | 'full'
   bodyClassName?: string
   /** Fila extra bajo el título, dentro del encabezado. */
   headerContent?: ReactNode
@@ -187,6 +188,7 @@ export function Dialog({
   footer?: ReactNode
 }) {
   const compact = dense || compactHeader
+  const [footerSlot, setFooterSlot] = useState<HTMLElement | null>(null)
   const titleId = useId()
   const descriptionId = useId()
   const rootRef = useRef<HTMLDivElement>(null)
@@ -265,7 +267,7 @@ export function Dialog({
           aria-labelledby={titleId}
           aria-describedby={description ? descriptionId : undefined}
           className={cn(
-            `animate-in border-border flex w-full flex-col overflow-hidden rounded-2xl border bg-[#EAF7F0] shadow-2xl ${size === 'full' ? 'h-[calc(100dvh-2rem)] sm:h-[calc(100dvh-3rem)]' : dense ? '' : 'max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)]'} ${size === 'full' ? 'lg:max-w-[75%]' : size === 'xl' ? 'max-w-5xl' : size === 'lg' ? 'max-w-3xl' : 'max-w-xl'}`,
+            `animate-in border-border flex w-full flex-col overflow-hidden rounded-2xl border bg-[#EAF7F0] shadow-2xl ${size === 'full' || !dense ? 'h-[calc(100dvh-2rem)] sm:h-[calc(100dvh-3rem)]' : ''} ${size === 'full' ? 'lg:max-w-[75%]' : size === '2xl' ? 'max-w-7xl' : size === 'xl' ? 'max-w-5xl' : size === 'lg' ? 'max-w-3xl' : 'max-w-xl'}`,
             panelClassName,
           )}
         >
@@ -343,20 +345,23 @@ export function Dialog({
               bodyClassName,
             )}
           >
-            <DialogSections>
-              {printable ? (
-                <PrintFrame
-                  title={titleAside ? `${title} · ${titleAside}` : title}
-                  subtitle={description}
-                >
-                  {children}
-                </PrintFrame>
-              ) : (
-                children
-              )}
-            </DialogSections>
+            <DialogFooterContext.Provider value={footerSlot}>
+              <DialogSections>
+                {printable ? (
+                  <PrintFrame
+                    title={titleAside ? `${title} · ${titleAside}` : title}
+                    subtitle={description}
+                  >
+                    {children}
+                  </PrintFrame>
+                ) : (
+                  children
+                )}
+              </DialogSections>
+            </DialogFooterContext.Provider>
           </div>
           {footer && <div className="shrink-0">{footer}</div>}
+          <div ref={setFooterSlot} className="shrink-0 empty:hidden" />
         </section>
         {confirmingExit && (
           <ConfirmDialog

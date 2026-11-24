@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { formatTimestamp } from '@/lib/operations'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -19,11 +20,14 @@ import { TextField } from '@/components/ui/TextField'
 import { TextAreaField } from '@/components/ui/TextAreaField'
 import {
   buildDoseScheduleFields,
+  defaultDoseFrequencyValue,
   frequencyColumns,
+  frequencyFromFields,
   isDoseFrequencyValid,
   loadDoseFrequencyFromSchedule,
   type DoseFrequencyType,
   type FrequencyMode,
+  type PendingDoseChange,
 } from '@/lib/treatments'
 import { DoseFrequencyRow } from './DoseFrequencyRow'
 import { NewDoctorButton } from '@/features/doctors/NewDoctorButton'
@@ -136,6 +140,57 @@ function scheduleFormKey(values: {
   ])
 }
 
+/** Aviso del cambio de dosis que queda pendiente hasta marcar la reposición como entregada. */
+function PendingDoseNotice({
+  change,
+  doseUnit,
+  onDiscard,
+}: {
+  change: PendingDoseChange
+  doseUnit?: string
+  onDiscard?: () => void
+}) {
+  const columns = frequencyColumns(frequencyFromFields(change))
+  return (
+    <div
+      role="status"
+      className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"
+    >
+      <p className="font-semibold">Cambio pendiente</p>
+      <p className="mt-0.5 text-xs">
+        No se aplica todavía: el tratamiento se actualiza cuando marques esta
+        reposición como entregada.
+      </p>
+      <dl className="mt-2 grid grid-cols-3 gap-x-4 gap-y-1">
+        <div>
+          <dt className="text-xs opacity-70">Cantidad</dt>
+          <dd className="font-medium">
+            {change.dose_per_intake} {doseUnit || ''}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs opacity-70">Frecuencia</dt>
+          <dd className="font-medium">{columns.frequency}</dd>
+        </div>
+        <div>
+          <dt className="text-xs opacity-70">Toma</dt>
+          <dd className="font-medium">{columns.whenToTake}</dd>
+        </div>
+      </dl>
+      {onDiscard && (
+        <Button
+          type="button"
+          variant="ghost"
+          className="mt-2 h-8 px-2 text-xs"
+          onClick={onDiscard}
+        >
+          Descartar cambio
+        </Button>
+      )}
+    </div>
+  )
+}
+
 export function DoseScheduleCard({
   treatmentId,
   medicationLabel,
@@ -143,11 +198,21 @@ export function DoseScheduleCard({
   open: openProp,
   onOpenChange,
   showChangeButton = true,
+  deferred,
 }: {
   treatmentId: string
   /** Nombre del medicamento, para la columna "Producto" de la fila de frecuencia. */
   medicationLabel?: string
   doseUnit?: string
+  /**
+   * Modo diferido (desde una reposición): "Modificar Dosis" no cambia el
+   * tratamiento; deja el cambio pendiente en `pending`/`onChange` y se aplica
+   * recién al marcar la reposición como entregada.
+   */
+  deferred?: {
+    pending: PendingDoseChange | null
+    onChange: (change: PendingDoseChange | null) => void
+  }
   /** Control externo del formulario (lo abre el menú de Acciones). */
   open?: boolean
   onOpenChange?: (open: boolean) => void
@@ -173,7 +238,9 @@ export function DoseScheduleCard({
   const [startTime, setStartTime] = useState('08:00')
   const [weekdays, setWeekdays] = useState<number[]>([])
   const [monthdays, setMonthdays] = useState<number[]>([])
-  const [weekdayTimes, setWeekdayTimes] = useState<string[]>([''])
+  const [weekdayTimes, setWeekdayTimes] = useState<string[]>(
+    defaultDoseFrequencyValue().weekdayTimes,
+  )
   const [reason, setReason] = useState('')
   const [authorizedBy, setAuthorizedBy] = useState('')
   const [authorizedByDoctorId, setAuthorizedByDoctorId] = useState('')
@@ -335,12 +402,11 @@ export function DoseScheduleCard({
     weekdayTimes,
   })
 
-  const create = useMutation({
-    mutationFn: () => {
-      const form = new FormData()
-      form.set('dose_per_intake', dosePerIntake)
-      form.set('effective_from', effectiveFrom)
-      const fields = buildDoseScheduleFields(
+  /** Campos del cambio de dosis, tal como los espera `POST .../dose-schedules` (sin vigencia ni archivo). */
+  function scheduleFields(): PendingDoseChange {
+    return {
+      dose_per_intake: dosePerIntake,
+      ...buildDoseScheduleFields(
         {
           frequencyMode: mode,
           hoursPreset,
@@ -353,12 +419,21 @@ export function DoseScheduleCard({
           weekdayTimes,
         },
         effectiveFrom,
-      )
-      for (const [key, value] of Object.entries(fields)) form.set(key, value)
-      if (reason.trim()) form.set('reason', reason.trim())
-      if (authorizedBy.trim()) form.set('authorized_by', authorizedBy.trim())
-      if (authorizationNote.trim())
-        form.set('authorization_note', authorizationNote.trim())
+      ),
+      ...(reason.trim() ? { reason: reason.trim() } : {}),
+      ...(authorizedBy.trim() ? { authorized_by: authorizedBy.trim() } : {}),
+      ...(authorizationNote.trim()
+        ? { authorization_note: authorizationNote.trim() }
+        : {}),
+    }
+  }
+
+  const create = useMutation({
+    mutationFn: () => {
+      const form = new FormData()
+      form.set('effective_from', effectiveFrom)
+      for (const [key, value] of Object.entries(scheduleFields()))
+        form.set(key, value)
       if (file) form.set('authorization_document', file)
       return api(
         `/api/v1/treatments/${encodeURIComponent(treatmentId)}/dose-schedules`,
@@ -464,15 +539,24 @@ export function DoseScheduleCard({
             )}
           </div>
         )}
+        {deferred?.pending && (
+          <PendingDoseNotice
+            change={deferred.pending}
+            doseUnit={doseUnit}
+            onDiscard={canWrite ? () => deferred.onChange(null) : undefined}
+          />
+        )}
       </ModalSection>
 
       {open && (
         <Dialog
           title={isChange ? 'Modificar Dosis' : 'Definir Programación de Dosis'}
           description={
-            isChange
-              ? 'Cierra el horario activo y abre uno nuevo. Requiere autorización médica.'
-              : 'Define cuántas unidades y a qué horas se toma este medicamento.'
+            deferred
+              ? 'El cambio no se aplica ahora: queda pendiente y se aplica al tratamiento cuando marques esta reposición como entregada.'
+              : isChange
+                ? 'Cierra el horario activo y abre uno nuevo. Requiere autorización médica.'
+                : 'Define cuántas unidades y a qué horas se toma este medicamento.'
           }
           icon={<Clock className="size-5" />}
           compactHeader
@@ -486,6 +570,12 @@ export function DoseScheduleCard({
               if (!dosePerIntake) return
               if (!isFrequencyValid) {
                 setShowFrequencyError(true)
+                return
+              }
+              if (deferred) {
+                // No se toca el tratamiento: el cambio queda pendiente en la reposición.
+                deferred.onChange(scheduleFields())
+                setOpen(false)
                 return
               }
               create.mutate()
@@ -529,22 +619,24 @@ export function DoseScheduleCard({
                   toma.
                 </p>
               )}
-              <div className="flex items-end gap-3">
-                <TextField
-                  label="Vigente desde"
-                  type="date"
-                  required
-                  className="w-40"
-                  min={minEffectiveFrom}
-                  value={effectiveFrom}
-                  onChange={(event) => setEffectiveFrom(event.target.value)}
-                />
-                {firstEffectiveFrom ? (
-                  <span className="text-muted mb-2 text-sm">
-                    Transcurrido {elapsedSince(firstEffectiveFrom)}
-                  </span>
-                ) : null}
-              </div>
+              {!deferred && (
+                <div className="flex items-end gap-3">
+                  <TextField
+                    label="Vigente desde"
+                    type="date"
+                    required
+                    className="w-40"
+                    min={minEffectiveFrom}
+                    value={effectiveFrom}
+                    onChange={(event) => setEffectiveFrom(event.target.value)}
+                  />
+                  {firstEffectiveFrom ? (
+                    <span className="text-muted mb-2 text-sm">
+                      Transcurrido {elapsedSince(firstEffectiveFrom)}
+                    </span>
+                  ) : null}
+                </div>
+              )}
               <TextAreaField
                 label="Motivo (opcional)"
                 value={reason}
@@ -564,7 +656,7 @@ export function DoseScheduleCard({
                     Autorizado por
                   </label>
                   <div className="flex flex-wrap items-center gap-2">
-                    <select
+                    <Select
                       id="authorized-by-doctor"
                       value={authorizedByDoctorId}
                       onChange={(event) => {
@@ -594,7 +686,7 @@ export function DoseScheduleCard({
                           {doctor.firstName} {doctor.lastName}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                     <NewDoctorButton
                       onCreated={(doctor) => {
                         setAuthorizedByDoctorId(doctor.id)
@@ -615,27 +707,29 @@ export function DoseScheduleCard({
                   value={authorizationNote}
                   onChange={(event) => setAuthorizationNote(event.target.value)}
                 />
-                <div className="grid gap-1.5">
-                  <span className="text-ink text-sm font-medium">
-                    Documento de autorización
-                  </span>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    onChange={(event) =>
-                      setFile(event.target.files?.[0] ?? null)
-                    }
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-fit"
-                  >
-                    <Upload className="size-4" />
-                    {file ? file.name : 'Subir Documento'}
-                  </Button>
-                </div>
+                {!deferred && (
+                  <div className="grid gap-1.5">
+                    <span className="text-ink text-sm font-medium">
+                      Documento de autorización
+                    </span>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      onChange={(event) =>
+                        setFile(event.target.files?.[0] ?? null)
+                      }
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-fit"
+                    >
+                      <Upload className="size-4" />
+                      {file ? file.name : 'Subir Documento'}
+                    </Button>
+                  </div>
+                )}
               </ModalSection>
             )}
             {create.isError && (
@@ -658,7 +752,11 @@ export function DoseScheduleCard({
                 disabled={create.isPending || unchanged}
                 title={unchanged ? 'No hay cambios para guardar' : undefined}
               >
-                {create.isPending ? 'Guardando…' : 'Guardar'}
+                {create.isPending
+                  ? 'Guardando…'
+                  : deferred
+                    ? 'Guardar Cambio'
+                    : 'Guardar'}
               </Button>
             </FormActions>
           </form>
@@ -845,7 +943,7 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
                 <span className="after:ml-0.5 after:text-red-600 after:content-['*']">
                   Motivo
                 </span>
-                <select
+                <Select
                   value={skipReasonCode}
                   onChange={(event) => setSkipReasonCode(event.target.value)}
                   className="border-border text-ink focus:border-tealmax focus:ring-tealmax/15 h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2"
@@ -855,7 +953,7 @@ export function DoseTimeline({ treatmentId }: { treatmentId: string }) {
                       {label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
               <TextAreaField
                 label="Nota (obligatoria si el motivo es 'Otro')"

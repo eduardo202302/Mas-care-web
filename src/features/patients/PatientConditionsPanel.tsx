@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarDays, HeartPulse, Plus } from 'lucide-react'
@@ -58,7 +59,7 @@ export function ConditionRowContent({
       </p>
       <div className="mt-1 flex items-center gap-2">
         {onStatusChange ? (
-          <select
+          <Select
             aria-label={`Estado de ${name}`}
             value={status}
             onChange={(event) =>
@@ -71,7 +72,7 @@ export function ConditionRowContent({
                 {label}
               </option>
             ))}
-          </select>
+          </Select>
         ) : (
           <span className="text-muted text-xs">
             {conditionStatusLabels[status]}
@@ -206,7 +207,7 @@ export function AddConditionDialog({
               >
                 Condición
               </label>
-              <select
+              <Select
                 id="condition-picker"
                 required
                 value={healthConditionId}
@@ -228,7 +229,7 @@ export function AddConditionDialog({
                     {condition.name}
                   </option>
                 ))}
-              </select>
+              </Select>
               {conditionOptions.isError && (
                 <p role="alert" className="text-xs text-red-700">
                   No pudimos cargar la lista de condiciones.{' '}
@@ -254,7 +255,7 @@ export function AddConditionDialog({
               >
                 Estado
               </label>
-              <select
+              <Select
                 id="condition-status"
                 value={status}
                 onChange={(event) =>
@@ -267,7 +268,7 @@ export function AddConditionDialog({
                     {label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           </ModalSection>
           <ModalSection

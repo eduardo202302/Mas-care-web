@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Download } from 'lucide-react'
@@ -112,14 +113,14 @@ export function ExportButton({
           <div className="grid gap-4">
             <label className="grid gap-1 text-sm font-medium">
               Formato
-              <select
+              <Select
                 value={format}
                 onChange={(event) => setFormat(event.target.value as Format)}
                 className="border-border h-10 rounded-lg border bg-white px-3 text-sm"
               >
                 <option value="csv">CSV</option>
                 <option value="xlsx">XLSX (Excel)</option>
-              </select>
+              </Select>
             </label>
             <fieldset className="app-scroll grid max-h-64 gap-1.5 overflow-y-auto">
               <legend className="mb-1 text-sm font-medium">Columnas</legend>

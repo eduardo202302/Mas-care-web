@@ -131,7 +131,8 @@ export function AppLayout() {
       if (previous.activeBranchId === null) return
       void queryClient.invalidateQueries({
         predicate: (query) =>
-          query.queryKey[0] !== 'me' && query.queryKey[0] !== 'my-organizations',
+          query.queryKey[0] !== 'me' &&
+          query.queryKey[0] !== 'my-organizations',
       })
     })
   }, [])

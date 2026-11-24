@@ -77,7 +77,7 @@ export const LABEL_VARIABLE_LABELS: Record<LabelVariableKey, string> = {
   instrucciones: 'Instrucciones',
   fecha_inicio: 'Fecha de inicio',
   fecha_fin: 'Fecha de finalización',
-  prescriptor: 'Médico / prescriptor',
+  prescriptor: 'Doctor',
   codigo_tratamiento: 'Código de tratamiento',
 }
 

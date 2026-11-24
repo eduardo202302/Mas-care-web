@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -8,7 +9,6 @@ import {
   Clock,
   Filter,
   Flag,
-  Layers,
   ListChecks,
   Pill,
   SlidersHorizontal,
@@ -48,7 +48,7 @@ const controlClass =
 
 function FieldIcon({ children }: { children: ReactNode }) {
   return (
-    <span className="bg-modulos text-cuidado pointer-events-none absolute top-1/2 left-1.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-md">
+    <span className="bg-modulos text-cuidado pointer-events-none absolute top-1/2 left-1.5 z-10 flex size-7 -translate-y-1/2 items-center justify-center rounded-md">
       {children}
     </span>
   )
@@ -80,11 +80,11 @@ const filterChipLabel: Partial<Record<keyof Filters, string>> = {
   branch_id: 'Sucursal',
   responsible_user_id: 'Responsable',
   medication_id: 'Medicamento',
-  derived_status: 'Estado',
-  expected_from: 'Desde',
-  expected_to: 'Hasta',
-  closed_from: 'Entrega desde',
-  closed_to: 'Entrega hasta',
+  derived_status: 'Estado Vigencia',
+  created_from: 'Creación desde',
+  created_to: 'Creación hasta',
+  closed_from: 'Entrega/No retiro desde',
+  closed_to: 'Entrega/No retiro hasta',
 }
 
 export function BoardFilters({
@@ -117,6 +117,10 @@ export function BoardFilters({
   const [columnDraft, setColumnDraft] =
     useState<CycleColumnFilters>(appliedColumns)
   const { data: pipeline } = usePipeline()
+  // Estados del tablero tal como los configura la organización (los cerrados se eligen aparte).
+  const openStages = [...(pipeline?.stages ?? [])]
+    .filter((stage) => stage.system_status !== 'closed')
+    .sort((a, b) => a.position - b.position)
   const properties = useCustomProperties('treatment').data?.data ?? []
   const users = useQuery({
     queryKey: ['users', 'board-filter'],
@@ -193,7 +197,7 @@ export function BoardFilters({
     if (appliedColumns.status)
       columnChips.push({
         key: 'status',
-        label: 'Estado del ciclo',
+        label: 'Estado',
         value:
           cycleStatusLabels[
             appliedColumns.status as keyof typeof cycleStatusLabels
@@ -202,7 +206,7 @@ export function BoardFilters({
     if (appliedColumns.stage)
       columnChips.push({
         key: 'stage',
-        label: 'Etapa',
+        label: 'Estado',
         value:
           pipeline?.stages.find((stage) => stage.id === appliedColumns.stage)
             ?.name ?? appliedColumns.stage,
@@ -378,7 +382,7 @@ export function BoardFilters({
                 <FieldIcon>
                   <Building2 className="size-4" />
                 </FieldIcon>
-                <select
+                <Select
                   aria-label="Sucursal"
                   value={draft.branch_id ?? ''}
                   disabled={branchLocked}
@@ -393,7 +397,7 @@ export function BoardFilters({
                       {branch.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </span>
             </label>
             <label className="grid gap-1.5">
@@ -402,7 +406,7 @@ export function BoardFilters({
                 <FieldIcon>
                   <User className="size-4" />
                 </FieldIcon>
-                <select
+                <Select
                   aria-label="Responsable"
                   value={draft.responsible_user_id ?? ''}
                   onChange={(event) =>
@@ -416,7 +420,7 @@ export function BoardFilters({
                       {user.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </span>
             </label>
             <label className="grid gap-1.5">
@@ -425,7 +429,7 @@ export function BoardFilters({
                 <FieldIcon>
                   <Pill className="size-4" />
                 </FieldIcon>
-                <select
+                <Select
                   aria-label="Medicamento"
                   value={draft.medication_id ?? ''}
                   onChange={(event) =>
@@ -442,19 +446,19 @@ export function BoardFilters({
                         'Medicamento'}
                     </option>
                   ))}
-                </select>
+                </Select>
               </span>
             </label>
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium">
-                Estado derivado
+                Estado Vigencia
               </span>
               <span className="relative block">
                 <FieldIcon>
                   <Tag className="size-4" />
                 </FieldIcon>
-                <select
-                  aria-label="Estado derivado"
+                <Select
+                  aria-label="Estado Vigencia"
                   value={draft.derived_status ?? ''}
                   onChange={(event) => {
                     const value = event.target.value as DerivedStatus | ''
@@ -468,44 +472,38 @@ export function BoardFilters({
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </span>
             </label>
             {showColumns && (
               <>
-                <ColumnField label="Estado del ciclo" icon={<Flag />}>
-                  <select
-                    aria-label="Estado del ciclo"
-                    value={columnDraft.status}
-                    onChange={(event) =>
-                      setColumnDraftField({ status: event.target.value })
-                    }
+                <ColumnField label="Estado" icon={<Flag />}>
+                  <Select
+                    aria-label="Estado"
+                    value={columnDraft.stage || columnDraft.status}
+                    onChange={(event) => {
+                      const value = event.target.value
+                      const isStage = openStages.some(
+                        (stage) => stage.id === value,
+                      )
+                      setColumnDraftField(
+                        isStage
+                          ? { stage: value, status: '' }
+                          : { stage: '', status: value },
+                      )
+                    }}
                     className={`${controlClass} pl-11`}
                   >
                     <option value="">Todos</option>
-                    {Object.entries(cycleStatusLabels).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </ColumnField>
-                <ColumnField label="Etapa" icon={<Layers />}>
-                  <select
-                    aria-label="Etapa"
-                    value={columnDraft.stage}
-                    onChange={(event) =>
-                      setColumnDraftField({ stage: event.target.value })
-                    }
-                    className={`${controlClass} pl-11`}
-                  >
-                    <option value="">Todas</option>
-                    {(pipeline?.stages ?? []).map((stage) => (
+                    {openStages.map((stage) => (
                       <option key={stage.id} value={stage.id}>
                         {stage.name}
                       </option>
                     ))}
-                  </select>
+                    <option value="delivered">Entregado</option>
+                    <option value="not_picked_up">No retirado</option>
+                    <option value="cancelled">Cancelado</option>
+                  </Select>
                 </ColumnField>
                 <ColumnField label="Días mín." icon={<Clock />}>
                   <input
@@ -530,7 +528,7 @@ export function BoardFilters({
                   />
                 </ColumnField>
                 <ColumnField label="Próxima acción" icon={<ListChecks />}>
-                  <select
+                  <Select
                     aria-label="Próxima acción"
                     value={columnDraft.nextAction}
                     onChange={(event) =>
@@ -547,10 +545,10 @@ export function BoardFilters({
                         {label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </ColumnField>
                 <ColumnField label="Existencias" icon={<Boxes />}>
-                  <select
+                  <Select
                     aria-label="Existencias"
                     value={columnDraft.stock}
                     onChange={(event) =>
@@ -568,7 +566,7 @@ export function BoardFilters({
                       </option>
                     ))}
                     <option value="none">Sin marca</option>
-                  </select>
+                  </Select>
                 </ColumnField>
                 {properties.map((property) => (
                   <ColumnField
@@ -577,7 +575,7 @@ export function BoardFilters({
                     icon={<Tag />}
                   >
                     {property.options.length > 0 ? (
-                      <select
+                      <Select
                         aria-label={property.label}
                         value={columnDraft.custom[property.key] ?? ''}
                         onChange={(event) =>
@@ -596,7 +594,7 @@ export function BoardFilters({
                             {option}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     ) : (
                       <input
                         aria-label={property.label}
@@ -618,34 +616,19 @@ export function BoardFilters({
               </>
             )}
             <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Desde</span>
-              <span className="relative block">
-                <FieldIcon>
-                  <CalendarDays className="size-4" />
-                </FieldIcon>
-                <input
-                  aria-label="Fecha prevista desde"
-                  type="date"
-                  value={draft.expected_from ?? ''}
-                  onChange={(event) =>
-                    setDraftField('expected_from', event.target.value)
-                  }
-                  className={`${controlClass} pl-11`}
-                />
+              <span className="text-ink text-sm font-medium">
+                Fecha de creación desde
               </span>
-            </label>
-            <label className="grid gap-1.5">
-              <span className="text-ink text-sm font-medium">Hasta</span>
               <span className="relative block">
                 <FieldIcon>
                   <CalendarDays className="size-4" />
                 </FieldIcon>
                 <input
-                  aria-label="Fecha prevista hasta"
+                  aria-label="Fecha de creación desde"
                   type="date"
-                  value={draft.expected_to ?? ''}
+                  value={draft.created_from ?? ''}
                   onChange={(event) =>
-                    setDraftField('expected_to', event.target.value)
+                    setDraftField('created_from', event.target.value)
                   }
                   className={`${controlClass} pl-11`}
                 />
@@ -653,14 +636,33 @@ export function BoardFilters({
             </label>
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium">
-                Entregado/No entregado desde
+                Fecha de creación hasta
               </span>
               <span className="relative block">
                 <FieldIcon>
                   <CalendarDays className="size-4" />
                 </FieldIcon>
                 <input
-                  aria-label="Entregado o no entregado desde"
+                  aria-label="Fecha de creación hasta"
+                  type="date"
+                  value={draft.created_to ?? ''}
+                  onChange={(event) =>
+                    setDraftField('created_to', event.target.value)
+                  }
+                  className={`${controlClass} pl-11`}
+                />
+              </span>
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">
+                Fecha de entrega o no retiro desde
+              </span>
+              <span className="relative block">
+                <FieldIcon>
+                  <CalendarDays className="size-4" />
+                </FieldIcon>
+                <input
+                  aria-label="Fecha de entrega o no retiro desde"
                   type="date"
                   value={draft.closed_from ?? ''}
                   onChange={(event) =>
@@ -672,14 +674,14 @@ export function BoardFilters({
             </label>
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium">
-                Entregado/No entregado hasta
+                Fecha de entrega o no retiro hasta
               </span>
               <span className="relative block">
                 <FieldIcon>
                   <CalendarDays className="size-4" />
                 </FieldIcon>
                 <input
-                  aria-label="Entregado o no entregado hasta"
+                  aria-label="Fecha de entrega o no retiro hasta"
                   type="date"
                   value={draft.closed_to ?? ''}
                   onChange={(event) =>

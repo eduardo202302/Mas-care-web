@@ -1,4 +1,5 @@
 import type { components } from './api-types'
+import { cycleStatusLabels, type CycleStatus } from './board'
 import { formatDate } from './treatments'
 
 export type Treatment = components['schemas']['Treatment']
@@ -889,9 +890,16 @@ export function activityDetail(
   }
 
   if (activity.type === 'cycle_moved') {
-    const from = metadata.from
-    const to = metadata.to
-    return from && to ? `De ${String(from)} a ${String(to)}` : null
+    // Nombre de la etapa si se guardó; si no, el del estado (no la clave interna).
+    const label = (stage: unknown, status: unknown) =>
+      typeof stage === 'string' && stage
+        ? stage
+        : typeof status === 'string' && status
+          ? (cycleStatusLabels[status as CycleStatus] ?? status)
+          : null
+    const from = label(metadata.from_stage, metadata.from)
+    const to = label(metadata.to_stage, metadata.to)
+    return from && to ? `De ${from} a ${to}` : null
   }
 
   if (activity.type === 'external_purchase_recorded') {

@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/http'
 import { effectiveStage, stagesOfColumn, usePipeline } from '@/lib/pipeline'
@@ -37,7 +38,7 @@ export function StagePicker({
   return (
     <label className="mt-2 flex items-center gap-2 text-[11px]">
       <span className="text-muted">Etapa</span>
-      <select
+      <Select
         aria-label="Etapa del ciclo"
         className="border-border h-7 min-w-0 flex-1 rounded-md border bg-white px-1 text-xs"
         style={{ borderLeft: `4px solid ${current?.color ?? 'transparent'}` }}
@@ -50,7 +51,7 @@ export function StagePicker({
             {stage.name}
           </option>
         ))}
-      </select>
+      </Select>
       {change.isError && (
         <span role="alert" className="text-red-700">
           No se pudo cambiar.

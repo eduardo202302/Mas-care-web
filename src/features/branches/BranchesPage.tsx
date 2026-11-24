@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -506,7 +507,7 @@ export default function BranchesPage() {
             label="Estado de la Sucursal"
             icon={<Activity className="size-4" />}
           >
-            <select
+            <Select
               aria-label="Estado de la sucursal"
               value={filterDraft.archived}
               onChange={(event) =>
@@ -522,11 +523,11 @@ export default function BranchesPage() {
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           {textFilters.map(({ key, label, icon }) => (
             <FilterField key={key} label={label} icon={icon}>
-              <select
+              <Select
                 aria-label={label}
                 value={filterDraft[key]}
                 onChange={(event) =>
@@ -542,7 +543,7 @@ export default function BranchesPage() {
                     {value}
                   </option>
                 ))}
-              </select>
+              </Select>
             </FilterField>
           ))}
         </AdvancedFilterDialog>

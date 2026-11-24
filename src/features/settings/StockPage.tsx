@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PackageSearch, TriangleAlert } from 'lucide-react'
@@ -94,7 +95,7 @@ export default function StockPage() {
         actions={
           <label className="grid gap-1">
             <span className="text-muted text-[11px] font-medium">Sucursal</span>
-            <select
+            <Select
               aria-label="Sucursal de existencias"
               value={branchId}
               disabled={!privileged && branches.length === 1}
@@ -106,7 +107,7 @@ export default function StockPage() {
                   {item.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         }
       />
@@ -198,7 +199,7 @@ export default function StockPage() {
                               {medication.genericName ??
                                 medication.presentation}
                             </span>
-                            <select
+                            <Select
                               value={mark?.level ?? ''}
                               disabled={!canMark || savingId === medication.id}
                               onChange={(event) => {
@@ -219,7 +220,7 @@ export default function StockPage() {
                                   {stockLevelLabels[level]}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                             {savingId === medication.id && (
                               <span className="text-muted text-xs">
                                 Guardando…

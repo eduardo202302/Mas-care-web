@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { StatusChip } from '@/components/StatusChip'
 import {
   daysRemainingLabel,
+  deliveredQuantityLabel,
   derivedStatusLabel,
   formatDate,
   medicationName,
@@ -124,6 +125,15 @@ export function TreatmentList({
                 </dd>
               </div>
               <div>
+                <dt className="text-muted">Cantidad entregada</dt>
+                <dd className="text-ink mt-0.5 font-medium">
+                  {deliveredQuantityLabel(
+                    treatment.deliveredQuantity,
+                    medication?.doseUnit,
+                  )}
+                </dd>
+              </div>
+              <div>
                 <dt className="text-muted">Días restantes</dt>
                 <dd
                   className={`mt-0.5 font-medium ${
@@ -168,11 +178,11 @@ export function TreatmentList({
               </p>
             )}
             {showActions && (
-              <div className="border-border mt-3 flex flex-wrap gap-1 border-t pt-3">
+              <div className="border-border app-scroll mt-3 flex flex-nowrap gap-0.5 overflow-x-auto border-t pt-3">
                 {canWrite && treatment.status !== 'finished' && (
                   <Button
                     variant="ghost"
-                    className="h-8 px-2 text-xs"
+                    className="h-8 shrink-0 gap-1 px-1.5 text-xs"
                     onClick={() => onEdit(treatment)}
                   >
                     <Pencil className="size-3.5" />
@@ -182,11 +192,11 @@ export function TreatmentList({
                 {onNotice && canWrite && treatment.status === 'active' && (
                   <Button
                     variant="coral"
-                    className="h-8 px-2 text-xs"
+                    className="h-8 shrink-0 gap-1 px-1.5 text-xs"
                     onClick={() => onNotice(treatment)}
                   >
                     <MessageCircle className="size-3.5" />
-                    Avisar
+                    Seguimiento
                   </Button>
                 )}
                 {onDeliver &&
@@ -195,7 +205,7 @@ export function TreatmentList({
                   refillReady && (
                     <Button
                       variant="ghost"
-                      className="h-8 px-2 text-xs"
+                      className="h-8 shrink-0 gap-1 px-1.5 text-xs"
                       onClick={() => onDeliver(treatment)}
                     >
                       <PackageCheck className="size-3.5" />
@@ -205,7 +215,7 @@ export function TreatmentList({
                 {canManage && treatment.status === 'active' && (
                   <Button
                     variant="ghost"
-                    className="h-8 px-2 text-xs"
+                    className="h-8 shrink-0 gap-1 px-1.5 text-xs"
                     onClick={() => onAction('pause', treatment)}
                   >
                     <PauseCircle className="size-3.5" />
@@ -217,7 +227,7 @@ export function TreatmentList({
                     treatment.status === 'paused') && (
                     <Button
                       variant="ghost"
-                      className="h-8 px-2 text-xs text-red-700 hover:text-red-800"
+                      className="h-8 shrink-0 gap-1 px-1.5 text-xs text-red-700 hover:text-red-800"
                       onClick={() => onAction('finish', treatment)}
                     >
                       <CheckCircle2 className="size-3.5" />
@@ -230,7 +240,7 @@ export function TreatmentList({
                   !openCycleTreatmentIds?.has(treatment.id) && (
                     <Button
                       variant="ghost"
-                      className="h-8 px-2 text-xs"
+                      className="h-8 shrink-0 gap-1 px-1.5 text-xs"
                       onClick={() => onReplenish(treatment)}
                     >
                       <PackagePlus className="size-3.5" />
@@ -240,7 +250,7 @@ export function TreatmentList({
                 {canManage && treatment.status === 'paused' && (
                   <Button
                     variant="ghost"
-                    className="h-8 px-2 text-xs"
+                    className="h-8 shrink-0 gap-1 px-1.5 text-xs"
                     onClick={() => onAction('resume', treatment)}
                   >
                     <PlayCircle className="size-3.5" />
@@ -250,7 +260,7 @@ export function TreatmentList({
                 {canManage && canAdjust && refillReady && (
                   <Button
                     variant="ghost"
-                    className="h-8 px-2 text-xs"
+                    className="h-8 shrink-0 gap-1 px-1.5 text-xs"
                     onClick={() => onAction('adjust', treatment)}
                   >
                     <CalendarClock className="size-3.5" />
@@ -260,7 +270,7 @@ export function TreatmentList({
                 {canManage && refillReady && (
                   <Button
                     variant="ghost"
-                    className="h-8 px-2 text-xs"
+                    className="h-8 shrink-0 gap-1 px-1.5 text-xs"
                     onClick={() => onAction('renew', treatment)}
                   >
                     <RefreshCw className="size-3.5" />
@@ -321,6 +331,15 @@ export function ActiveTreatmentsPanel({
             <p className="text-muted mt-0.5 text-xs">
               Fin de cobertura: {formatDate(treatment.coverageEndOn)}
             </p>
+            {treatment.deliveredQuantity != null && (
+              <p className="text-muted mt-0.5 text-xs">
+                Cantidad entregada:{' '}
+                {deliveredQuantityLabel(
+                  treatment.deliveredQuantity,
+                  medication?.doseUnit,
+                )}
+              </p>
+            )}
           </li>
         )
       })}

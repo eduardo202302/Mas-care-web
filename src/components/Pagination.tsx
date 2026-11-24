@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import {
   ChevronFirst,
   ChevronLast,
@@ -73,7 +74,7 @@ export function Pagination({
       {onRowsChange && (
         <label className="text-muted flex items-center gap-2 text-sm">
           Filas por página
-          <select
+          <Select
             value={rows}
             disabled={disabled}
             onChange={(event) => onRowsChange(Number(event.target.value))}
@@ -84,7 +85,7 @@ export function Pagination({
                 {option}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       )}
     </div>

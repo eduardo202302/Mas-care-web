@@ -8,6 +8,8 @@ export type PipelineStage = {
   description: string | null
   color: string
   position: number
+  /** Etapa de entrada ("Creado"): a ella llegan las reposiciones nuevas, no las que no tienen etapa. */
+  is_initial: boolean
   cycle_count: number
 }
 
@@ -38,12 +40,21 @@ export const stagesOfColumn = (pipeline: Pipeline, status: string) =>
     (stage) => stage.system_status === columnOfStatus(status),
   )
 
-/** The stage a cycle shows: the one it points at if it is under its column, else the column's first stage. */
+/** Etapa por defecto de una columna: la primera que no es la inicial (a "Creado" solo llegan reposiciones nuevas). */
+export const defaultStageOfColumn = (pipeline: Pipeline, status: string) => {
+  const options = stagesOfColumn(pipeline, status)
+  return options.find((stage) => !stage.is_initial) ?? options[0]
+}
+
+/** The stage a cycle shows: the one it points at if it is under its column, else the column's default stage. */
 export function effectiveStage(
   pipeline: Pipeline,
   status: string,
   stageId: string | null | undefined,
 ) {
   const options = stagesOfColumn(pipeline, status)
-  return options.find((stage) => stage.id === stageId) ?? options[0]
+  return (
+    options.find((stage) => stage.id === stageId) ??
+    defaultStageOfColumn(pipeline, status)
+  )
 }

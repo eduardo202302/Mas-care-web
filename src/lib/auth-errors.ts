@@ -6,7 +6,8 @@ const MESSAGES: Record<string, string> = {
   EMAIL_NOT_VERIFIED: 'Debes confirmar tu correo antes de iniciar sesión.',
   COMPANY_INACTIVE: 'Tu compañía está inactiva. Contacta a un administrador.',
   USER_INACTIVE: 'Tu usuario está inactivo. Contacta a un administrador.',
-  TOO_MANY_REQUESTS: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
+  TOO_MANY_REQUESTS:
+    'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
 }
 
 export function authErrorMessage(error: {

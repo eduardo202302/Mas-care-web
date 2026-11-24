@@ -1,4 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Select } from '@/components/ui/Select'
+import {
+  Fragment,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
@@ -31,6 +40,7 @@ import {
   coveragePreview,
   defaultDoseFrequencyValue,
   dosesPerDayFromFrequency,
+  emptyDoseFrequencyValue,
   dosesPerDayFromSchedule,
   formatDurationYMD,
   isDoseFrequencyValid,
@@ -113,7 +123,13 @@ export function TreatmentForm({
   onSave,
   onCancel,
   submitting = false,
+  columns = false,
+  leadingBlock = null,
 }: {
+  /** Reparte los bloques en columnas de 3 (alta de tratamiento). */
+  columns?: boolean
+  /** Bloque que va primero en la primera columna (el selector de paciente del alta). */
+  leadingBlock?: ReactNode
   treatment?: Treatment
   /** Nombre del paciente, para fijarlo como título de la sección de medicamento. */
   patientName?: string
@@ -177,7 +193,7 @@ export function TreatmentForm({
   const [deliveredQuantity, setDeliveredQuantity] = useState(
     treatment?.deliveredQuantity != null
       ? String(Number(treatment.deliveredQuantity))
-      : '1',
+      : String(Number(treatment?.quantityPerCycle ?? 30)),
   )
   const [showFrequencyError, setShowFrequencyError] = useState(false)
   const {
@@ -186,6 +202,7 @@ export function TreatmentForm({
     watch,
     setValue,
     setError,
+    clearErrors,
     formState: { errors, isDirty },
   } = useForm<TreatmentFormValues>({
     resolver: zodResolver(dateSchema),
@@ -199,7 +216,7 @@ export function TreatmentForm({
           deliveredQuantity:
             treatment.deliveredQuantity != null
               ? Number(treatment.deliveredQuantity)
-              : 1,
+              : Number(treatment.quantityPerCycle),
           startDate: treatment.startDate.slice(0, 10),
           endDate: treatment.endDate?.slice(0, 10) ?? '',
           // Si el tratamiento es antiguo y no tiene médico vinculado, el
@@ -220,7 +237,7 @@ export function TreatmentForm({
           dosePerIntake: NaN,
           intakesPerDay: 1,
           quantityPerCycle: 30,
-          deliveredQuantity: 1,
+          deliveredQuantity: 30,
           startDate: todayInputValue(),
           endDate: '',
           prescriberId: '',
@@ -247,6 +264,9 @@ export function TreatmentForm({
   // fechas nuevas no pueden ser anteriores a hoy.
   const minPrescriptionDate =
     savedExpiry && savedExpiry < today ? savedExpiry : today
+  // La vigencia solo se pide cuando hay una receta (recién adjuntada o ya guardada).
+  const showPrescriptionExpiry =
+    prescriptionFile !== null || hasSavedPrescription
   const prescriptionExpiresOn = watch('prescriptionExpiresOn') ?? ''
   const prescriptionDue =
     Boolean(prescriptionExpiresOn) && prescriptionExpiresOn <= today
@@ -282,6 +302,10 @@ export function TreatmentForm({
 
   const quantityPerCycle = Number(watch('quantityPerCycle'))
   const deliveredValue = watch('deliveredQuantity')
+  const hasDelivery = treatment?.deliveredQuantity != null
+  // Al crear es la cantidad que se planea entregar (queda en la reposición);
+  // al editar solo existe una vez que el tratamiento recibió una entrega.
+  const showQuantity = !treatment || hasDelivery
   const dosePerIntake = Number(watch('dosePerIntake'))
   const intakesPerDay = Number(watch('intakesPerDay'))
   const startDate = watch('startDate')
@@ -312,6 +336,15 @@ export function TreatmentForm({
   const savedDoctorId = treatment?.prescriberDoctorId ?? ''
   const savedPrescriberName = treatment?.prescriberName ?? ''
   const selectedIsDoctor = doctors.some((doctor) => doctor.id === prescriberId)
+  const sortedDoctors = useMemo(
+    () =>
+      [...doctors].sort((a, b) =>
+        doctorFullName(a).localeCompare(doctorFullName(b), 'es', {
+          sensitivity: 'base',
+        }),
+      ),
+    [doctors],
+  )
   // Un médico guardado que ya no está activo se mantiene como opción para no
   // borrarlo al editar otro campo.
   const prescriberNotInList =
@@ -330,22 +363,24 @@ export function TreatmentForm({
   // Al editar, cambiar un horario ya activo tiene su propio flujo con
   // autorización médica, ver <DoseScheduleCard> más abajo.
   const [frequencyMode, setFrequencyMode] = useState<FrequencyMode>(
-    defaultDoseFrequencyValue().frequencyMode,
+    emptyDoseFrequencyValue().frequencyMode,
   )
   const [hoursPreset, setHoursPreset] = useState(
-    defaultDoseFrequencyValue().hoursPreset,
+    emptyDoseFrequencyValue().hoursPreset,
   )
   const [customHours, setCustomHours] = useState('')
   const [daysPreset, setDaysPreset] = useState(
-    defaultDoseFrequencyValue().daysPreset,
+    emptyDoseFrequencyValue().daysPreset,
   )
   const [customDays, setCustomDays] = useState('')
   const [startTime, setStartTime] = useState(
-    defaultDoseFrequencyValue().startTime,
+    emptyDoseFrequencyValue().startTime,
   )
   const [weekdays, setWeekdays] = useState<number[]>([])
   const [monthdays, setMonthdays] = useState<number[]>([])
-  const [weekdayTimes, setWeekdayTimes] = useState<string[]>([''])
+  const [weekdayTimes, setWeekdayTimes] = useState<string[]>(
+    emptyDoseFrequencyValue().weekdayTimes,
+  )
   const frequencyValue = {
     frequencyMode,
     hoursPreset,
@@ -382,7 +417,8 @@ export function TreatmentForm({
   // manda fijo al crear la dosis): la cobertura estimada debe salir de la
   // programación real que se eligió arriba, no de ese campo legado.
   const preview = coveragePreview({
-    quantityPerCycle: quantityPerCycle * (deliveredValue ?? 1),
+    // La cantidad entregada es en unidades; si no hay, una caja completa.
+    quantityPerCycle: deliveredValue ?? quantityPerCycle,
     dosePerIntake: activeDoseSchedule
       ? Number(activeDoseSchedule.dosePerIntake)
       : dosePerIntake,
@@ -406,20 +442,29 @@ export function TreatmentForm({
       : activeDoseSchedule
         ? dosesPerDayFromSchedule(activeDoseSchedule)
         : intakesPerDay,
-    unitsPerPackage: quantityPerCycle,
   })
-  const suggestedPackages = suggestion?.packages
+  // Mientras nadie edite la cantidad entregada, propone lo necesario hasta la
+  // fecha de fin; sin fecha de fin, una caja completa.
+  const defaultDelivered =
+    suggestion?.units ?? (quantityPerCycle > 0 ? quantityPerCycle : undefined)
   const [deliveredEdited, setDeliveredEdited] = useState(Boolean(treatment))
   useEffect(() => {
-    if (deliveredEdited || suggestedPackages === undefined) return
-    setDeliveredQuantity(String(suggestedPackages))
-    setValue('deliveredQuantity', suggestedPackages, { shouldValidate: true })
+    if (deliveredEdited || defaultDelivered === undefined) return
+    setDeliveredQuantity(String(defaultDelivered))
+    setValue('deliveredQuantity', defaultDelivered, { shouldValidate: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [suggestedPackages, deliveredEdited])
+  }, [defaultDelivered, deliveredEdited])
 
   async function submit(values: TreatmentFormValues) {
     if (!isFrequencyValid) {
       setShowFrequencyError(true)
+      return
+    }
+    if (showPrescriptionExpiry && !values.prescriptionExpiresOn) {
+      setError('prescriptionExpiresOn', {
+        type: 'validate',
+        message: 'Campo requerido.',
+      })
       return
     }
     if (
@@ -452,6 +497,7 @@ export function TreatmentForm({
       await onSave({
         ...values,
         ...prescriber,
+        deliveredQuantity: showQuantity ? values.deliveredQuantity : null,
         // La dosis y las tomas ya no se editan aquí: se conservan las del
         // tratamiento (o 1/1 en un alta) para que la API siga calculando igual.
         dosePerIntake: dosePerIntake || 1,
@@ -500,172 +546,251 @@ export function TreatmentForm({
     prescriptionFile === null &&
     normalizeCustom(customValues) === normalizeCustom(initialCustomValues)
 
-  return (
-    <form
-      noValidate
-      onSubmit={handleSubmit(submit, () => setShowFrequencyError(true))}
-      className="grid gap-5"
+  const medicationBlock = (
+    <div
+      className={
+        columns ? undefined : 'sticky top-0 z-10 -mb-5 bg-[#EAF7F0] pt-3 pb-5'
+      }
     >
-      <div className="sticky top-0 z-10 -mb-5 bg-[#EAF7F0] pt-3 pb-5">
-        <ModalSection
-          icon={<Pill className="size-4" />}
-          title={patientName || 'Medicamento'}
-        >
-          <div className="sm:col-span-2">
-            <TextField
-              label="Nombre del tratamiento"
-              required
-              placeholder="Ej. Control de hipertensión"
-              maxLength={160}
-              autoComplete="off"
-              {...register('name')}
-              error={errors.name?.message}
-            />
-          </div>
-          <div className="flex min-w-0 flex-col gap-3 sm:col-span-2 sm:flex-row sm:flex-wrap sm:items-start">
-            <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)] content-start gap-1.5 sm:min-w-64">
-              <div className="flex items-center gap-1">
-                <label
-                  htmlFor="treatment-medication"
-                  className="text-ink text-sm font-medium"
+      <ModalSection
+        icon={<Pill className="size-4" />}
+        title={patientName || 'Medicamento'}
+      >
+        <div className="sm:col-span-2">
+          <TextField
+            label="Nombre del tratamiento"
+            required
+            placeholder="Ej. Control de hipertensión"
+            maxLength={160}
+            autoComplete="off"
+            {...register('name')}
+            error={errors.name?.message}
+          />
+        </div>
+        <div className="flex min-w-0 flex-col gap-3 sm:col-span-2 sm:flex-row sm:flex-wrap sm:items-start">
+          <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)] content-start gap-1.5 sm:min-w-64">
+            <div className="flex h-5 items-center gap-1">
+              <label
+                htmlFor="treatment-medication"
+                className="text-ink text-sm font-medium"
+              >
+                Medicamento <span className="text-red-700">*</span>
+              </label>
+              {canCreateMedication && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="size-6 px-0"
+                  aria-label="Crear medicamento"
+                  title="Crear medicamento"
+                  onClick={() => setMedicationFormOpen(true)}
                 >
-                  Medicamento <span className="text-red-700">*</span>
-                </label>
-                {canCreateMedication && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="size-6 px-0"
-                    aria-label="Crear medicamento"
-                    title="Crear medicamento"
-                    onClick={() => setMedicationFormOpen(true)}
-                  >
-                    <Plus className="size-4" />
-                  </Button>
-                )}
-              </div>
-              {selectedMedication ? (
-                <div className="border-border flex items-center justify-between gap-3 rounded-lg border bg-white px-3 py-2">
-                  <div className="min-w-0">
-                    <p className="text-ink truncate text-sm font-semibold">
-                      {medicationName(selectedMedication)}
-                    </p>
-                    <p className="text-muted truncate text-xs">
-                      <span className="font-semibold">
-                        {selectedMedication.presentation}
-                      </span>{' '}
-                      · Contenido:{' '}
-                      <span className="font-semibold">
-                        {String(selectedMedication.unitsPerPackage)}
-                      </span>{' '}
-                      · Ud.:{' '}
-                      <span className="font-semibold">
-                        {selectedMedication.doseUnit}
-                      </span>
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-8 shrink-0 px-2 text-xs"
-                    onClick={clearMedication}
-                  >
-                    Cambiar
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <div className="relative">
-                    <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                    <input
-                      id="treatment-medication"
-                      ref={searchRef}
-                      value={search}
-                      onChange={(event) => {
-                        setSearch(event.target.value)
-                        setValue('medicationId', '', { shouldDirty: true })
-                        setListOpen(true)
-                      }}
-                      onFocus={() => setListOpen(true)}
-                      onBlur={() =>
-                        window.setTimeout(() => setListOpen(false), 120)
-                      }
-                      placeholder="Buscar por nombre o presentación…"
-                      autoComplete="off"
-                      role="combobox"
-                      aria-expanded={listOpen}
-                      aria-controls="treatment-medication-options"
-                      aria-autocomplete="list"
-                      aria-invalid={Boolean(errors.medicationId)}
-                      className={`${fieldClass} pr-9 pl-9`}
-                    />
-                    {search && (
-                      <button
-                        type="button"
-                        aria-label="Limpiar búsqueda"
-                        onClick={() => {
-                          setSearch('')
-                          searchRef.current?.focus()
-                        }}
-                        className="text-muted hover:text-ink absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
-                      >
-                        <X className="size-4" />
-                      </button>
-                    )}
-                  </div>
-                  {listOpen && (
-                    <div
-                      id="treatment-medication-options"
-                      role="listbox"
-                      aria-label="Medicamentos"
-                      className="app-scroll border-border mt-1 max-h-56 overflow-y-auto rounded-lg border bg-white p-1 shadow-lg"
-                    >
-                      {filteredMedications.length ? (
-                        filteredMedications.map((medication) => (
-                          <button
-                            key={medication.id}
-                            type="button"
-                            role="option"
-                            aria-selected={false}
-                            onMouseDown={(event) => event.preventDefault()}
-                            onClick={() => chooseMedication(medication)}
-                            className="hover:bg-surface flex w-full flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left"
-                          >
-                            <span className="text-ink text-sm font-medium">
-                              {medicationName(medication)}
-                            </span>
-                            <span className="text-muted text-xs">
-                              {medication.presentation}
-                            </span>
-                          </button>
-                        ))
-                      ) : (
-                        <p className="text-muted px-3 py-2 text-sm">
-                          No encontramos medicamentos con esa búsqueda.
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-              {errors.medicationId && (
-                <p className="text-xs text-red-700">
-                  {errors.medicationId.message}
-                </p>
-              )}
-              {!medications.length && (
-                <p className="text-muted text-xs">
-                  Primero registra un medicamento en el catálogo.
-                </p>
+                  <Plus className="size-4" />
+                </Button>
               )}
             </div>
-            <div className="flex shrink-0 items-start gap-4 sm:ml-auto">
+            {selectedMedication ? (
+              <div className="border-border flex items-center justify-between gap-3 rounded-lg border bg-white px-3 py-2">
+                <div className="min-w-0">
+                  <p className="text-ink truncate text-sm font-semibold">
+                    {medicationName(selectedMedication)}
+                  </p>
+                  <p className="text-muted truncate text-xs">
+                    <span className="font-semibold">
+                      {selectedMedication.presentation}
+                    </span>{' '}
+                    · Contenido:{' '}
+                    <span className="font-semibold">
+                      {String(selectedMedication.unitsPerPackage)}
+                    </span>{' '}
+                    · Ud.:{' '}
+                    <span className="font-semibold">
+                      {selectedMedication.doseUnit}
+                    </span>
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-8 shrink-0 px-2 text-xs"
+                  onClick={clearMedication}
+                >
+                  Cambiar
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="relative">
+                  <Search className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                  <input
+                    id="treatment-medication"
+                    ref={searchRef}
+                    value={search}
+                    onChange={(event) => {
+                      setSearch(event.target.value)
+                      setValue('medicationId', '', { shouldDirty: true })
+                      setListOpen(true)
+                    }}
+                    onFocus={() => setListOpen(true)}
+                    onBlur={() =>
+                      window.setTimeout(() => setListOpen(false), 120)
+                    }
+                    placeholder="Buscar por nombre o presentación…"
+                    autoComplete="off"
+                    role="combobox"
+                    aria-expanded={listOpen}
+                    aria-controls="treatment-medication-options"
+                    aria-autocomplete="list"
+                    aria-invalid={Boolean(errors.medicationId)}
+                    className={`${fieldClass} pr-9 pl-9`}
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      aria-label="Limpiar búsqueda"
+                      onClick={() => {
+                        setSearch('')
+                        searchRef.current?.focus()
+                      }}
+                      className="text-muted hover:text-ink absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  )}
+                </div>
+                {listOpen && (
+                  <div
+                    id="treatment-medication-options"
+                    role="listbox"
+                    aria-label="Medicamentos"
+                    className="app-scroll border-border mt-1 max-h-56 overflow-y-auto rounded-lg border bg-white p-1 shadow-lg"
+                  >
+                    {filteredMedications.length ? (
+                      filteredMedications.map((medication) => (
+                        <button
+                          key={medication.id}
+                          type="button"
+                          role="option"
+                          aria-selected={false}
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => chooseMedication(medication)}
+                          className="hover:bg-surface flex w-full flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left"
+                        >
+                          <span className="text-ink text-sm font-medium">
+                            {medicationName(medication)}
+                          </span>
+                          <span className="text-muted text-xs">
+                            {medication.presentation}
+                          </span>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="text-muted px-3 py-2 text-sm">
+                        No encontramos medicamentos con esa búsqueda.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+            {errors.medicationId && (
+              <p className="text-xs text-red-700">
+                {errors.medicationId.message}
+              </p>
+            )}
+            {!medications.length && (
+              <p className="text-muted text-xs">
+                Primero registra un medicamento en el catálogo.
+              </p>
+            )}
+          </div>
+          <div className="flex shrink-0 items-start gap-4 sm:ml-auto">
+            <div className="grid gap-1.5">
+              <span className="text-ink text-sm font-medium">
+                Adjuntar Receta
+              </span>
+              <input
+                ref={prescriptionInputRef}
+                type="file"
+                accept="image/*,application/pdf"
+                className="sr-only"
+                aria-label="Adjuntar Receta"
+                onChange={(event) =>
+                  setPrescriptionFile(event.target.files?.[0] ?? null)
+                }
+              />
+              {prescriptionFile ? (
+                <div className="border-border flex h-10 max-w-44 items-center gap-1 rounded-lg border bg-white pr-1 pl-3 text-sm">
+                  <Paperclip className="text-tealmax size-4 shrink-0" />
+                  <span
+                    className="text-ink min-w-0 flex-1 truncate"
+                    title={prescriptionFile.name}
+                  >
+                    {prescriptionFile.name}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Quitar receta"
+                    className="text-muted rounded p-1 hover:text-red-700"
+                    onClick={() => {
+                      setPrescriptionFile(null)
+                      if (prescriptionInputRef.current)
+                        prescriptionInputRef.current.value = ''
+                      // Sin receta no hay vigencia que pedir: se descarta la que se
+                      // puso con ella (una ya guardada en el tratamiento se conserva).
+                      if (!hasSavedPrescription && !savedExpiry) {
+                        setValue('prescriptionExpiresOn', '', {
+                          shouldValidate: false,
+                        })
+                        clearErrors('prescriptionExpiresOn')
+                      }
+                    }}
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  className="h-10"
+                  onClick={() => prescriptionInputRef.current?.click()}
+                >
+                  <Paperclip className="size-4" />
+                  {hasSavedPrescription ? 'Reemplazar' : 'Adjuntar'}
+                </Button>
+              )}
+              {hasSavedPrescription && !prescriptionFile && treatment && (
+                <button
+                  type="button"
+                  className="text-tealmax w-fit text-xs hover:underline"
+                  onClick={() =>
+                    openFile(
+                      `${API_URL}/api/v1/treatments/${encodeURIComponent(treatment.id)}/prescription-document`,
+                    ).catch((error: unknown) =>
+                      setError(
+                        'root.server' as FieldPath<TreatmentFormValues>,
+                        {
+                          type: 'server',
+                          message:
+                            error instanceof Error
+                              ? error.message
+                              : 'No se pudo abrir la receta',
+                        },
+                      ),
+                    )
+                  }
+                >
+                  Ver Receta
+                </button>
+              )}
+            </div>
+            {showPrescriptionExpiry && (
               <div className="grid gap-1.5">
                 <label
                   htmlFor="treatment-prescription-expires"
-                  className={`text-sm font-medium ${prescriptionDue ? 'text-red-700' : 'text-ink'}`}
+                  className={`text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*'] ${prescriptionDue ? 'text-red-700' : 'text-ink'}`}
                 >
-                  Vigencia
+                  Vigencia Receta
                 </label>
                 <input
                   id="treatment-prescription-expires"
@@ -690,281 +815,213 @@ export function TreatmentForm({
                   </p>
                 )}
               </div>
-              <div className="grid gap-1.5">
-                <span className="text-ink text-sm font-medium">
-                  Adjuntar Receta
-                </span>
-                <input
-                  ref={prescriptionInputRef}
-                  type="file"
-                  accept="image/*,application/pdf"
-                  className="sr-only"
-                  aria-label="Adjuntar Receta"
-                  onChange={(event) =>
-                    setPrescriptionFile(event.target.files?.[0] ?? null)
-                  }
-                />
-                {prescriptionFile ? (
-                  <div className="border-border flex h-10 max-w-44 items-center gap-1 rounded-lg border bg-white pr-1 pl-3 text-sm">
-                    <Paperclip className="text-tealmax size-4 shrink-0" />
-                    <span
-                      className="text-ink min-w-0 flex-1 truncate"
-                      title={prescriptionFile.name}
-                    >
-                      {prescriptionFile.name}
-                    </span>
-                    <button
-                      type="button"
-                      aria-label="Quitar receta"
-                      className="text-muted rounded p-1 hover:text-red-700"
-                      onClick={() => {
-                        setPrescriptionFile(null)
-                        if (prescriptionInputRef.current)
-                          prescriptionInputRef.current.value = ''
-                      }}
-                    >
-                      <X className="size-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <Button
-                    type="button"
-                    className="h-10"
-                    onClick={() => prescriptionInputRef.current?.click()}
-                  >
-                    <Paperclip className="size-4" />
-                    {hasSavedPrescription ? 'Reemplazar' : 'Adjuntar'}
-                  </Button>
-                )}
-                {hasSavedPrescription && !prescriptionFile && treatment && (
-                  <button
-                    type="button"
-                    className="text-tealmax w-fit text-xs hover:underline"
-                    onClick={() =>
-                      openFile(
-                        `${API_URL}/api/v1/treatments/${encodeURIComponent(treatment.id)}/prescription-document`,
-                      ).catch((error: unknown) =>
-                        setError(
-                          'root.server' as FieldPath<TreatmentFormValues>,
-                          {
-                            type: 'server',
-                            message:
-                              error instanceof Error
-                                ? error.message
-                                : 'No se pudo abrir la receta',
-                          },
-                        ),
-                      )
-                    }
-                  >
-                    Ver Receta
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </ModalSection>
-      </div>
-
-      <ModalSection icon={<CalendarDays className="size-4" />} title="Vigencia">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <TextField
-            label="Fecha de inicio"
-            type="date"
-            required
-            min={minStartDate}
-            {...register('startDate')}
-            error={errors.startDate?.message}
-          />
-          <TextField
-            label="Fecha de fin"
-            type="date"
-            min={startDate || today}
-            {...register('endDate')}
-            error={errors.endDate?.message}
-          />
-          <div className="grid gap-1.5">
-            <div className="flex items-center gap-1">
-              <label
-                htmlFor="treatment-prescriber"
-                className="text-ink text-sm font-medium"
-              >
-                Doctor
-              </label>
-              <NewDoctorButton
-                onCreated={(created) => {
-                  setCreatedDoctors((current) => [...current, created])
-                  setValue('prescriberId', created.id, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }}
-              />
-            </div>
-            <select
-              id="treatment-prescriber"
-              {...register('prescriberId')}
-              // Select controlado por valor: si los médicos (`doctors`) todavía
-              // estaban cargando cuando este <select> se montó, la opción del
-              // médico guardado no existía aún y el navegador no podía
-              // seleccionarla. Fijar `value` fuerza a React a re-sincronizar
-              // la selección en cuanto la opción correcta aparece.
-              value={prescriberId}
-              aria-invalid={Boolean(errors.prescriberId)}
-              aria-describedby={
-                errors.prescriberId ? 'treatment-prescriber-error' : undefined
-              }
-              className={`${fieldClass} appearance-none`}
-            >
-              <option value="">
-                {doctorsLoading
-                  ? 'Cargando médicos…'
-                  : doctors.length
-                    ? 'Sin doctor'
-                    : 'Sin doctor (no hay médicos activos)'}
-              </option>
-              {/* Un médico guardado que ya no está activo no debe perderse. */}
-              {prescriberNotInList && prescriberId && (
-                <option value={prescriberId}>
-                  {savedPrescriberName || 'Médico no listado'}
-                </option>
-              )}
-              {/* Prescriptor antiguo en texto libre, sin médico vinculado. */}
-              {legacyPrescriberName && (
-                <option value={legacyPrescriberName}>
-                  {legacyPrescriberName}
-                </option>
-              )}
-              {doctors.map((doctor) => (
-                <option key={doctor.id} value={doctor.id}>
-                  {doctorFullName(doctor)}
-                  {doctor.licenseNumber ? ` · ${doctor.licenseNumber}` : ''}
-                  {doctor.specialties?.length
-                    ? ` · ${doctor.specialties[0]?.specialty.name}`
-                    : ''}
-                </option>
-              ))}
-            </select>
-            {errors.prescriberId?.message && (
-              <p
-                id="treatment-prescriber-error"
-                className="text-xs text-red-700"
-              >
-                {errors.prescriberId.message}
-              </p>
-            )}
-          </div>
-          <div className="grid gap-1.5">
-            <label
-              htmlFor="treatment-branch"
-              className="text-ink text-sm font-medium"
-            >
-              Sucursal <span className="text-red-700">*</span>
-            </label>
-            {/* La sucursal es la del paciente y no se edita. */}
-            <input type="hidden" {...register('branchId')} />
-            <p
-              id="treatment-branch"
-              className="border-border text-muted bg-surface h-10 w-full rounded-lg border px-3 text-sm leading-10"
-            >
-              {branches.find((branch) => branch.id === watch('branchId'))
-                ?.name ?? 'Sin sucursal asignada'}
-            </p>
-            {errors.branchId?.message && (
-              <p className="text-xs text-red-700">{errors.branchId.message}</p>
             )}
           </div>
         </div>
       </ModalSection>
+    </div>
+  )
 
-      {treatment ? (
-        <DoseScheduleCard
-          treatmentId={treatment.id}
-          medicationLabel={
-            selectedMedication ? medicationName(selectedMedication) : ''
-          }
-          doseUnit={selectedMedication?.doseUnit ?? ''}
+  const validityBlock = (
+    <ModalSection icon={<CalendarDays className="size-4" />} title="Vigencia">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <TextField
+          label="Fecha de inicio"
+          type="date"
+          required
+          min={minStartDate}
+          {...register('startDate')}
+          error={errors.startDate?.message}
         />
-      ) : (
-        <ModalSection
-          icon={<Timer className="size-4" />}
-          title="Dosis Del Tratamiento"
-        >
-          <DoseFrequencyRow
-            quantity={doseInput}
-            onQuantityChange={(value) => {
-              setDoseInput(value)
-              setValue('dosePerIntake', value === '' ? NaN : Number(value), {
-                shouldValidate: true,
-              })
-            }}
-            unit={selectedMedication?.doseUnit || ''}
-            quantityError={errors.dosePerIntake?.message}
-            value={frequencyValue}
-            requireTomaTime
-            onChange={(next) => {
-              setFrequencyMode(next.frequencyMode)
-              setHoursPreset(next.hoursPreset)
-              setCustomHours(next.customHours)
-              setDaysPreset(next.daysPreset)
-              setCustomDays(next.customDays)
-              setStartTime(next.startTime)
-              setWeekdays(next.weekdays)
-              setMonthdays(next.monthdays)
-              setWeekdayTimes(next.weekdayTimes)
-            }}
-          />
-          {showFrequencyError && !isFrequencyValid && (
-            <p role="alert" className="text-xs text-red-700">
-              Campo requerido. Selecciona los días y al menos una hora de toma.
+        <TextField
+          label="Fecha de fin"
+          type="date"
+          min={startDate || today}
+          {...register('endDate')}
+          error={errors.endDate?.message}
+        />
+        <div className="grid gap-1.5">
+          <div className="flex items-center gap-1">
+            <label
+              htmlFor="treatment-prescriber"
+              className="text-ink text-sm font-medium"
+            >
+              Doctor
+            </label>
+            <NewDoctorButton
+              onCreated={(created) => {
+                setCreatedDoctors((current) => [...current, created])
+                setValue('prescriberId', created.id, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                })
+              }}
+            />
+          </div>
+          <Select
+            id="treatment-prescriber"
+            {...register('prescriberId')}
+            // Select controlado por valor: si los médicos (`doctors`) todavía
+            // estaban cargando cuando este <Select> se montó, la opción del
+            // médico guardado no existía aún y el navegador no podía
+            // seleccionarla. Fijar `value` fuerza a React a re-sincronizar
+            // la selección en cuanto la opción correcta aparece.
+            value={prescriberId}
+            aria-invalid={Boolean(errors.prescriberId)}
+            aria-describedby={
+              errors.prescriberId ? 'treatment-prescriber-error' : undefined
+            }
+            className={`${fieldClass} appearance-none`}
+          >
+            <option value="">
+              {doctorsLoading
+                ? 'Cargando médicos…'
+                : doctors.length
+                  ? 'Sin doctor'
+                  : 'Sin doctor (no hay médicos activos)'}
+            </option>
+            {/* Un médico guardado que ya no está activo no debe perderse. */}
+            {prescriberNotInList && prescriberId && (
+              <option value={prescriberId}>
+                {savedPrescriberName || 'Médico no listado'}
+              </option>
+            )}
+            {/* Prescriptor antiguo en texto libre, sin médico vinculado. */}
+            {legacyPrescriberName && (
+              <option value={legacyPrescriberName}>
+                {legacyPrescriberName}
+              </option>
+            )}
+            {sortedDoctors.map((doctor) => (
+              <option key={doctor.id} value={doctor.id}>
+                {doctorFullName(doctor)}
+                {doctor.specialties?.length
+                  ? ` · ${doctor.specialties[0]?.specialty.name}`
+                  : ''}
+              </option>
+            ))}
+          </Select>
+          {errors.prescriberId?.message && (
+            <p id="treatment-prescriber-error" className="text-xs text-red-700">
+              {errors.prescriberId.message}
             </p>
           )}
-          <p className="text-muted text-xs leading-5">
-            Para cambiar este horario más adelante, edita el tratamiento.
+        </div>
+        <div className="grid gap-1.5">
+          <label
+            htmlFor="treatment-branch"
+            className="text-ink text-sm font-medium"
+          >
+            Sucursal <span className="text-red-700">*</span>
+          </label>
+          {/* La sucursal es la del paciente y no se edita. */}
+          <input type="hidden" {...register('branchId')} />
+          <p
+            id="treatment-branch"
+            className="border-border text-muted bg-surface h-10 w-full rounded-lg border px-3 text-sm leading-10"
+          >
+            {branches.find((branch) => branch.id === watch('branchId'))?.name ??
+              'Sin sucursal asignada'}
           </p>
-        </ModalSection>
-      )}
+          {errors.branchId?.message && (
+            <p className="text-xs text-red-700">{errors.branchId.message}</p>
+          )}
+        </div>
+      </div>
+    </ModalSection>
+  )
 
-      <ModalSection
-        icon={<CalendarClock className="size-4" />}
-        title="Cantidad Y Cobertura"
-      >
-        <div className="flex flex-wrap items-start justify-between gap-x-10 gap-y-3">
-          <div className="grid gap-0">
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="treatment-quantity-per-cycle"
-                className="text-ink text-sm font-medium whitespace-nowrap"
-              >
-                Unidades por Envase
-              </label>
-              <input
-                id="treatment-quantity-per-cycle"
-                type="number"
-                disabled
-                readOnly
-                value={quantityPerCycle || ''}
-                className="h-10 w-20 rounded-lg border border-emerald-300 bg-emerald-100 px-3 text-sm text-emerald-700 outline-none"
-              />
-              {selectedMedication?.doseUnit && (
-                <span className="text-ink text-sm whitespace-nowrap">
-                  {selectedMedication.doseUnit}
-                </span>
-              )}
-            </div>
-            {selectedMedication?.presentation && (
-              <p className="text-muted -mt-1.5 text-xs leading-none">
-                {selectedMedication.presentation}
-              </p>
+  const doseBlock = treatment ? (
+    <DoseScheduleCard
+      treatmentId={treatment.id}
+      medicationLabel={
+        selectedMedication ? medicationName(selectedMedication) : ''
+      }
+      doseUnit={selectedMedication?.doseUnit ?? ''}
+    />
+  ) : (
+    <ModalSection
+      icon={<Timer className="size-4" />}
+      title="Dosis Del Tratamiento"
+    >
+      <DoseFrequencyRow
+        quantity={doseInput}
+        onQuantityChange={(value) => {
+          setDoseInput(value)
+          setValue('dosePerIntake', value === '' ? NaN : Number(value), {
+            shouldValidate: true,
+          })
+        }}
+        unit={selectedMedication?.doseUnit || ''}
+        quantityError={errors.dosePerIntake?.message}
+        value={frequencyValue}
+        requireTomaTime
+        onChange={(next) => {
+          setFrequencyMode(next.frequencyMode)
+          setHoursPreset(next.hoursPreset)
+          setCustomHours(next.customHours)
+          setDaysPreset(next.daysPreset)
+          setCustomDays(next.customDays)
+          setStartTime(next.startTime)
+          setWeekdays(next.weekdays)
+          setMonthdays(next.monthdays)
+          setWeekdayTimes(next.weekdayTimes)
+        }}
+      />
+      {showFrequencyError && !isFrequencyValid && (
+        <p role="alert" className="text-xs text-red-700">
+          Campo requerido. Selecciona la frecuencia, los días (si aplica) y la
+          hora de toma.
+        </p>
+      )}
+      <p className="text-muted text-xs leading-5">
+        Para cambiar este horario más adelante, edita el tratamiento.
+      </p>
+    </ModalSection>
+  )
+
+  const quantityBlock = (
+    <ModalSection
+      icon={<CalendarClock className="size-4" />}
+      title="Cantidad Y Cobertura"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-x-10 gap-y-3">
+        <div className="grid gap-0">
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="treatment-quantity-per-cycle"
+              className="text-ink text-sm font-medium whitespace-nowrap"
+            >
+              Unidades por Envase
+            </label>
+            <input
+              id="treatment-quantity-per-cycle"
+              type="number"
+              disabled
+              readOnly
+              value={quantityPerCycle || ''}
+              className="h-10 w-20 rounded-lg border border-emerald-300 bg-emerald-100 px-3 text-sm text-emerald-700 outline-none"
+            />
+            {selectedMedication?.doseUnit && (
+              <span className="text-ink text-sm whitespace-nowrap">
+                {selectedMedication.doseUnit}
+              </span>
             )}
           </div>
+          {selectedMedication?.presentation && (
+            <p className="text-muted -mt-1.5 text-xs leading-none">
+              {selectedMedication.presentation}
+            </p>
+          )}
+        </div>
+        {showQuantity && (
           <div className="grid gap-0">
             <div className="flex items-center gap-2">
               <label
                 htmlFor="treatment-delivered-quantity"
                 className="text-ink text-sm font-medium whitespace-nowrap"
               >
-                Cantidad Entregada
+                {hasDelivery ? 'Cantidad Entregada' : 'Cantidad a Entregar'}
               </label>
               <input
                 id="treatment-delivered-quantity"
@@ -986,84 +1043,124 @@ export function TreatmentForm({
                 className="border-border text-ink focus:border-petroleo h-10 w-24 rounded-lg border bg-white px-3 text-sm outline-none"
               />
             </div>
-            {selectedMedication?.presentation && (
+            {selectedMedication?.doseUnit && (
               <p className="text-muted -mt-1.5 text-xs leading-none">
-                {selectedMedication.presentation}
+                {selectedMedication.doseUnit}
               </p>
             )}
           </div>
-        </div>
-        {suggestion && (
-          <p className="text-muted text-xs">
-            Sugerido: {suggestion.packages}{' '}
-            {selectedMedication?.presentation ||
-              (suggestion.packages === 1 ? 'envase' : 'envases')}{' '}
-            para cubrir {suggestion.days}{' '}
-            {suggestion.days === 1 ? 'día' : 'días'} de tratamiento.
-            {String(suggestion.packages) !== deliveredQuantity && (
-              <>
-                {' '}
-                <button
-                  type="button"
-                  className="text-petroleo font-medium underline"
-                  onClick={() => {
-                    setDeliveredQuantity(String(suggestion.packages))
-                    setValue('deliveredQuantity', suggestion.packages, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })
-                  }}
-                >
-                  Usar sugerido
-                </button>
-              </>
-            )}
-          </p>
         )}
-        {errors.deliveredQuantity?.message && (
-          <p className="text-xs text-red-700">
-            {errors.deliveredQuantity.message}
-          </p>
-        )}
-        {errors.quantityPerCycle?.message && (
-          <p className="text-xs text-red-700">
-            {errors.quantityPerCycle.message}
-          </p>
-        )}
-        <div className="border-border rounded-lg border bg-white p-3">
-          <div className="text-muted flex items-center gap-2 text-xs font-semibold tracking-wide uppercase">
-            <CalendarDays className="size-4" />
-            Cobertura estimada
-          </div>
-          {preview ? (
+      </div>
+      {showQuantity && suggestion && (
+        <p className="text-muted text-xs">
+          Sugerido: {suggestion.units}{' '}
+          {selectedMedication?.doseUnit || 'unidades'} para cubrir{' '}
+          {suggestion.days} {suggestion.days === 1 ? 'día' : 'días'} de
+          tratamiento.
+          {String(suggestion.units) !== deliveredQuantity && (
             <>
-              <p className="text-petroleo font-display mt-1 text-xl font-bold tracking-tight">
-                {formatDurationYMD(preview.days)}
-              </p>
-              <p className="text-ink text-sm">
-                Cubre {formatDurationYMD(preview.days)}
-              </p>
+              {' '}
+              <button
+                type="button"
+                className="text-petroleo font-medium underline"
+                onClick={() => {
+                  setDeliveredQuantity(String(suggestion.units))
+                  setValue('deliveredQuantity', suggestion.units, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }}
+              >
+                Usar sugerido
+              </button>
             </>
-          ) : (
-            <p className="text-muted mt-1 text-sm leading-6">
-              {!treatment &&
-              ((frequencyMode === 'weekday' && weekdays.length === 0) ||
-                (frequencyMode === 'monthday' && monthdays.length === 0))
-                ? 'Selecciona los días de toma para ver la cobertura estimada.'
-                : 'Completa la cantidad y la fecha de inicio para ver la cobertura estimada.'}
-            </p>
           )}
+        </p>
+      )}
+      {showQuantity && errors.deliveredQuantity?.message && (
+        <p className="text-xs text-red-700">
+          {errors.deliveredQuantity.message}
+        </p>
+      )}
+      {errors.quantityPerCycle?.message && (
+        <p className="text-xs text-red-700">
+          {errors.quantityPerCycle.message}
+        </p>
+      )}
+      <div className="border-border rounded-lg border bg-white p-3">
+        <div className="text-muted flex items-center gap-2 text-xs font-semibold tracking-wide uppercase">
+          <CalendarDays className="size-4" />
+          Cobertura estimada
         </div>
-      </ModalSection>
+        {preview ? (
+          <>
+            <p className="text-petroleo font-display mt-1 text-xl font-bold tracking-tight">
+              {formatDurationYMD(preview.days, startDate)}
+            </p>
+          </>
+        ) : (
+          <p className="text-muted mt-1 text-sm leading-6">
+            {!treatment &&
+            ((frequencyMode === 'weekday' && weekdays.length === 0) ||
+              (frequencyMode === 'monthday' && monthdays.length === 0))
+              ? 'Selecciona los días de toma para ver la cobertura estimada.'
+              : 'Completa la cantidad y la fecha de inicio para ver la cobertura estimada.'}
+          </p>
+        )}
+      </div>
+    </ModalSection>
+  )
 
-      <ModalSection icon={<FileText className="size-4" />} title="Notas">
-        <TextAreaField
-          label="Notas"
-          rows={3}
-          placeholder="Indicaciones adicionales del tratamiento…"
-          {...register('notes')}
-        />
-      </ModalSection>
+  const notesBlock = (
+    <ModalSection icon={<FileText className="size-4" />} title="Notas">
+      <TextAreaField
+        label="Notas"
+        rows={3}
+        placeholder="Indicaciones adicionales del tratamiento…"
+        {...register('notes')}
+      />
+    </ModalSection>
+  )
+
+  // En columnas, el bloque inicial (paciente) y los de abajo se reparten de 3 en 3, en el mismo orden.
+  const blocks = [
+    ...(leadingBlock ? [leadingBlock] : []),
+    medicationBlock,
+    validityBlock,
+    doseBlock,
+    quantityBlock,
+    notesBlock,
+  ]
+  const columnCount = Math.ceil(blocks.length / 3)
+
+  return (
+    <form
+      noValidate
+      onSubmit={handleSubmit(submit, () => setShowFrequencyError(true))}
+      className="grid gap-5"
+    >
+      {columns ? (
+        <div
+          className="grid gap-5 lg:[grid-template-columns:repeat(var(--cols),minmax(0,1fr))]"
+          style={{ '--cols': columnCount } as CSSProperties}
+        >
+          {Array.from({ length: columnCount }, (_, column) => (
+            <div key={column} className="grid content-start gap-5">
+              {blocks.slice(column * 3, column * 3 + 3).map((block, row) => (
+                <Fragment key={row}>{block}</Fragment>
+              ))}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <>
+          {medicationBlock}
+          {validityBlock}
+          {doseBlock}
+          {quantityBlock}
+          {notesBlock}
+        </>
+      )}
 
       {errors.root?.server?.message && (
         <p

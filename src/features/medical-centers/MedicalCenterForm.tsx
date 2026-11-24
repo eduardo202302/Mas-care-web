@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { FieldPath } from 'react-hook-form'
@@ -144,7 +145,7 @@ export function MedicalCenterForm({
                 Tipo
               </label>
               <div className="relative">
-                <select
+                <Select
                   id="center-type"
                   {...register('centerType')}
                   className={`${fieldClass} appearance-none pr-9`}
@@ -154,7 +155,7 @@ export function MedicalCenterForm({
                       {medicalCenterTypeLabels[type]}
                     </option>
                   ))}
-                </select>
+                </Select>
                 <ChevronDown
                   className="text-muted pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
                   aria-hidden="true"

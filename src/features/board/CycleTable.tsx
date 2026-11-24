@@ -1,5 +1,5 @@
+import { Select } from '@/components/ui/Select'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react'
 import { BranchTag } from '@/components/BranchTag'
@@ -10,15 +10,13 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { api } from '@/lib/http'
 import { PAGE_ROWS } from '@/lib/paging'
 import { formatCustomValue, useCustomProperties } from '@/lib/custom-properties'
-import { effectiveStage, usePipeline } from '@/lib/pipeline'
+import { effectiveStage, usePipeline, type PipelineStage } from '@/lib/pipeline'
 import {
   boardFiltersToSearch,
   cycleStatusLabels,
   isOpenCycle,
-  openCycleStatuses,
   type BoardCard,
   type BoardFilters,
-  type CycleStatus,
   type CycleTableResponse,
 } from '@/lib/board'
 import {
@@ -26,14 +24,12 @@ import {
   type ColumnDef,
   emptyTableFilters,
   tableFiltersToSearch,
-  useColumnPrefs,
   type SortPart,
   type TableFilters,
 } from '@/lib/cycle-table'
 import { derivedStatusLabel, formatDate } from '@/lib/treatments'
 import { cn } from '@/lib/cn'
 import { compareValues } from '@/lib/table-sort'
-import { BatchBar, ColumnPicker, SavedViewsBar } from './CycleTableControls'
 import {
   emptyCycleColumnFilters,
   matchesCycleColumnFilters,
@@ -53,31 +49,27 @@ const columnSortField: Record<string, string> = {
   patient: 'patient',
   medication: 'medication',
   status: 'status',
+  created_at: 'created_at',
   expected_on: 'expected_on',
   derived: 'derived_status',
 }
+
+const defaultColumnKeys = cycleColumns.map((column) => column.key)
 
 export function CycleTable({
   filters,
   columnFilters = emptyCycleColumnFilters,
   canMove,
-  canWrite = false,
-  onMove,
+  onSetStage,
   onOpenCard,
-  onBoardFiltersChange,
-  controlsSlot,
 }: {
   filters: BoardFilters
   /** Filtros por columna del Filtro Avanzado; se aplican sobre la página cargada. */
   columnFilters?: CycleColumnFilters
   canMove: boolean
-  /** Batch actions need write access (assign, tasks) and move access (stage, archive). */
-  canWrite?: boolean
-  onMove: (card: BoardCard, to: CycleStatus) => void
+  /** Cambia la reposición a otra etapa; si la etapa es de otra columna, también la mueve. */
+  onSetStage: (card: BoardCard, stage: PipelineStage) => void
   onOpenCard?: (card: BoardCard) => void
-  onBoardFiltersChange?: (next: BoardFilters) => void
-  /** Renders the saved-views and column pickers into this node instead of the table's own header, e.g. the board tabs row. */
-  controlsSlot?: HTMLElement | null
 }) {
   const [tableFilters, setTableFilters] =
     useState<TableFilters>(emptyTableFilters)
@@ -86,12 +78,16 @@ export function CycleTable({
     key: string
     dir: 'asc' | 'desc'
   } | null>(null)
-  const [selected, setSelected] = useState<string[]>([])
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState(PAGE_ROWS)
   // Treatment properties defined by the organization can be added as columns (key `custom:<key>`).
   const properties = useCustomProperties('treatment').data?.data ?? []
   const { data: pipeline } = usePipeline()
+  // Estados a los que se puede pasar una reposición abierta; "Entregado" abre el cierre con su fecha.
+  const openStageOptions = useMemo(
+    () => [...(pipeline?.stages ?? [])].sort((a, b) => a.position - b.position),
+    [pipeline],
+  )
   const allColumns = useMemo<ColumnDef[]>(
     () => [
       ...cycleColumns,
@@ -101,11 +97,6 @@ export function CycleTable({
       })),
     ],
     [properties],
-  )
-  const columns = useColumnPrefs(
-    'cycles',
-    allColumns,
-    cycleColumns.map((column) => column.key),
   )
 
   const params = () => {
@@ -150,26 +141,12 @@ export function CycleTable({
   /** Sortable value for columns without a backend field; mirrors `cell()` but returns a comparable primitive. */
   const sortValue = (key: string, card: BoardCard): unknown => {
     switch (key) {
+      case 'numeric_id':
+        return Number(card.numeric_id)
       case 'branch':
         return card.branch.nombre
-      case 'stage': {
-        const stage = pipeline
-          ? effectiveStage(
-              pipeline,
-              card.status,
-              (card as { stage_id?: string | null }).stage_id,
-            )
-          : undefined
-        return stage?.name ?? ''
-      }
       case 'delivered_on':
         return card.closed_at ?? ''
-      case 'next_action':
-        return card.status === 'to_notify'
-          ? 'Avisar'
-          : isOpenCycle(card)
-            ? 'Marcar entregado'
-            : ''
       default: {
         const property = properties.find((item) => `custom:${item.key}` === key)
         if (!property) return ''
@@ -214,10 +191,6 @@ export function CycleTable({
       )
     : cards
   const total = table.data?.total ?? 0
-  const selectable = cards.filter(isOpenCycle).map((card) => card.cycle_id)
-  const allSelected =
-    selectable.length > 0 && selectable.every((id) => selected.includes(id))
-  const canBatch = canMove && canWrite
 
   const cell = (key: string, card: BoardCard): ReactNode => {
     const open = isOpenCycle(card)
@@ -240,42 +213,9 @@ export function CycleTable({
             <p className="text-muted text-xs">{card.medication.presentacion}</p>
           </>
         )
-      case 'status':
-        return open && canMove ? (
-          <label className="relative inline-flex items-center">
-            <span className="sr-only">
-              Cambiar estado del ciclo de {card.patient.nombre}
-            </span>
-            <select
-              value={card.status}
-              onChange={(event) =>
-                onMove(card, event.target.value as CycleStatus)
-              }
-              className="border-border focus:border-tealmax h-8 appearance-none rounded-lg border bg-white pr-7 pl-2 text-xs font-medium outline-none"
-            >
-              {openCycleStatuses.map((status) => (
-                <option key={status} value={status}>
-                  {cycleStatusLabels[status]}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="text-muted pointer-events-none absolute right-2 size-3.5" />
-          </label>
-        ) : (
-          <span
-            className={cn(
-              'inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold',
-              open
-                ? 'border-sky-200 bg-sky-50 text-sky-900'
-                : card.status === 'delivered'
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-                  : 'border-amber-200 bg-amber-50 text-amber-950',
-            )}
-          >
-            {cycleStatusLabels[card.status]}
-          </span>
-        )
-      case 'stage': {
+      case 'status': {
+        // El estado de una reposición abierta es su etapa en la configuración
+        // del tablero; las cerradas conservan "Entregado" / "No retirado".
         const stage = pipeline
           ? effectiveStage(
               pipeline,
@@ -283,25 +223,68 @@ export function CycleTable({
               (card as { stage_id?: string | null }).stage_id,
             )
           : undefined
-        return stage ? (
-          <span className="inline-flex items-center gap-1.5 text-xs font-medium">
-            <span
-              aria-hidden="true"
-              className="size-2 rounded-full"
-              style={{ backgroundColor: stage.color }}
-            />
-            {stage.name}
+        return open && canMove && stage ? (
+          <label className="relative inline-flex items-center">
+            <span className="sr-only">
+              Cambiar estado del ciclo de {card.patient.nombre}
+            </span>
+            <Select
+              value={stage.id}
+              onChange={(event) => {
+                const next = openStageOptions.find(
+                  (option) => option.id === event.target.value,
+                )
+                if (next) onSetStage(card, next)
+              }}
+              style={{ borderLeft: `4px solid ${stage.color}` }}
+              className="border-border focus:border-tealmax h-8 appearance-none rounded-lg border bg-white pr-7 pl-2 text-xs font-medium outline-none"
+            >
+              {openStageOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
+            </Select>
+            <ChevronDown className="text-muted pointer-events-none absolute right-2 size-3.5" />
+          </label>
+        ) : (
+          <span
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold',
+              open
+                ? 'border-sky-200 bg-sky-50 text-sky-900'
+                : card.status === 'delivered'
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                  : 'border-amber-200 bg-amber-50 text-amber-950',
+            )}
+          >
+            {open && stage ? (
+              <span
+                aria-hidden="true"
+                className="size-2 rounded-full"
+                style={{ backgroundColor: stage.color }}
+              />
+            ) : null}
+            {open && stage ? stage.name : cycleStatusLabels[card.status]}
           </span>
-        ) : null
+        )
       }
+      case 'created_at':
+        return card.created_at ? formatDate(localDateOnly(card.created_at)) : ''
+      case 'expected_on':
+        return formatDate(card.expected_on)
       case 'delivered_on':
         return (
           <span className="font-medium">
-            {card.closed_at ? formatDate(localDateOnly(card.closed_at)) : ''}
+            {card.status === 'delivered' && card.closed_at
+              ? formatDate(localDateOnly(card.closed_at))
+              : ''}
           </span>
         )
       case 'derived':
         return derived ? <StatusChip status={derived} /> : null
+      case 'numeric_id':
+        return <span className="tabular-nums">{card.numeric_id}</span>
       case 'branch':
         return (
           <BranchTag
@@ -309,12 +292,6 @@ export function CycleTable({
             labelColor={card.branch.label_color}
           />
         )
-      case 'next_action':
-        return card.status === 'to_notify'
-          ? 'Avisar'
-          : open
-            ? 'Marcar entregado'
-            : ''
       default: {
         const property = properties.find((item) => `custom:${item.key}` === key)
         if (!property) return null
@@ -330,56 +307,96 @@ export function CycleTable({
     }
   }
 
-  const controls = (
-    <>
-      <SavedViewsBar
-        current={() => ({
-          filters: { board: filters, table: tableFilters },
-          columns: columns.keys,
-          sort: { parts: sort },
-        })}
-        onApply={(view) => {
-          onBoardFiltersChange?.(view.filters.board ?? {})
-          setFiltersAndResetPage(view.filters.table ?? emptyTableFilters)
-          setSort(view.sort.parts ?? [])
-          if (view.columns.length) columns.save(view.columns)
-          setSelected([])
-        }}
-        onClear={() => {
-          onBoardFiltersChange?.({})
-          setFiltersAndResetPage(emptyTableFilters)
-          setSort([])
-          setClientSort(null)
-          columns.save(cycleColumns.map((column) => column.key))
-          setSelected([])
-        }}
-      />
-      <ColumnPicker
-        keys={columns.keys}
-        onChange={columns.save}
-        saving={columns.saving}
-        all={allColumns}
-      />
-    </>
+  // Los botones salen de las etapas configuradas en el tablero (nombre, color y orden).
+  const stageOptions = [...(pipeline?.stages ?? [])].sort(
+    (a, b) => a.position - b.position,
   )
+  // Los conteos no dependen del botón elegido: se conservan mientras llega la respuesta nueva.
+  const [stageCounts, setStageCounts] = useState<Record<string, number>>({})
+  useEffect(() => {
+    if (table.data?.stage_counts) setStageCounts(table.data.stage_counts)
+  }, [table.data])
+  const totalCount = Object.values(stageCounts).reduce(
+    (sum, count) => sum + count,
+    0,
+  )
+  const activeStageIds = tableFilters.stage_id
+    ? tableFilters.stage_id.split(',')
+    : []
+  // La fecha de entrega solo tiene sentido al ver ciclos entregados: se muestra al filtrar por "Entregado".
+  const closedStageIds = new Set(
+    (pipeline?.stages ?? [])
+      .filter((stage) => stage.system_status === 'closed')
+      .map((stage) => stage.id),
+  )
+  const showDeliveredOn =
+    activeStageIds.length > 0 &&
+    activeStageIds.every((id) => closedStageIds.has(id))
+  const visibleColumnKeys = defaultColumnKeys.filter(
+    (key) => key !== 'delivered_on' || showDeliveredOn,
+  )
+  const toggleStage = (stageId: string | null) => {
+    const next =
+      stageId === null
+        ? []
+        : activeStageIds.includes(stageId)
+          ? activeStageIds.filter((id) => id !== stageId)
+          : [...activeStageIds, stageId]
+    setFiltersAndResetPage({
+      ...tableFilters,
+      stage_id: next.length ? next.join(',') : undefined,
+    })
+  }
+  const stagePill = (selectedOption: boolean) =>
+    cn(
+      'inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition',
+      selectedOption
+        ? 'border-tealmax bg-tealmax text-white'
+        : 'border-border text-ink hover:bg-surface bg-white',
+    )
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      {controlsSlot ? (
-        createPortal(
-          <div className="flex flex-wrap items-center gap-2">{controls}</div>,
-          controlsSlot,
-        )
-      ) : (
-        <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-2">
-          {controls}
-        </div>
-      )}
-      {canBatch && (
-        <div className="shrink-0">
-          <BatchBar ids={selected} onDone={() => setSelected([])} />
-        </div>
-      )}
+      <div
+        role="group"
+        aria-label="Filtrar por estado"
+        className="mb-3 flex shrink-0 flex-wrap items-center gap-1.5"
+      >
+        <button
+          type="button"
+          aria-pressed={activeStageIds.length === 0}
+          onClick={() => toggleStage(null)}
+          className={stagePill(activeStageIds.length === 0)}
+        >
+          Todos
+          {totalCount > 0 && (
+            <span className="font-normal tabular-nums opacity-80">
+              {totalCount}
+            </span>
+          )}
+        </button>
+        {stageOptions.map((stage) => (
+          <button
+            key={stage.id}
+            type="button"
+            aria-pressed={activeStageIds.includes(stage.id)}
+            onClick={() => toggleStage(stage.id)}
+            className={stagePill(activeStageIds.includes(stage.id))}
+          >
+            <span
+              aria-hidden="true"
+              className="size-2 rounded-full"
+              style={{ backgroundColor: stage.color }}
+            />
+            {stage.name}
+            {(stageCounts[stage.id] ?? 0) > 0 && (
+              <span className="font-normal tabular-nums opacity-80">
+                {stageCounts[stage.id]}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
 
       <section
         aria-label="Vista tabla de ciclos"
@@ -407,19 +424,7 @@ export function CycleTable({
             <table className="w-full min-w-[980px] border-collapse text-left text-sm">
               <thead className="bg-surface text-muted sticky top-0 z-10 text-[11px] tracking-wide uppercase">
                 <tr>
-                  {canBatch && (
-                    <th className="bg-surface w-10 px-4 py-3">
-                      <input
-                        type="checkbox"
-                        aria-label="Seleccionar todos los ciclos abiertos"
-                        checked={allSelected}
-                        onChange={(event) =>
-                          setSelected(event.target.checked ? selectable : [])
-                        }
-                      />
-                    </th>
-                  )}
-                  {columns.keys.map((key) => {
+                  {visibleColumnKeys.map((key) => {
                     const active = activeSortKey === key ? activeSortDir : null
                     return (
                       <th
@@ -458,24 +463,7 @@ export function CycleTable({
                       'hover:bg-surface/50',
                     )}
                   >
-                    {canBatch && (
-                      <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          aria-label={`Seleccionar ciclo de ${card.patient.nombre}`}
-                          disabled={!isOpenCycle(card)}
-                          checked={selected.includes(card.cycle_id)}
-                          onChange={(event) =>
-                            setSelected(
-                              event.target.checked
-                                ? [...selected, card.cycle_id]
-                                : selected.filter((id) => id !== card.cycle_id),
-                            )
-                          }
-                        />
-                      </td>
-                    )}
-                    {columns.keys.map((key) => (
+                    {visibleColumnKeys.map((key) => (
                       <td key={key} className="px-4 py-3">
                         {cell(key, card)}
                       </td>

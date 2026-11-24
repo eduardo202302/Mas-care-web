@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -344,7 +345,7 @@ export default function HealthConditionsPage() {
           }}
         >
           <FilterField label="Estado" icon={<ToggleRight className="size-4" />}>
-            <select
+            <Select
               aria-label="Estado"
               value={filterDraft.isActive}
               onChange={(event) =>
@@ -360,11 +361,11 @@ export default function HealthConditionsPage() {
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           {textFilters.map(({ key, label, icon }) => (
             <FilterField key={key} label={label} icon={icon}>
-              <select
+              <Select
                 aria-label={label}
                 value={filterDraft[key]}
                 onChange={(event) =>
@@ -378,7 +379,7 @@ export default function HealthConditionsPage() {
                     {value}
                   </option>
                 ))}
-              </select>
+              </Select>
             </FilterField>
           ))}
         </AdvancedFilterDialog>

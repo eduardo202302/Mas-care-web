@@ -154,9 +154,12 @@ export function StockOutDialog({
 
 export function BoardNoticeDialog({
   card,
+  keepStatus = false,
   onClose,
 }: {
   card: BoardCard
+  /** El usuario ya movió la reposición: registrar el aviso no la cambia de estado. */
+  keepStatus?: boolean
   onClose: () => void
 }) {
   const queryClient = useQueryClient()
@@ -171,8 +174,8 @@ export function BoardNoticeDialog({
   if (patient.isLoading) {
     return (
       <Dialog
-        title="Avisar al Paciente"
-        description={`${card.patient.nombre} · ${card.medication.nombre}`}
+        title={`Seguimiento al Paciente: ${card.patient.nombre}`}
+        description={card.medication.nombre}
         onClose={onClose}
       >
         <div className="grid gap-3" aria-busy="true">
@@ -184,7 +187,7 @@ export function BoardNoticeDialog({
   }
   if (patient.isError || !patient.data) {
     return (
-      <Dialog title="Avisar al Paciente" onClose={onClose}>
+      <Dialog title="Seguimiento al Paciente" onClose={onClose}>
         <p role="alert" className="text-sm text-red-700">
           No pudimos cargar los datos de contacto del paciente.
         </p>
@@ -204,6 +207,8 @@ export function BoardNoticeDialog({
   return (
     <NoticeDialog
       target={target}
+      keepStatus={keepStatus}
+      stageEditable={false}
       onClose={onClose}
       onLogged={() => {
         void queryClient.invalidateQueries({ queryKey: ['board'] })

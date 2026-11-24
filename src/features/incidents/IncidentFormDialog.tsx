@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { TriangleAlert } from 'lucide-react'
@@ -118,7 +119,7 @@ export function IncidentFormDialog({
               <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
                 Sucursal
               </span>
-              <select
+              <Select
                 value={branchId}
                 onChange={(event) => setBranchId(event.target.value)}
                 required
@@ -130,13 +131,13 @@ export function IncidentFormDialog({
                     {branch.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             <label className="grid gap-1.5">
               <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
                 Tipo
               </span>
-              <select
+              <Select
                 value={type}
                 onChange={(event) =>
                   setType(event.target.value as IncidentType)
@@ -148,7 +149,7 @@ export function IncidentFormDialog({
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           </div>
         </ModalSection>
@@ -184,7 +185,7 @@ export function IncidentFormDialog({
               Responsable{' '}
               <span className="text-muted font-normal">(Opcional)</span>
             </span>
-            <select
+            <Select
               value={assignedTo}
               onChange={(event) => setAssignedTo(event.target.value)}
               className={control}
@@ -195,7 +196,7 @@ export function IncidentFormDialog({
                   {user.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         </ModalSection>
 

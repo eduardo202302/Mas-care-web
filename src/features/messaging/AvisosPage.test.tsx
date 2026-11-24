@@ -1,3 +1,4 @@
+import { chooseOption } from '@/test/select'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   cleanup,
@@ -175,7 +176,8 @@ describe('AvisosPage', () => {
     // El filtro vive ahora en el diálogo "Filtro Avanzado" (mismo diseño que el tablero).
     await user.click(screen.getByRole('button', { name: /filtro avanzado/i }))
     const dialog = await screen.findByRole('dialog')
-    await user.selectOptions(
+    await chooseOption(
+      user,
       within(dialog).getByLabelText('Filtrar por estado'),
       'failed',
     )

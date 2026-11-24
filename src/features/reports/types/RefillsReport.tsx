@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Info } from 'lucide-react'
@@ -59,7 +60,7 @@ export function RefillsReport({ filters }: { filters: ReportFilters }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <label className="flex items-center gap-2 text-sm">
           <span className="text-muted font-medium">Horizonte de previsión</span>
-          <select
+          <Select
             aria-label="Horizonte de previsión"
             value={activeHorizon ?? ''}
             onChange={(event) => setHorizon(Number(event.target.value))}
@@ -70,7 +71,7 @@ export function RefillsReport({ filters }: { filters: ReportFilters }) {
                 {days} días
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <ExportButton type="refills" filters={filters} />
       </div>

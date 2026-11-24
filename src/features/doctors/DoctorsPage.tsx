@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -367,7 +368,7 @@ export default function DoctorsPage() {
     <div className="animate-in flex h-full min-h-0 flex-col">
       <PageHeader
         title="Médicos"
-        subtitle="Médicos prescriptores y sus especialidades y centros médicos."
+        subtitle="Doctores y sus especialidades y centros médicos."
         actions={
           <>
             {canWrite && (
@@ -433,7 +434,7 @@ export default function DoctorsPage() {
           }}
         >
           <FilterField label="Estado" icon={<ToggleRight className="size-4" />}>
-            <select
+            <Select
               aria-label="Estado"
               value={filterDraft.isActive}
               onChange={(event) =>
@@ -449,11 +450,11 @@ export default function DoctorsPage() {
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           {textFilters.map(({ key, label, icon }) => (
             <FilterField key={key} label={label} icon={icon}>
-              <select
+              <Select
                 aria-label={label}
                 value={filterDraft[key]}
                 onChange={(event) =>
@@ -469,7 +470,7 @@ export default function DoctorsPage() {
                     {value}
                   </option>
                 ))}
-              </select>
+              </Select>
             </FilterField>
           ))}
         </AdvancedFilterDialog>

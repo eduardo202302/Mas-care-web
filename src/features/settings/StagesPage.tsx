@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react'
@@ -88,6 +89,7 @@ export default function StagesPage() {
           description: null,
           color: '#64748b',
           position: draft.stages.length,
+          is_initial: false,
           cycle_count: 0,
         },
       ],
@@ -218,7 +220,7 @@ export default function StagesPage() {
         })}
       </ol>
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <select
+        <Select
           className={input}
           aria-label="Columna de la nueva etapa"
           value={addTo}
@@ -231,7 +233,7 @@ export default function StagesPage() {
               {boardColumnLabels[column]}
             </option>
           ))}
-        </select>
+        </Select>
         <Button type="button" onClick={add}>
           Añadir Etapa
         </Button>

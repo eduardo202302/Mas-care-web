@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { formatTimestamp } from '@/lib/operations'
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -283,7 +284,7 @@ export default function TransfersPage() {
           }}
         >
           <FilterField label="Sucursal" icon={<Building2 className="size-4" />}>
-            <select
+            <Select
               aria-label="Sucursal"
               value={filterDraft.branch_id ?? ''}
               onChange={(event) =>
@@ -300,7 +301,7 @@ export default function TransfersPage() {
                   {branch.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="ID" icon={<Hash className="size-4" />}>
             <FilterSelect
@@ -323,7 +324,7 @@ export default function TransfersPage() {
             />
           </FilterField>
           <FilterField label="De" icon={<Building2 className="size-4" />}>
-            <select
+            <Select
               aria-label="Sucursal de origen"
               value={filterDraft.fromBranch}
               onChange={(event) =>
@@ -340,10 +341,10 @@ export default function TransfersPage() {
                   {name}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="A" icon={<ArrowRightLeft className="size-4" />}>
-            <select
+            <Select
               aria-label="Sucursal de destino"
               value={filterDraft.toBranch}
               onChange={(event) =>
@@ -357,7 +358,7 @@ export default function TransfersPage() {
                   {name}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Motivo" icon={<FileText className="size-4" />}>
             <FilterSelect

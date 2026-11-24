@@ -6,8 +6,7 @@ import {
   ChevronDown,
   MessageCircle,
   MoreHorizontal,
-  PackageCheck,
-  PackageOpen,
+  Pencil,
   TriangleAlert,
   Warehouse,
 } from 'lucide-react'
@@ -48,9 +47,8 @@ export function CycleCard({
   canCreateIncident,
   canMarkStock,
   dragHandleProps,
+  onEdit,
   onNotice,
-  onDeliver,
-  onNotPickedUp,
   onChangeDate,
   onCreateIncident,
   onMoveTo,
@@ -63,9 +61,8 @@ export function CycleCard({
   canCreateIncident: boolean
   canMarkStock: boolean
   dragHandleProps?: DragHandleProps
+  onEdit: () => void
   onNotice: () => void
-  onDeliver: () => void
-  onNotPickedUp: () => void
   onChangeDate: () => void
   onCreateIncident: () => void
   onMoveTo: (status: CycleStatus) => void
@@ -117,9 +114,8 @@ export function CycleCard({
               canWrite={canWrite}
               canCreateIncident={canCreateIncident}
               canMarkStock={canMarkStock}
+              onEdit={onEdit}
               onNotice={onNotice}
-              onDeliver={onDeliver}
-              onNotPickedUp={onNotPickedUp}
               onChangeDate={onChangeDate}
               onCreateIncident={onCreateIncident}
               onMoveTo={onMoveTo}
@@ -195,9 +191,8 @@ function CycleCardMenu({
   canWrite,
   canCreateIncident,
   canMarkStock,
+  onEdit,
   onNotice,
-  onDeliver,
-  onNotPickedUp,
   onChangeDate,
   onCreateIncident,
   onMoveTo,
@@ -210,9 +205,8 @@ function CycleCardMenu({
   canWrite: boolean
   canCreateIncident: boolean
   canMarkStock: boolean
+  onEdit: () => void
   onNotice: () => void
-  onDeliver: () => void
-  onNotPickedUp: () => void
   onChangeDate: () => void
   onCreateIncident: () => void
   onMoveTo: (status: CycleStatus) => void
@@ -268,26 +262,19 @@ function CycleCardMenu({
           aria-label={`Acciones de ${card.patient.nombre}`}
           className="border-border absolute top-8 right-0 z-30 w-60 rounded-xl border bg-white p-1.5 shadow-xl"
         >
+          {canWrite && (
+            <MenuButton
+              icon={Pencil}
+              label="Editar"
+              onClick={() => run(onEdit)}
+            />
+          )}
           {open && canWrite && (
             <MenuButton
               icon={MessageCircle}
               label="Avisar"
               className="text-coral hover:bg-coral/10"
               onClick={() => run(onNotice)}
-            />
-          )}
-          {open && canWrite && (
-            <MenuButton
-              icon={PackageCheck}
-              label="Marcar entregado"
-              onClick={() => run(onDeliver)}
-            />
-          )}
-          {open && canWrite && (
-            <MenuButton
-              icon={PackageOpen}
-              label="Marcar no retirado"
-              onClick={() => run(onNotPickedUp)}
             />
           )}
           {open && canEditDate && (

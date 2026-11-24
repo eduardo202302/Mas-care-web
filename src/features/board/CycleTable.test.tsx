@@ -1,12 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import {
-  cleanup,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CycleTable } from './CycleTable'
@@ -164,12 +157,7 @@ function setup(permissions: string[], batch = true) {
       }
     >
       <MemoryRouter>
-        <CycleTable
-          filters={{}}
-          canMove={batch}
-          canWrite={batch}
-          onMove={() => undefined}
-        />
+        <CycleTable filters={{}} canMove={batch} onSetStage={() => undefined} />
       </MemoryRouter>
     </QueryClientProvider>,
   )
@@ -177,58 +165,6 @@ function setup(permissions: string[], batch = true) {
 }
 
 describe('CycleTable', () => {
-  it('shows the stage of each cycle (default when none) and the treatment properties', async () => {
-    setup(['treatments:read'], false)
-    await screen.findByText('Paciente a')
-    expect(screen.getByText('Esperando receta')).toBeInTheDocument()
-    expect(screen.getAllByText('Avisado').length).toBeGreaterThanOrEqual(2)
-    expect(
-      screen.getByRole('columnheader', { name: 'Etapa' }),
-    ).toBeInTheDocument()
-    // Custom property columns are offered but not shown until chosen.
-    expect(
-      screen.queryByRole('columnheader', { name: 'Dosis especial' }),
-    ).not.toBeInTheDocument()
-  })
-
-  it('lets only open cycles be selected and applies a batch only after confirmation', async () => {
-    const calls = setup(['treatments:read', 'treatments:write', 'cycle:move'])
-    const user = userEvent.setup()
-    await screen.findByText('Paciente a')
-    expect(
-      screen.getByRole('checkbox', { name: 'Seleccionar ciclo de Paciente c' }),
-    ).toBeDisabled()
-
-    await user.click(
-      screen.getByRole('checkbox', { name: 'Seleccionar ciclo de Paciente a' }),
-    )
-    expect(screen.getByText('1 seleccionados')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Cancelar ciclos' }))
-    expect(calls.some((call) => call.url.includes('/cycles/batch'))).toBe(false)
-
-    const dialog = await screen.findByRole('dialog')
-    await user.click(
-      within(dialog).getByRole('button', { name: /Confirmar Y Aplicar a 1/ }),
-    )
-    await waitFor(() =>
-      expect(
-        calls.find((call) => call.url.includes('/cycles/batch'))?.body,
-      ).toMatchObject({ action: 'archive', ids: ['a'], confirm: true }),
-    )
-  })
-
-  it('selects every open cycle with the header checkbox', async () => {
-    setup(['treatments:read', 'treatments:write', 'cycle:move'])
-    const user = userEvent.setup()
-    await screen.findByText('Paciente a')
-    await user.click(
-      screen.getByRole('checkbox', {
-        name: 'Seleccionar todos los ciclos abiertos',
-      }),
-    )
-    expect(screen.getByText('2 seleccionados')).toBeInTheDocument()
-  })
-
   it('hides the checkboxes and the batch bar without batch permissions', async () => {
     const calls = setup(['treatments:read'], false)
     await screen.findByText('Paciente a')
@@ -237,28 +173,5 @@ describe('CycleTable', () => {
       screen.queryByRole('toolbar', { name: 'Acciones por lote' }),
     ).not.toBeInTheDocument()
     expect(calls.length).toBeGreaterThan(0)
-  })
-
-  it('saves hidden columns for the user', async () => {
-    const calls = setup(['treatments:read'])
-    const user = userEvent.setup()
-    await screen.findByText('Paciente a')
-    await user.click(screen.getByRole('button', { name: 'Columnas' }))
-    const dialog = await screen.findByRole('dialog')
-    await user.click(
-      within(dialog).getAllByRole('button', { name: 'Ocultar' })[0]!,
-    )
-    await waitFor(() => {
-      const saved = calls.find(
-        (call) => call.method === 'POST' && call.url.includes('/saved-views'),
-      )
-      expect(saved?.body).toMatchObject({
-        entity: 'cycles_columns',
-        name: 'default',
-      })
-      expect((saved?.body as { columns: string[] }).columns).not.toContain(
-        'branch',
-      )
-    })
   })
 })

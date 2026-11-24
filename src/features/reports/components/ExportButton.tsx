@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useState } from 'react'
 import { Download, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -100,7 +101,7 @@ export function ExportButton({
     <div className="flex flex-wrap items-center gap-2 print:hidden">
       <label className="flex items-center gap-1.5 text-xs">
         <span className="text-muted font-medium">Separador</span>
-        <select
+        <Select
           aria-label="Separador del CSV"
           value={separator}
           onChange={(event) =>
@@ -113,7 +114,7 @@ export function ExportButton({
               {label}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
       <Button
         type="button"

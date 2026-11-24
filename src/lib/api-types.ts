@@ -6369,7 +6369,7 @@ export interface paths {
                 };
                 header?: never;
                 path: {
-                    status: "to_notify" | "notified" | "confirmed" | "prepared" | "closed";
+                    status: "to_notify" | "notified" | "confirmed" | "prepared" | "closed" | "created";
                 };
                 cookie?: never;
             };
@@ -6468,6 +6468,9 @@ export interface paths {
                     content: {
                         "application/json": {
                             status: string | null;
+                            stage_counts: {
+                                [key: string]: number;
+                            };
                             data: components["schemas"]["BoardCard"][];
                             total: number;
                             page: number;
@@ -11079,6 +11082,7 @@ export interface components {
             days_remaining_real: number | null;
         };
         TreatmentCreate: {
+            expected_on?: string;
             patient_id: string;
             medication_id: string;
             branch_id: string;
@@ -11218,7 +11222,10 @@ export interface components {
         };
         NoticeLoggedInput: {
             /** @enum {string} */
-            channel: "whatsapp" | "call";
+            channel: "whatsapp" | "email" | "telegram" | "call";
+            contact_name: string;
+            note: string;
+            advance?: boolean;
         };
         TaskCreate: {
             /** @enum {string} */
@@ -11632,6 +11639,7 @@ export interface components {
         };
         BoardCard: {
             cycle_id: string;
+            numeric_id: string;
             treatment_id: string;
             version: number;
             /** @enum {string} */
@@ -11640,6 +11648,10 @@ export interface components {
             priority: "low" | "medium" | "high" | "urgent" | null;
             /** @enum {string|null} */
             type: "regular" | "urgent" | "special" | null;
+            created_at: string;
+            pending_dose_schedule: {
+                [key: string]: string;
+            } | null;
             patient: {
                 id: string;
                 nombre: string;
@@ -11653,6 +11665,7 @@ export interface components {
                 presentation: string;
             };
             expected_on: string;
+            expected_quantity: string;
             /** @enum {string|null} */
             derived_status: "vencido" | "vence_pronto" | "retiro_pendiente" | "proxima_reposicion" | "al_dia" | null;
             days_remaining: number | null;
@@ -11697,6 +11710,7 @@ export interface components {
         CycleMoveInput: {
             /** @enum {string} */
             to_status: "to_notify" | "notified" | "confirmed" | "prepared" | "delivered" | "not_picked_up" | "cancelled";
+            stage_id?: string | null;
             after_id?: string | null;
             before_id?: string | null;
             expected_version: number | null;

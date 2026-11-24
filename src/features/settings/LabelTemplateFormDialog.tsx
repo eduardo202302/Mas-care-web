@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Info, Printer, Save, Tag } from 'lucide-react'
@@ -288,7 +289,7 @@ export function LabelTemplateFormDialog({
           </div>
           <label className="grid w-full gap-1.5 sm:w-60">
             <span className="text-ink text-base font-medium">Sucursal</span>
-            <select
+            <Select
               value={branchId}
               onChange={(event) => setBranchId(event.target.value)}
               className={headerControl}
@@ -299,11 +300,11 @@ export function LabelTemplateFormDialog({
                   {branch.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="grid w-full gap-1.5 sm:w-44">
             <span className="text-ink text-base font-medium">Tamaño</span>
-            <select
+            <Select
               value={customMode ? 'custom' : sizeChoice}
               onChange={(event) =>
                 changeSize(event.target.value as LabelSizeChoice)
@@ -316,7 +317,7 @@ export function LabelTemplateFormDialog({
                 </option>
               ))}
               <option value="custom">Personalizado</option>
-            </select>
+            </Select>
           </label>
           {customMode &&
             (
@@ -424,7 +425,7 @@ export function LabelTemplateFormDialog({
           </div>
           <label className="grid gap-1.5">
             <span className="text-ink text-base font-medium">Tratamiento</span>
-            <select
+            <Select
               value={treatmentId}
               onChange={(event) => setTreatmentChoice(event.target.value)}
               disabled={!patient || treatmentList.length === 0}
@@ -453,7 +454,7 @@ export function LabelTemplateFormDialog({
                   )
                 })
               )}
-            </select>
+            </Select>
           </label>
         </div>
 

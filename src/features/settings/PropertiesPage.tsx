@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -185,7 +186,7 @@ function PropertyDialog({
             <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
               Tipo
             </span>
-            <select
+            <Select
               className={control}
               value={value.type}
               disabled={editing}
@@ -198,7 +199,7 @@ function PropertyDialog({
                   {typeLabels[type]}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         </ModalSection>
 

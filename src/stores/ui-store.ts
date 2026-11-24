@@ -22,7 +22,7 @@ type UiState = {
 export const useUiStore = create<UiState>((set) => ({
   sidebarOpen: false,
   activeBranchId: null,
-  boardView: 'board',
+  boardView: 'table',
   lastReportType: null,
   reportCsvSeparator: ',',
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),

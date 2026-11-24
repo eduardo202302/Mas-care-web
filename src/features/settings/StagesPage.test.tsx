@@ -1,3 +1,4 @@
+import { chooseOption } from '@/test/select'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -66,7 +67,8 @@ it('adds a stage under a column, deletes only what is safe, and sends new stages
   ).toBeDisabled()
   expect(screen.getByRole('button', { name: 'Borrar Avisado' })).toBeDisabled()
 
-  await user.selectOptions(
+  await chooseOption(
+    user,
     screen.getByLabelText('Columna de la nueva etapa'),
     'confirmed',
   )

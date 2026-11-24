@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { createPortal } from 'react-dom'
 import { useMemo, useState } from 'react'
@@ -715,7 +716,7 @@ export default function UsersPage() {
             label="Rol del Usuario"
             icon={<ShieldCheck className="size-4" />}
           >
-            <select
+            <Select
               aria-label="Rol del usuario"
               value={filterDraft.role}
               onChange={(event) =>
@@ -729,10 +730,10 @@ export default function UsersPage() {
                   {option}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Estado" icon={<Power className="size-4" />}>
-            <select
+            <Select
               aria-label="Estado del usuario"
               value={filterDraft.status}
               onChange={(event) =>
@@ -746,10 +747,10 @@ export default function UsersPage() {
               <option value="">Todos</option>
               <option value="active">Activos</option>
               <option value="inactive">Inactivos</option>
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Sucursal" icon={<Building2 className="size-4" />}>
-            <select
+            <Select
               aria-label="Sucursal del usuario"
               value={filterDraft.branch}
               onChange={(event) =>
@@ -763,7 +764,7 @@ export default function UsersPage() {
                   {option}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField
             label="WhatsApp"

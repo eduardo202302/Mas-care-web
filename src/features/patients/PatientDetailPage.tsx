@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { Select } from '@/components/ui/Select'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -8,7 +9,6 @@ import {
   FileText,
   CalendarCheck,
   Mail,
-  MessageCircle,
   PackageCheck,
   Phone,
   PhoneCall,
@@ -60,13 +60,12 @@ import { formatPhone } from '@/lib/phone'
 import { useCan } from '@/lib/permissions'
 import type { components, paths } from '@/lib/api-types'
 import {
-  buildDoseScheduleFields,
+  createTreatmentFromForm,
   formatDate,
-  isDoseFrequencyValid,
   medicationName,
   treatmentPauta,
   treatmentStatusLabel,
-  uploadPrescriptionDocument,
+  updateTreatmentFromForm,
   type DoseScheduleFrequency,
   type Medication,
   type Treatment,
@@ -212,7 +211,11 @@ export default function PatientDetailPage() {
   const canViewMessages = useCan('outbox:view')
   const [activeTab, setActiveTab] = useState<
     'history' | 'treatments' | 'infopack' | 'transfers'
-  >('history')
+  >('treatments')
+  // Al abrir otro paciente sin salir de la página, también se parte de Tratamientos.
+  useEffect(() => {
+    setActiveTab('treatments')
+  }, [id])
   const [transferOpen, setTransferOpen] = useState(false)
   const [printing, setPrinting] = useState(false)
   const [doctorAddOpen, setDoctorAddOpen] = useState(false)
@@ -447,70 +450,8 @@ export default function PatientDetailPage() {
       values: TreatmentSaveValues
       treatment?: Treatment
     }) => {
-      if (treatment) {
-        const body: components['schemas']['TreatmentPatch'] = {
-          name: values.name?.trim() || null,
-          medication_id: values.medicationId,
-          branch_id: values.branchId,
-          responsible_user_id: values.responsibleUserId || null,
-          dose_per_intake: values.dosePerIntake,
-          intakes_per_day: values.intakesPerDay,
-          quantity_per_cycle: values.quantityPerCycle,
-          start_date: values.startDate,
-          end_date: values.endDate || null,
-          prescriber_name: values.prescriberName?.trim() || null,
-          prescriber_id: values.prescriberId?.trim() || null,
-          prescription_expires_on: values.prescriptionExpiresOn || null,
-          notes: values.notes?.trim() || null,
-          custom_values: values.customValues,
-        } as components['schemas']['TreatmentPatch']
-        const updated = await api<Treatment>(
-          `/api/v1/treatments/${encodeURIComponent(treatment.id)}`,
-          { method: 'PATCH', body: JSON.stringify(body) },
-        )
-        await uploadPrescriptionDocument(treatment.id, values.prescriptionFile)
-        return updated
-      }
-      const body: components['schemas']['TreatmentCreate'] = {
-        patient_id: id,
-        name: values.name?.trim() || null,
-        medication_id: values.medicationId,
-        branch_id: values.branchId,
-        responsible_user_id: values.responsibleUserId || null,
-        dose_per_intake: values.dosePerIntake,
-        intakes_per_day: values.intakesPerDay,
-        quantity_per_cycle: values.quantityPerCycle,
-        start_date: values.startDate,
-        prescriber_name: values.prescriberName?.trim() || null,
-        prescriber_id: values.prescriberId?.trim() || null,
-        prescription_expires_on: values.prescriptionExpiresOn || null,
-        notes: values.notes?.trim() || null,
-        custom_values: values.customValues,
-      } as components['schemas']['TreatmentCreate']
-      const created = await api<Treatment>('/api/v1/treatments', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      })
-      await uploadPrescriptionDocument(created.id, values.prescriptionFile)
-      // Primer horario de dosis: nunca requiere autorización, porque todavía
-      // no existe uno activo que esté cambiando.
-      if (isDoseFrequencyValid(values)) {
-        const form = new FormData()
-        form.set('dose_per_intake', String(values.dosePerIntake))
-        form.set('effective_from', values.startDate)
-        for (const [key, value] of Object.entries(
-          buildDoseScheduleFields(values, values.startDate),
-        ))
-          form.set(key, value)
-        await api(
-          `/api/v1/treatments/${encodeURIComponent(created.id)}/dose-schedules`,
-          {
-            method: 'POST',
-            body: form,
-          },
-        )
-      }
-      return created
+      if (treatment) return updateTreatmentFromForm(treatment.id, values)
+      return createTreatmentFromForm(id, values)
     },
     onSuccess: async () => {
       await invalidateTreatments()
@@ -988,33 +929,18 @@ export default function PatientDetailPage() {
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
-                {activeTab === 'history'
-                  ? canWriteTreatment &&
-                    activeTreatments.length === 1 && (
-                      <Button
-                        variant="coral"
-                        onClick={() =>
-                          setNoticeTreatment(activeTreatments[0] ?? null)
-                        }
-                      >
-                        <MessageCircle className="size-4" />
-                        Avisar
-                      </Button>
-                    )
-                  : activeTab === 'treatments'
-                    ? canWriteTreatment && (
-                        <Button
-                          variant="primary"
-                          onClick={() => {
-                            setEditingTreatment(null)
-                            setTreatmentFormOpen(true)
-                          }}
-                        >
-                          <Plus className="size-4" />
-                          Crear Tratamiento
-                        </Button>
-                      )
-                    : null}
+                {activeTab === 'treatments' && canWriteTreatment && (
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      setEditingTreatment(null)
+                      setTreatmentFormOpen(true)
+                    }}
+                  >
+                    <Plus className="size-4" />
+                    Crear Tratamiento
+                  </Button>
+                )}
               </div>
             </div>
             {activeTab === 'history' ? (
@@ -1094,6 +1020,7 @@ export default function PatientDetailPage() {
                   branchName={branch?.name}
                   treatments={treatmentRows}
                   medicationsById={medicationsById}
+                  schedules={treatmentSchedules.data}
                 />
               </div>
             ) : (
@@ -1560,7 +1487,7 @@ export default function PatientDetailPage() {
                 >
                   Canal
                 </label>
-                <select
+                <Select
                   id="consent-channel"
                   value={consentChannel}
                   onChange={(event) =>
@@ -1573,7 +1500,7 @@ export default function PatientDetailPage() {
                   <option value="whatsapp">WhatsApp</option>
                   <option value="call">Llamada</option>
                   <option value="sms">SMS</option>
-                </select>
+                </Select>
               </div>
               <TextField
                 label="Evidencia (Opcional)"
@@ -1681,7 +1608,6 @@ export default function PatientDetailPage() {
           medicationName={medicationName(
             medicationsById.get(deliveryTreatment.medicationId),
           )}
-          defaultQuantity={deliveryTreatment.quantityPerCycle}
           onClose={() => setDeliveryTreatment(null)}
           onCompleted={() =>
             queryClient.invalidateQueries({

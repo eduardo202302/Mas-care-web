@@ -1,3 +1,4 @@
+import { chooseOption } from '@/test/select'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -84,7 +85,7 @@ describe('CompanyForm', () => {
       'Contacto@Farmacia.com',
     )
     await user.type(screen.getByLabelText('Dominio'), 'https://farmacia.com/')
-    await user.selectOptions(screen.getByLabelText('Estado'), 'inactive')
+    await chooseOption(user, screen.getByLabelText('Estado'), 'inactive')
     await user.click(screen.getByRole('button', { name: 'Crear Compañía' }))
 
     await waitFor(() =>

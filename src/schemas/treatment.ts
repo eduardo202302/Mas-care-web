@@ -7,7 +7,7 @@ import { z } from 'zod'
  * porque el formulario de edición nunca los toca.
  */
 const doseFrequencyFields = {
-  frequencyMode: z.enum(['hours', 'days', 'weekday', 'monthday']),
+  frequencyMode: z.enum(['hours', 'days', 'weekday', 'monthday', 'monthend']),
   hoursPreset: z.string(),
   customHours: z.string(),
   daysPreset: z.string(),

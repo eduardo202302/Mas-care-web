@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -295,7 +296,7 @@ function Queue() {
           }}
         >
           <FilterField label="Paciente" icon={<UserRound className="size-4" />}>
-            <select
+            <Select
               aria-label="Paciente"
               value={filterDraft.patient}
               onChange={(event) =>
@@ -312,13 +313,13 @@ function Queue() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField
             label="Canal"
             icon={<MessageSquare className="size-4" />}
           >
-            <select
+            <Select
               aria-label="Canal"
               value={filterDraft.channel}
               onChange={(event) =>
@@ -332,10 +333,10 @@ function Queue() {
                   {label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Aviso" icon={<BellRing className="size-4" />}>
-            <select
+            <Select
               aria-label="Aviso"
               value={filterDraft.notice}
               onChange={(event) =>
@@ -349,10 +350,10 @@ function Queue() {
                   {option}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Estado" icon={<Mail className="size-4" />}>
-            <select
+            <Select
               aria-label="Filtrar por estado"
               value={filterDraft.status}
               onChange={(event) =>
@@ -369,10 +370,10 @@ function Queue() {
                   {statusLabels[key]}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Detalle" icon={<FileText className="size-4" />}>
-            <select
+            <Select
               aria-label="Detalle"
               value={filterDraft.detail}
               onChange={(event) =>
@@ -389,7 +390,7 @@ function Queue() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField
             label="Fecha desde"

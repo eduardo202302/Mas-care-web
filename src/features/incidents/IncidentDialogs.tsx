@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, UserRound } from 'lucide-react'
@@ -143,7 +144,7 @@ export function AssignIncidentDialog({
       >
         <label className="grid gap-1.5">
           <span className="text-ink text-sm font-medium">Responsable</span>
-          <select
+          <Select
             value={assignedTo}
             onChange={(event) => setAssignedTo(event.target.value)}
             className="border-border focus:border-tealmax h-10 rounded-lg border bg-white px-3 text-sm outline-none"
@@ -154,7 +155,7 @@ export function AssignIncidentDialog({
                 {user.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         {assign.isError && (
           <p role="alert" className="text-sm text-red-700">

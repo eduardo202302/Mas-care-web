@@ -1,206 +1,227 @@
-# Graph Report - max-care-web  (2026-11-17)
+# Graph Report - max-care-web  (2026-11-24)
 
 ## Corpus Check
-- 348 files · ~347,238 words
+- 362 files · ~356,993 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 10 file(s) not represented in the graph (top: (none) 3, .log 3, .example 1)
 
 ## Summary
-- 3298 nodes · 10823 edges · 126 communities (123 shown, 3 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 156 edges (avg confidence: 0.88)
+- 3394 nodes · 11500 edges · 147 communities (141 shown, 6 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 158 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `472bb9de`
+- Built from commit: `6b88a097`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - setLiveState
-- IncidentsPage.tsx
+- DeliveryDialog.tsx
 - operations.ts
-- api-types.ts
-- treatments.ts
-- PatientForm.tsx
-- cn
+- @testing-library/user-event
+- Dialog
+- router.tsx
+- board.ts
 - Runtime Dependencies
 - TypeScript App Config
 - CI/CD Pipeline
 - package.json
 - Component Aliases Config
 - TypeScript Node Config
-- MedicationsPage.tsx
+- DoctorsPage.tsx
 - live-browser.js
-- Button
+- UserForm.tsx
 - phase2-board.spec.ts
 - Build & Dev Scripts
-- CompanyRelationsPanel.tsx
+- MedicationForm.tsx
 - HealthConditionsPage.tsx
 - TypeScript Root Config
-- api
-- useCan
-- DashboardPage.tsx
+- PatientPrintView.tsx
+- PatientForm.tsx
+- reports.ts
 - documentRefForElement
-- TreatmentDetailPage.tsx
+- BranchesPage.tsx
 - optimize.md
-- Responsive Design
+- lucide-react
 - connectSSE
-- TemplatesPage.tsx
-- zod
+- MedicalCentersPage.tsx
+- DoctorForm.tsx
 - el
 - modern-screenshot.umd.js
 - syncPageChatFocus
 - CompanyDetailPage.tsx
 - showToast
 - new-work.md
-- PatientInfoPackPanel.tsx
+- TreatmentsPage.tsx
 - scheduleAcceptCleanup
-- generate.md
+- CompanyActivityPanel.tsx
 - captureElementToBlob
 - live.md
 - Design System: MAS CARE
-- MedicalSpecialtiesPage.tsx
+- CompanyDetailPage
 - initGlobalBar
-- LabelEditor.tsx
+- TreatmentForm.tsx
 - handleManualEditActivity
 - onboard.md
 - Impeccable Asset Producer
 - LabelEditor
 - The Toolkit
-- router.tsx
+- CycleCard.tsx
 - createLiveBrowserDomHelpers
 - createLiveBrowserSessionState
 - MedicationForm.tsx
-- TasksPage.tsx
+- MedicalCenterForm.tsx
 - actOnAgentTarget
-- TreatmentsPage.tsx
+- Fase 2 web · Tablero Kanban, existencias e incidencias
 - LabelSheet.tsx
 - animate.md
 - Handle `generate`
 - Generate Report
-- ThresholdsPage.tsx
-- PatientQuickCreateDialog.tsx
+- TasksPage.tsx
+- MedicalSpecialtiesPage.tsx
 - New visual work
-- bolder.md
+- permissions.ts
 - Scan mode (approach C: auto-extract, then confirm descriptive language)
 - Skeleton
-- BoardPage.tsx
+- IncidentsPage.tsx
 - critique.md
 - Simplify the Design
 - Hardening Dimensions
-- PatientPrintView.tsx
+- BoardPage
 - Product
-- PropertiesPage.tsx
+- custom-properties-core.ts
 - clarify.md
 - Nielsen's 10 Heuristics
 - PatientsPage.tsx
 - polish.md
 - quieter.md
 - onAnnotDown
-- Persuade and Experience
+- @tanstack/react-query
 - Generate Combined Critique Report
 - Init flow
 - Common Cognitive Load Violations
 - iOS platform
+- BoardPage.tsx
 - Shape
-- DoctorsPage.tsx
+- CompaniesPage.tsx
 - xlsx-table.ts
 - Android platform
 - Generate Report
 - Persona-Based Design Testing
-- MenuOrderTable.tsx
-- CompaniesPage.tsx
-- BranchesPage.tsx
-- SKILL.md
+- cn
+- Tables & server pagination design system
+- BoardFilters.tsx
+- LabelPrintDialog.tsx
+- Operate mode depth (and Read notes)
 - Impeccable Finish Reviewer
 - Impeccable Manual Edit Applier
-- UsersPage.tsx
+- TextField
 - Cognitive Load Assessment
 - Impeccable Finish Reviewer
 - Impeccable Manual Edit Applier
 - live-browser-ignores.js
-- TaskFormDialog.tsx
+- k
 - Diagnostic Scan
-- react-router-dom
+- api
+- RouteError.tsx
+- vite.config.ts
 - CompanyForm.tsx
-- api-types.ts
-- transfers.ts
+- PatientDetailPage.tsx
 - Impeccable Documenter
-- DeliveryDialog.tsx
+- TextField
 - Heuristics Scoring Guide
 - Impeccable Documenter
+- patient.ts
+- Implement Adaptations
+- CycleTable.tsx
 - RolesPage.tsx
-- PatientDetailPage.tsx
-- App.tsx
+- StagesPage.tsx
+- dotenv
+- createMedication.ts
+- L
 - BoardFilters.tsx
+- RequireRoute.tsx
+- CompanyRelationsPanel.tsx
+- RoleForm.tsx
+- adapt.md
+- ReportChart.tsx
 - AppLayout.tsx
-- Region map
-- Operate mode depth (and Read notes)
-- LabelTemplateFormDialog.tsx
+- MAS CARE Web
+- SKILL.md
 - Responsive Design
-- adapt.native.md
+- LabelTemplateFormDialog.tsx
+- qt
+- WorkspaceSelector
+- CycleTable.test.tsx
+- Adaptation Strategies
+- q
 - Visualize: Direction Comps & Asset Production
+- Operate
+- MedicationItemsEditor
+- ExportButton.test.tsx
+- Region map
 
 ## God Nodes (most connected - your core abstractions)
-1. `api()` - 229 edges
-2. `Button` - 215 edges
-3. `Dialog()` - 141 edges
-4. `react` - 140 edges
-5. `lucide-react` - 129 edges
-6. `@tanstack/react-query` - 118 edges
-7. `useCan()` - 95 edges
-8. `cn()` - 94 edges
-9. `FormActions()` - 90 edges
-10. `TextField` - 80 edges
+1. `api()` - 244 edges
+2. `Button` - 224 edges
+3. `Dialog()` - 152 edges
+4. `react` - 149 edges
+5. `lucide-react` - 139 edges
+6. `@tanstack/react-query` - 124 edges
+7. `Select` - 120 edges
+8. `useCan()` - 103 edges
+9. `cn()` - 102 edges
+10. `FormActions()` - 96 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Filtros` --references--> `q()`  [INFERRED]
-  docs/phase2-web.md → .github/skills/impeccable/scripts/modern-screenshot.umd.js
 - `Named Rules` --references--> `StatusChip()`  [INFERRED]
-  DESIGN.md → components/StatusChip.tsx
-- `Header` --references--> `Dialog()`  [INFERRED]
-  filtroAvanzadoDesing.md → components/ui/Dialog.tsx
+  DESIGN.md → src/components/StatusChip.tsx
+- `Board page layout tweaks that came with this pass` --references--> `AppLayout()`  [INFERRED]
+  tablasYPaginacionDesign.md → src/components/layout/AppLayout.tsx
 - `Layout Adaptation Techniques` --references--> `clamp()`  [INFERRED]
-  .github/skills/impeccable/reference/adapt.md → features/settings/LabelTemplateFormDialog.tsx
+  .github/skills/impeccable/reference/adapt.md → src/features/settings/LabelTemplateFormDialog.tsx
 - `Existencias` --references--> `StockMarkDialog()`  [INFERRED]
-  docs/phase2-web.md → features/settings/StockMarkDialog.tsx
+  docs/phase2-web.md → src/features/settings/StockMarkDialog.tsx
+- `Assemble and review` --references--> `components`  [INFERRED]
+  .github/skills/impeccable/reference/component-review.md → src/lib/api-types.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (126 total, 3 thin omitted)
+## Communities (147 total, 6 thin omitted)
 
 ### Community 0 - "setLiveState"
 Cohesion: 0.09
 Nodes (67): abortSvelteComponentInjection(), applyEditing(), beginNewLiveConfiguration(), buildLocatorForLeaf(), cancelEditing(), cancelEditingToPicking(), cancelInsertConfigure(), cleanup() (+59 more)
 
-### Community 1 - "IncidentsPage.tsx"
-Cohesion: 0.06
-Nodes (42): Accesibilidad, Existencias, Fase 2 web · Tablero Kanban, existencias e incidencias, Filtros, Incidencias, Nota de rendimiento (revisión manual), Permisos en UI (`useCan`), Puerta de salida (+34 more)
+### Community 1 - "DeliveryDialog.tsx"
+Cohesion: 0.22
+Nodes (12): ButtonIcon(), CycleCloseDialog(), Origin, DeliveryDialog(), Pickup, pickupOptions, DeliveryResult, Treatment (+4 more)
 
 ### Community 2 - "operations.ts"
-Cohesion: 0.08
-Nodes (27): activityLabelFor(), activityLabels, autoImportMapping(), DashboardContact, humanizeActivityType(), importAliases, ImportPreview, ImportResult (+19 more)
-
-### Community 3 - "api-types.ts"
-Cohesion: 0.07
-Nodes (26): @testing-library/react, @testing-library/user-event, vitest, Call, card(), pipeline, setup(), counts (+18 more)
-
-### Community 4 - "treatments.ts"
 Cohesion: 0.05
-Nodes (70): CoverageSection(), MedicationImage(), elapsedLabel(), decode(), DoseFrequencyRow(), encode(), MINUTES, TimePicker12h() (+62 more)
+Nodes (52): DashboardPage, cardIcons, DashboardPage(), pad(), PatientList, TaskTreatmentOption, todayStartInput(), toLocalInput() (+44 more)
 
-### Community 5 - "PatientForm.tsx"
-Cohesion: 0.12
-Nodes (26): addressText(), BranchOption, normalizeCustom(), PatientForm(), commitPending(), submit(), PatientTab, PendingCondition (+18 more)
+### Community 3 - "@testing-library/user-event"
+Cohesion: 0.13
+Nodes (13): @testing-library/user-event, stages, meResponse(), renderForm(), Call, row(), setup(), pipeline (+5 more)
 
-### Community 6 - "cn"
+### Community 4 - "Dialog"
+Cohesion: 0.05
+Nodes (62): Checklist for any new modal, Grouping content with `ModalSection`, Modal design system, Other behavior baked into `Dialog`, Structure and exact classes, The component, Active-filter chips (outside the dialog), Advanced filter design system (+54 more)
+
+### Community 5 - "router.tsx"
 Cohesion: 0.06
-Nodes (46): ConsolidatedDashboardPage, BranchTag(), DragHandle(), DragHandleProps, KanbanColumn, KanbanColumnView(), KanbanMove, SortableCard() (+38 more)
+Nodes (36): RequireAuth(), AccessPage, AutomationSettingsPage, BoardPage, BranchesPage, ChipsPage, CompaniesPage, DoctorDetailPage (+28 more)
+
+### Community 6 - "board.ts"
+Cohesion: 0.09
+Nodes (28): StockPage, boardPath(), CycleExpectedOnResponse, CycleMoveResponse, editCycle(), fetchBoard(), StockMarkInput, MedicationList (+20 more)
 
 ### Community 7 - "Runtime Dependencies"
-Cohesion: 0.08
-Nodes (25): dependencies, better-auth@^1.4.5, class-variance-authority@^0.7.1, clsx@^2.1.1, @dnd-kit/sortable@^10.0.0, @googlemaps/js-api-loader@^2.1.3, graphify@^1.0.0, @hookform/resolvers@^5.2.2 (+17 more)
+Cohesion: 0.07
+Nodes (30): dependencies, better-auth@^1.4.5, class-variance-authority@^0.7.1, clsx@^2.1.1, @dnd-kit/core@^6.3.1, @dnd-kit/sortable@^10.0.0, @dnd-kit/utilities@^3.2.2, @googlemaps/js-api-loader@^2.1.3 (+22 more)
 
 ### Community 8 - "TypeScript App Config"
 Cohesion: 0.09
@@ -211,8 +232,8 @@ Cohesion: 0.12
 Nodes (15): jobs, verify, name, run, uses, with, True, pull_request (+7 more)
 
 ### Community 10 - "package.json"
-Cohesion: 0.05
-Nodes (53): devDependencies, dotenv@^17.2.3, eslint@^9.39.1, eslint-config-prettier@^10.1.8, @eslint/js@^9.39.1, eslint-plugin-react-hooks@^5.2.0, eslint-plugin-react-refresh@^0.4.24, globals@^16.5.0 (+45 more)
+Cohesion: 0.06
+Nodes (47): devDependencies, eslint@^9.39.1, eslint-config-prettier@^10.1.8, @eslint/js@^9.39.1, eslint-plugin-react-hooks@^5.2.0, eslint-plugin-react-refresh@^0.4.24, globals@^16.5.0, jsdom@^27.1.0 (+39 more)
 
 ### Community 11 - "Component Aliases Config"
 Cohesion: 0.11
@@ -222,17 +243,17 @@ Nodes (17): aliases, components, hooks, lib, ui, utils, iconLibrary, rsc (+9 mor
 Cohesion: 0.11
 Nodes (17): compilerOptions, allowImportingTsExtensions, lib, module, moduleDetection, moduleResolution, noEmit, noFallthroughCasesInSwitch (+9 more)
 
-### Community 13 - "MedicationsPage.tsx"
-Cohesion: 0.14
-Nodes (15): MedicationsPage, ConfirmDialog(), PurgeDialog(), ArchivedFilter, archivedOptions, contains(), DEFAULT_ARCHIVED, distinctOptions() (+7 more)
+### Community 13 - "DoctorsPage.tsx"
+Cohesion: 0.06
+Nodes (54): RowActions(), InfoFact(), PageHeader(), PurgeDialog(), StatusDraftContext, StatusDraftProvider(), useStatusDraft(), StatusToggle() (+46 more)
 
 ### Community 14 - "live-browser.js"
 Cohesion: 0.03
 Nodes (139): applyGlobalBarLabelState(), applyLiveBarPreference(), applyParamDefaults(), applyParamValue(), applyPlaceholderSizingStyles(), applySavedParamValues(), bindEditBadgeProxy(), bufferToBase64() (+131 more)
 
-### Community 15 - "Button"
-Cohesion: 0.05
-Nodes (69): Checklist for any new modal, Modal design system, Other behavior baked into `Dialog`, Structure and exact classes, The component, Cambios de API necesarios, AddressMapDialog(), applyCoordinates() (+61 more)
+### Community 15 - "UserForm.tsx"
+Cohesion: 0.08
+Nodes (26): BranchTab, fieldKeys, Props, addressText(), Caregiver, formKey(), PatientCaregiversPanel(), openEdit() (+18 more)
 
 ### Community 16 - "phase2-board.spec.ts"
 Cohesion: 0.09
@@ -242,69 +263,69 @@ Nodes (19): suffix, suffix, ensureLimitedRole(), LimitedRole, names, permissions
 Cohesion: 0.17
 Nodes (12): scripts, build, dev, format, format:check, gen:api, lint, preview (+4 more)
 
-### Community 18 - "CompanyRelationsPanel.tsx"
-Cohesion: 0.12
-Nodes (20): CollapsibleSection(), CompanyContact, CompanyRelationsPanel(), ContactCard(), Deal, DealCard(), DealCreateBody, DealCreateForm() (+12 more)
+### Community 18 - "MedicationForm.tsx"
+Cohesion: 0.18
+Nodes (10): FormFooter(), DoseUnitsDialog(), errorText(), MedicationForm(), MedicationPhotoViewer(), printImage(), useBlobUrl(), DOSE_UNITS_KEY (+2 more)
 
 ### Community 19 - "HealthConditionsPage.tsx"
-Cohesion: 0.07
-Nodes (39): AvisosPage, HealthConditionsPage, ActiveFilterChip, ActiveFilterChips(), AdvancedFilterButton(), distinctOptions(), filterControlClass, FilterField() (+31 more)
+Cohesion: 0.05
+Nodes (62): AvisosPage, ActiveFilterChip, ActiveFilterChips(), AdvancedFilterButton(), AdvancedFilterDialog(), distinctOptions(), FilterBarRow(), filterControlClass (+54 more)
 
-### Community 22 - "api"
-Cohesion: 0.06
-Nodes (66): react, @tanstack/react-query, ActivityList, API_URL, ExportButton(), Format, devLink, Option (+58 more)
+### Community 22 - "PatientPrintView.tsx"
+Cohesion: 0.13
+Nodes (21): ActivityHistory(), ActivityList, authorName(), EmptyState(), printDialog(), PrintFrame(), conditionStatusLabels, ActivityList (+13 more)
 
-### Community 23 - "useCan"
-Cohesion: 0.11
-Nodes (38): NewDoctorButton(), AddConditionDialog(), ConditionLink, ConditionLinkList, ConditionRowContent(), ConditionStatus, PatientConditionsPanel(), AddDoctorDialog() (+30 more)
+### Community 23 - "PatientForm.tsx"
+Cohesion: 0.10
+Nodes (46): ConditionLink, ConditionLinkList, ConditionRowContent(), ConditionStatus, PatientConditionsPanel(), AddDoctorDialog(), DoctorLink, DoctorLinkList (+38 more)
 
-### Community 24 - "DashboardPage.tsx"
-Cohesion: 0.16
-Nodes (12): DashboardPage, BranchFilter(), cardIcons, DashboardPage(), useActiveBranch(), DashboardCardKey, dashboardCardKeys, dashboardCardMeta (+4 more)
+### Community 24 - "reports.ts"
+Cohesion: 0.14
+Nodes (22): ReportsIndexPage, presetFromFilters(), setDraftPreset(), useReportFilters(), update(), reportIcons, ReportsIndexPage(), dateRangeForPreset() (+14 more)
 
 ### Community 25 - "documentRefForElement"
 Cohesion: 0.06
 Nodes (39): addManualContextText(), canRestoreManualEditElement(), collectEditableTextRows(), visit(), collectManualContextPieces(), walk(), contextElementForManualEdit(), copyEditContainerContext() (+31 more)
 
-### Community 26 - "TreatmentDetailPage.tsx"
-Cohesion: 0.08
-Nodes (29): ActivityHistory(), authorName(), PropertiesDialog(), RecordActionsMenu(), PatientAutomationPanel(), PauseDialog(), useSetAutomationPaused(), addressText() (+21 more)
+### Community 26 - "BranchesPage.tsx"
+Cohesion: 0.11
+Nodes (20): addressFields, addressText(), addressValues(), ArchivedFilter, archivedOptions, BranchAddressDetails, BranchesPage(), BranchFilters (+12 more)
 
 ### Community 27 - "optimize.md"
 Cohesion: 0.14
 Nodes (13): Animation Performance, Assess Performance Issues, Core Web Vitals Optimization, Cumulative Layout Shift (CLS < 0.1), Interaction to Next Paint (INP < 200ms), Largest Contentful Paint (LCP < 2.5s), Loading Performance, Network Optimization (+5 more)
 
-### Community 28 - "Responsive Design"
-Cohesion: 0.22
-Nodes (9): Detect Input Method, Not Just Screen Size, Layout Adaptation Patterns, Mobile-First: Write It Right, Picture Element for Art Direction, Responsive Design, Responsive Images: Get It Right, Safe Areas: Handle the Notch, srcset with Width Descriptors (+1 more)
+### Community 28 - "lucide-react"
+Cohesion: 0.09
+Nodes (27): lucide-react, react-dom, Entity, Field, FIELDS, Preview, RowError, Props (+19 more)
 
 ### Community 29 - "connectSSE"
 Cohesion: 0.06
 Nodes (83): applyPlaceholderDimensions(), applySavedSessionMeta(), buildParamsPanel(), checkpointPayload(), clampVariantIndex(), closedClipPath(), commitAcceptedVariantToDom(), completeParameterGenerationIfReady() (+75 more)
 
-### Community 30 - "TemplatesPage.tsx"
+### Community 30 - "MedicalCentersPage.tsx"
 Cohesion: 0.13
-Nodes (14): LabelTemplatesTab(), BranchList, TemplateFormDialog(), variables, WaFields, AlertTemplatesTab(), BranchList, channelMeta (+6 more)
+Nodes (16): ActiveFilter, activeLabels, addressText(), CenterFilters, centerTypeOptions, emptyFilters, MedicalCenterList, MedicalCenterQuery (+8 more)
 
-### Community 31 - "zod"
-Cohesion: 0.07
-Nodes (24): zod, isValidPhone(), isValidRnc(), RNC_INPUT_MAX_LENGTH, AutomationSettingsFormValues, automationSettingsSchema, timeOfDay, BranchFormValues (+16 more)
+### Community 31 - "DoctorForm.tsx"
+Cohesion: 0.10
+Nodes (19): zod, useDialogDirty(), MultiSelect(), MultiSelectOption, PanelPosition, AddButton(), DoctorForm(), DoctorRecord (+11 more)
 
 ### Community 32 - "el"
 Cohesion: 0.07
 Nodes (57): actionLabel(), applyConfigureBarChrome(), bindConfigureCountPillTooltip(), bindConfigureInlineControlHover(), bindConfigureModifierPillHover(), buildConfigureActionControl(), buildConfigureCountControl(), buildConfigureRow() (+49 more)
 
 ### Community 33 - "modern-screenshot.umd.js"
-Cohesion: 0.09
-Nodes (55): ae(), be(), bt(), Ce(), s(), Ct(), de(), dt() (+47 more)
+Cohesion: 0.17
+Nodes (21): be(), Ct(), dt(), Et(), ft(), ht(), It(), J() (+13 more)
 
 ### Community 34 - "syncPageChatFocus"
 Cohesion: 0.09
 Nodes (49): armPageChatForTyping(), attachSteerFocusDebug(), attachSteerFocusGuard(), buildSteerProcessingDots(), buildSteerQueueHint(), clearSteerAwaitTimer(), clearSteerFocusRecoverTimer(), collapsePageChat() (+41 more)
 
 ### Community 35 - "CompanyDetailPage.tsx"
-Cohesion: 0.12
-Nodes (17): CompanyDetailPage, InfoFact(), BehaviorMenu(), BranchList, CompanyDetail, CompanyDetailPage(), activateCompany(), goTo() (+9 more)
+Cohesion: 0.19
+Nodes (12): CompanyDetailPage, BranchList, CompanyDetail, DEFAULT_PROPERTY_KEYS, PROPERTY_CATALOG, PROPERTY_GROUP_ORDER, PropertyDef, PropertyGroup (+4 more)
 
 ### Community 36 - "showToast"
 Cohesion: 0.09
@@ -312,43 +333,43 @@ Nodes (34): abandonForeignSession(), abandonSupersededGo(), applyOriginalAttrsTo
 
 ### Community 37 - "new-work.md"
 Cohesion: 0.06
-Nodes (28): Recommended Actions, Craft (deprecated alias), Monorepo notes, Opting out of the boot check, Step 1: Run the pass, Step 2: Act by severity, Step 3: Deprecated fields are binding, Step 4: Do not overclaim on truth drift (+20 more)
+Nodes (34): Assess Adaptation Challenge, Implement & Verify, Recommended Actions, Craft (deprecated alias), Monorepo notes, Opting out of the boot check, Step 1: Run the pass, Step 2: Act by severity (+26 more)
 
-### Community 38 - "PatientInfoPackPanel.tsx"
-Cohesion: 0.11
-Nodes (33): Do:, Do's and Don'ts, Don't:, ChipsPage, StatusLabel, statusLabels, StatusChip(), styles (+25 more)
+### Community 38 - "TreatmentsPage.tsx"
+Cohesion: 0.10
+Nodes (27): API_URL, ExportButton(), ExportEntity, ExportFilters, Format, BranchList, TableToolbarActions(), BranchList (+19 more)
 
 ### Community 39 - "scheduleAcceptCleanup"
 Cohesion: 0.31
 Nodes (11): acceptedDomAlreadyClean(), clearHandledWrapperReloadStamp(), deferredRecoverySuperseded(), ensureAcceptedDomClean(), findAcceptedRuntimeWrappers(), handledWrapperReloadKey(), reloadAfterMissingAcceptedDom(), restoreAcceptedDomFromSnapshot() (+3 more)
 
-### Community 40 - "generate.md"
-Cohesion: 0.15
-Nodes (11): Step 1: Parse the request, Step 2: Reuse the page, then start, Step 3: Generate, Step 4: Accept and close, append-arrays, append-string, Config drift, Consent prompt (use this phrasing) (+3 more)
+### Community 40 - "CompanyActivityPanel.tsx"
+Cohesion: 0.16
+Nodes (16): InfoCard(), TabItem, Tabs(), ActivityRow(), CompanyActivity, CompanyActivityCreateBody, CompanyActivityList, CompanyActivityPanel() (+8 more)
 
 ### Community 41 - "captureElementToBlob"
 Cohesion: 0.14
 Nodes (19): averageRgb01(), captureAndEmit(), captureElementFromRenderedAncestor(), captureElementToBlob(), compileShader(), cssColorToRgb01(), dominantRgb01(), findBackdropAncestor() (+11 more)
 
 ### Community 42 - "live.md"
-Cohesion: 0.08
-Nodes (22): Apply at system scale, Audit before choosing, Choose a strategy, Contrast and perception, Live-mode signature params, Verify, Visitor mode, Cleanup (+14 more)
+Cohesion: 0.06
+Nodes (33): Apply at system scale, Audit before choosing, Choose a strategy, Contrast and perception, Live-mode signature params, Verify, Visitor mode, Step 1: Parse the request (+25 more)
 
 ### Community 43 - "Design System: MAS CARE"
-Cohesion: 0.05
-Nodes (39): Accent / Alert, Buttons, Cards / Containers, Chips, Colors, Components, Design System: MAS CARE, Dialogs (+31 more)
+Cohesion: 0.08
+Nodes (24): Accent / Alert, Buttons, Cards / Containers, Chips, Colors, Components, Design System: MAS CARE, Dialogs (+16 more)
 
-### Community 44 - "MedicalSpecialtiesPage.tsx"
-Cohesion: 0.12
-Nodes (15): react-dom, MedicalSpecialtiesPage, FilterBarRow(), MoreBubble(), TruncatedText(), ActiveFilter, activeOptions, DEFAULT_ACTIVE (+7 more)
+### Community 44 - "CompanyDetailPage"
+Cohesion: 0.24
+Nodes (7): BehaviorMenu(), CompanyDetailPage(), activateCompany(), goTo(), openAddPatient(), loadVisibleProperties(), QuickAction()
 
 ### Community 45 - "initGlobalBar"
 Cohesion: 0.13
 Nodes (24): agentHasWorkInFlight(), agentStatusText(), barPaletteForTheme(), brandMarkSvg(), detectPageTheme(), ensureAgentPollTooltip(), ensureSpinKeyframes(), hideAgentPollTooltip() (+16 more)
 
-### Community 46 - "LabelEditor.tsx"
-Cohesion: 0.18
-Nodes (14): DEFAULT_LABEL_SIZE, EMPTY_VALUE_TEXT, LABEL_VARIABLE_GROUPS, LABEL_VARIABLE_LABELS, LabelValues, LabelVariableGroup, NewElementInput, displayNumber() (+6 more)
+### Community 46 - "TreatmentForm.tsx"
+Cohesion: 0.05
+Nodes (83): CoverageSection(), ReadOnlyValue(), NewDoctorButton(), decode(), DoseFrequencyRow(), encode(), MINUTES, TimePicker12h() (+75 more)
 
 ### Community 47 - "handleManualEditActivity"
 Cohesion: 0.19
@@ -363,16 +384,16 @@ Cohesion: 0.10
 Nodes (18): Core Rule, Decision Comps, Impeccable Asset Producer, Input Contract, Output Contract, Review handoff, The job, Act on the receipt (+10 more)
 
 ### Community 50 - "LabelEditor"
-Cohesion: 0.20
-Nodes (16): createElement(), isLabelVariableKey(), nextElementId(), LabelEditor(), addElement(), duplicateSelected(), onElementPointerDown(), onKeyDown() (+8 more)
+Cohesion: 0.19
+Nodes (17): createElement(), isLabelVariableKey(), nextElementId(), displayNumber(), LabelEditor(), addElement(), duplicateSelected(), onElementPointerDown() (+9 more)
 
 ### Community 51 - "The Toolkit"
 Cohesion: 0.10
 Nodes (20): Animate complex properties, Assess What "Extraordinary" Means Here, For data-heavy interfaces, For functional UI, For performance-critical UI, For visual/marketing surfaces, Implement with Discipline, Interact with the device (+12 more)
 
-### Community 52 - "router.tsx"
-Cohesion: 0.06
-Nodes (32): AccessPage, AutomationSettingsPage, BoardPage, DoctorDetailPage, ForgotPasswordPage, IncidentsPage, MedicalCentersPage, MenuPage (+24 more)
+### Community 52 - "CycleCard.tsx"
+Cohesion: 0.15
+Nodes (14): Do:, Do's and Don'ts, Don't:, StatusLabel, statusLabels, StatusChip(), styles, CycleCard() (+6 more)
 
 ### Community 53 - "createLiveBrowserDomHelpers"
 Cohesion: 0.16
@@ -383,24 +404,24 @@ Cohesion: 0.19
 Nodes (17): createLiveBrowserSessionState(), clearHandled(), clearScrollY(), clearSession(), isHandled(), loadSession(), markHandled(), nextCheckpointRevision() (+9 more)
 
 ### Community 55 - "MedicationForm.tsx"
-Cohesion: 0.10
-Nodes (33): GaugeProgress(), attachmentsFailedMessage(), createMedicationFromForm(), CardOverlay(), isImage(), Item, MedicationAttachments(), addFiles() (+25 more)
+Cohesion: 0.15
+Nodes (24): GaugeProgress(), CardOverlay(), isImage(), Item, MedicationAttachments(), addFiles(), RemovingGauge(), Thumb() (+16 more)
 
-### Community 56 - "TasksPage.tsx"
-Cohesion: 0.21
-Nodes (12): TasksPage, statusClasses(), TasksPage(), isTaskOverdue(), Task, taskDueLabel(), TaskFilter, taskFilterLabels (+4 more)
+### Community 56 - "MedicalCenterForm.tsx"
+Cohesion: 0.14
+Nodes (17): AddressMapDialog(), applyCoordinates(), AddressMapPicker(), AddressMapValue, componentValue(), DEFAULT_CENTER, fillFromGeocoderResult(), loadGoogleMapsLibraries() (+9 more)
 
 ### Community 57 - "actOnAgentTarget"
 Cohesion: 0.29
 Nodes (17): actOnAgentTarget(), agentTargetBusyReason(), agentTargetOverlayGone(), agentTargetTaken(), claimAgentTarget(), claimAndActOnAgentTarget(), declineAgentTargetBusy(), declineAgentTargetUnresolvable() (+9 more)
 
-### Community 58 - "TreatmentsPage.tsx"
-Cohesion: 0.11
-Nodes (20): BranchList, columns, contains(), derivedOptions, DerivedStatusFilter, DoctorPickerList, emptyFilters, lastPurchaseAt() (+12 more)
+### Community 58 - "Fase 2 web · Tablero Kanban, existencias e incidencias"
+Cohesion: 0.14
+Nodes (15): Accesibilidad, Cambios de API necesarios, Existencias, Fase 2 web · Tablero Kanban, existencias e incidencias, Incidencias, Nota de rendimiento (revisión manual), Permisos en UI (`useCan`), Puerta de salida (+7 more)
 
 ### Community 59 - "LabelSheet.tsx"
-Cohesion: 0.27
-Nodes (10): labelDims(), labelElementStyle(), labelElementText(), labelSizeChoice, LabelPrintDialog(), pickDefaultTemplate(), toDesign(), LabelPrint() (+2 more)
+Cohesion: 0.16
+Nodes (14): DEFAULT_LABEL_SIZE, EMPTY_VALUE_TEXT, LABEL_SIZES, LABEL_VARIABLE_GROUPS, LABEL_VARIABLE_LABELS, labelSizeChoice, LabelValues, LabelVariableGroup (+6 more)
 
 ### Community 60 - "animate.md"
 Cohesion: 0.12
@@ -414,33 +435,33 @@ Nodes (16): 1. Read the screenshot (if present), 2. Wrap the element, 3. Load th
 Cohesion: 0.13
 Nodes (14): 1. Accessibility (A11y), 2. Performance, 3. Theming, 4. Responsive Design, 5. Implementation Integrity (CRITICAL), Audit Health Score, Detailed Findings by Severity, Diagnostic Scan (+6 more)
 
-### Community 63 - "ThresholdsPage.tsx"
-Cohesion: 0.27
-Nodes (9): AutomationSettings, NoticeTimingCard(), Settings, ThresholdsPage(), NoticeTimingFormValues, noticeTimingSchema, ThresholdsFormValues, thresholdsSchema (+1 more)
+### Community 63 - "TasksPage.tsx"
+Cohesion: 0.14
+Nodes (22): TasksPage, DetailTab, Field(), TaskDetailDialog(), nowInput(), pad(), TaskRescheduleDialog(), statusClasses() (+14 more)
 
-### Community 64 - "PatientQuickCreateDialog.tsx"
-Cohesion: 0.42
-Nodes (6): createPatientFromForm(), buildPatientCreateBody(), PatientCreateResult, PatientQuickCreateDialog(), useAccessibleBranches(), PatientFormValues
+### Community 64 - "MedicalSpecialtiesPage.tsx"
+Cohesion: 0.14
+Nodes (14): Cloud(), MoreBubble(), OverflowTooltip(), TruncatedText(), ActiveFilter, activeOptions, DEFAULT_ACTIVE, emptyFilters (+6 more)
 
 ### Community 65 - "New visual work"
 Cohesion: 0.14
 Nodes (14): 1. Decide what is already true, 2. Ask what will change the work, 3. Choose the right amount of invention, 4. Commit the world, 5. Record the decision, 6. Build with full commitment, 7. Inspect and finish, Both paths (+6 more)
 
-### Community 66 - "bolder.md"
-Cohesion: 0.33
-Nodes (5): Before you finish, Scope is sovereign, The amplification, The skeleton test, Why it reads flat
+### Community 66 - "permissions.ts"
+Cohesion: 0.14
+Nodes (15): ConsolidatedDashboardPage, BranchFilter(), PrintHeader(), BranchRow, BranchRowCells(), ConsolidatedDashboardPage(), ConsolidatedResponse, CounterCell() (+7 more)
 
 ### Community 67 - "Scan mode (approach C: auto-extract, then confirm descriptive language)"
 Cohesion: 0.08
 Nodes (23): Component translation rules, Narrative mapping, Pitfalls, Scan mode (approach C: auto-extract, then confirm descriptive language), Schema, Seed mode, Step 1: Find the design assets, Step 1: Route through new-work's workshop (+15 more)
 
 ### Community 68 - "Skeleton"
-Cohesion: 0.08
-Nodes (64): recharts, ReportsIndexPage, Skeleton(), PanelSkeleton(), PatientDetailSkeleton(), DefinitionHelp(), API_URL, buildExportUrl() (+56 more)
+Cohesion: 0.20
+Nodes (29): Skeleton(), PanelSkeleton(), PatientDetailSkeleton(), DefinitionHelp(), API_URL, buildExportUrl(), ExportButton(), handleExport() (+21 more)
 
-### Community 69 - "BoardPage.tsx"
+### Community 69 - "IncidentsPage.tsx"
 Cohesion: 0.05
-Nodes (86): EmptyState(), appendColumnPage(), boardPath(), cloneBoard(), CycleExpectedOnResponse, CycleMoveResponse, fetchBoard(), fetchBoardColumn() (+78 more)
+Nodes (56): App(), router, DragHandle(), DragHandleProps, KanbanColumn, KanbanColumnView(), KanbanMove, SortableCard() (+48 more)
 
 ### Community 70 - "critique.md"
 Cohesion: 0.17
@@ -454,17 +475,17 @@ Nodes (11): Assess Current State, Code Simplification, Content Simplification, D
 Cohesion: 0.18
 Nodes (10): Accessibility Resilience, Assess Hardening Needs, Edge Cases & Boundary Conditions, Error Handling, Hardening Dimensions, Input Validation & Sanitization, Internationalization (i18n), Performance Resilience (+2 more)
 
-### Community 73 - "PatientPrintView.tsx"
-Cohesion: 0.17
-Nodes (15): printDialog(), conditionStatusLabels, ActivityList, CaregiverList, ConditionLink, DoctorLink, Fields(), PatientPrintView() (+7 more)
+### Community 73 - "BoardPage"
+Cohesion: 0.16
+Nodes (18): appendColumnPage(), cardById(), cloneBoard(), fetchBoardColumn(), insertCard(), lanesOf(), moveCardInBoard(), moveCycle() (+10 more)
 
 ### Community 74 - "Product"
 Cohesion: 0.17
 Nodes (11): Accessibility & Inclusion, Brand Commitments, Capabilities and Constraints, Evidence on Hand, Operating Context, Platform, Positioning, Product (+3 more)
 
-### Community 75 - "PropertiesPage.tsx"
-Cohesion: 0.11
-Nodes (28): PropertiesPage, CustomFields(), CustomPropertyFilter(), customPropertyGroups(), CustomValuesView(), Field(), toLocalInput(), Draft (+20 more)
+### Community 75 - "custom-properties-core.ts"
+Cohesion: 0.12
+Nodes (29): CustomFields(), CustomPropertyFilter(), customPropertyGroups(), CustomValuesView(), Field(), toLocalInput(), Draft, entityLabels (+21 more)
 
 ### Community 76 - "clarify.md"
 Cohesion: 0.18
@@ -475,8 +496,8 @@ Cohesion: 0.18
 Nodes (11): 10. Help and Documentation, 1. Visibility of System Status, 2. Match Between System and Real World, 3. User Control and Freedom, 4. Consistency and Standards, 5. Error Prevention, 6. Recognition Rather Than Recall, 7. Flexibility and Efficiency of Use (+3 more)
 
 ### Community 78 - "PatientsPage.tsx"
-Cohesion: 0.10
-Nodes (19): activeFilterCount(), ArchivedFilter, archivedOptions, BranchList, columnFilterCount(), columnSortField, contains(), dateFilterLabels (+11 more)
+Cohesion: 0.07
+Nodes (45): BranchTag(), StatusBadge(), createPatientFromForm(), PatientQuickCreateDialog(), activeFilterCount(), ArchivedFilter, archivedOptions, BranchList (+37 more)
 
 ### Community 79 - "polish.md"
 Cohesion: 0.18
@@ -490,9 +511,9 @@ Nodes (10): Assess Current State, Color Refinement, Composition Refinement, Moti
 Cohesion: 0.24
 Nodes (15): beginEditPin(), buildAnnotationsForCapture(), buildPinElement(), cancelEditingPin(), finalizeEditingPin(), initAnnotOverlay(), localCoords(), onAnnotDown() (+7 more)
 
-### Community 82 - "Persuade and Experience"
-Cohesion: 0.50
-Nodes (3): Comps, Directions, Persuade and Experience
+### Community 82 - "@tanstack/react-query"
+Cohesion: 0.12
+Nodes (14): @tanstack/react-query, @testing-library/react, vitest, counts, row, Call, baseProfile, changePassword (+6 more)
 
 ### Community 83 - "Generate Combined Critique Report"
 Cohesion: 0.20
@@ -510,17 +531,21 @@ Nodes (9): 1. The Wall of Options, 2. The Memory Bridge, 3. The Hidden Navigatio
 Cohesion: 0.22
 Nodes (9): Color & materials, Components & controls, iOS platform, Layout & structure, Motion, The iOS slop test, Touch targets, Typography (+1 more)
 
+### Community 88 - "BoardPage.tsx"
+Cohesion: 0.22
+Nodes (12): DateRange, DateRangeFilter(), pad(), Preset, presetRange(), PRESETS, toDateInput(), CycleOutcome (+4 more)
+
 ### Community 89 - "Shape"
 Cohesion: 0.22
 Nodes (8): Cadence, Confirm and stop, Phase 1: Discovery interview, Phase 2: Resolve the design direction, Phase 3: Write the brief, Round 1: purpose, people, and outcome, Round 2: material, behavior, and boundaries, Shape
 
-### Community 90 - "DoctorsPage.tsx"
-Cohesion: 0.08
-Nodes (36): DoctorsPage, PageHeader(), StatusDraftContext, StatusDraftProvider(), useStatusDraft(), StatusToggle(), Doctor, DoctorDetail (+28 more)
+### Community 90 - "CompaniesPage.tsx"
+Cohesion: 0.12
+Nodes (17): SearchField(), columnHeaders, CompaniesPage(), closeForm(), submit(), Company, CompanyFilters, CompanyList (+9 more)
 
 ### Community 91 - "xlsx-table.ts"
-Cohesion: 0.33
-Nodes (8): buildXlsx(), columnName(), crc32(), crcTable, downloadTableXlsx(), encoder, escapeXml(), zip()
+Cohesion: 0.36
+Nodes (7): buildXlsx(), columnName(), crc32(), crcTable, encoder, escapeXml(), zip()
 
 ### Community 92 - "Android platform"
 Cohesion: 0.25
@@ -534,21 +559,25 @@ Nodes (7): Audit Health Score, Detailed Findings by Severity, Executive Summary,
 Cohesion: 0.25
 Nodes (8): 1. Impatient Power User: "Alex", 2. Confused First-Timer: "Jordan", 3. Accessibility-Dependent User: "Sam", 4. Deliberate Stress Tester: "Riley", 5. Distracted Mobile User: "Casey", Persona-Based Design Testing, Project-Specific Personas, Selecting Personas
 
-### Community 95 - "MenuOrderTable.tsx"
-Cohesion: 0.24
-Nodes (14): @dnd-kit/core@^6.3.1, @dnd-kit/utilities@^3.2.2, @dnd-kit/core, @dnd-kit/utilities, ChildRow(), columns, DragHandle(), FixedRow() (+6 more)
+### Community 95 - "cn"
+Cohesion: 0.36
+Nodes (12): FilterSegmented(), ChildRow(), columns, DragHandle(), FixedRow(), Group(), ItemRow(), MenuOrderTable() (+4 more)
 
-### Community 96 - "CompaniesPage.tsx"
-Cohesion: 0.09
-Nodes (25): CompaniesPage, ExportEntity, ExportFilters, BranchList, TableToolbarActions(), columnHeaders, CompaniesPage(), closeForm() (+17 more)
+### Community 96 - "Tables & server pagination design system"
+Cohesion: 0.22
+Nodes (8): Board page layout tweaks that came with this pass, Branch-first ordering, Checklist for a new server-paged table, Footer layout: pagination left, page-size right, Frontend: `useQuery` with `page`/`rows` state, not `useInfiniteQuery`, Pagination contract (page + rows, not cursors), Tables & server pagination design system, Where the footer lives
 
-### Community 97 - "BranchesPage.tsx"
-Cohesion: 0.12
-Nodes (16): BranchesPage, addressFields, addressText(), addressValues(), ArchivedFilter, archivedOptions, BranchAddressDetails, BranchesPage() (+8 more)
+### Community 97 - "BoardFilters.tsx"
+Cohesion: 0.21
+Nodes (11): filterChipLabel, MedicationList, UserList, cycleColumnFilterCount(), CycleColumnFilters, emptyCycleColumnFilters, nextActionLabels, norm() (+3 more)
 
-### Community 99 - "SKILL.md"
-Cohesion: 0.07
-Nodes (23): Craft floor, Refuse, Verify, Extract Flow, Step 1: Discover the Design System, Step 2: Identify Patterns, Step 3: Plan Extraction, Step 4: Extract & Enrich (+15 more)
+### Community 98 - "LabelPrintDialog.tsx"
+Cohesion: 0.33
+Nodes (11): LabelDesign, labelDims(), labelElementStyle(), labelElementText(), LabelPrintDialog(), pickDefaultTemplate(), toDesign(), LabelPrint() (+3 more)
+
+### Community 99 - "Operate mode depth (and Read notes)"
+Cohesion: 0.10
+Nodes (18): Craft floor, Refuse, Verify, Constraints, Failure modes, Flow, /impeccable hooks, Routing (+10 more)
 
 ### Community 100 - "Impeccable Finish Reviewer"
 Cohesion: 0.29
@@ -558,9 +587,9 @@ Nodes (6): Checks, in order, Disposition, Impeccable Finish Reviewer, Input Cont
 Cohesion: 0.29
 Nodes (6): Checks, Entry Atomicity, Impeccable Manual Edit Applier, Input Contract, Output Contract, Workflow
 
-### Community 102 - "UsersPage.tsx"
-Cohesion: 0.12
-Nodes (20): UsersPage, RowActions(), MedicationPatientsDialog(), BranchesCell(), BranchList, emptyFilters, isUserActive(), queryString() (+12 more)
+### Community 102 - "TextField"
+Cohesion: 0.11
+Nodes (24): @hookform/resolvers, react-hook-form, useStatusDraftChanged(), TextField, emptyValues, MenuItemForm(), ParentOption, Props (+16 more)
 
 ### Community 103 - "Cognitive Load Assessment"
 Cohesion: 0.29
@@ -578,37 +607,41 @@ Nodes (6): Checks, Entry Atomicity, Impeccable Manual Edit Applier, Input Contra
 Cohesion: 0.52
 Nodes (6): globToRegex(), matchesScope(), normalizeIgnoreRule(), normalizeIgnoreValue(), pageCandidates(), resolveDetectIgnores()
 
-### Community 107 - "TaskFormDialog.tsx"
-Cohesion: 0.14
-Nodes (14): pad(), PatientList, TaskFormDialog(), TaskTreatmentOption, todayStartInput(), toLocalInput(), UserList, taskPriorities (+6 more)
+### Community 107 - "k"
+Cohesion: 0.26
+Nodes (12): ae(), er(), fe(), jt(), k(), Kt(), P(), tr() (+4 more)
 
 ### Community 108 - "Diagnostic Scan"
 Cohesion: 0.33
 Nodes (6): 1. Accessibility (VoiceOver / TalkBack), 2. Performance, 3. Appearance & Theming, 4. Platform Conformance (CRITICAL), 5. Adaptivity, Diagnostic Scan
 
-### Community 110 - "react-router-dom"
-Cohesion: 0.16
-Nodes (13): react-router-dom@^7.9.5, react-router-dom, NotFoundPage(), RequireAuth(), RequireRoute(), mockMe(), pacientes, renderAt() (+5 more)
+### Community 109 - "api"
+Cohesion: 0.07
+Nodes (46): Button, ForgotPasswordPage(), submit(), submit(), AutomationRule, AutomationRules(), EnrollAutomationButton(), paramField (+38 more)
 
-### Community 111 - "CompanyForm.tsx"
-Cohesion: 0.17
-Nodes (17): CompanyForm(), handleLogoFile(), submit(), imageFileToLogo(), Props, statusLabels, meResponse(), renderForm() (+9 more)
+### Community 110 - "RouteError.tsx"
+Cohesion: 0.53
+Nodes (4): chunkErrorHints, getCopy(), isChunkLoadError(), RouteError()
 
-### Community 112 - "api-types.ts"
-Cohesion: 0.06
-Nodes (68): Grouping content with `ModalSection`, @hookform/resolvers, react-hook-form, AddressMapPicker(), FormFields(), FormFooter(), ModalSection(), SectionsContext (+60 more)
+### Community 111 - "vite.config.ts"
+Cohesion: 0.33
+Nodes (4): @tailwindcss/vite@^4.1.16, @vitejs/plugin-react@^5.0.4, @tailwindcss/vite, @vitejs/plugin-react
 
-### Community 113 - "transfers.ts"
-Cohesion: 0.18
-Nodes (10): GlobalTransferList, PatientTransferList, Transfer, TransferGlobalRow, TransferHistoryRow, TransferInput, TransferListFilters, TransferPending (+2 more)
+### Community 112 - "CompanyForm.tsx"
+Cohesion: 0.15
+Nodes (16): CompanyForm(), handleLogoFile(), submit(), imageFileToLogo(), Props, statusLabels, CopyLinkButton(), LinkField() (+8 more)
+
+### Community 113 - "PatientDetailPage.tsx"
+Cohesion: 0.07
+Nodes (63): Ampliaciones recientes, react-router-dom, PropertiesDialog(), PropertyGroup, RecordAction, RecordActionsMenu(), PatientAutomationPanel(), useSetAutomationPaused() (+55 more)
 
 ### Community 114 - "Impeccable Documenter"
 Cohesion: 0.40
 Nodes (4): Impeccable Documenter, Input Contract, Output Contract, Workflow
 
-### Community 115 - "DeliveryDialog.tsx"
-Cohesion: 0.29
-Nodes (10): DeliveryDialog(), Pickup, pickupOptions, DeliveryResult, Treatment, formatDateOnly(), prescriptionState, todayDateOnly() (+2 more)
+### Community 115 - "TextField"
+Cohesion: 0.11
+Nodes (28): react, Option, OrganizationList, PasswordField, Props, Props, AccessPage(), submit() (+20 more)
 
 ### Community 116 - "Heuristics Scoring Guide"
 Cohesion: 0.50
@@ -618,67 +651,127 @@ Nodes (4): Heuristics Scoring Guide, Issue Severity (P0–P3), Reference Materia
 Cohesion: 0.40
 Nodes (4): Impeccable Documenter, Input Contract, Output Contract, Workflow
 
+### Community 118 - "patient.ts"
+Cohesion: 0.23
+Nodes (9): DOCUMENT_INPUT_MAX_LENGTH, isValidDocument(), birthDateField, birthDateRule(), documentField, documentRule(), patientCreateSchema, patientSchema (+1 more)
+
+### Community 119 - "Implement Adaptations"
+Cohesion: 0.33
+Nodes (6): Content Adaptation, Implement Adaptations, Layout Adaptation Techniques, Navigation Adaptation, Responsive Breakpoints, Touch Adaptation
+
+### Community 120 - "CycleTable.tsx"
+Cohesion: 0.19
+Nodes (17): matchesCycleColumnFilters(), columnSortField, CycleTable(), defaultColumnKeys, localDateOnly(), BoardFilters, isOpenCycle(), formatCustomValue() (+9 more)
+
 ### Community 121 - "RolesPage.tsx"
-Cohesion: 0.10
-Nodes (34): RolesPage, TransfersPage, DataTable(), Pagination(), AdvancedFilterDialog(), TableSkeleton(), distinctOptions(), emptyFilters (+26 more)
-
-### Community 122 - "PatientDetailPage.tsx"
 Cohesion: 0.08
-Nodes (27): lucide-react, PropertyGroup, RecordAction, NoticeDialog(), DoctorQuickCreateDialog(), buttonLabels, channelLabels, ConversationDialog() (+19 more)
+Nodes (39): DataTable(), Pagination(), TableSkeleton(), distinctOptions(), emptyFilters, kindOptions, roleColumns, RoleDto (+31 more)
 
-### Community 124 - "App.tsx"
+### Community 122 - "StagesPage.tsx"
+Cohesion: 0.32
+Nodes (10): StagePicker(), setup(), columnOfStatus(), defaultStageOfColumn(), effectiveStage(), Pipeline, pipelineQueryKey, PipelineStage (+2 more)
+
+### Community 124 - "createMedication.ts"
+Cohesion: 0.31
+Nodes (8): attachmentsFailedMessage(), createMedicationFromForm(), StagedAttachment, MedicationQuickCreateDialog(), setPrimaryMedicationAttachment(), uploadMedicationAttachment(), MedicationFormValues, medicationSchema
+
+### Community 125 - "L"
 Cohesion: 0.27
-Nodes (9): App(), router, ToastProvider(), clear(), Field, installRequiredHints(), isField(), onEdit() (+1 more)
+Nodes (10): bt(), Ce(), s(), Ee(), L(), l(), u(), Rt() (+2 more)
 
 ### Community 126 - "BoardFilters.tsx"
-Cohesion: 0.10
-Nodes (16): Active-filter chips (outside the dialog), Advanced filter design system, Body: field grid, Checklist for a new advanced-filter panel, Every field gets the same leading-icon badge, Footer, Header, Shared control class (+8 more)
+Cohesion: 0.13
+Nodes (11): Body: field grid, Every field gets the same leading-icon badge, Shared control class, BoardFilters(), branchLabel(), chipValue(), derivedLabel(), medicationLabel() (+3 more)
 
-### Community 129 - "AppLayout.tsx"
-Cohesion: 0.12
-Nodes (23): SidebarGroup(), SidebarLink(), SidebarNav(), fullAccess, GrantMap, setVisible(), Check(), MenuPermissionTree() (+15 more)
+### Community 127 - "RequireRoute.tsx"
+Cohesion: 0.31
+Nodes (7): NotFoundPage(), RequireRoute(), mockMe(), pacientes, renderAt(), isPathAllowed(), matches()
 
-### Community 131 - "Region map"
-Cohesion: 0.40
-Nodes (4): Containment, Painted material, Region map, What varies independently
+### Community 128 - "CompanyRelationsPanel.tsx"
+Cohesion: 0.14
+Nodes (18): CollapsibleSection(), CompanyContact, CompanyRelationsPanel(), ContactCard(), Deal, DealCard(), DealCreateBody, DealList (+10 more)
 
-### Community 134 - "Operate mode depth (and Read notes)"
+### Community 129 - "RoleForm.tsx"
 Cohesion: 0.22
-Nodes (9): Color, Components, Layout, Motion, Operate mode depth (and Read notes), Product constraints, Product permissions, The product slop test (+1 more)
+Nodes (11): fullAccess, GrantMap, setVisible(), Check(), MenuPermissionTree(), renderLeaf(), toggleGroup(), MenuItemDto (+3 more)
+
+### Community 130 - "adapt.md"
+Cohesion: 0.20
+Nodes (9): Assess Adaptation Challenge, Desktop Adaptation (Mobile → Desktop), Email Adaptation (Web → Email), Mobile Adaptation (Desktop → Mobile), Plan Adaptation Strategy, Print Adaptation (Screen → Print), Reference Material, Tablet Adaptation (Hybrid Approach) (+1 more)
+
+### Community 131 - "ReportChart.tsx"
+Cohesion: 0.47
+Nodes (4): recharts, ChartSeries, chartSeriesPalette, seriesColor()
+
+### Community 132 - "AppLayout.tsx"
+Cohesion: 0.18
+Nodes (15): Neutral, AppLayout(), devLink, linkClass(), SidebarGroup(), SidebarLink(), SidebarNav(), alwaysAllowedPaths (+7 more)
+
+### Community 133 - "MAS CARE Web"
+Cohesion: 0.22
+Nodes (7): Arranque local, Comandos, MAS CARE Web, Pantallas, Pendientes conocidos, Publicación, Requisitos
+
+### Community 134 - "SKILL.md"
+Cohesion: 0.10
+Nodes (15): Before you finish, Scope is sovereign, The amplification, The skeleton test, Why it reads flat, Extract Flow, Step 1: Discover the Design System, Step 2: Identify Patterns (+7 more)
+
+### Community 135 - "Responsive Design"
+Cohesion: 0.22
+Nodes (9): Detect Input Method, Not Just Screen Size, Layout Adaptation Patterns, Mobile-First: Write It Right, Picture Element for Art Direction, Responsive Design, Responsive Images: Get It Right, Safe Areas: Handle the Notch, srcset with Width Descriptors (+1 more)
 
 ### Community 136 - "LabelTemplateFormDialog.tsx"
 Cohesion: 0.15
-Nodes (20): Breakpoints: Content-Driven, Text Overflow & Wrapping, formatInches(), LABEL_SIZES, LabelDesign, LabelVariablePalette(), BranchList, clamp() (+12 more)
+Nodes (20): Breakpoints: Content-Driven, Text Overflow & Wrapping, formatInches(), LabelVariablePalette(), BranchList, clamp(), headerControl, LabelTemplateFormDialog() (+12 more)
 
-### Community 137 - "Responsive Design"
-Cohesion: 0.12
-Nodes (15): Assess Adaptation Challenge, Content Adaptation, Desktop Adaptation (Mobile → Desktop), Email Adaptation (Web → Email), Implement Adaptations, Layout Adaptation Techniques, Mobile Adaptation (Desktop → Mobile), Navigation Adaptation (+7 more)
+### Community 137 - "qt"
+Cohesion: 0.31
+Nodes (9): de(), Ie(), Lt(), Mt(), oe(), Ot(), qt(), Re() (+1 more)
 
-### Community 138 - "adapt.native.md"
-Cohesion: 0.25
-Nodes (7): Adaptation Strategies, Assess Adaptation Challenge, Implement & Verify, Orientation & foldables, Phone → Tablet (iPad / large screens), Platform → platform (iOS ↔ Android), Web → native (porting a website or web app)
+### Community 138 - "WorkspaceSelector"
+Cohesion: 0.38
+Nodes (5): normalize(), WorkspaceSelector(), activateOrganization(), renderOption(), selectWorkspace()
+
+### Community 139 - "CycleTable.test.tsx"
+Cohesion: 0.40
+Nodes (4): Call, card(), pipeline, setup()
+
+### Community 140 - "Adaptation Strategies"
+Cohesion: 0.40
+Nodes (5): Adaptation Strategies, Orientation & foldables, Phone → Tablet (iPad / large screens), Platform → platform (iOS ↔ Android), Web → native (porting a website or web app)
+
+### Community 141 - "q"
+Cohesion: 0.50
+Nodes (4): Filtros, _e(), Gt(), q()
 
 ### Community 142 - "Visualize: Direction Comps & Asset Production"
 Cohesion: 0.33
 Nodes (5): After approval: the comp becomes a spec, Generate three compositional options, One approval point, Plates and provenance, Visualize: Direction Comps & Asset Production
 
+### Community 143 - "Operate"
+Cohesion: 0.50
+Nodes (3): Comps, Directions, Operate
+
+### Community 146 - "Region map"
+Cohesion: 0.40
+Nodes (4): Containment, Painted material, Region map, What varies independently
+
 ## Knowledge Gaps
-- **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **6 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `components` connect `api-types.ts` to `IncidentsPage.tsx`, `AppLayout.tsx`, `api-types.ts`, `treatments.ts`, `PatientForm.tsx`, `cn`, `operations.ts`, `MedicationsPage.tsx`, `Button`, `CompanyRelationsPanel.tsx`, `HealthConditionsPage.tsx`, `api`, `useCan`, `TreatmentDetailPage.tsx`, `CompanyDetailPage.tsx`, `PatientInfoPackPanel.tsx`, `MedicalSpecialtiesPage.tsx`, `Impeccable Asset Producer`, `router.tsx`, `MedicationForm.tsx`, `ThresholdsPage.tsx`, `PatientQuickCreateDialog.tsx`, `Scan mode (approach C: auto-extract, then confirm descriptive language)`, `Skeleton`, `BoardPage.tsx`, `PatientsPage.tsx`, `DoctorsPage.tsx`, `CompaniesPage.tsx`, `BranchesPage.tsx`, `UsersPage.tsx`, `CompanyForm.tsx`, `transfers.ts`, `DeliveryDialog.tsx`, `RolesPage.tsx`, `PatientDetailPage.tsx`?**
-  _High betweenness centrality (0.432) - this node is a cross-community bridge._
+- **Why does `components` connect `PatientsPage.tsx` to `CompanyRelationsPanel.tsx`, `DeliveryDialog.tsx`, `operations.ts`, `@testing-library/user-event`, `Dialog`, `AppLayout.tsx`, `board.ts`, `DoctorsPage.tsx`, `ExportButton.test.tsx`, `MedicationForm.tsx`, `HealthConditionsPage.tsx`, `PatientForm.tsx`, `reports.ts`, `BranchesPage.tsx`, `lucide-react`, `MedicalCentersPage.tsx`, `DoctorForm.tsx`, `CompanyDetailPage.tsx`, `CompanyActivityPanel.tsx`, `TreatmentForm.tsx`, `Impeccable Asset Producer`, `MedicationForm.tsx`, `MedicalCenterForm.tsx`, `MedicalSpecialtiesPage.tsx`, `permissions.ts`, `Scan mode (approach C: auto-extract, then confirm descriptive language)`, `IncidentsPage.tsx`, `@tanstack/react-query`, `CompaniesPage.tsx`, `TextField`, `api`, `PatientDetailPage.tsx`, `TextField`, `RolesPage.tsx`, `createMedication.ts`?**
+  _High betweenness centrality (0.425) - this node is a cross-community bridge._
 - **Are the 6 inferred relationships involving `Dialog()` (e.g. with `Checklist for any new modal` and `Modal design system`) actually correct?**
   _`Dialog()` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **Should `setLiveState` be split into smaller, more focused modules?**
   _Cohesion score 0.09226594301221167 - nodes in this community are weakly interconnected._
-- **Why does `Pitfalls` connect `Scan mode (approach C: auto-extract, then confirm descriptive language)` to `api-types.ts`?**
-  _High betweenness centrality (0.423) - this node is a cross-community bridge._
-- **Should `IncidentsPage.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.05505279034690799 - nodes in this community are weakly interconnected._
-- **Why does `init()` connect `setLiveState` to `el`, `syncPageChatFocus`, `SKILL.md`, `new-work.md`, `generate.md`, `initGlobalBar`, `live-browser.js`, `handleManualEditActivity`, `onAnnotDown`, `Init flow`, `connectSSE`?**
-  _High betweenness centrality (0.310) - this node is a cross-community bridge._
+- **Why does `Pitfalls` connect `Scan mode (approach C: auto-extract, then confirm descriptive language)` to `PatientsPage.tsx`?**
+  _High betweenness centrality (0.416) - this node is a cross-community bridge._
 - **Should `operations.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.07816091954022988 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.04824561403508772 - nodes in this community are weakly interconnected._
+- **Why does `init()` connect `setLiveState` to `el`, `syncPageChatFocus`, `new-work.md`, `live.md`, `initGlobalBar`, `live-browser.js`, `handleManualEditActivity`, `onAnnotDown`, `Init flow`, `connectSSE`?**
+  _High betweenness centrality (0.307) - this node is a cross-community bridge._
+- **Should `@testing-library/user-event` be split into smaller, more focused modules?**
+  _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._

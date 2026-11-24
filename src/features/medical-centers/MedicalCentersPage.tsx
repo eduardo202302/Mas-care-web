@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -415,7 +416,7 @@ export default function MedicalCentersPage() {
             label="Estado del Centro"
             icon={<Activity className="size-4" />}
           >
-            <select
+            <Select
               aria-label="Estado del centro"
               value={filterDraft.isActive}
               onChange={(event) =>
@@ -429,10 +430,10 @@ export default function MedicalCentersPage() {
               <option value="true">Activos</option>
               <option value="false">Inactivos</option>
               <option value="all">Todos</option>
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="ID" icon={<Hash className="size-4" />}>
-            <select
+            <Select
               aria-label="ID del centro"
               value={filterDraft.id}
               onChange={(event) =>
@@ -446,10 +447,10 @@ export default function MedicalCentersPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Nombre" icon={<Building2 className="size-4" />}>
-            <select
+            <Select
               aria-label="Nombre del centro"
               value={filterDraft.name}
               onChange={(event) =>
@@ -463,10 +464,10 @@ export default function MedicalCentersPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Tipo" icon={<Landmark className="size-4" />}>
-            <select
+            <Select
               aria-label="Tipo de centro"
               value={filterDraft.centerType}
               onChange={(event) =>
@@ -483,10 +484,10 @@ export default function MedicalCentersPage() {
                   {label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Ubicación" icon={<MapPin className="size-4" />}>
-            <select
+            <Select
               aria-label="Ubicación del centro"
               value={filterDraft.location}
               onChange={(event) =>
@@ -500,7 +501,7 @@ export default function MedicalCentersPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
         </AdvancedFilterDialog>
       )}

@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Columns3, GripVertical, X } from 'lucide-react'
@@ -222,7 +223,7 @@ export function TableFilterPanel({
       {pipeline && (
         <label className="grid max-w-md gap-1 text-xs font-semibold">
           <span className="text-muted">Etapa</span>
-          <select
+          <Select
             aria-label="Filtrar por etapa"
             className={control}
             value={table.stage_id ?? ''}
@@ -236,7 +237,7 @@ export function TableFilterPanel({
                 {stage.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       )}
       <div className="max-w-md">
@@ -280,7 +281,7 @@ export function TableFilterPanel({
       {hasSets && (
         <label className="flex items-center gap-2 text-sm">
           Combinar asociaciones con
-          <select
+          <Select
             aria-label="Combinar con"
             className={control}
             value={table.match}
@@ -290,7 +291,7 @@ export function TableFilterPanel({
           >
             <option value="and">Y (todas)</option>
             <option value="or">O (cualquiera)</option>
-          </select>
+          </Select>
         </label>
       )}
     </section>
@@ -442,7 +443,7 @@ export function SavedViewsBar({
     <div className="flex flex-wrap items-center gap-2">
       <label className="flex items-center gap-1.5 text-sm">
         <span className="text-muted text-xs font-semibold">Vistas</span>
-        <select
+        <Select
           aria-label="Vistas"
           className={control}
           value={selected}
@@ -459,7 +460,7 @@ export function SavedViewsBar({
               {view.name}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
       <Button type="button" className="h-9" onClick={() => setSaving(true)}>
         Guardar Vista Actual
@@ -623,7 +624,7 @@ export function BatchBar({
         >
           <div className="grid gap-3">
             {action === 'assign_responsible' && (
-              <select
+              <Select
                 aria-label="Responsable"
                 className={control}
                 value={user}
@@ -635,20 +636,20 @@ export function BatchBar({
                     {u.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
             {action === 'change_stage' && (
-              <select
+              <Select
                 aria-label="Etapa destino"
                 className={control}
                 value={stage}
                 onChange={(e) => setStage(e.target.value)}
               >
-                <option value="to_notify">Por avisar</option>
+                <option value="to_notify">Creado</option>
                 <option value="notified">Avisado</option>
                 <option value="confirmed">Confirmado</option>
                 <option value="prepared">Preparado</option>
-              </select>
+              </Select>
             )}
             {action === 'create_tasks' && (
               <TextField

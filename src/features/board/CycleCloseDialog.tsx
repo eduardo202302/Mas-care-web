@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { PackageCheck, PackageOpen, ShoppingCart } from 'lucide-react'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
@@ -33,30 +33,15 @@ export function CycleCloseDialog({
 }) {
   const toast = useToast()
   const [origin, setOrigin] = useState<Origin>('ours')
-  const [quantity, setQuantity] = useState('')
+  // La cantidad se precarga con la que se planeó entregar en la reposición.
+  const [quantity, setQuantity] = useState(
+    String(Number(card.expected_quantity)),
+  )
   const [place, setPlace] = useState('')
   const [notes, setNotes] = useState('')
   const [date, setDate] = useState(todayDateOnly())
 
-  // El tratamiento trae la cantidad del ciclo para precargarla.
-  const treatment = useQuery({
-    queryKey: ['treatments', 'close-picker', card.treatment_id],
-    queryFn: () =>
-      api<{ quantityPerCycle: string }>(
-        `/api/v1/treatments/${encodeURIComponent(card.treatment_id)}`,
-      ),
-    enabled: Boolean(card.treatment_id),
-  })
-  // La cantidad se precarga con la del ciclo; sin esto el campo `required`
-  // bloquea el envío con la validación nativa del navegador.
-  useEffect(() => {
-    if (quantity) return
-    const suggested = treatment.data?.quantityPerCycle
-    if (suggested !== undefined) setQuantity(String(suggested))
-  }, [quantity, treatment.data?.quantityPerCycle])
-
-  const suggestedQuantity =
-    quantity || String(treatment.data?.quantityPerCycle ?? '')
+  const suggestedQuantity = quantity
 
   const deliver = useMutation({
     mutationFn: () =>

@@ -1,7 +1,6 @@
 import type { StatusLabel } from '@/components/status-labels'
 import type { components } from './api-types'
 import { api } from './http'
-import { todayDateOnly } from './prescription'
 import type { TreatmentSaveValues } from '@/schemas/treatment'
 
 export type Treatment = components['schemas']['Treatment']
@@ -115,6 +114,17 @@ export function formatQuantity(value: string | number): string {
     : String(value)
 }
 
+/** Cantidad entregada en unidades del medicamento, con su unidad de dosis: "5 cápsula". */
+export function deliveredQuantityLabel(
+  deliveredQuantity: string | number | null | undefined,
+  doseUnit?: string | null,
+): string {
+  if (deliveredQuantity == null) return ''
+  return [formatQuantity(deliveredQuantity), doseUnit?.trim()]
+    .filter(Boolean)
+    .join(' ')
+}
+
 export function coveragePreview(input: {
   quantityPerCycle: number
   dosePerIntake: number
@@ -131,46 +141,70 @@ export function coveragePreview(input: {
     input.quantityPerCycle <= 0
   )
     return null
-  const days = Math.floor(input.quantityPerCycle / units + 1e-9)
+  // La cobertura termina el día de la última toma (misma regla que el backend):
+  // days = días desde la primera toma hasta la última que cubre la cantidad.
+  const doses = Math.floor(input.quantityPerCycle / input.dosePerIntake + 1e-9)
+  const days =
+    doses < 1 ? 0 : Math.floor((doses - 1) / input.intakesPerDay + 1e-9)
   return {
     days,
     endOn: new Date(start.getTime() + days * 24 * 60 * 60 * 1000),
   }
 }
 
-/** Envases necesarios para cubrir desde el inicio hasta el fin (ambos inclusive). */
+/** Unidades del medicamento necesarias para cubrir desde el inicio hasta el fin (ambos inclusive). */
 export function suggestedDeliveredQuantity(input: {
   startDate: string
   endDate: string
   dosePerIntake: number
   dosesPerDay: number
-  unitsPerPackage: number
-}): { packages: number; days: number } | null {
+}): { units: number; days: number } | null {
   const start = parseDateOnly(input.startDate)
   const end = parseDateOnly(input.endDate)
   const unitsPerDay = input.dosePerIntake * input.dosesPerDay
-  if (
-    !start ||
-    !end ||
-    end < start ||
-    !Number.isFinite(unitsPerDay) ||
-    unitsPerDay <= 0 ||
-    !Number.isFinite(input.unitsPerPackage) ||
-    input.unitsPerPackage <= 0
-  )
+  if (!start || !end || end < start || !Number.isFinite(unitsPerDay))
     return null
+  if (unitsPerDay <= 0) return null
   const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1
-  const packages = Math.ceil((days * unitsPerDay) / input.unitsPerPackage - 1e-9)
-  return { packages: Math.max(1, packages), days }
+  const units = Math.ceil(days * unitsPerDay - 1e-9)
+  return { units: Math.max(1, units), days }
 }
 
-/** Descompone un total de días en años, meses y días legibles (p.ej. "4 años 1 mes 10 días"), omitiendo las unidades en cero. */
-export function formatDurationYMD(totalDays: number): string {
+const MS_PER_DAY = 86_400_000
+
+/** Suma meses de calendario; si el día no existe en el mes destino (31 → febrero) cae en su último día. */
+function addCalendarMonths(date: Date, months: number): Date {
+  const year = date.getUTCFullYear()
+  const month = date.getUTCMonth() + months
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
+  return new Date(Date.UTC(year, month, Math.min(date.getUTCDate(), lastDay)))
+}
+
+/**
+ * Descompone un total de días en años, meses y días de calendario (p.ej.
+ * "4 años 1 mes 10 días"), omitiendo las unidades en cero. Cada mes cuenta
+ * con sus días reales (28/29, 30 o 31). `from` es la fecha de inicio del
+ * periodo; sin ella el periodo termina hoy (tiempo transcurrido).
+ */
+export function formatDurationYMD(
+  totalDays: number,
+  from?: string | Date,
+): string {
   if (!Number.isFinite(totalDays) || totalDays <= 0) return '0 días'
-  const years = Math.floor(totalDays / 365)
-  const afterYears = totalDays % 365
-  const months = Math.floor(afterYears / 30)
-  const days = afterYears % 30
+  const now = new Date()
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+  const parsed = typeof from === 'string' ? parseDateOnly(from) : from
+  const start = parsed ?? new Date(today - totalDays * MS_PER_DAY)
+  const end = new Date(start.getTime() + totalDays * MS_PER_DAY)
+  let totalMonths =
+    (end.getUTCFullYear() - start.getUTCFullYear()) * 12 +
+    end.getUTCMonth() -
+    start.getUTCMonth()
+  if (addCalendarMonths(start, totalMonths) > end) totalMonths -= 1
+  const anchor = addCalendarMonths(start, totalMonths)
+  const years = Math.floor(totalMonths / 12)
+  const months = totalMonths % 12
+  const days = Math.round((end.getTime() - anchor.getTime()) / MS_PER_DAY)
   const parts: string[] = []
   if (years > 0) parts.push(`${years} ${years === 1 ? 'año' : 'años'}`)
   if (months > 0) parts.push(`${months} ${months === 1 ? 'mes' : 'meses'}`)
@@ -295,6 +329,34 @@ export const WEEKDAY_LABELS = [
   'Sábado',
 ] as const
 
+/**
+ * Cambio de dosis pedido desde una reposición: los mismos campos de texto que
+ * `POST /treatments/:id/dose-schedules` (sin la fecha de vigencia). Queda
+ * pendiente en la reposición y se aplica al tratamiento al marcarla entregada.
+ */
+export type PendingDoseChange = Record<string, string>
+
+/** Frecuencia de una programación a partir de sus campos de texto, para poder mostrarla. */
+export function frequencyFromFields(
+  fields: PendingDoseChange,
+): DoseScheduleFrequency {
+  const list = (value?: string) =>
+    value
+      ? value
+          .split(',')
+          .map((part) => part.trim())
+          .filter(Boolean)
+      : []
+  return {
+    frequencyType: (fields.frequency_type ?? 'daily') as DoseFrequencyType,
+    times: list(fields.times),
+    intervalHours: fields.interval_hours ? Number(fields.interval_hours) : null,
+    anchorAt: fields.anchor_at ?? null,
+    weekdays: list(fields.weekdays).map(Number),
+    monthdays: list(fields.monthdays).map(Number),
+  }
+}
+
 export const WEEKDAY_SHORT_LABELS = [
   'Dom',
   'Lun',
@@ -323,6 +385,7 @@ export function frequencyLabel(schedule: DoseScheduleFrequency): string {
     return days || 'Sin días'
   }
   if (schedule.frequencyType === 'monthly') {
+    if (isMonthEnd(schedule)) return 'Fin de mes'
     const days = sortedMonthdays(schedule)
     return days ? `Días ${days} de cada mes` : 'Sin días'
   }
@@ -422,7 +485,11 @@ export function frequencyColumns(schedule: DoseScheduleFrequency): {
   if (schedule.frequencyType === 'monthly') {
     const days = sortedMonthdays(schedule)
     return {
-      frequency: days ? `Los días ${days} de cada mes` : 'Días específicos',
+      frequency: isMonthEnd(schedule)
+        ? 'Fin de mes (último día de cada mes)'
+        : days
+          ? `Los días ${days} de cada mes`
+          : 'Días específicos',
       whenToTake: schedule.times.length
         ? schedule.times.map(to12Hour).join(', ')
         : '—',
@@ -469,7 +536,30 @@ export function computeDailyTimesFromInterval(
   return times.sort()
 }
 
-export type FrequencyMode = 'hours' | 'days' | 'weekday' | 'monthday'
+export type FrequencyMode =
+  'hours' | 'days' | 'weekday' | 'monthday' | 'monthend'
+
+/**
+ * "Fin de Mes" se guarda como el día 31 de un horario mensual: en los meses
+ * con menos días la toma cae en el último día (28, 29 o 30), así que no
+ * necesita un tipo de horario propio.
+ */
+export const MONTH_END_DAYS = [31]
+export const DEFAULT_DOSE_TIME = '08:00'
+
+const isMonthEnd = (schedule: { monthdays?: number[] }) =>
+  schedule.monthdays?.length === 1 && schedule.monthdays[0] === 31
+
+/** Hora para una toma nueva: la de por defecto si está libre; si no, la siguiente hora libre. */
+export function nextFreeDoseTime(taken: string[]): string {
+  const used = new Set(taken)
+  const [hour] = DEFAULT_DOSE_TIME.split(':').map(Number) as [number]
+  for (let step = 0; step < 24; step += 1) {
+    const candidate = `${String((hour + step) % 24).padStart(2, '0')}:00`
+    if (!used.has(candidate)) return candidate
+  }
+  return DEFAULT_DOSE_TIME
+}
 
 const AVERAGE_DAYS_PER_MONTH = 30.4375
 export const HOUR_PRESETS = ['4', '6', '8', '12', '24'] as const
@@ -496,9 +586,19 @@ export function defaultDoseFrequencyValue(): DoseFrequencyFormValue {
     customHours: '',
     daysPreset: '30',
     customDays: '',
-    startTime: '08:00',
+    startTime: DEFAULT_DOSE_TIME,
     weekdays: [],
     monthdays: [],
+    weekdayTimes: [DEFAULT_DOSE_TIME],
+  }
+}
+
+/** Alta de tratamiento: frecuencia y hora de toma sin elegir ("Selecciona"). */
+export function emptyDoseFrequencyValue(): DoseFrequencyFormValue {
+  return {
+    ...defaultDoseFrequencyValue(),
+    hoursPreset: '',
+    startTime: '',
     weekdayTimes: [''],
   }
 }
@@ -508,8 +608,14 @@ export function isDoseFrequencyValid(value: DoseFrequencyFormValue): boolean {
     return value.weekdays.length > 0 && value.weekdayTimes.some(Boolean)
   if (value.frequencyMode === 'monthday')
     return value.monthdays.length > 0 && value.weekdayTimes.some(Boolean)
+  if (value.frequencyMode === 'monthend')
+    return value.weekdayTimes.some(Boolean)
+  if (value.startTime === '') return false
   if (value.frequencyMode === 'hours')
-    return value.hoursPreset !== 'custom' || Number(value.customHours) > 0
+    return (
+      value.hoursPreset !== '' &&
+      (value.hoursPreset !== 'custom' || Number(value.customHours) > 0)
+    )
   return value.daysPreset !== 'custom' || Number(value.customDays) > 0
 }
 
@@ -538,6 +644,13 @@ export function buildDoseScheduleFields(
     return {
       frequency_type: 'monthly',
       monthdays: value.monthdays.join(','),
+      times: value.weekdayTimes.filter(Boolean).join(','),
+    }
+  }
+  if (value.frequencyMode === 'monthend') {
+    return {
+      frequency_type: 'monthly',
+      monthdays: MONTH_END_DAYS.join(','),
       times: value.weekdayTimes.filter(Boolean).join(','),
     }
   }
@@ -624,6 +737,10 @@ export function dosesPerDayFromFrequency(
       ? (timesPerDay * activeDays) / AVERAGE_DAYS_PER_MONTH
       : 0
   }
+  if (value.frequencyMode === 'monthend') {
+    const timesPerDay = Math.max(1, value.weekdayTimes.filter(Boolean).length)
+    return timesPerDay / AVERAGE_DAYS_PER_MONTH
+  }
   if (value.frequencyMode === 'days') {
     const days = Number(
       value.daysPreset === 'custom' ? value.customDays : value.daysPreset,
@@ -651,7 +768,7 @@ export function loadDoseFrequencyFromSchedule(
   if (schedule.frequencyType === 'monthly') {
     return {
       ...defaultDoseFrequencyValue(),
-      frequencyMode: 'monthday',
+      frequencyMode: isMonthEnd(schedule) ? 'monthend' : 'monthday',
       monthdays: schedule.monthdays ?? [],
       weekdayTimes: schedule.times.length ? schedule.times : ['00:00'],
     }
@@ -698,15 +815,22 @@ export function loadDoseFrequencyFromSchedule(
 /**
  * Crea un tratamiento desde los valores de `TreatmentForm`: el tratamiento, la
  * receta adjunta y su primer horario de dosis (que nunca requiere autorización,
- * porque todavía no existe uno activo que se esté cambiando).
+ * porque todavía no existe uno activo que se esté cambiando). Su primera
+ * reposición queda en la etapa "Creado" del tablero, sin entrega registrada.
  */
 export async function createTreatmentFromForm(
   patientId: string,
   values: TreatmentSaveValues,
   prescriptionGroupId?: string,
+  /** Fecha de venta de su primera reposición. */
+  expectedOn?: string,
+  /** Con `false` se crea solo el tratamiento, sin su primera reposición. */
+  withCycle = true,
 ): Promise<Treatment> {
   const body = {
     patient_id: patientId,
+    ...(expectedOn ? { expected_on: expectedOn } : {}),
+    ...(withCycle ? {} : { create_cycle: false }),
     name: values.name?.trim() || null,
     medication_id: values.medicationId,
     branch_id: values.branchId,
@@ -744,32 +868,7 @@ export async function createTreatmentFromForm(
       { method: 'POST', body: form },
     )
   }
-  await markFirstCycleDelivered(created.id, values)
   return created
-}
-
-/**
- * Un tratamiento nuevo se registra con su primera entrega hecha: el ciclo
- * inicial queda en "Entregado" del tablero y se abre el siguiente. Si falla,
- * el tratamiento ya existe y no debe recrearse, así que no corta el alta.
- */
-async function markFirstCycleDelivered(
-  treatmentId: string,
-  values: TreatmentSaveValues,
-) {
-  try {
-    await api(`/api/v1/treatments/${encodeURIComponent(treatmentId)}/deliver`, {
-      method: 'POST',
-      body: JSON.stringify({
-        quantity: Number(values.quantityPerCycle) * (values.deliveredQuantity ?? 1),
-        delivered_on: todayDateOnly(),
-        picked_up_by: 'patient',
-        open_next_cycle: false,
-      }),
-    })
-  } catch (error) {
-    console.warn('No se pudo marcar la primera entrega', error)
-  }
 }
 
 /** Guarda los cambios de `TreatmentForm` sobre un tratamiento existente y sube la receta adjunta. */

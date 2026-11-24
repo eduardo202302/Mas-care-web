@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import type { ReactNode } from 'react'
 import {
   formatCustomValue,
@@ -89,7 +90,7 @@ function Field({
       )
     case 'select':
       return (
-        <select
+        <Select
           id={id}
           className={control}
           value={(value as string) ?? ''}
@@ -101,7 +102,7 @@ function Field({
               {option}
             </option>
           ))}
-        </select>
+        </Select>
       )
     case 'multiselect': {
       const selected = Array.isArray(value) ? (value as string[]) : []
@@ -273,7 +274,7 @@ export function CustomPropertyFilter({
         Propiedad personalizada
       </legend>
       <div className="flex gap-1">
-        <select
+        <Select
           aria-label="Propiedad personalizada"
           className={box}
           value={propertyKey ?? ''}
@@ -290,10 +291,10 @@ export function CustomPropertyFilter({
               {item.label}
             </option>
           ))}
-        </select>
+        </Select>
         {def &&
           (def.type === 'select' || def.type === 'multiselect' ? (
-            <select
+            <Select
               aria-label="Valor de la propiedad"
               className={box}
               value={value ?? ''}
@@ -305,9 +306,9 @@ export function CustomPropertyFilter({
                   {option}
                 </option>
               ))}
-            </select>
+            </Select>
           ) : def.type === 'checkbox' ? (
-            <select
+            <Select
               aria-label="Valor de la propiedad"
               className={box}
               value={value ?? ''}
@@ -316,7 +317,7 @@ export function CustomPropertyFilter({
               <option value="">Elige un valor</option>
               <option value="true">Sí</option>
               <option value="false">No</option>
-            </select>
+            </Select>
           ) : (
             <input
               aria-label="Valor de la propiedad"

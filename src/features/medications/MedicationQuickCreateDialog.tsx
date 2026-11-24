@@ -39,6 +39,7 @@ export function MedicationQuickCreateDialog({
       icon={<Pill className="size-5" />}
       compactHeader
       bodyClassName="pt-3"
+      panelClassName="max-w-2xl"
       onClose={onClose}
     >
       <MedicationForm

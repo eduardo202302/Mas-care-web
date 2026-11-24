@@ -3,6 +3,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { BoardCard } from '@/lib/board'
+import { chooseOption, nativeSelectOf } from '@/test/select'
 import { StagePicker } from './StagePicker'
 
 afterEach(() => {
@@ -60,8 +61,8 @@ function setup(card: object, canMove = true) {
 it('shows the cycle stage (default when none) and files it in another stage of the same column', async () => {
   const calls = setup({ cycle_id: 'c1', status: 'confirmed', stage_id: null })
   const select = await screen.findByLabelText('Etapa del ciclo')
-  expect(select).toHaveValue('a')
-  await userEvent.setup().selectOptions(select, 'b')
+  expect(nativeSelectOf(select)).toHaveValue('a')
+  await chooseOption(userEvent.setup(), select, 'b')
   await waitFor(() =>
     expect(calls.find((call) => call.method === 'PATCH')?.body).toEqual({
       stage_id: 'b',

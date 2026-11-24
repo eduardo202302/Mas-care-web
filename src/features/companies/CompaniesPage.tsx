@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -400,7 +401,7 @@ export default function CompaniesPage() {
             label="Estado de la Compañía"
             icon={<Activity className="size-4" />}
           >
-            <select
+            <Select
               aria-label="Estado de la compañía"
               value={filterDraft.status}
               onChange={(event) =>
@@ -416,11 +417,11 @@ export default function CompaniesPage() {
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           {textFilters.map(({ key, label, icon }) => (
             <FilterField key={key} label={label} icon={icon}>
-              <select
+              <Select
                 aria-label={label}
                 value={filterDraft[key]}
                 onChange={(event) =>
@@ -434,7 +435,7 @@ export default function CompaniesPage() {
                     {value}
                   </option>
                 ))}
-              </select>
+              </Select>
             </FilterField>
           ))}
         </AdvancedFilterDialog>

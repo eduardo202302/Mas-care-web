@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -536,7 +537,7 @@ export default function DoctorDetailPage() {
                 >
                   Especialidad
                 </label>
-                <select
+                <Select
                   id="specialty-select"
                   required
                   value={selectedSpecialtyId}
@@ -551,7 +552,7 @@ export default function DoctorDetailPage() {
                       {specialty.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
             </ModalSection>
             {addSpecialty.isError && (
@@ -610,7 +611,7 @@ export default function DoctorDetailPage() {
                 >
                   Centro médico
                 </label>
-                <select
+                <Select
                   id="center-select"
                   required
                   value={centerForm.medicalCenterId}
@@ -628,7 +629,7 @@ export default function DoctorDetailPage() {
                       {center.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <TextField

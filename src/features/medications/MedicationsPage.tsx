@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -468,7 +469,7 @@ export default function MedicationsPage() {
           }}
         >
           <FilterField label="Estado" icon={<ToggleRight className="size-4" />}>
-            <select
+            <Select
               aria-label="Estado"
               value={filterDraft.archived}
               onChange={(event) =>
@@ -484,10 +485,10 @@ export default function MedicationsPage() {
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="ID" icon={<Hash className="size-4" />}>
-            <select
+            <Select
               aria-label="ID del medicamento"
               value={filterDraft.id}
               onChange={(event) =>
@@ -504,10 +505,10 @@ export default function MedicationsPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Medicamento" icon={<Pill className="size-4" />}>
-            <select
+            <Select
               aria-label="Nombre del medicamento"
               value={filterDraft.name}
               onChange={(event) =>
@@ -524,13 +525,13 @@ export default function MedicationsPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField
             label="Principio activo"
             icon={<FlaskConical className="size-4" />}
           >
-            <select
+            <Select
               aria-label="Principio activo"
               value={filterDraft.ingredient}
               onChange={(event) =>
@@ -552,13 +553,13 @@ export default function MedicationsPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField
             label="Presentación"
             icon={<Package className="size-4" />}
           >
-            <select
+            <Select
               aria-label="Presentación"
               value={filterDraft.presentation}
               onChange={(event) =>
@@ -578,10 +579,10 @@ export default function MedicationsPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Contenido" icon={<Package className="size-4" />}>
-            <select
+            <Select
               aria-label="Contenido por envase"
               value={filterDraft.content}
               onChange={(event) =>
@@ -601,7 +602,7 @@ export default function MedicationsPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
         </AdvancedFilterDialog>
       )}
@@ -691,6 +692,7 @@ export default function MedicationsPage() {
             icon={<Pill className="size-5" />}
             compactHeader
             bodyClassName="pt-3"
+            panelClassName="max-w-2xl"
             onClose={closeForm}
             headerAction={
               editing && canUpdate ? (

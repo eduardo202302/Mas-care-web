@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -371,7 +372,7 @@ export default function RolesPage() {
           }}
         >
           <FilterField label="Estado" icon={<Activity className="size-4" />}>
-            <select
+            <Select
               aria-label="Estado del rol"
               value={filterDraft.state}
               onChange={(event) =>
@@ -387,10 +388,10 @@ export default function RolesPage() {
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Tipo" icon={<ShieldCheck className="size-4" />}>
-            <select
+            <Select
               aria-label="Tipo de rol"
               value={filterDraft.kind}
               onChange={(event) =>
@@ -406,10 +407,10 @@ export default function RolesPage() {
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="ID" icon={<Hash className="size-4" />}>
-            <select
+            <Select
               aria-label="ID del rol"
               value={filterDraft.id}
               onChange={(event) =>
@@ -426,10 +427,10 @@ export default function RolesPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField label="Nombre" icon={<ShieldCheck className="size-4" />}>
-            <select
+            <Select
               aria-label="Nombre del rol"
               value={filterDraft.name}
               onChange={(event) =>
@@ -446,13 +447,13 @@ export default function RolesPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
           <FilterField
             label="Descripción"
             icon={<FileText className="size-4" />}
           >
-            <select
+            <Select
               aria-label="Descripción del rol"
               value={filterDraft.description}
               onChange={(event) =>
@@ -472,7 +473,7 @@ export default function RolesPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           </FilterField>
         </AdvancedFilterDialog>
       )}

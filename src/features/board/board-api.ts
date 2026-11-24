@@ -1,13 +1,14 @@
 import type { paths } from '@/lib/api-types'
 import { api } from '@/lib/http'
 import {
-  boardColumns,
   boardFiltersToSearch,
+  statusOfLane,
   type BoardCard,
   type BoardColumnData,
   type BoardColumnKey,
   type BoardData,
   type BoardFilters,
+  type BoardLaneKey,
   type BoardListResponse,
 } from '@/lib/board'
 
@@ -29,7 +30,7 @@ export function fetchBoard(filters: BoardFilters): Promise<BoardData> {
 }
 
 export function fetchBoardColumn(
-  status: BoardColumnKey,
+  status: BoardLaneKey,
   filters: BoardFilters,
   cursor?: string | null,
   limit = 30,
@@ -46,6 +47,7 @@ export function moveCycle(
   cycleId: string,
   input: {
     to_status: BoardCard['status']
+    stage_id?: string | null
     after_id?: string | null
     before_id?: string | null
     expected_version: number
@@ -68,6 +70,23 @@ export function changeExpectedOn(
   )
 }
 
+export function editCycle(
+  cycleId: string,
+  input: {
+    expected_version: number
+    expected_on?: string
+    expected_quantity?: number
+    priority?: 'low' | 'medium' | 'high' | 'urgent' | null
+    type?: 'regular' | 'urgent' | 'special' | null
+    reason?: string
+  },
+): Promise<BoardCard> {
+  return api<BoardCard>(`/api/v1/cycles/${encodeURIComponent(cycleId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  })
+}
+
 export function setStockMark(
   branchId: string,
   medicationId: string,
@@ -79,16 +98,18 @@ export function setStockMark(
   )
 }
 
+const lanesOf = (data: BoardData) => Object.keys(data.columns) as BoardLaneKey[]
+
 export function cloneBoard(data: BoardData): BoardData {
-  const columns = {} as Record<BoardColumnKey, BoardColumnData>
-  for (const key of boardColumns) {
-    const column = data.columns[key]
+  const columns = {} as Record<BoardLaneKey, BoardColumnData>
+  for (const key of lanesOf(data)) {
+    const column = data.columns[key]!
     columns[key] = {
       ...column,
       cards: [...column.cards],
     }
   }
-  return { ...data, columns }
+  return { ...data, columns } as BoardData
 }
 
 export function insertCard(
@@ -113,56 +134,64 @@ export function insertCard(
 export function moveCardInBoard(
   previous: BoardData,
   card: BoardCard,
-  to: BoardColumnKey,
+  to: BoardLaneKey,
   afterId: string | null,
   beforeId: string | null,
+  stageId?: string | null,
 ): BoardData {
   const data = cloneBoard(previous)
-  let from: BoardColumnKey | null = null
-  for (const key of boardColumns) {
-    if (
-      data.columns[key].cards.some((item) => item.cycle_id === card.cycle_id)
-    ) {
+  const columns = data.columns as Record<BoardLaneKey, BoardColumnData>
+  let from: BoardLaneKey | null = null
+  for (const key of lanesOf(data)) {
+    if (columns[key].cards.some((item) => item.cycle_id === card.cycle_id)) {
       from = key
       break
     }
   }
   const sameColumn = from === to
   if (from) {
-    data.columns[from] = {
-      ...data.columns[from],
-      cards: data.columns[from].cards.filter(
+    columns[from] = {
+      ...columns[from],
+      cards: columns[from].cards.filter(
         (item) => item.cycle_id !== card.cycle_id,
       ),
       count: sameColumn
-        ? data.columns[from].count
-        : Math.max(0, data.columns[from].count - 1),
+        ? columns[from].count
+        : Math.max(0, columns[from].count - 1),
     }
   }
-  data.columns[to] = {
-    ...data.columns[to],
+  columns[to] = {
+    ...columns[to],
     cards: insertCard(
-      data.columns[to].cards,
-      { ...card, status: to === 'closed' ? card.status : to },
+      columns[to].cards,
+      {
+        ...card,
+        status:
+          to === 'closed'
+            ? card.status
+            : (statusOfLane(to) as Exclude<BoardColumnKey, 'closed'>),
+        ...(stageId !== undefined ? { stage_id: stageId } : {}),
+      },
       afterId,
       beforeId,
     ),
-    count: sameColumn ? data.columns[to].count : data.columns[to].count + 1,
+    count: sameColumn ? columns[to].count : columns[to].count + 1,
   }
   return data
 }
 
 export function appendColumnPage(
   previous: BoardData,
-  status: BoardColumnKey,
+  status: BoardLaneKey,
   page: BoardListResponse,
 ): BoardData {
   const data = cloneBoard(previous)
-  const seen = new Set(data.columns[status].cards.map((item) => item.cycle_id))
+  const columns = data.columns as Record<BoardLaneKey, BoardColumnData>
+  const seen = new Set(columns[status].cards.map((item) => item.cycle_id))
   const cards = page.data.filter((item) => !seen.has(item.cycle_id))
-  data.columns[status] = {
-    ...data.columns[status],
-    cards: [...data.columns[status].cards, ...cards],
+  columns[status] = {
+    ...columns[status],
+    cards: [...columns[status].cards, ...cards],
     next_cursor: page.next_cursor,
   }
   return data
@@ -173,8 +202,8 @@ export function cardById(
   cycleId: string,
 ): BoardCard | undefined {
   if (!data) return undefined
-  for (const key of boardColumns) {
-    const card = data.columns[key].cards.find(
+  for (const key of lanesOf(data)) {
+    const card = data.columns[key]!.cards.find(
       (item) => item.cycle_id === cycleId,
     )
     if (card) return card

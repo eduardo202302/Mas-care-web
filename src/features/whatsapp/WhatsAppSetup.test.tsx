@@ -1,3 +1,4 @@
+import { chooseOption } from '@/test/select'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   cleanup,
@@ -197,12 +198,14 @@ describe('TemplateFormDialog: WhatsApp and Telegram fields', () => {
         dialog.getByLabelText(/^Nombre Registrado en Meta/),
         'aviso_reposicion',
       )
-      await user.selectOptions(
+      await chooseOption(
+        user,
         dialog.getByLabelText(/^Estado en Meta/),
         'approved',
       )
-      await user.selectOptions(dialog.getByLabelText(/^Categoría/), 'utility')
-      await user.selectOptions(
+      await chooseOption(user, dialog.getByLabelText(/^Categoría/), 'utility')
+      await chooseOption(
+        user,
         dialog.getByLabelText(/^Aviso Automático al que Corresponde/),
         '2',
       )
@@ -226,7 +229,8 @@ describe('TemplateFormDialog: WhatsApp and Telegram fields', () => {
 
   it('blocks saving an approved template without the name registered in Meta', async () => {
     const calls = await save(async (user, dialog) => {
-      await user.selectOptions(
+      await chooseOption(
+        user,
         dialog.getByLabelText(/^Estado en Meta/),
         'approved',
       )
@@ -246,7 +250,7 @@ describe('TemplateFormDialog: WhatsApp and Telegram fields', () => {
 
   it('shows no Meta fields for Telegram and sends no Meta data', async () => {
     const calls = await save(async (user, dialog) => {
-      await user.selectOptions(dialog.getByLabelText(/^Canal/), 'telegram')
+      await chooseOption(user, dialog.getByLabelText(/^Canal/), 'telegram')
       expect(
         dialog.queryByLabelText(/^Nombre Registrado en Meta/),
       ).not.toBeInTheDocument()

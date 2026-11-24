@@ -1,3 +1,4 @@
+import { Select } from '@/components/ui/Select'
 import { useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowRightLeft, PackageCheck, TriangleAlert } from 'lucide-react'
@@ -149,7 +150,7 @@ export function TransferDialog({
             <span className="text-ink text-sm font-medium after:ml-0.5 after:text-red-600 after:content-['*']">
               Sucursal Destino
             </span>
-            <select
+            <Select
               value={toBranchId}
               onChange={(event) => setToBranchId(event.target.value)}
               required
@@ -163,7 +164,7 @@ export function TransferDialog({
                   {branch.name}
                 </option>
               ))}
-            </select>
+            </Select>
             {destinations.length === 0 && (
               <p className="text-xs text-red-700">
                 No hay otra sucursal activa disponible para trasladar a este
